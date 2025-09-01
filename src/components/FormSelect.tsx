@@ -21,8 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Control } from "react-hook-form";
 import { useState } from "react";
+import type { Control } from "react-hook-form";
 
 interface Option {
   label: string;
@@ -36,6 +36,7 @@ interface FormSelectProps {
   placeholder?: string;
   options: Option[];
   control: Control<any>;
+  disabled?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -46,6 +47,7 @@ export function FormSelect({
   placeholder,
   options,
   control,
+  disabled = false,
   onChange,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
@@ -70,6 +72,7 @@ export function FormSelect({
                   <Button
                     variant="input"
                     role="combobox"
+                    disabled={disabled}
                     className={cn(
                       "w-full justify-between min-h-8 border border-primary bg-transparent hover:bg-transparent truncate",
                       !field.value && "text-muted-foreground"

@@ -1,14 +1,15 @@
 import { api } from "@/lib/config";
-import type {
-  getTypeUserProps,
-  TypeUserResource,
-  TypeUserResourceById,
-  TypeUserResponse,
+import {
+  TYPE_USER,
+  type getTypeUserProps,
+  type TypeUserResource,
+  type TypeUserResourceById,
+  type TypeUserResponse,
 } from "./typeUser.interface";
 import type { AxiosRequestConfig } from "axios";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
-const ENDPOINT = "tipo-usuarios";
+const { ENDPOINT } = TYPE_USER;
 
 export async function getTypeUser({
   params,

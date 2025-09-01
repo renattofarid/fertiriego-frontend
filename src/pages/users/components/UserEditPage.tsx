@@ -14,8 +14,8 @@ import { GeneralModal } from "@/components/GeneralModal";
 import { useUser, useUsers } from "../lib/User.hook";
 import { useUserStore } from "../lib/Users.store";
 import { UserForm } from "./UserForm";
-import type { UserSchema } from "../lib/User.schema";
-import { USER, type UserResource } from "../lib/User.interface";
+import { USER } from "../lib/User.interface";
+import type { UserUpdateSchema } from "../lib/User.schema";
 
 const { TITLES, MODEL } = USER;
 
@@ -34,7 +34,7 @@ export default function UserEditPage({
   const { refetch } = useUsers();
   const { isSubmitting, updateUser } = useUserStore();
 
-  const handleSubmit = async (data: UserSchema) => {
+  const handleSubmit = async (data: UserUpdateSchema) => {
     await updateUser(id, data)
       .then(() => {
         setOpen(false);
@@ -46,12 +46,12 @@ export default function UserEditPage({
       });
   };
 
-  const mapUserToForm = (data: UserResource): Partial<UserSchema> => ({
-    nombres: data.nombres,
-    apellidos: data.apellidos,
-    usuario: data.usuario,
-    tipo_usuario_id: data.tipo_usuario_id,
-    password: data.password,
+  const mapUserToForm = (data: any): Partial<UserUpdateSchema> => ({
+    rol_id: data.rol_id?.toString(),
+    username: data.username,
+    email: data.email,
+    phone: data.phone,
+    address: data.address,
   });
 
   if (!isFinding && !User) return <NotFound />;
@@ -64,7 +64,7 @@ export default function UserEditPage({
       }}
       title={TITLES.update.title}
       subtitle={TITLES.update.subtitle}
-      maxWidth="max-w-(--breakpoint-sm)"
+      maxWidth="!max-w-(--breakpoint-md)"
     >
       {isFinding || !User ? (
         <FormSkeleton />

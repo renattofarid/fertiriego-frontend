@@ -12,8 +12,8 @@ import { useUserStore } from "../lib/Users.store";
 import { useUsers } from "../lib/User.hook";
 import { UserForm } from "./UserForm";
 import { Plus } from "lucide-react";
-import type { UserSchema } from "../lib/User.schema";
 import { USER } from "../lib/User.interface";
+import type { UserCreateSchema } from "../lib/User.schema";
 
 const { TITLES, MODEL } = USER;
 
@@ -22,7 +22,7 @@ export default function UserAddPage() {
   const { isSubmitting, createUser } = useUserStore();
   const { refetch } = useUsers();
 
-  const handleSubmit = async (data: UserSchema) => {
+  const handleSubmit = async (data: UserCreateSchema) => {
     await createUser(data)
       .then(() => {
         setOpen(false);
@@ -53,7 +53,7 @@ export default function UserAddPage() {
         maxWidth="!max-w-(--breakpoint-md)"
       >
         <UserForm
-          defaultValues={{ usuario: "" }}
+          defaultValues={{ username: "", email: "", phone: "", address: "" }}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="create"

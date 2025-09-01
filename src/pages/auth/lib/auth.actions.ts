@@ -4,7 +4,7 @@ import type { AuthResponse } from "./auth.interface";
 
 // Define el tipo para los datos de inicio de sesión
 export interface LoginBody {
-  usuario: string;
+  username: string;
   password: string;
 }
 
@@ -15,8 +15,8 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
 
     const { setToken, setUser } = useAuthStore.getState();
 
-    setToken(data.access_token);
-    setUser(data.usuario);
+    setToken(data.token);
+    setUser(data.user);
 
     return data;
   } catch (error) {
@@ -30,7 +30,7 @@ export async function authenticate(): Promise<AuthResponse> {
     const { data } = await api.get<AuthResponse>("/authenticate");
     const { setUser } = useAuthStore.getState();
 
-    setUser(data.usuario);
+    setUser(data.user);
 
     return data;
   } catch (error) {

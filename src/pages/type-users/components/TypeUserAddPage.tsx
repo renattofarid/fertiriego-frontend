@@ -52,7 +52,7 @@ export default function TypeUserAddPage() {
         maxWidth="!max-w-(--breakpoint-sm)"
       >
         <TypeUserForm
-          defaultValues={{ nombre: "" }}
+          defaultValues={{}}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="create"

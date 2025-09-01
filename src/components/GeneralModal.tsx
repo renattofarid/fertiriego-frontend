@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface GeneralModalProps {
   open: boolean;
@@ -43,11 +43,9 @@ export function GeneralModal({
       >
         <DialogHeader>
           {title && <DialogTitle>{title}</DialogTitle>}
-          {subtitle && (
-            <DialogDescription className="text-muted-foreground text-sm">
-              {subtitle}{" "}
-            </DialogDescription>
-          )}
+          <DialogDescription className="text-muted-foreground text-sm">
+            {subtitle}
+          </DialogDescription>
         </DialogHeader>
         <div>{children}</div>
       </DialogContent>

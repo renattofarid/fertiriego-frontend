@@ -11,7 +11,12 @@ import { useUsers } from "../lib/User.hook";
 import UserEditPage from "./UserEditPage";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { deleteUser } from "../lib/User.actions";
-import { errorToast, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  errorToast,
+  SUCCESS_MESSAGE,
+  successToast,
+} from "@/lib/core.function";
 import DataTablePagination from "@/components/DataTablePagination";
 import { USER } from "../lib/User.interface";
 
@@ -34,9 +39,9 @@ export default function UserPage() {
     try {
       await deleteUser(deleteId);
       await refetch();
-      successToast("Tipo de Usuario eliminado correctamente.");
-    } catch {
-      errorToast("Error al eliminar el Tipo de Usuario.");
+      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
+    } catch (error: any) {
+      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "delete"));
     } finally {
       setDeleteId(null);
     }

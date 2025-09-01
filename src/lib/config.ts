@@ -1,9 +1,10 @@
 import axios from "axios";
 import { errorToast } from "./core.function";
 
-const baseURL = "https://sunat-visor.com:83/erp-mrsoft-backend/public/api/";
+const baseURL =
+  "https://develop.garzasoft.com:82/comercialferriego-backend/public/api/";
 export const prodAssetURL =
-  "https://sunat-visor.com:83/erp-mrsoft-backend/public/";
+  "https://develop.garzasoft.com:82/comercialferriego-backend/public/";
 
 export const api = axios.create({
   baseURL,

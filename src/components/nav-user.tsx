@@ -23,9 +23,9 @@ import {
 } from "@/components/ui/sidebar";
 import { useTheme } from "./theme-provider";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import type { Usuario } from "@/pages/auth/lib/auth.interface";
+import type { User } from "@/pages/auth/lib/auth.interface";
 
-export function NavUser({ user }: { user: Usuario }) {
+export function NavUser({ user }: { user: User }) {
   const { setTheme } = useTheme();
   const { clearAuth } = useAuthStore();
 
@@ -44,16 +44,17 @@ export function NavUser({ user }: { user: Usuario }) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarFallback className="rounded-lg">
-                  {user.nombres
+                  {user.name
                     .split(" ")
+                    .slice(0, 2)
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{`${user.nombres} ${user.apellidos}`}</span>
-                <span className="truncate text-xs">{user.usuario}</span>
+                <span className="truncate font-medium">{`${user.name}`}</span>
+                <span className="truncate text-xs">{user.username}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -68,7 +69,7 @@ export function NavUser({ user }: { user: Usuario }) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarFallback className="rounded-lg">
-                    {user.nombres
+                    {user.name
                       .split(" ")
                       .map((n) => n[0])
                       .join("")
@@ -76,8 +77,8 @@ export function NavUser({ user }: { user: Usuario }) {
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{`${user.nombres} ${user.apellidos}`}</span>
-                  <span className="truncate text-xs">{user.usuario}</span>
+                  <span className="truncate font-medium">{`${user.name}`}</span>
+                  <span className="truncate text-xs">{user.username}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

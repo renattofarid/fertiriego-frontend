@@ -5,36 +5,37 @@ import {
 import { SelectActions } from "@/components/SelectActions";
 import type { TypeUserResource } from "../lib/typeUser.interface";
 import type { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+
 
 export const TypeUserColumns = ({
   onEdit,
+  onPermissions,
   onDelete,
 }: {
   onEdit: (id: number) => void;
+  onPermissions: (id: number) => void;
   onDelete: (id: number) => void;
 }): ColumnDef<TypeUserResource>[] => [
   {
-    accessorKey: "nombre",
+    accessorKey: "name",
     header: "Nombre",
     cell: ({ getValue }) => (
       <span className="font-semibold">{getValue() as string}</span>
     ),
   },
   {
-    accessorKey: "updated_at",
-    header: "Fecha de Actualización",
+    accessorKey: "status",
+    header: "Estado",
     cell: ({ getValue }) => {
-      const date = new Date(getValue() as string);
+      const status = getValue() as string;
       return (
-        <span className="text-muted-foreground capitalize">
-          {date.toLocaleDateString("es-ES", {
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
+        <Badge
+          variant={status === "Activo" ? "default" : "destructive"}
+          className={`font-semibold`}
+        >
+          {status}
+        </Badge>
       );
     },
   },
@@ -50,7 +51,9 @@ export const TypeUserColumns = ({
             <DropdownMenuItem onClick={() => onEdit(id)}>
               Editar
             </DropdownMenuItem>
-            <DropdownMenuItem>Permisos</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onPermissions(id)}>
+              Permisos
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onDelete(id)}>
               Eliminar
             </DropdownMenuItem>

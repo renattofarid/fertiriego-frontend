@@ -1,6 +1,5 @@
 "use client";
 
-
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -20,29 +19,25 @@ export const UserColumns = ({
   onDelete: (id: number) => void;
 }): ColumnDef<UserResource>[] => [
   {
-    accessorKey: "nombres",
-    header: "Nombres",
-    cell: ({ row }) => {
-      const { nombres, apellidos } = row.original;
-      return (
-        <div className="text-sm">
-          {nombres} {apellidos}
-        </div>
-      );
+    accessorKey: "username",
+    header: "Username",
+    cell: ({ getValue }) => {
+      return <div className="text-sm">{getValue() as string}</div>;
     },
   },
-
   {
-    accessorKey: "rol",
+    accessorKey: "name",
+    header: "Nombre",
+  },
+  {
+    accessorKey: "rol_name",
     header: "Rol",
-    cell: ({ row }) => {
-      const rol = row.original.tipos_usuario;
+    cell: ({ getValue }) => {
+      const status = getValue() as string;
       return (
-        <div className=" text-sm">
-          {rol && rol.nombre && (
-            <Badge className="rounded-full">{rol.nombre}</Badge>
-          )}
-        </div>
+        <Badge variant={"outline"} className={`font-semibold`}>
+          {status}
+        </Badge>
       );
     },
   },

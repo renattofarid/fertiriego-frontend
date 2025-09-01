@@ -6,11 +6,17 @@ import TypeUserTable from "./TypeUserTable";
 import TypeUserOptions from "./TypeUserOptions";
 import { deleteTypeUser } from "../lib/typeUser.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { successToast, errorToast } from "@/lib/core.function";
-import TypeUserEditPage from "./TypeUserEditPage";
+import {
+  successToast,
+  errorToast,
+  SUCCESS_MESSAGE,
+  ERROR_MESSAGE,
+} from "@/lib/core.function";
 import { TypeUserColumns } from "./TypeUserColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { TYPE_USER } from "../lib/typeUser.interface";
+import TypeUserModal from "./TypeUserModal";
+import { TypeUserPermissions } from "@/pages/permissions/components/TypeUserPermissions";
 
 const { MODEL, ICON } = TYPE_USER;
 
@@ -19,8 +25,8 @@ export default function TypeUserPage() {
   const [page, setPage] = useState(1);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-
   const { data, meta, isLoading, refetch } = useTypeUsers();
+  const [permissionId, setPermissionId] = useState<number | null>(null);
 
   useEffect(() => {
     refetch({ page, search });
@@ -31,9 +37,9 @@ export default function TypeUserPage() {
     try {
       await deleteTypeUser(deleteId);
       await refetch();
-      successToast("Tipo de Usuario eliminado correctamente.");
-    } catch {
-      errorToast("Error al eliminar el Tipo de Usuario.");
+      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
+    } catch (error: any) {
+      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "delete"));
     } finally {
       setDeleteId(null);
     }
@@ -54,7 +60,11 @@ export default function TypeUserPage() {
       {/* Tabla */}
       <TypeUserTable
         isLoading={isLoading}
-        columns={TypeUserColumns({ onEdit: setEditId, onDelete: setDeleteId })}
+        columns={TypeUserColumns({
+          onEdit: setEditId,
+          onDelete: setDeleteId,
+          onPermissions: setPermissionId,
+        })}
         data={data || []}
       >
         <TypeUserOptions search={search} setSearch={setSearch} />
@@ -68,10 +78,21 @@ export default function TypeUserPage() {
 
       {/* Formularios */}
       {editId !== null && (
-        <TypeUserEditPage
+        <TypeUserModal
           id={editId}
           open={true}
-          setOpen={() => setEditId(null)}
+          onClose={() => setEditId(null)}
+          title={`Editar ${MODEL.name}`}
+          mode="update"
+        />
+      )}
+
+      {/* Permisos */}
+      {permissionId !== null && (
+        <TypeUserPermissions
+          id={permissionId}
+          open={true}
+          onClose={() => setPermissionId(null)}
         />
       )}
 

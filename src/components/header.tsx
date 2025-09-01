@@ -21,9 +21,7 @@ export default function HeaderComponent() {
           />
         </div>
         <div className="flex flex-col items-start">
-          <p className="font-bold text-sm">
-            Bienvenido {user.nombres} {user.apellidos}
-          </p>
+          <p className="font-bold text-sm">Bienvenido {user.name}</p>
           <p className="capitalize text-xs">
             {new Date().toLocaleDateString("es-ES", {
               weekday: "long",

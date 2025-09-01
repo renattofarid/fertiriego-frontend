@@ -50,7 +50,7 @@ export const TypeUserForm = ({
         <div className="grid grid-cols-1 gap-4 bg-sidebar p-4 rounded-lg">
           <FormField
             control={form.control}
-            name="nombre"
+            name="name"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Nombre</FormLabel>

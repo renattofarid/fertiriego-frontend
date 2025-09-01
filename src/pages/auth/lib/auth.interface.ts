@@ -1,16 +1,15 @@
 export interface AuthResponse {
-  access_token: string;
-  token_type: string;
-  usuario: Usuario;
+  token: string;
+  user: User;
+  message: string;
 }
 
-export interface Usuario {
+export interface User {
   id: number;
-  nombres: string;
-  apellidos: string;
-  usuario: string;
-  tipo_usuario_id: number;
-  created_at: Date;
-  updated_at: Date;
-  deleted_at: null;
+  name: string;
+  username: string;
+  person_id: number;
+  person_names: string;
+  rol_id: number;
+  rol_name: string;
 }

@@ -18,7 +18,7 @@ export interface TitlesInterface {
   delete: TitleInterface;
 }
 
-export interface ModelComplete {
+export interface ModelComplete<T> {
   MODEL: ModelInterface;
   TITLES: TitlesInterface;
   ICON: keyof typeof LucideReact;
@@ -28,6 +28,7 @@ export interface ModelComplete {
   ROUTE: string;
   ROUTE_ADD: string;
   ROUTE_UPDATE: string;
+  EMPTY: T;
 }
 
 export type Action = "create" | "update" | "delete";

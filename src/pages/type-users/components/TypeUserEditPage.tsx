@@ -47,10 +47,8 @@ export default function TypeUserEditPage({
   const mapTypeUserToForm = (
     data: TypeUserResource
   ): Partial<TypeUserSchema> => ({
-    nombre: data.nombre,
+    name: data.name,
   });
-
-  if (!typeUser) return <NotFound />;
 
   return (
     <GeneralModal
@@ -62,7 +60,7 @@ export default function TypeUserEditPage({
       subtitle={TITLES.update.subtitle}
       maxWidth="max-w-(--breakpoint-lg)"
     >
-      {isFinding ? (
+      {isFinding || !typeUser ? (
         <FormSkeleton />
       ) : (
         <TypeUserForm

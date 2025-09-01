@@ -45,7 +45,7 @@ export default function LoginPage() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const response = await login({
-        usuario: data.username,
+        username: data.username,
         password: data.password,
       });
 
@@ -64,15 +64,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#ECEFFE] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-sm p-8 border border-[#B6C3FF]">
+        <div className="bg-background rounded-2xl shadow-sm p-8 border">
           {/* Profile Icon and Branding */}
           <div className="text-start mb-8">
-            <div className="text-base font-extrabold font-nunito text-primary">
+            <div className="text-base font-extrabold text-primary">
               Fert & Riego
             </div>
-            <div className="text-xs font-bold text-secondary font-nunito">
+            <div className="text-xs font-semibold text-muted-foreground ">
               Sistema de Gestión de Fert&riego
             </div>
           </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
           {/* Login Form */}
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <h3 className="flex justify-start text-black text-lg font-extrabold font-nunito text-center mb-6">
+              <h3 className="flex justify-start text-foreground text-lg font-bold text-center mb-6">
                 Iniciar sesión
               </h3>
 
@@ -90,14 +90,14 @@ export default function LoginPage() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-black font-nunito">
+                      <FormLabel className="text-sm font-medium text-foreground ">
                         Usuario
                       </FormLabel>
                       <FormControl>
                         <Input
                           {...field}
                           placeholder="Ingresa usuario"
-                          className="h-11 text-sm text-black border-gray-200 rounded-lg focus:outline-none focus-visible:ring-0 focus-visible:ring-transparent"
+                          className="text-sm text-foreground rounded-lg focus:outline-none focus-visible:ring-0 focus-visible:ring-transparent"
                         />
                       </FormControl>
                       <FormMessage className="text-xs" />
@@ -110,7 +110,7 @@ export default function LoginPage() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-black font-nunito">
+                      <FormLabel className="text-sm font-medium text-foreground ">
                         Contraseña
                       </FormLabel>
                       <div className="relative">
@@ -119,7 +119,7 @@ export default function LoginPage() {
                             {...field}
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••••"
-                            className="h-11 text-sm text-black border-gray-200 rounded-lg focus:outline-none focus-visible:ring-0 focus-visible:ring-transparent"
+                            className="text-sm text-foreground  rounded-lg focus:outline-none focus-visible:ring-0 focus-visible:ring-transparent"
                           />
                         </FormControl>
                         <button

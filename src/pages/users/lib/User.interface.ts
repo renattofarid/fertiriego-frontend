@@ -2,13 +2,12 @@
 
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
-import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
 import { Users } from "lucide-react";
 
-const ROUTE = "usuarios";
+const ROUTE = "/usuarios";
 const NAME = "Usuario";
 
-export const USER: ModelComplete = {
+export const USER: ModelComplete<UserResource> = {
   MODEL: {
     name: NAME,
     plural: "Usuarios",
@@ -35,6 +34,15 @@ export const USER: ModelComplete = {
       subtitle: `Confirme para eliminar el ${NAME.toLowerCase()}`,
     },
   },
+  EMPTY: {
+    id: 0,
+    name: "",
+    username: "",
+    person_id: 0,
+    person_names: "",
+    rol_id: 0,
+    rol_name: "",
+  },
 };
 
 export interface UserResponse {
@@ -45,15 +53,17 @@ export interface UserResponse {
 
 export interface UserResource {
   id: number;
-  nombres: string;
-  apellidos: string;
-  usuario: string;
-  tipo_usuario_id: number;
-  tipos_usuario: TypeUserResource;
-  password: string;
+  name: string;
+  username: string;
+  person_id: number;
+  person_names?: string;
+  rol_id: number;
+  rol_name: string;
 }
 
-export type UserResourceById = UserResource | null;
+export type UserResourceById = {
+  data: UserResource;
+};
 
 export interface getUserProps {
   params?: Record<string, any>;

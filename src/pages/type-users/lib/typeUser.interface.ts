@@ -4,10 +4,10 @@ import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
 import { PersonStanding } from "lucide-react";
 
-const ROUTE = "tipo-usuarios";
+const ROUTE = "/tipo-usuarios";
 const NAME = "Tipo de Usuario";
 
-export const TYPE_USER: ModelComplete = {
+export const TYPE_USER: ModelComplete<TypeUserResource> = {
   MODEL: {
     name: NAME,
     description: "Gestión de roles y permisos de los usuarios en el sistema.",
@@ -35,6 +35,12 @@ export const TYPE_USER: ModelComplete = {
       subtitle: `Confirme para eliminar el ${NAME.toLowerCase()}`,
     },
   },
+  EMPTY: {
+    id: 0,
+    name: "",
+    permissions: [],
+    status: "active",
+  },
 };
 
 export interface TypeUserResponse {
@@ -45,12 +51,21 @@ export interface TypeUserResponse {
 
 export interface TypeUserResource {
   id: number;
-  nombre: string;
+  name: string;
+  status: string;
+  permissions: Permission[];
+}
+
+interface Permission {
+  id: number;
+  name: string;
+  action: string;
+  route: string;
+  type: null;
+  status: string;
 }
 
 export interface TypeUserResourceById {
-  status: number;
-  message: string;
   data: TypeUserResource;
 }
 

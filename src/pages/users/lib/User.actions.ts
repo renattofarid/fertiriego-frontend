@@ -1,14 +1,15 @@
 import { api } from "@/lib/config";
 import type { AxiosRequestConfig } from "axios";
-import type {
-  getUserProps,
-  UserResource,
-  UserResourceById,
-  UserResponse,
+import {
+  USER,
+  type getUserProps,
+  type UserResource,
+  type UserResourceById,
+  type UserResponse,
 } from "./User.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
-const ENDPOINT = "usuarios";
+const { ENDPOINT } = USER;
 
 export async function getUser({ params }: getUserProps): Promise<UserResponse> {
   const config: AxiosRequestConfig = {

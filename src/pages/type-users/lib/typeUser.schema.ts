@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const typeUserSchemaCreate = z.object({
-  nombre: z
+  name: z
     .string()
     .max(255, {
       message: "El nombre no puede tener más de 100 caracteres",
