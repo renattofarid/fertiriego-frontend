@@ -11,6 +11,7 @@ interface AuthState {
   setToken: (token: string) => void;
   setUser: (user: User) => void;
   setMessage: (message: string) => void;
+  setAccess: (access: Access[]) => void;
   authenticate: () => void;
   clearAuth: () => void;
 }
@@ -37,6 +38,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setMessage: (message) => {
     localStorage.setItem("message", message);
     set({ message });
+  },
+
+  setAccess: (access) => {
+    localStorage.setItem("access", JSON.stringify(access));
+    set({ access });
   },
 
   authenticate: async () => {

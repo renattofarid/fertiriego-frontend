@@ -12,7 +12,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
-import { useTypeUsers } from "@/pages/type-users/lib/typeUser.hook.ts";
 import {
   userCreateSchema,
   userUpdateSchema,

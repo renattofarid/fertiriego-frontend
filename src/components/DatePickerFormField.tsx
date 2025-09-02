@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { format, parseISO, isValid } from "date-fns";
 import { CalendarIcon, CalendarPlusIcon } from "lucide-react";
 import { es } from "date-fns/locale";
-import { Control, FieldValues, Path, useController } from "react-hook-form";
+import type { Control, FieldValues, Path } from "react-hook-form";
+import { useController } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Popover,

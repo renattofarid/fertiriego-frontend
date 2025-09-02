@@ -14,6 +14,8 @@ import { TYPE_USER } from "@/pages/type-users/lib/typeUser.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
 import { USER } from "@/pages/users/lib/User.interface";
+import { hasAccessToRoute } from "@/App";
+import { useEffect, useState } from "react";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -55,18 +57,35 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useAuthStore();
+  const { user, access } = useAuthStore();
+  const [filteredNav, setFilteredNav] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!access) return;
+
+    const filterNav = (items: any[]) =>
+      items.filter((item) => {
+        if (item.url === "#" && item.items) {
+          item.items = filterNav(item.items);
+          return item.items.length > 0;
+        }
+        return hasAccessToRoute(access, item.url);
+      });
+
+    setFilteredNav(filterNav(data.navMain));
+  }, [access]);
 
   if (!user) {
-    return null; // or a loading state, or redirect to login
+    return null; // o spinner
   }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={filteredNav} />
       </SidebarContent>
       <SidebarFooter className="flex md:hidden">
         <NavUser user={user} />

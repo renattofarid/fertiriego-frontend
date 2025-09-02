@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { success, z } from "zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,9 +17,9 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { setAccessTypeUser } from "../lib/menu.actions";
 import { errorToast, successToast } from "@/lib/core.function";
 import { usePermissionStore } from "../lib/menu.store";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 interface CheckedItems {
   [key: number]: boolean;
@@ -46,6 +46,8 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
   const { data: typeUser, isFinding } = useTypeUser(id);
   const { data: optionMenus, isLoading } = useOptionsMenus();
   const [checkedItems, setCheckedItems] = useState<CheckedItems>({});
+
+  const { authenticate } = useAuthStore();
 
   // marcar los permisos que ya tiene el rol
   useEffect(() => {
@@ -88,6 +90,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
       })
       .finally(() => {
         setOpen(false);
+        authenticate();
       });
   };
 

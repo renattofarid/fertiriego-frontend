@@ -38,7 +38,7 @@ export interface Access {
   icon: string;
   nivel: number;
   permissions: Permission[];
-  children: any[];
+  children?: Access[];
 }
 
 export interface Permission {

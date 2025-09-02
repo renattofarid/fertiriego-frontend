@@ -8,7 +8,6 @@ import UserTable from "./UserTable";
 import { UserColumns } from "./UserColumns";
 import UserActions from "./UserActions";
 import { useUsers } from "../lib/User.hook";
-import UserEditPage from "./UserEditPage";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { deleteUser } from "../lib/User.actions";
 import {

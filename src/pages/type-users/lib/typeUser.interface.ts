@@ -4,7 +4,7 @@ import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
 import { PersonStanding } from "lucide-react";
 
-const ROUTE = "/tipo-usuarios";
+const ROUTE = "/tipo-usuario";
 const NAME = "Tipo de Usuario";
 
 export const TYPE_USER: ModelComplete<TypeUserResource> = {

@@ -9,9 +9,23 @@ import TypeUserPage from "./pages/type-users/components/TypeUserPage";
 import UserPage from "./pages/users/components/UserPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
+import type { Access } from "./pages/auth/lib/auth.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
+
+export const hasAccessToRoute = (access: Access[], route: string): boolean => {
+  const transformRoute = route.split("/").pop();
+  for (const node of access) {
+    if (node.permissions.some((p) => p.routes.includes(transformRoute!))) {
+      return true;
+    }
+    if (node.children && hasAccessToRoute(node.children, transformRoute!)) {
+      return true;
+    }
+  }
+  return false;
+};
 
 function ProtectedRoute({
   children,
@@ -30,7 +44,7 @@ function ProtectedRoute({
       return <Navigate to="/inicio" replace />;
     }
 
-    const hasAccess = access.some((item) => item.name === path);
+    const hasAccess = hasAccessToRoute(access, path);
     if (!hasAccess) {
       return <Navigate to="/inicio" replace />;
     }

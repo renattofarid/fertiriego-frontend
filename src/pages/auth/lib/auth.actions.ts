@@ -12,10 +12,11 @@ export async function login(body: LoginBody): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>("/login", body);
 
-    const { setToken, setUser } = useAuthStore.getState();
+    const { setToken, setUser, setAccess } = useAuthStore.getState();
 
     setToken(data.token);
     setUser(data.user);
+    setAccess(data.access);
 
     return data;
   } catch (error) {

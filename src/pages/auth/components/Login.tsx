@@ -44,11 +44,10 @@ export default function LoginPage() {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      const response = await login({
+      await login({
         username: data.username,
         password: data.password,
       });
-
       successToast("Inicio de sesión exitoso");
       navigate("/inicio");
     } catch (error: any) {
