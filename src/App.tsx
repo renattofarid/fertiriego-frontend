@@ -13,10 +13,27 @@ import { USER } from "./pages/users/lib/User.interface";
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
 
-function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { token } = useAuthStore();
+function ProtectedRoute({
+  children,
+  path,
+}: {
+  children: JSX.Element;
+  path?: string;
+}) {
+  const { token, access } = useAuthStore();
   if (!token) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (path) {
+    if (!access) {
+      return <Navigate to="/inicio" replace />;
+    }
+
+    const hasAccess = access.some((item) => item.name === path);
+    if (!hasAccess) {
+      return <Navigate to="/inicio" replace />;
+    }
   }
 
   return <LayoutComponent>{children}</LayoutComponent>;
@@ -56,7 +73,7 @@ export default function App() {
           <Route
             path={TypeUserRoute}
             element={
-              <ProtectedRoute>
+              <ProtectedRoute path={TypeUserRoute}>
                 <TypeUserPage />
               </ProtectedRoute>
             }
@@ -65,7 +82,7 @@ export default function App() {
           <Route
             path={UserRoute}
             element={
-              <ProtectedRoute>
+              <ProtectedRoute path={UserRoute}>
                 <UserPage />
               </ProtectedRoute>
             }

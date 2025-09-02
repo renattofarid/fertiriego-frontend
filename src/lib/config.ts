@@ -35,11 +35,17 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      console.error("No autorizado: Redirigiendo al login...");
-      // Elimina el token y redirige al login
+      console.error(
+        "No autenticado: Redirigiendo al inicio de sesión en 3 segundos..."
+      );
       localStorage.removeItem("token");
-      errorToast("No autorizado: Redirigiendo al login...");
-      window.location.href = "/login";
+      errorToast(
+        "SESIÓN EXPIRADA",
+        "Redirigiendo al inicio de sesión en 3 segundos"
+      );
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
     }
     return Promise.reject(error);
   }

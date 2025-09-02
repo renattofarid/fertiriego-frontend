@@ -70,6 +70,11 @@ export const userCreateSchema = z.object({
     ),
 });
 
-export const userUpdateSchema = userCreateSchema.partial();
+export const userUpdateSchema = userCreateSchema.partial().extend({
+  password: userCreateSchema.shape.password.optional().or(z.literal("")),
+  business_name: userCreateSchema.shape.business_name
+    .optional()
+    .or(z.literal("")),
+});
 
 export type UserSchema = z.infer<typeof userCreateSchema>;

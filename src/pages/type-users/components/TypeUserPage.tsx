@@ -16,7 +16,7 @@ import { TypeUserColumns } from "./TypeUserColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { TYPE_USER } from "../lib/typeUser.interface";
 import TypeUserModal from "./TypeUserModal";
-import { TypeUserPermissions } from "@/pages/permissions/components/TypeUserPermissions";
+import { TypeUserAccess } from "@/pages/menu/components/TypeUserAccess";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = TYPE_USER;
@@ -29,6 +29,7 @@ export default function TypeUserPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { data, meta, isLoading, refetch } = useTypeUsers();
   const [permissionId, setPermissionId] = useState<number | null>(null);
+  const [accessDialogOpen, setAccessDialogOpen] = useState(false);
 
   useEffect(() => {
     refetch({ page, search, per_page });
@@ -45,6 +46,12 @@ export default function TypeUserPage() {
     } finally {
       setDeleteId(null);
     }
+  };
+
+  const handleAccessDialog = (id: number | null) => {
+    if (!id) return;
+    setPermissionId(id);
+    setAccessDialogOpen(true);
   };
 
   return (
@@ -65,7 +72,7 @@ export default function TypeUserPage() {
         columns={TypeUserColumns({
           onEdit: setEditId,
           onDelete: setDeleteId,
-          onPermissions: setPermissionId,
+          onPermissions: handleAccessDialog,
         })}
         data={data || []}
       >
@@ -93,11 +100,17 @@ export default function TypeUserPage() {
       )}
 
       {/* Permisos */}
-      {permissionId !== null && (
-        <TypeUserPermissions
+      {accessDialogOpen && permissionId && (
+        <TypeUserAccess
           id={permissionId}
-          open={true}
-          onClose={() => setPermissionId(null)}
+          open={accessDialogOpen}
+          setOpen={(o) => {
+            setAccessDialogOpen(o);
+            if (!o) {
+              setTimeout(() => setPermissionId(null), 300);
+              setAccessDialogOpen(false);
+            }
+          }}
         />
       )}
 
