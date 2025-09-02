@@ -17,20 +17,22 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { TYPE_USER } from "../lib/typeUser.interface";
 import TypeUserModal from "./TypeUserModal";
 import { TypeUserPermissions } from "@/pages/permissions/components/TypeUserPermissions";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = TYPE_USER;
 
 export default function TypeUserPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { data, meta, isLoading, refetch } = useTypeUsers();
   const [permissionId, setPermissionId] = useState<number | null>(null);
 
   useEffect(() => {
-    refetch({ page, search });
-  }, [page, search]);
+    refetch({ page, search, per_page });
+  }, [page, search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -74,6 +76,9 @@ export default function TypeUserPage() {
         page={page}
         totalPages={meta?.last_page || 1}
         onPageChange={setPage}
+        per_page={per_page}
+        setPerPage={setPerPage}
+        totalData={meta?.total || 0}
       />
 
       {/* Formularios */}

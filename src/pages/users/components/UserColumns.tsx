@@ -30,6 +30,10 @@ export const UserColumns = ({
     header: "Nombre",
   },
   {
+    accessorKey: "person.number_document",
+    header: "Número de Documento",
+  },
+  {
     accessorKey: "rol_name",
     header: "Rol",
     cell: ({ getValue }) => {
@@ -53,7 +57,6 @@ export const UserColumns = ({
             <DropdownMenuItem onClick={() => onEdit(id)}>
               Editar
             </DropdownMenuItem>
-            <DropdownMenuItem>Permisos</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onDelete(id)}>
               Eliminar
             </DropdownMenuItem>

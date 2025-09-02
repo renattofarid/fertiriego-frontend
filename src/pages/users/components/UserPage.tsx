@@ -19,11 +19,14 @@ import {
 } from "@/lib/core.function";
 import DataTablePagination from "@/components/DataTablePagination";
 import { USER } from "../lib/User.interface";
+import UserModal from "./UserModal";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = USER;
 
 export default function UserPage() {
   const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -31,8 +34,8 @@ export default function UserPage() {
   const { data, meta, isLoading, refetch } = useUsers();
 
   useEffect(() => {
-    refetch({ page, search });
-  }, [page, search]);
+    refetch({ page, search, per_page });
+  }, [page, search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -76,11 +79,20 @@ export default function UserPage() {
         page={page}
         totalPages={meta?.last_page || 1}
         onPageChange={setPage}
+        per_page={per_page}
+        setPerPage={setPerPage}
+        totalData={meta?.total || 0}
       />
 
       {/* Formularios */}
       {editId !== null && (
-        <UserEditPage id={editId} open={true} setOpen={() => setEditId(null)} />
+        <UserModal
+          id={editId}
+          open={true}
+          onClose={() => setEditId(null)}
+          title={`Editar ${MODEL.name}`}
+          mode="update"
+        />
       )}
 
       {deleteId !== null && (

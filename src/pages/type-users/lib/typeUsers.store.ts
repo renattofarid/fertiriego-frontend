@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import {
   findTypeUserById,
+  getAllTypeUsers,
   getTypeUser,
   storeTypeUser,
   updateTypeUser,
@@ -11,13 +12,16 @@ import type { Meta } from "@/lib/pagination.interface";
 import type { TypeUserResource } from "./typeUser.interface";
 
 interface TypeUserStore {
+  allTypeUsers: TypeUserResource[] | null;
   typeUsers: TypeUserResource[] | null;
   typeUser: TypeUserResource | null;
   meta: Meta | null;
+  isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   error: string | null;
   isSubmitting: boolean;
+  fetchAllTypeUsers: () => Promise<void>;
   fetchTypeUsers: (params?: Record<string, any>) => Promise<void>;
   fetchTypeUser: (id: number) => Promise<void>;
   createTypeUser: (data: TypeUserSchema) => Promise<void>;
@@ -25,9 +29,11 @@ interface TypeUserStore {
 }
 
 export const useTypeUserStore = create<TypeUserStore>((set) => ({
+  allTypeUsers: null,
   typeUser: null,
   typeUsers: null,
   meta: null,
+  isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
@@ -40,6 +46,16 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
       set({ typeUsers: data, meta: meta, isLoading: false });
     } catch (err) {
       set({ error: "Error al cargar tipos de usuarios", isLoading: false });
+    }
+  },
+
+  fetchAllTypeUsers: async () => {
+    set({ isLoadingAll: true, error: null });
+    try {
+      const data = await getAllTypeUsers();
+      set({ allTypeUsers: data, isLoadingAll: false });
+    } catch (err) {
+      set({ error: "Error al cargar tipos de usuarios", isLoadingAll: false });
     }
   },
 

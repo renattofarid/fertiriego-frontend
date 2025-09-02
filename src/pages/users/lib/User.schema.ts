@@ -1,4 +1,16 @@
+import { requiredStringId } from "@/lib/core.schema";
 import { z } from "zod";
+
+const typeDocumentSchema = z.enum(["DNI", "RUC", "CE", "PASAPORTE"], {
+  error: "Debe seleccionar un tipo de documento",
+});
+
+const typePersonSchema = z.enum(["NATURAL", "JURIDICA"], {
+  error: "Debe seleccionar un tipo de persona",
+});
+
+export type TypeDocument = z.infer<typeof typeDocumentSchema>;
+export type TypePerson = z.infer<typeof typePersonSchema>;
 
 export const userCreateSchema = z.object({
   username: z
@@ -14,13 +26,9 @@ export const userCreateSchema = z.object({
     .regex(/[0-9]/, "Debe contener al menos un número")
     .regex(/[^A-Za-z0-9]/, "Debe contener al menos un carácter especial"),
 
-  type_document: z.enum(["DNI", "RUC", "CE", "PASAPORTE"], {
-    error: "Debe seleccionar un tipo de documento",
-  }),
+  type_document: typeDocumentSchema,
 
-  type_person: z.enum(["NATURAL", "JURIDICA"], {
-    error: "Debe seleccionar un tipo de persona",
-  }),
+  type_person: typePersonSchema,
 
   names: z
     .string()
@@ -52,7 +60,7 @@ export const userCreateSchema = z.object({
 
   email: z.string().email("Debe ingresar un correo válido"),
 
-  rol_id: z.coerce.number().int().positive("Debe seleccionar un rol válido"),
+  rol_id: requiredStringId("Debe seleccionar un rol válido"),
 
   number_document: z
     .string()
@@ -64,5 +72,4 @@ export const userCreateSchema = z.object({
 
 export const userUpdateSchema = userCreateSchema.partial();
 
-export type UserCreateSchema = z.infer<typeof userCreateSchema>;
-export type UserUpdateSchema = z.infer<typeof userUpdateSchema>;
+export type UserSchema = z.infer<typeof userCreateSchema>;

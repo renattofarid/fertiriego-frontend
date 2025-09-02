@@ -49,13 +49,11 @@ export default function LoginPage() {
         password: data.password,
       });
 
-      console.log("Inicio de sesión exitoso:", response);
       successToast("Inicio de sesión exitoso");
       navigate("/inicio");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.message || "Error al iniciar sesión.";
-      console.log("Error al iniciar sesión:", errorMessage);
       console.error("Detalles del error:", error);
       errorToast("Error al iniciar sesión", errorMessage);
     } finally {
@@ -64,9 +62,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center bg-muted/50 justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="bg-background rounded-2xl shadow-sm p-8 border">
+        <div className="bg-background rounded-2xl shadow-lg p-8 border">
           {/* Profile Icon and Branding */}
           <div className="text-start mb-8">
             <div className="text-base font-extrabold text-primary">

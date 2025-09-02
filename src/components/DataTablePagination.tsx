@@ -20,12 +20,12 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 interface Props {
   page: number;
-  per_page?: number;
+  per_page: number;
   totalPages: number;
-  totalData?: number;
+  totalData: number;
   onPageChange: (page: number) => void;
   maxButtons?: number; // Por defecto 5
-  setPerPage?: (page: number) => void;
+  setPerPage: (page: number) => void;
 }
 
 export default function DataTablePagination({
@@ -67,7 +67,7 @@ export default function DataTablePagination({
   // ...el resto del componente igual
   return (
     <Pagination className="flex flex-col md:flex-row justify-center items-center md:justify-between">
-      {per_page && setPerPage && totalData ? (
+      {per_page ? (
         <div className="flex gap-2 items-center">
           <Select
             value={per_page.toString()}
@@ -87,7 +87,7 @@ export default function DataTablePagination({
               </SelectGroup>
             </SelectContent>
           </Select>
-          <p className="text-terciary-foreground text-sm">
+          <p className="text-muted-foreground text-sm">
             {`Mostrando ${
               per_page > totalData ? totalData : per_page
             } de ${totalData} resultados`}

@@ -12,6 +12,7 @@ export const USER: ModelComplete<UserResource> = {
     name: NAME,
     plural: "Usuarios",
     gender: false,
+    description: "Gestión de usuarios",
   },
   ICON: "Users",
   ICON_REACT: Users,
@@ -39,7 +40,21 @@ export const USER: ModelComplete<UserResource> = {
     name: "",
     username: "",
     person_id: 0,
-    person_names: "",
+    person: {
+      id: 0,
+      type_document: "",
+      type_person: "",
+      number_document: "",
+      names: "",
+      father_surname: "",
+      mother_surname: "",
+      business_name: "",
+      address: "",
+      phone: "",
+      email: "",
+      ocupation: "",
+      status: "",
+    },
     rol_id: 0,
     rol_name: "",
   },
@@ -56,7 +71,7 @@ export interface UserResource {
   name: string;
   username: string;
   person_id: number;
-  person_names?: string;
+  person: Person;
   rol_id: number;
   rol_name: string;
 }
@@ -67,4 +82,20 @@ export type UserResourceById = {
 
 export interface getUserProps {
   params?: Record<string, any>;
+}
+
+interface Person {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names: string;
+  father_surname: string;
+  mother_surname: string;
+  business_name: string;
+  address: string;
+  phone: string;
+  email: string;
+  ocupation: string;
+  status: string;
 }

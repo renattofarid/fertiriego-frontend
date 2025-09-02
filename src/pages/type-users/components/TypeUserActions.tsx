@@ -14,14 +14,13 @@ export default function TypeUserActions() {
     <div className="flex items-center gap-2">
       <Button
         size="sm"
-        variant="outline"
         className="ml-auto"
         onClick={() => setOpen(true)}
       >
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <TypeUserModal
-        title={`Editar ${MODEL.name}`}
+        title={`Crear ${MODEL.name}`}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

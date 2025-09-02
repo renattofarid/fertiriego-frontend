@@ -16,16 +16,18 @@ import { useTypeUsers } from "@/pages/type-users/lib/typeUser.hook.ts";
 import {
   userCreateSchema,
   userUpdateSchema,
-  type UserCreateSchema,
+  type UserSchema,
 } from "../lib/User.schema";
 import { FormSelect } from "@/components/FormSelect";
+import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
 
 interface MetricFormProps {
-  defaultValues: Partial<UserCreateSchema>;
+  defaultValues: Partial<UserSchema>;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
+  typeUsers: TypeUserResource[];
 }
 
 export const UserForm = ({
@@ -34,6 +36,7 @@ export const UserForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
+  typeUsers,
 }: MetricFormProps) => {
   const form = useForm({
     resolver: zodResolver(
@@ -47,8 +50,6 @@ export const UserForm = ({
 
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
-
-  const { data: typeUsers = [], isLoading } = useTypeUsers();
 
   return (
     <Form {...form}>
@@ -64,7 +65,6 @@ export const UserForm = ({
                 value: type.id.toString(),
                 label: type.name,
               }))}
-              disabled={isLoading}
             />
           </div>
 

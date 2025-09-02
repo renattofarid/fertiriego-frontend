@@ -24,6 +24,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 
 interface CheckedItems {
   [key: number]: boolean;
@@ -124,83 +125,95 @@ export function TypeUserPermissions({ id, open, onClose }: Props) {
     loadForm();
   }, [loadForm, id]);
 
-  if (isFinding || isLoadingOption) return <FormSkeleton />;
-
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="overflow-auto gap-0">
-        <SheetHeader>
-          <SheetTitle>Actualizar Rol</SheetTitle>
-          <SheetDescription className="text-xs">
-            Llene los campos para actualizar el rol
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex items-center justify-center p-4">
-          <div className="flex flex-col items-center justify-center w-full">
-            <Form {...form}>
-              <form
-                className="w-full flex flex-col gap-3"
-                onSubmit={form.handleSubmit((values) => {
-                  // aquí puedes incluir checkedItems -> permisos seleccionados
-                  console.log({
-                    ...values,
-                    permisos: Object.keys(checkedItems).map(Number),
-                  });
-                })}
-              >
-                <h1 className="text-lg font-medium">Permisos</h1>
-
-                {mockOptionMenus.map((module) => (
-                  <div key={module.id} className="w-full">
-                    {/* Parent */}
-                    <div className="flex items-center">
-                      <label
-                        htmlFor={`parent-${module.id}`}
-                        className="w-full flex items-center gap-2 text-xs font-medium leading-none"
-                      >
-                        <Checkbox
-                          id={`parent-${module.id}`}
-                          checked={!!checkedItems[module.id]}
-                          onCheckedChange={() =>
-                            handleCheckboxChange(module.id)
-                          }
-                        />
-                        {module.name}
-                      </label>
-                    </div>
-
-                    {/* Children */}
-                    {module.items && (
-                      <div className="flex flex-col pl-4 pt-2">
-                        {module.items.map((perm) => (
-                          <div
-                            key={perm.id}
-                            className="flex items-center gap-2"
+      {isFinding || isLoadingOption ? (
+        <SheetContent className="overflow-auto md:overflow-hidden gap-0">
+          <FormSkeleton />
+        </SheetContent>
+      ) : (
+        <SheetContent className="overflow-auto md:overflow-hidden gap-0">
+          <SheetHeader>
+            <SheetTitle>Actualizar Permisos del Rol</SheetTitle>
+            <SheetDescription className="text-xs">
+              Llene los campos para actualizar los permisos del rol{" "}
+              <strong>{typeUser?.name}</strong>
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex items-center justify-center p-4 h-full">
+            <div className="flex flex-col items-center w-full h-full">
+              <Form {...form}>
+                <form
+                  className="w-full flex flex-col gap-3 justify-between"
+                  onSubmit={form.handleSubmit((values) => {
+                    // aquí puedes incluir checkedItems -> permisos seleccionados
+                    console.log({
+                      ...values,
+                      permisos: Object.keys(checkedItems).map(Number),
+                    });
+                  })}
+                >
+                  <div className="h-full max-h-[min(70vh,700px)] overflow-y-auto flex flex-col gap-4">
+                    {mockOptionMenus.map((module) => (
+                      <div key={module.id} className="w-full">
+                        {/* Parent */}
+                        <div className="flex items-center">
+                          <label
+                            htmlFor={`parent-${module.id}`}
+                            className="w-full flex items-center gap-2 text-xs font-medium leading-none"
                           >
-                            <label
-                              htmlFor={`child-${perm.id}`}
-                              className="w-full flex items-center gap-2 py-1 text-xs leading-none"
-                            >
-                              <Checkbox
-                                id={`child-${perm.id}`}
-                                checked={!!checkedItems[perm.id]}
-                                onCheckedChange={() =>
-                                  handleCheckboxChange(module.id, perm.id)
-                                }
-                              />
-                              {perm.action}
-                            </label>
+                            <Checkbox
+                              id={`parent-${module.id}`}
+                              checked={!!checkedItems[module.id]}
+                              onCheckedChange={() =>
+                                handleCheckboxChange(module.id)
+                              }
+                            />
+                            {module.name}
+                          </label>
+                        </div>
+
+                        {/* Children */}
+                        {module.items && (
+                          <div className="flex flex-col pl-4 pt-2">
+                            {module.items.map((perm) => (
+                              <div
+                                key={perm.id}
+                                className="flex items-center gap-2"
+                              >
+                                <label
+                                  htmlFor={`child-${perm.id}`}
+                                  className="w-full flex items-center gap-2 py-1 text-xs leading-none"
+                                >
+                                  <Checkbox
+                                    id={`child-${perm.id}`}
+                                    checked={!!checkedItems[perm.id]}
+                                    onCheckedChange={() =>
+                                      handleCheckboxChange(module.id, perm.id)
+                                    }
+                                  />
+                                  {perm.action}
+                                </label>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </form>
-            </Form>
+
+                  <div className="pt-4 w-full flex justify-end gap-2">
+                    <Button type="submit">Guardar</Button>
+                    <Button type="button" variant="outline" onClick={onClose}>
+                      Cancelar
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
           </div>
-        </div>
-      </SheetContent>
+        </SheetContent>
+      )}
     </Sheet>
   );
 }

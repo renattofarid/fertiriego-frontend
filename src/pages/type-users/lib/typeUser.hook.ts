@@ -19,6 +19,22 @@ export function useTypeUsers(params?: Record<string, any>) {
   };
 }
 
+export function useAllTypeUsers() {
+  const { allTypeUsers, isLoadingAll, error, fetchAllTypeUsers } =
+    useTypeUserStore();
+
+  useEffect(() => {
+    if (!allTypeUsers) fetchAllTypeUsers();
+  }, [allTypeUsers, fetchAllTypeUsers]);
+
+  return {
+    data: allTypeUsers,
+    isLoading: isLoadingAll,
+    error,
+    refetch: fetchAllTypeUsers,
+  };
+}
+
 export function useTypeUser(id: number) {
   const { typeUser, isFinding, error, fetchTypeUser } = useTypeUserStore();
 

@@ -11,7 +11,6 @@ export interface LoginBody {
 export async function login(body: LoginBody): Promise<AuthResponse> {
   try {
     const { data } = await api.post<AuthResponse>("/login", body);
-    console.log("login -> data", data);
 
     const { setToken, setUser } = useAuthStore.getState();
 
