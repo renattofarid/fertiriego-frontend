@@ -49,19 +49,35 @@ export default function TypeUserModal({
     name: data.name,
   });
 
-  const { isSubmitting, updateTypeUser } = useTypeUserStore();
+  const { isSubmitting, updateTypeUser, createTypeUser } = useTypeUserStore();
 
   const handleSubmit = async (data: TypeUserSchema) => {
-    await updateTypeUser(id!, data)
-      .then(() => {
-        onClose();
-        successToast(SUCCESS_MESSAGE(MODEL, "update"));
-        refetchTypeUser();
-        refetch();
-      })
-      .catch(() => {
-        errorToast(ERROR_MESSAGE(MODEL, "update"));
-      });
+    if (mode === "create") {
+      await createTypeUser(data)
+        .then(() => {
+          onClose();
+          successToast(SUCCESS_MESSAGE(MODEL, "create"));
+          refetch();
+        })
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create")
+          );
+        });
+    } else {
+      await updateTypeUser(id!, data)
+        .then(() => {
+          onClose();
+          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          refetchTypeUser();
+          refetch();
+        })
+        .catch(() => {
+          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        });
+    }
   };
 
   const isLoadingAny = isSubmitting || findingTypeUser;

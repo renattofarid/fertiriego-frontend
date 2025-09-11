@@ -314,6 +314,9 @@ export const UserForm = ({
           <Button type="button" variant="neutral" onClick={onCancel}>
             Cancelar
           </Button>
+          {/* <Button type="button" variant="neutral" onClick={() => form.trigger()}>
+            Validate
+          </Button> */}
           <Button
             type="submit"
             disabled={isSubmitting || !form.formState.isValid}
