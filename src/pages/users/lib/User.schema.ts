@@ -1,4 +1,4 @@
-import { requiredStringId } from "@/lib/core.schema";
+import { onlyLettersSchema, requiredStringId } from "@/lib/core.schema";
 import { z } from "zod";
 
 const typeDocumentSchema = z.enum(["DNI", "RUC", "CE", "PASAPORTE"], {
@@ -31,20 +31,9 @@ export const userCreateSchema = z
 
     type_person: typePersonSchema,
 
-    names: z
-      .string()
-      .max(255, "El nombre no puede exceder 255 caracteres")
-      .optional(),
-
-    father_surname: z
-      .string()
-      .max(255, "El apellido paterno no puede exceder 255 caracteres")
-      .optional(),
-
-    mother_surname: z
-      .string()
-      .max(255, "El apellido materno no puede exceder 255 caracteres")
-      .optional(),
+    names: onlyLettersSchema("nombre"),
+    father_surname: onlyLettersSchema("apellido paterno"),
+    mother_surname: onlyLettersSchema("apellido materno"),
 
     business_name: z
       .string()
