@@ -55,7 +55,7 @@ export const USER: ModelComplete<UserResource> = {
       ocupation: "",
       status: "",
     },
-    rol_id: 0,
+    rol_id: "",
     rol_name: "",
   },
 };
@@ -72,7 +72,7 @@ export interface UserResource {
   username: string;
   person_id: number;
   person: Person;
-  rol_id: number;
+  rol_id: number | string;
   rol_name: string;
 }
 

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import {
   userCreateSchema,
   userUpdateSchema,
@@ -19,6 +19,7 @@ import {
 } from "../lib/User.schema";
 import { FormSelect } from "@/components/FormSelect";
 import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
+import { useState } from "react";
 
 interface MetricFormProps {
   defaultValues: Partial<UserSchema>;
@@ -267,24 +268,46 @@ export const UserForm = ({
             <FormField
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">
-                    Contraseña
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Contraseña"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const [showPassword, setShowPassword] = useState(false);
+                return (
+                  <FormItem>
+                    <FormLabel className="text-sm font-normal">
+                      Contraseña
+                    </FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Contraseña"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer hover:text-primary text-muted-foreground"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
           </div>
         </div>
+
+        {/* <code>
+          <pre>{JSON.stringify(form.getValues, null, 2)}</pre>
+          <pre>{JSON.stringify(form.formState.errors, null, 2)}</pre>
+        </code> */}
 
         {/* Botones */}
         <div className="flex justify-end gap-4">
