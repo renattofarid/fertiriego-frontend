@@ -45,6 +45,7 @@ export const usePermissionStore = create<TypeUserStore>((set) => ({
         error: "Error al actualizar permisos",
         isSubmitting: false,
       });
+      throw err;
     }
   },
 }));

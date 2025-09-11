@@ -85,8 +85,12 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
       .then(() => {
         successToast("Permisos actualizados con éxito");
       })
-      .catch(() => {
-        errorToast(error ?? "Error al actualizar permisos");
+      .catch((error: any) => {
+        errorToast(
+          error.response.data.message ??
+            error.response.data.error ??
+            "Error al actualizar permisos"
+        );
       })
       .finally(() => {
         setOpen(false);
