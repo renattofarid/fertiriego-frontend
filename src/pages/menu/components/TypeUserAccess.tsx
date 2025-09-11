@@ -72,7 +72,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
     }));
   };
 
-  const { error, isSubmitting, setAccessTypeUser } = usePermissionStore();
+  const { isSubmitting, setAccessTypeUser } = usePermissionStore();
 
   const handleSubmit = async () => {
     const access = optionMenus.map((perm: any) => ({
@@ -104,8 +104,20 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
         <SheetHeader>
           <SheetTitle>Actualizar Permisos del Rol</SheetTitle>
           <SheetDescription className="text-xs">
-            Seleccione los permisos que tendrá el rol{" "}
-            <strong>{typeUser?.name}</strong>
+            {id === 1 ? (
+              <>
+                <span>
+                  El rol
+                  <strong className="ml-1">{typeUser?.name}</strong> tiene todos
+                  los permisos por defecto.
+                </span>
+              </>
+            ) : (
+              <>
+                <span>Seleccione los permisos para el rol </span>
+                <strong className="ml-1">{typeUser?.name}</strong>.
+              </>
+            )}
           </SheetDescription>
         </SheetHeader>
         {isFinding || isLoading ? (
@@ -140,7 +152,9 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
                   </div>
 
                   <div className="pt-4 w-full flex justify-end gap-2">
-                    <Button type="submit">Guardar</Button>
+                    <Button type="submit" disabled={id === 1}>
+                      Guardar
+                    </Button>
                     <Button
                       type="button"
                       variant="outline"
