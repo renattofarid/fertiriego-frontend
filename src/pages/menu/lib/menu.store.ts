@@ -37,15 +37,8 @@ export const usePermissionStore = create<TypeUserStore>((set) => ({
 
   setAccessTypeUser: async (id: number, data: any) => {
     set({ isSubmitting: true, error: null });
-    try {
-      await setAccessTypeUser(id, data);
-      set({ isSubmitting: false });
-    } catch (err) {
-      set({
-        error: "Error al actualizar permisos",
-        isSubmitting: false,
-      });
-      throw err;
-    }
+    await setAccessTypeUser(id, data).finally(() =>
+      set({ isSubmitting: false })
+    );
   },
 }));
