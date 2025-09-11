@@ -52,9 +52,11 @@ export default function LoginPage() {
       navigate("/inicio");
     } catch (error: any) {
       const errorMessage =
-        error.response?.data?.message || "Error al iniciar sesión.";
-      console.error("Detalles del error:", error);
-      errorToast("Error al iniciar sesión", errorMessage);
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Error al iniciar sesión.";
+      console.error("Detalles del error:", errorMessage);
+      errorToast(errorMessage ?? "Error al iniciar sesión");
     } finally {
       setIsLoading(false);
     }

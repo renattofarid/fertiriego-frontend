@@ -121,6 +121,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
                         className="flex items-center gap-2 text-xs font-medium"
                       >
                         <Checkbox
+                          disabled={id === 1}
                           checked={!!checkedItems[perm.id]}
                           onCheckedChange={(val) =>
                             handleCheckboxChange(perm.id, !!val)

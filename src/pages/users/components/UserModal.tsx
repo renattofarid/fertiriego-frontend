@@ -56,20 +56,37 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
     };
   };
 
-  const { isSubmitting, updateUser } = useUserStore();
+  const { isSubmitting, updateUser, createUser } = useUserStore();
 
   const handleSubmit = async (data: UserSchema) => {
-    await updateUser(id!, data)
-      .then(() => {
-        onClose();
-        successToast(SUCCESS_MESSAGE(MODEL, "update"));
-        refetchUser();
-        refetch();
-      })
-      .catch(() => {
-        errorToast(ERROR_MESSAGE(MODEL, "update"));
-      });
+    if (mode === "create") {
+      await createUser(data)
+        .then(() => {
+          onClose();
+          successToast(SUCCESS_MESSAGE(MODEL, "create"));
+          refetch();
+        })
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create")
+          );
+        });
+    } else {
+      await updateUser(id!, data)
+        .then(() => {
+          onClose();
+          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          refetchUser();
+          refetch();
+        })
+        .catch(() => {
+          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        });
+    }
   };
+
   const { data: typeUsers, isLoading: typeUsersLoading } = useAllTypeUsers();
 
   const isLoadingAny = isSubmitting || findingUser || typeUsersLoading;
