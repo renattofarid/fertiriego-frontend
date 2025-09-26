@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldUser } from "lucide-react";
+import { LayoutGrid, ShieldUser, Package } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,8 +14,15 @@ import { TYPE_USER } from "@/pages/type-users/lib/typeUser.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
 import { USER } from "@/pages/users/lib/User.interface";
+import { COMPANY } from "@/pages/company/lib/company.interface";
+import { BRANCH } from "@/pages/branch/lib/branch.interface";
+import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
+import { BRAND } from "@/pages/brand/lib/brand.interface";
+import { BOX } from "@/pages/box/lib/box.interface";
+import { UNIT } from "@/pages/unit/lib/unit.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
+import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -29,12 +36,92 @@ const {
   MODEL: { name: UserTitle },
 } = USER;
 
+const {
+  ICON_REACT: CompanyIcon,
+  ROUTE: CompanyRoute,
+  MODEL: { name: CompanyTitle },
+} = COMPANY;
+
+const {
+  ICON_REACT: BranchIcon,
+  ROUTE: BranchRoute,
+  MODEL: { name: BranchTitle },
+} = BRANCH;
+
+const {
+  ICON_REACT: WarehouseIcon,
+  ROUTE: WarehouseRoute,
+  MODEL: { name: WarehouseTitle },
+} = WAREHOUSE;
+
+const {
+  ICON_REACT: BrandIcon,
+  ROUTE: BrandRoute,
+  MODEL: { name: BrandTitle },
+} = BRAND;
+
+const {
+  ICON_REACT: BoxIcon,
+  ROUTE: BoxRoute,
+  MODEL: { name: BoxTitle },
+} = BOX;
+
+const {
+  ICON_REACT: UnitIcon,
+  ROUTE: UnitRoute,
+  MODEL: { name: UnitTitle },
+} = UNIT;
+
 const data = {
   navMain: [
     {
       title: "Dashboard",
       url: "/inicio",
       icon: LayoutGrid,
+    },
+    {
+      title: "Gestión",
+      url: "#",
+      icon: CompanyIcon,
+      items: [
+        {
+          title: CompanyTitle,
+          url: CompanyRoute,
+          icon: CompanyIcon,
+        },
+        {
+          title: BranchTitle,
+          url: BranchRoute,
+          icon: BranchIcon,
+        },
+        {
+          title: WarehouseTitle,
+          url: WarehouseRoute,
+          icon: WarehouseIcon,
+        },
+        {
+          title: BoxTitle,
+          url: BoxRoute,
+          icon: BoxIcon,
+        },
+      ],
+    },
+    {
+      title: "Productos",
+      url: "#",
+      icon: Package,
+      items: [
+        {
+          title: BrandTitle,
+          url: BrandRoute,
+          icon: BrandIcon,
+        },
+        {
+          title: UnitTitle,
+          url: UnitRoute,
+          icon: UnitIcon,
+        },
+      ],
     },
     {
       title: "Seguridad",
@@ -61,6 +148,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [filteredNav, setFilteredNav] = useState<any[]>([]);
 
   useEffect(() => {
+    if (!ENABLE_PERMISSION_VALIDATION) {
+      // Si no está habilitada la validación, mostrar todos los elementos
+      setFilteredNav(data.navMain);
+      return;
+    }
+
     if (!access) return;
 
     const filterNav = (items: any[]) =>
