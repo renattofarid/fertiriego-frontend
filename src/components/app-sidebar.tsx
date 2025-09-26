@@ -16,6 +16,7 @@ import { NavUser } from "./nav-user";
 import { USER } from "@/pages/users/lib/User.interface";
 import { COMPANY } from "@/pages/company/lib/company.interface";
 import { BRANCH } from "@/pages/branch/lib/branch.interface";
+import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -44,6 +45,12 @@ const {
   MODEL: { name: BranchTitle },
 } = BRANCH;
 
+const {
+  ICON_REACT: WarehouseIcon,
+  ROUTE: WarehouseRoute,
+  MODEL: { name: WarehouseTitle },
+} = WAREHOUSE;
+
 const data = {
   navMain: [
     {
@@ -65,6 +72,11 @@ const data = {
           title: BranchTitle,
           url: BranchRoute,
           icon: BranchIcon,
+        },
+        {
+          title: WarehouseTitle,
+          url: WarehouseRoute,
+          icon: WarehouseIcon,
         },
       ],
     },

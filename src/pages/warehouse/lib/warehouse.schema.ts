@@ -1,7 +1,7 @@
 import { requiredStringId } from "@/lib/core.schema";
 import { z } from "zod";
 
-export const branchSchemaCreate = z.object({
+export const warehouseSchemaCreate = z.object({
   name: z
     .string()
     .max(255, {
@@ -18,9 +18,16 @@ export const branchSchemaCreate = z.object({
     .min(1, {
       message: "La dirección es requerida",
     }),
-  is_invoice: z.boolean({
-    error: "Debe especificar si emite factura",
-  }),
+  capacity: z
+    .number({
+      error: "La capacidad es requerida",
+    })
+    .min(1, {
+      message: "La capacidad debe ser mayor a 0",
+    })
+    .max(999999, {
+      message: "La capacidad no puede ser mayor a 999,999",
+    }),
   responsible_id: z
     .number({
       error: "El responsable es requerido",
@@ -44,9 +51,9 @@ export const branchSchemaCreate = z.object({
     .max(255, {
       message: "El email no puede tener más de 255 caracteres",
     }),
-  company_id: requiredStringId("empresa"),
+  branch_id: requiredStringId("sucursal"),
 });
 
-export const branchSchemaUpdate = branchSchemaCreate.partial();
+export const warehouseSchemaUpdate = warehouseSchemaCreate.partial();
 
-export type BranchSchema = z.infer<typeof branchSchemaCreate>;
+export type WarehouseSchema = z.infer<typeof warehouseSchemaCreate>;

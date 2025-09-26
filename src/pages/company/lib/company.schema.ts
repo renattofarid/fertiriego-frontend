@@ -38,8 +38,8 @@ export const companySchemaCreate = z.object({
     }),
   phone: z
     .string()
-    .max(15, {
-      message: "El teléfono no puede tener más de 15 caracteres",
+    .max(9, {
+      message: "El teléfono no puede tener más de 9 caracteres",
     })
     .min(1, {
       message: "El teléfono es requerido",
@@ -54,7 +54,7 @@ export const companySchemaCreate = z.object({
     }),
   responsible_id: z
     .number({
-      required_error: "El responsable es requerido",
+      error: "El responsable es requerido",
     })
     .min(1, {
       message: "Debe seleccionar un responsable",

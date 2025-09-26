@@ -13,36 +13,46 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  companySchemaCreate,
-  companySchemaUpdate,
-  type CompanySchema,
-} from "../lib/company.schema.ts";
+  warehouseSchemaCreate,
+  warehouseSchemaUpdate,
+  type WarehouseSchema,
+} from "../lib/warehouse.schema.ts";
 import { Loader } from "lucide-react";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { useAllBranches } from "@/pages/branch/lib/branch.hook";
+import { FormSelect } from "@/components/FormSelect";
 import { useEffect } from "react";
 
-interface CompanyFormProps {
-  defaultValues: Partial<CompanySchema>;
+interface WarehouseFormProps {
+  defaultValues: Partial<WarehouseSchema>;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
 }
 
-export const CompanyForm = ({
+export const WarehouseForm = ({
   onCancel,
   defaultValues,
   onSubmit,
   isSubmitting = false,
   mode = "create",
-}: CompanyFormProps) => {
+}: WarehouseFormProps) => {
   const { user } = useAuthStore();
+  const { data: branches, isLoading: loadingBranches } = useAllBranches();
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? companySchemaCreate : companySchemaUpdate
+      mode === "create" ? warehouseSchemaCreate : warehouseSchemaUpdate
     ),
     defaultValues: {
+      name: "",
+      address: "",
+      capacity: 0,
+      phone: "",
+      email: "",
+      responsible_id: 0,
+      branch_id: "",
       ...defaultValues,
     },
     mode: "onChange",
@@ -55,56 +65,27 @@ export const CompanyForm = ({
     }
   }, [user?.id, mode, form]);
 
+  // Preparar opciones para el selector de sucursales
+  const branchOptions =
+    branches?.map((branch) => ({
+      value: branch.id.toString(),
+      label: branch.name,
+    })) || [];
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
           <FormField
             control={form.control}
-            name="social_reason"
+            name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Razón Social</FormLabel>
+                <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input
                     variant="primary"
-                    placeholder="Ej: Comercial Ferriego SAC"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="ruc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RUC</FormLabel>
-                <FormControl>
-                  <Input
-                    variant="primary"
-                    placeholder="Ej: 20123456789"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="trade_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre Comercial</FormLabel>
-                <FormControl>
-                  <Input
-                    variant="primary"
-                    placeholder="Ej: Ferriego"
+                    placeholder="Ej: Almacén Principal"
                     {...field}
                   />
                 </FormControl>
@@ -122,8 +103,28 @@ export const CompanyForm = ({
                 <FormControl>
                   <Input
                     variant="primary"
-                    placeholder="Ej: Av. Los Olivos 123, Lima"
+                    placeholder="Ej: Carretera Central km 12"
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="capacity"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Capacidad</FormLabel>
+                <FormControl>
+                  <Input
+                    variant="primary"
+                    type="number"
+                    placeholder="Ej: 5000"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
                 <FormMessage />
@@ -140,8 +141,8 @@ export const CompanyForm = ({
                 <FormControl>
                   <Input
                     variant="primary"
-                    placeholder="Ej: 987654321"
-                    maxLength={9}                    
+                    placeholder="Ej: 987654322"
+                    maxLength={9}
                     {...field}
                   />
                 </FormControl>
@@ -154,13 +155,13 @@ export const CompanyForm = ({
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-1 md:col-span-2">
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
                     variant="primary"
-                    type="email"
-                    placeholder="Ej: contacto@ferriego.com"
+                    type="email"  
+                    placeholder="Ej: almacen.principal@empresa.com"
                     {...field}
                   />
                 </FormControl>
@@ -169,6 +170,16 @@ export const CompanyForm = ({
             )}
           />
 
+          <div className="col-span-full">
+            <FormSelect
+              name="branch_id"
+              label="Sucursal"
+              placeholder="Seleccione una sucursal"
+              options={branchOptions}
+              control={form.control}
+              disabled={loadingBranches}
+            />
+          </div>
         </div>
 
         <div className="flex gap-4 w-full justify-end">

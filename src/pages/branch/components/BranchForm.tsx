@@ -123,6 +123,7 @@ export const BranchForm = ({
                   <Input
                     variant="primary"
                     placeholder="Ej: 987654321"
+                    maxLength={9}
                     {...field}
                   />
                 </FormControl>
