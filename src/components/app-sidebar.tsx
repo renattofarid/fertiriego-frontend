@@ -18,6 +18,8 @@ import { COMPANY } from "@/pages/company/lib/company.interface";
 import { BRANCH } from "@/pages/branch/lib/branch.interface";
 import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
 import { BRAND } from "@/pages/brand/lib/brand.interface";
+import { BOX } from "@/pages/box/lib/box.interface";
+import { UNIT } from "@/pages/unit/lib/unit.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -58,6 +60,18 @@ const {
   MODEL: { name: BrandTitle },
 } = BRAND;
 
+const {
+  ICON_REACT: BoxIcon,
+  ROUTE: BoxRoute,
+  MODEL: { name: BoxTitle },
+} = BOX;
+
+const {
+  ICON_REACT: UnitIcon,
+  ROUTE: UnitRoute,
+  MODEL: { name: UnitTitle },
+} = UNIT;
+
 const data = {
   navMain: [
     {
@@ -85,6 +99,11 @@ const data = {
           url: WarehouseRoute,
           icon: WarehouseIcon,
         },
+        {
+          title: BoxTitle,
+          url: BoxRoute,
+          icon: BoxIcon,
+        },
       ],
     },
     {
@@ -96,6 +115,11 @@ const data = {
           title: BrandTitle,
           url: BrandRoute,
           icon: BrandIcon,
+        },
+        {
+          title: UnitTitle,
+          url: UnitRoute,
+          icon: UnitIcon,
         },
       ],
     },
