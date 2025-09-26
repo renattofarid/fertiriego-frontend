@@ -7,12 +7,19 @@ import { useAuthStore } from "./pages/auth/lib/auth.store";
 import LoginPage from "./pages/auth/components/Login";
 import TypeUserPage from "./pages/type-users/components/TypeUserPage";
 import UserPage from "./pages/users/components/UserPage";
+import CompanyPage from "./pages/company/components/CompanyPage";
+import BranchPage from "./pages/branch/components/BranchPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
+import { COMPANY } from "./pages/company/lib/company.interface";
+import { BRANCH } from "./pages/branch/lib/branch.interface";
 import type { Access } from "./pages/auth/lib/auth.interface";
+import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
+const { ROUTE: CompanyRoute } = COMPANY;
+const { ROUTE: BranchRoute } = BRANCH;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -39,7 +46,7 @@ function ProtectedRoute({
     return <Navigate to="/login" replace />;
   }
 
-  if (path) {
+  if (path && ENABLE_PERMISSION_VALIDATION) {
     if (!access) {
       return <Navigate to="/inicio" replace />;
     }
@@ -98,6 +105,24 @@ export default function App() {
             element={
               <ProtectedRoute path={UserRoute}>
                 <UserPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={CompanyRoute}
+            element={
+              <ProtectedRoute path={CompanyRoute}>
+                <CompanyPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={BranchRoute}
+            element={
+              <ProtectedRoute path={BranchRoute}>
+                <BranchPage />
               </ProtectedRoute>
             }
           />
