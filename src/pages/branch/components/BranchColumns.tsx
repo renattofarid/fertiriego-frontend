@@ -5,7 +5,6 @@ import {
 import { SelectActions } from "@/components/SelectActions";
 import type { BranchResource } from "../lib/branch.interface";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
 import { Check, X } from "lucide-react";
 
 export const BranchColumns = ({

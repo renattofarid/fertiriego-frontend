@@ -12,7 +12,7 @@ export default function UnitOptions({ search, setSearch }: UnitOptionsProps) {
         placeholder="Buscar unidades..."
         value={search}
         onChange={setSearch}
-        className="max-w-sm"
+        // className="max-w-sm"
       />
     </div>
   );
