@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldUser } from "lucide-react";
+import { LayoutGrid, ShieldUser, Package } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import { USER } from "@/pages/users/lib/User.interface";
 import { COMPANY } from "@/pages/company/lib/company.interface";
 import { BRANCH } from "@/pages/branch/lib/branch.interface";
 import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
+import { BRAND } from "@/pages/brand/lib/brand.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -51,6 +52,12 @@ const {
   MODEL: { name: WarehouseTitle },
 } = WAREHOUSE;
 
+const {
+  ICON_REACT: BrandIcon,
+  ROUTE: BrandRoute,
+  MODEL: { name: BrandTitle },
+} = BRAND;
+
 const data = {
   navMain: [
     {
@@ -77,6 +84,18 @@ const data = {
           title: WarehouseTitle,
           url: WarehouseRoute,
           icon: WarehouseIcon,
+        },
+      ],
+    },
+    {
+      title: "Productos",
+      url: "#",
+      icon: Package,
+      items: [
+        {
+          title: BrandTitle,
+          url: BrandRoute,
+          icon: BrandIcon,
         },
       ],
     },

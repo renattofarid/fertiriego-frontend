@@ -10,11 +10,13 @@ import UserPage from "./pages/users/components/UserPage";
 import CompanyPage from "./pages/company/components/CompanyPage";
 import BranchPage from "./pages/branch/components/BranchPage";
 import WarehousePage from "./pages/warehouse/components/WarehousePage";
+import BrandPage from "./pages/brand/components/BrandPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
 import { BRANCH } from "./pages/branch/lib/branch.interface";
 import { WAREHOUSE } from "./pages/warehouse/lib/warehouse.interface";
+import { BRAND } from "./pages/brand/lib/brand.interface";
 import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
 
@@ -23,6 +25,7 @@ const { ROUTE: UserRoute } = USER;
 const { ROUTE: CompanyRoute } = COMPANY;
 const { ROUTE: BranchRoute } = BRANCH;
 const { ROUTE: WarehouseRoute } = WAREHOUSE;
+const { ROUTE: BrandRoute } = BRAND;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -135,6 +138,15 @@ export default function App() {
             element={
               <ProtectedRoute path={WarehouseRoute}>
                 <WarehousePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={BrandRoute}
+            element={
+              <ProtectedRoute path={BrandRoute}>
+                <BrandPage />
               </ProtectedRoute>
             }
           />
