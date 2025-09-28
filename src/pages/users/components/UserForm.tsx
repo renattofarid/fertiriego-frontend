@@ -20,6 +20,9 @@ import {
 import { FormSelect } from "@/components/FormSelect";
 import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
 import { useState } from "react";
+import React from "react";
+import { searchDNI, searchRUC, isValidData } from "@/lib/document-search.service";
+import { Search } from "lucide-react";
 
 interface MetricFormProps {
   defaultValues: Partial<UserSchema>;
@@ -50,6 +53,40 @@ export const UserForm = ({
 
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
+  const [isSearching, setIsSearching] = useState(false);
+  const [fieldsFromSearch, setFieldsFromSearch] = useState({
+    names: false,
+    father_surname: false,
+    mother_surname: false,
+    business_name: false,
+    address: false
+  });
+
+  // Lógica de validación entre tipo de persona y tipo de documento
+  const getValidDocumentTypes = (personType: string) => {
+    if (personType === "NATURAL") {
+      return ["DNI", "CE", "PASAPORTE"];
+    } else if (personType === "JURIDICA") {
+      return ["RUC"];
+    }
+    return ["DNI", "RUC", "CE", "PASAPORTE"];
+  };
+
+  // Filtrar opciones de tipo de documento según el tipo de persona
+  const documentTypeOptions = [
+    { value: "DNI", label: "DNI" },
+    { value: "RUC", label: "RUC" },
+    { value: "CE", label: "Carnet de Extranjería" },
+    { value: "PASAPORTE", label: "Pasaporte" },
+  ].filter(option => getValidDocumentTypes(type_person).includes(option.value));
+
+  // Resetear el tipo de documento si no es válido para el tipo de persona seleccionado
+  React.useEffect(() => {
+    if (type_person && type_document && !getValidDocumentTypes(type_person).includes(type_document)) {
+      form.setValue("type_document", "");
+      form.setValue("number_document", "");
+    }
+  }, [type_person, type_document, form]);
 
   return (
     <Form {...form}>
@@ -74,18 +111,7 @@ export const UserForm = ({
               name="type_document"
               label="Tipo de Documento"
               placeholder="Seleccione tipo de documento"
-              options={[
-                { value: "DNI", label: "DNI" },
-                { value: "RUC", label: "RUC" },
-                {
-                  value: "CE",
-                  label: "Carnet de Extranjería",
-                },
-                {
-                  value: "PASAPORTE",
-                  label: "Pasaporte",
-                },
-              ]}
+              options={documentTypeOptions}
             />
 
             <FormSelect
@@ -108,21 +134,86 @@ export const UserForm = ({
                     Número de Documento
                   </FormLabel>
                   <FormControl>
-                    <Input
-                      maxLength={
-                        type_document === "RUC"
-                          ? 11
-                          : type_document === "DNI"
-                          ? 8
-                          : type_document === "CE"
-                          ? 12
-                          : type_document === "PASAPORTE"
-                          ? 9
-                          : 0
-                      }
-                      placeholder="Número de Documento"
-                      {...field}
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        maxLength={
+                          type_document === "RUC"
+                            ? 11
+                            : type_document === "DNI"
+                            ? 8
+                            : type_document === "CE"
+                            ? 12
+                            : type_document === "PASAPORTE"
+                            ? 9
+                            : 0
+                        }
+                        placeholder="Número de Documento"
+                        {...field}
+                      />
+                      {(type_document === "DNI" || type_document === "RUC") && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={
+                            !field.value ||
+                            (type_document === "DNI" && field.value.length !== 8) ||
+                            (type_document === "RUC" && field.value.length !== 11) ||
+                            isSearching
+                          }
+                          onClick={async () => {
+                            if (field.value) {
+                              setIsSearching(true);
+                              try {
+                                if (type_document === "DNI" && field.value.length === 8) {
+                                  const response = await searchDNI({ search: field.value });
+                                  if (response.data) {
+                                    const newFieldsFromSearch = { ...fieldsFromSearch };
+                                    if (isValidData(response.data.names)) {
+                                      form.setValue("names", response.data.names);
+                                      newFieldsFromSearch.names = true;
+                                    }
+                                    if (isValidData(response.data.father_surname)) {
+                                      form.setValue("father_surname", response.data.father_surname);
+                                      newFieldsFromSearch.father_surname = true;
+                                    }
+                                    if (isValidData(response.data.mother_surname)) {
+                                      form.setValue("mother_surname", response.data.mother_surname);
+                                      newFieldsFromSearch.mother_surname = true;
+                                    }
+                                    setFieldsFromSearch(newFieldsFromSearch);
+                                  }
+                                } else if (type_document === "RUC" && field.value.length === 11) {
+                                  const response = await searchRUC({ search: field.value });
+                                  if (response.data) {
+                                    const newFieldsFromSearch = { ...fieldsFromSearch };
+                                    if (isValidData(response.data.business_name)) {
+                                      form.setValue("business_name", response.data.business_name);
+                                      newFieldsFromSearch.business_name = true;
+                                    }
+                                    if (isValidData(response.data.address)) {
+                                      form.setValue("address", response.data.address!);
+                                      newFieldsFromSearch.address = true;
+                                    }
+                                    setFieldsFromSearch(newFieldsFromSearch);
+                                  }
+                                }
+                              } catch (error) {
+                                console.error("Error searching document:", error);
+                              } finally {
+                                setIsSearching(false);
+                              }
+                            }
+                          }}
+                        >
+                          {isSearching ? (
+                            <Loader className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Search className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -140,7 +231,11 @@ export const UserForm = ({
                         Nombres
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Juan" {...field} />
+                        <Input
+                          placeholder="Juan"
+                          disabled={fieldsFromSearch.names}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -155,7 +250,11 @@ export const UserForm = ({
                         Apellido Paterno
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Perez" {...field} />
+                        <Input
+                          placeholder="Perez"
+                          disabled={fieldsFromSearch.father_surname}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -171,7 +270,11 @@ export const UserForm = ({
                         Apellido Materno
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Gomez" {...field} />
+                        <Input
+                          placeholder="Gomez"
+                          disabled={fieldsFromSearch.mother_surname}
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -190,7 +293,11 @@ export const UserForm = ({
                       Razón Social
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="Razón Social" {...field} />
+                      <Input
+                        placeholder="Razón Social"
+                        disabled={fieldsFromSearch.business_name}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -207,7 +314,11 @@ export const UserForm = ({
                     Dirección
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Dirección" {...field} />
+                    <Input
+                      placeholder="Dirección"
+                      disabled={fieldsFromSearch.address}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

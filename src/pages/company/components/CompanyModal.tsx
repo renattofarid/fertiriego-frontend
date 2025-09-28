@@ -91,7 +91,7 @@ export default function CompanyModal({
   const isLoadingAny = isSubmitting || findingCompany;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title}>
+    <GeneralModal open={open} onClose={onClose} title={title} maxWidth="!max-w-2xl">
       {!isLoadingAny && company ? (
         <CompanyForm
           defaultValues={mapCompanyToForm(company)}
