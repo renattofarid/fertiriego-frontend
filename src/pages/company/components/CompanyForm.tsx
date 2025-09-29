@@ -42,7 +42,7 @@ export const CompanyForm = ({
   const [isSearching, setIsSearching] = useState(false);
   const [fieldsFromSearch, setFieldsFromSearch] = useState({
     social_reason: false,
-    address: false
+    address: false,
   });
 
   const form = useForm({
@@ -103,20 +103,32 @@ export const CompanyForm = ({
                       type="button"
                       variant="outline"
                       size="icon"
-                      disabled={!field.value || field.value.length !== 11 || isSearching}
+                      disabled={
+                        !field.value || field.value.length !== 11 || isSearching
+                      }
                       onClick={async () => {
                         if (field.value && field.value.length === 11) {
                           setIsSearching(true);
                           try {
-                            const response = await searchRUC({ search: field.value });
+                            const response = await searchRUC({
+                              search: field.value,
+                            });
                             if (response.data) {
-                              const newFieldsFromSearch = { ...fieldsFromSearch };
+                              const newFieldsFromSearch = {
+                                ...fieldsFromSearch,
+                              };
                               if (isValidData(response.data.business_name)) {
-                                form.setValue("social_reason", response.data.business_name);
+                                form.setValue(
+                                  "social_reason",
+                                  response.data.business_name
+                                );
                                 newFieldsFromSearch.social_reason = true;
                               }
                               if (isValidData(response.data.address)) {
-                                form.setValue("address", response.data.address!);
+                                form.setValue(
+                                  "address",
+                                  response.data.address!
+                                );
                                 newFieldsFromSearch.address = true;
                               }
                               setFieldsFromSearch(newFieldsFromSearch);
@@ -189,7 +201,7 @@ export const CompanyForm = ({
                   <Input
                     variant="primary"
                     placeholder="Ej: 987654321"
-                    maxLength={9}                    
+                    maxLength={9}
                     {...field}
                   />
                 </FormControl>
@@ -216,9 +228,8 @@ export const CompanyForm = ({
               </FormItem>
             )}
           />
-
         </div>
-
+        
         <div className="flex gap-4 w-full justify-end">
           <Button type="button" variant="neutral" onClick={onCancel}>
             Cancelar

@@ -81,8 +81,12 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
           refetchUser();
           refetch();
         })
-        .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "update")
+          );
         });
     }
   };

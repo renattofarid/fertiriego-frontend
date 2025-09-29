@@ -20,6 +20,7 @@ import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
 import { BRAND } from "@/pages/brand/lib/brand.interface";
 import { BOX } from "@/pages/box/lib/box.interface";
 import { UNIT } from "@/pages/unit/lib/unit.interface";
+import { CATEGORY } from "@/pages/category/lib/category.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -72,6 +73,12 @@ const {
   MODEL: { name: UnitTitle },
 } = UNIT;
 
+const {
+  ICON_REACT: CategoryIcon,
+  ROUTE: CategoryRoute,
+  MODEL: { name: CategoryTitle },
+} = CATEGORY;
+
 const data = {
   navMain: [
     {
@@ -111,6 +118,11 @@ const data = {
       url: "#",
       icon: Package,
       items: [
+        {
+          title: CategoryTitle,
+          url: CategoryRoute,
+          icon: CategoryIcon,
+        },
         {
           title: BrandTitle,
           url: BrandRoute,

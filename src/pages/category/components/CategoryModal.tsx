@@ -1,17 +1,20 @@
 import FormSkeleton from "@/components/FormSkeleton";
 import { GeneralModal } from "@/components/GeneralModal";
-import type { CompanySchema } from "../lib/company.schema";
+import type { CategorySchema } from "../lib/category.schema";
 import {
   ERROR_MESSAGE,
   errorToast,
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import { COMPANY, type CompanyResource } from "../lib/company.interface";
-import { useCompany, useCompanyById } from "../lib/company.hook";
-import { useCompanyStore } from "../lib/company.store";
-import { CompanyForm } from "./CompanyForm";
-import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { CATEGORY, type CategoryResource } from "../lib/category.interface";
+import {
+  useCategory,
+  useCategoryById,
+  useAllCategories,
+} from "../lib/category.hook";
+import { useCategoryStore } from "../lib/category.store";
+import { CategoryForm } from "./CategoryForm";
 
 interface Props {
   id?: number;
@@ -21,49 +24,49 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, EMPTY } = COMPANY;
+const { MODEL, EMPTY } = CATEGORY;
 
-export default function CompanyModal({
+export default function CategoryModal({
   id,
   open,
   title,
   mode,
   onClose,
 }: Props) {
-  const { refetch } = useCompany();
-  const { user } = useAuthStore();
+  const { refetch } = useCategory();
+  const { data: allCategories, refetch: refetchAllCategories } =
+    useAllCategories();
 
   const {
-    data: company,
-    isFinding: findingCompany,
-    refetch: refetchCompany,
+    data: category,
+    isFinding: findingCategory,
+    refetch: refetchCategory,
   } = mode === "create"
     ? {
         data: EMPTY,
         isFinding: false,
         refetch: refetch,
       }
-    : useCompanyById(id!);
+    : useCategoryById(id!);
 
-  const mapCompanyToForm = (data: CompanyResource): Partial<CompanySchema> => ({
-    social_reason: data.social_reason,
-    ruc: data.ruc,
-    trade_name: data.trade_name,
-    address: data.address,
-    phone: data.phone,
-    email: data.email,
-    responsible_id: user?.id || data.responsible_id, // Usar el ID del usuario logueado
+  const mapCategoryToForm = (
+    data: CategoryResource
+  ): Partial<CategorySchema> => ({
+    name: data.name,
+    code: data.code,
+    parent_id: data.parent_id ? data.parent_id.toString() : "null",
   });
 
-  const { isSubmitting, updateCompany, createCompany } = useCompanyStore();
+  const { isSubmitting, updateCategory, createCategory } = useCategoryStore();
 
-  const handleSubmit = async (data: CompanySchema) => {
+  const handleSubmit = async (data: CategorySchema) => {
     if (mode === "create") {
-      await createCompany(data)
+      await createCategory(data)
         .then(() => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
           refetch();
+          refetchAllCategories();
         })
         .catch((error: any) => {
           errorToast(
@@ -73,12 +76,13 @@ export default function CompanyModal({
           );
         });
     } else {
-      await updateCompany(id!, data)
+      await updateCategory(id!, data)
         .then(() => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "update"));
-          refetchCompany();
+          refetchCategory();
           refetch();
+          refetchAllCategories();
         })
         .catch((error: any) => {
           errorToast(
@@ -90,7 +94,7 @@ export default function CompanyModal({
     }
   };
 
-  const isLoadingAny = isSubmitting || findingCompany;
+  const isLoadingAny = isSubmitting || findingCategory;
 
   return (
     <GeneralModal
@@ -99,13 +103,14 @@ export default function CompanyModal({
       title={title}
       maxWidth="!max-w-2xl"
     >
-      {!isLoadingAny && company ? (
-        <CompanyForm
-          defaultValues={mapCompanyToForm(company)}
+      {!isLoadingAny && category && allCategories ? (
+        <CategoryForm
+          defaultValues={mapCategoryToForm(category)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode={mode}
           onCancel={onClose}
+          categories={allCategories}
         />
       ) : (
         <FormSkeleton />
