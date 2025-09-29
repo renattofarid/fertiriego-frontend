@@ -21,6 +21,7 @@ import { BRAND } from "@/pages/brand/lib/brand.interface";
 import { BOX } from "@/pages/box/lib/box.interface";
 import { UNIT } from "@/pages/unit/lib/unit.interface";
 import { CATEGORY } from "@/pages/category/lib/category.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -79,6 +80,12 @@ const {
   MODEL: { name: CategoryTitle },
 } = CATEGORY;
 
+const {
+  ICON_REACT: ProductIcon,
+  ROUTE: ProductRoute,
+  MODEL: { name: ProductTitle },
+} = PRODUCT;
+
 const data = {
   navMain: [
     {
@@ -122,6 +129,11 @@ const data = {
           title: CategoryTitle,
           url: CategoryRoute,
           icon: CategoryIcon,
+        },
+        {
+          title: ProductTitle,
+          url: ProductRoute,
+          icon: ProductIcon,
         },
         {
           title: BrandTitle,
