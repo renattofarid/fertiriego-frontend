@@ -148,18 +148,18 @@ export function ProductComponentManager({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
           {productComponents?.data.length || 0} componente(s) configurado(s)
         </p>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowComponentForm(true)}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          Agregar Componente
+          <span className="sm:inline">Agregar Componente</span>
         </Button>
       </div>
 
@@ -167,9 +167,9 @@ export function ProductComponentManager({
       {productComponents?.data && productComponents.data.length > 0 ? (
         <div className="grid gap-3">
           {productComponents.data.map((component) => (
-            <Card key={component.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <Card key={component.id} className="p-4 overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center gap-4 min-w-0 flex-1">
                   <div className="flex-shrink-0">
                     <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
                       <Package className="h-5 w-5 text-primary" />
@@ -177,16 +177,16 @@ export function ProductComponentManager({
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                      <h4 className="font-medium truncate">
                         {component.component_name || getComponentName(component.component_id)}
                       </h4>
-                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs w-fit">
                         <Hash className="h-3 w-3" />
                         <span>ID: {component.component_id}</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
                       <span className="font-medium text-foreground">
                         Cantidad: {component.quantity}
                       </span>
@@ -197,24 +197,24 @@ export function ProductComponentManager({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(component)}
-                    className="gap-2"
+                    className="gap-2 flex-1 sm:flex-none"
                   >
                     <Edit className="h-4 w-4" />
-                    Editar
+                    <span className="sm:inline">Editar</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setDeleteComponentId(component.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Eliminar
+                    <span className="sm:inline">Eliminar</span>
                   </Button>
                 </div>
               </div>
@@ -222,31 +222,31 @@ export function ProductComponentManager({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 border-2 border-dashed border-muted rounded-xl">
-          <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
+        <div className="text-center py-6 sm:py-8 border-2 border-dashed border-muted rounded-xl px-4">
+          <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
+          <h3 className="text-base sm:text-lg font-semibold mb-2">
             No hay componentes configurados
           </h3>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
             Agrega componentes para crear un producto compuesto
           </p>
           <Button
             variant="outline"
             onClick={() => setShowComponentForm(true)}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
-            Agregar primer componente
+            <span>Agregar primer componente</span>
           </Button>
         </div>
       )}
 
       {/* Component Form Modal */}
       {showComponentForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-md w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="text-base sm:text-lg">
                 {editingComponent ? "Editar Componente" : "Agregar Nuevo Componente"}
               </CardTitle>
             </CardHeader>
@@ -283,18 +283,19 @@ export function ProductComponentManager({
                     )}
                   />
 
-                  <div className="flex justify-end gap-2 pt-4">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleCancel}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                     >
                       <Package className="h-4 w-4" />
                       {isSubmitting
@@ -319,8 +320,6 @@ export function ProductComponentManager({
           open={true}
           onOpenChange={(open) => !open && setDeleteComponentId(null)}
           onConfirm={handleDelete}
-          title="Eliminar Componente"
-          description="¿Está seguro de que desea eliminar este componente? Esta acción no se puede deshacer."
         />
       )}
     </div>

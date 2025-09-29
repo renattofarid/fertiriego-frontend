@@ -177,79 +177,88 @@ export function ProductPriceManager({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-muted-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <p className="text-muted-foreground text-sm">
           {productPrices?.data.length || 0} precio(s) configurado(s)
         </p>
         <Button
           variant="outline"
           size="sm"
           onClick={() => setShowPriceForm(true)}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           <Plus className="h-4 w-4" />
-          Agregar Precio
+          <span className="sm:inline">Agregar Precio</span>
         </Button>
       </div>
 
       {/* Prices List */}
       {productPrices?.data && productPrices.data.length > 0 ? (
-        <div className="grid gap-3">
+        <div className="space-y-3 w-full max-w-full">
           {productPrices.data.map((price) => (
-            <Card key={price.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
+            <Card key={price.id} className="p-3 sm:p-4 overflow-hidden">
+              <div className="flex flex-col gap-3">
+                {/* Header de la card - Información principal */}
+                <div className="flex items-start gap-3">
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <DollarSign className="h-5 w-5 text-primary" />
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                      <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     </div>
                   </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium">{price.branch_name}</h4>
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Nombre de sucursal y categoría */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                      <h4 className="font-medium text-sm sm:text-base truncate min-w-0 max-w-full">
+                        {price.branch_name}
+                      </h4>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-md border ${getCategoryColor(
                           price.category
-                        )}`}
+                        )} shrink-0 w-fit`}
                       >
                         {price.category}
                       </span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">
-                        {formatPrice(price.price_soles, "S/.")}
-                      </span>
-                      <span className="font-medium text-foreground">
-                        {formatPrice(price.price_usd, "$")}
-                      </span>
-                      <span className="text-xs">
+
+                    {/* Precios y fecha */}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 min-w-0 flex-1">
+                        <span className="font-medium text-foreground truncate">
+                          {formatPrice(price.price_soles, "S/.")}
+                        </span>
+                        <span className="font-medium text-foreground truncate">
+                          {formatPrice(price.price_usd, "$")}
+                        </span>
+                      </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
                         {new Date(price.created_at).toLocaleDateString("es-ES")}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
+                {/* Botones de acción */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/50">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(price)}
-                    className="gap-2"
+                    className="gap-2 flex-1 sm:flex-none"
                   >
                     <Edit className="h-4 w-4" />
-                    Editar
+                    <span>Editar</span>
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setDeletePriceId(price.id)}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Eliminar
+                    <span>Eliminar</span>
                   </Button>
                 </div>
               </div>
@@ -257,18 +266,18 @@ export function ProductPriceManager({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 border-2 border-dashed border-muted rounded-xl">
+        <div className="text-center py-8 px-4 border-2 border-dashed border-muted rounded-xl">
           <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">
             No hay precios configurados
           </h3>
-          <p className="text-muted-foreground mb-4">
+          <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
             Configura los precios para este producto por sucursal y categoría
           </p>
           <Button
             variant="outline"
             onClick={() => setShowPriceForm(true)}
-            className="gap-2"
+            className="gap-2 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Agregar primer precio
@@ -278,14 +287,14 @@ export function ProductPriceManager({
 
       {/* Price Form Modal */}
       {showPriceForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="max-w-md w-full mx-4">
-            <CardHeader>
-              <CardTitle>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg">
                 {editingPrice ? "Editar Precio" : "Agregar Nuevo Precio"}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-0">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
                   <FormSelect
@@ -310,7 +319,7 @@ export function ProductPriceManager({
                     }))}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="price_soles"
@@ -351,18 +360,19 @@ export function ProductPriceManager({
                     />
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-4">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={handleCancel}
+                      className="w-full sm:w-auto"
                     >
                       Cancelar
                     </Button>
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="gap-2"
+                      className="gap-2 w-full sm:w-auto"
                     >
                       <DollarSign className="h-4 w-4" />
                       {isSubmitting
