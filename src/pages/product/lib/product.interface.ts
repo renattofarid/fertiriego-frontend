@@ -1,11 +1,12 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
 import { Package } from "lucide-react";
+import type { ProductSchema } from "./product.schema";
 
 const ROUTE = "/producto";
 const NAME = "Producto";
 
-export const PRODUCT: ModelComplete<ProductResource> = {
+export const PRODUCT: ModelComplete<ProductSchema> = {
   MODEL: {
     name: NAME,
     description: "Gestión de productos del sistema.",
@@ -34,19 +35,12 @@ export const PRODUCT: ModelComplete<ProductResource> = {
     },
   },
   EMPTY: {
-    id: 0,
     name: "",
     category_id: 0,
-    category_name: "",
     brand_id: 0,
-    brand_name: "",
     unit_id: 0,
-    unit_name: "",
-    product_type: "Normal",
+    product_type: "",
     technical_sheet: [],
-    product_images: [],
-    components: [],
-    created_at: "",
   },
 };
 
@@ -68,7 +62,7 @@ export interface ProductResource {
   product_type: string;
   technical_sheet: string[];
   product_images: string[];
-  components: any[];
+  components: unknown[];
   created_at: string;
 }
 
@@ -77,7 +71,7 @@ export interface ProductResourceById {
 }
 
 export interface getProductProps {
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 export interface DeleteTechnicalSheetRequest {

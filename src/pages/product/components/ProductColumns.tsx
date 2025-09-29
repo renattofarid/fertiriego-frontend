@@ -52,7 +52,7 @@ export const ProductColumns = ({
     header: "Tipo",
     cell: ({ getValue }) => {
       const type = getValue() as string;
-      const getVariant = (type: string) => {
+      const getVariant = (type: string): "default" | "destructive" | "secondary" | "outline" => {
         switch (type) {
           case "Normal":
             return "default";
@@ -65,7 +65,7 @@ export const ProductColumns = ({
         }
       };
       return (
-        <Badge variant={getVariant(type) as any} className="font-semibold">
+        <Badge variant={getVariant(type)} className="font-semibold">
           {type}
         </Badge>
       );

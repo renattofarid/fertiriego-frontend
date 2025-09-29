@@ -8,7 +8,7 @@ import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
 import ProductOptions from "./ProductOptions";
 import { ProductForm } from "./ProductForm";
-import { deleteProduct } from "../lib/product.actions";
+import { deleteProduct, deleteTechnicalSheet } from "../lib/product.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -22,7 +22,7 @@ import { PRODUCT, type ProductResource } from "../lib/product.interface";
 import { useProductStore } from "../lib/product.store";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Eye } from "lucide-react";
+import { ArrowLeft, Eye, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -42,6 +42,7 @@ export default function ProductPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [deleteSheetValue, setDeleteSheetValue] = useState<string | null>(null);
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
@@ -55,34 +56,43 @@ export default function ProductPage() {
     product
   } = useProductStore();
 
-  // Build filter params
-  const filterParams = {
-    page,
-    search,
-    per_page,
-    ...(selectedCategory && { category_id: selectedCategory }),
-    ...(selectedBrand && { brand_id: selectedBrand }),
-    ...(selectedType && { product_type: selectedType }),
-  };
-
   useEffect(() => {
+    const filterParams = {
+      page,
+      search,
+      per_page,
+      ...(selectedCategory && { category_id: selectedCategory }),
+      ...(selectedBrand && { brand_id: selectedBrand }),
+      ...(selectedType && { product_type: selectedType }),
+    };
     refetch(filterParams);
-  }, [page, search, per_page, selectedCategory, selectedBrand, selectedType]);
+  }, [page, search, per_page, selectedCategory, selectedBrand, selectedType, refetch]);
 
   useEffect(() => {
     if (selectedProductId && (viewMode === "edit" || viewMode === "view")) {
       fetchProduct(selectedProductId);
     }
-  }, [selectedProductId, viewMode]);
+  }, [selectedProductId, viewMode, fetchProduct]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deleteProduct(deleteId);
+      const filterParams = {
+        page,
+        search,
+        per_page,
+        ...(selectedCategory && { category_id: selectedCategory }),
+        ...(selectedBrand && { brand_id: selectedBrand }),
+        ...(selectedType && { product_type: selectedType }),
+      };
       await refetch(filterParams);
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
-    } catch (error: any) {
-      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "delete"));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : ERROR_MESSAGE(MODEL, "delete");
+      errorToast(errorMessage);
     } finally {
       setDeleteId(null);
     }
@@ -108,6 +118,31 @@ export default function ProductPage() {
     setSelectedProductId(null);
   };
 
+  const handleDeleteTechnicalSheet = async () => {
+    if (!deleteSheetValue || !selectedProductId) return;
+    try {
+      await deleteTechnicalSheet(selectedProductId, { value: deleteSheetValue });
+      await fetchProduct(selectedProductId); // Refresh product data
+      successToast("Ficha técnica eliminada exitosamente");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Error al eliminar la ficha técnica";
+      errorToast(errorMessage);
+    } finally {
+      setDeleteSheetValue(null);
+    }
+  };
+
+  const getDefaultValues = (): Partial<ProductSchema> => ({
+    name: "",
+    category_id: undefined,
+    brand_id: undefined,
+    unit_id: undefined,
+    product_type: "",
+    technical_sheet: [],
+  });
+
   const mapProductToForm = (data: ProductResource): Partial<ProductSchema> => ({
     name: data.name,
     category_id: data.category_id,
@@ -127,14 +162,21 @@ export default function ProductPage() {
         successToast(SUCCESS_MESSAGE(MODEL, "update"));
       }
 
+      const filterParams = {
+        page,
+        search,
+        per_page,
+        ...(selectedCategory && { category_id: selectedCategory }),
+        ...(selectedBrand && { brand_id: selectedBrand }),
+        ...(selectedType && { product_type: selectedType }),
+      };
       await refetch(filterParams);
       handleBackToList();
-    } catch (error: any) {
-      errorToast(
-        error.response?.data?.message ??
-        error.response?.data?.error ??
-        ERROR_MESSAGE(MODEL, viewMode === "create" ? "create" : "update")
-      );
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error
+        ? error.message
+        : ERROR_MESSAGE(MODEL, viewMode === "create" ? "create" : "update");
+      errorToast(errorMessage);
     }
   };
 
@@ -195,13 +237,23 @@ export default function ProductPage() {
                 product.technical_sheet.map((sheet, index) => (
                   <div key={index} className="flex items-center justify-between p-2 border rounded">
                     <span className="text-sm">{sheet.split('/').pop()}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => window.open(sheet, '_blank')}
-                    >
-                      Ver
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(sheet, '_blank')}
+                      >
+                        Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeleteSheetValue(sheet)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -237,7 +289,7 @@ export default function ProductPage() {
   // Render form view (create/edit)
   const renderFormView = () => {
     const isEdit = viewMode === "edit";
-    const defaultValues = isEdit && product ? mapProductToForm(product) : {};
+    const defaultValues = isEdit && product ? mapProductToForm(product) : getDefaultValues();
 
     return (
       <Card>
@@ -276,7 +328,7 @@ export default function ProductPage() {
     <>
       <div className="flex justify-between items-center">
         <TitleComponent
-          title={MODEL.plural}
+          title={MODEL.plural!}
           subtitle={MODEL.description}
           icon={ICON}
         />
@@ -330,6 +382,14 @@ export default function ProductPage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {deleteSheetValue !== null && (
+        <SimpleDeleteDialog
+          open={true}
+          onOpenChange={(open) => !open && setDeleteSheetValue(null)}
+          onConfirm={handleDeleteTechnicalSheet}
         />
       )}
     </div>

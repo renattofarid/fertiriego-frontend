@@ -1,35 +1,17 @@
 import { z } from "zod";
+import { requiredNumberId } from "@/lib/core.schema";
 
 export const productSchemaCreate = z.object({
   name: z
     .string()
-    .max(255, {
-      message: "El nombre no puede tener más de 255 caracteres",
-    })
-    .min(1, {
-      message: "El nombre es requerido",
+    .min(1, { message: "El nombre es requerido" })
+    .max(255, { message: "El nombre no puede exceder 255 caracteres" })
+    .refine((val) => /^[A-Za-zÀ-ÖØ-öø-ÿ\s0-9\-_\.]+$/.test(val), {
+      message: "El nombre solo puede contener letras, números, espacios y guiones",
     }),
-  category_id: z
-    .number({
-      required_error: "La categoría es requerida",
-    })
-    .min(1, {
-      message: "Debe seleccionar una categoría",
-    }),
-  brand_id: z
-    .number({
-      required_error: "La marca es requerida",
-    })
-    .min(1, {
-      message: "Debe seleccionar una marca",
-    }),
-  unit_id: z
-    .number({
-      required_error: "La unidad es requerida",
-    })
-    .min(1, {
-      message: "Debe seleccionar una unidad",
-    }),
+  category_id: requiredNumberId("Debe seleccionar una categoría"),
+  brand_id: requiredNumberId("Debe seleccionar una marca"),
+  unit_id: requiredNumberId("Debe seleccionar una unidad"),
   product_type: z
     .string()
     .min(1, {

@@ -45,7 +45,7 @@ export async function findProductById(
 export async function storeProduct(data: FormData): Promise<ProductResponse> {
   const response = await api.post<ProductResponse>(ENDPOINT, data, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return response.data;
@@ -56,25 +56,24 @@ export async function updateProduct(
   data: FormData
 ): Promise<ProductResponse> {
   // Para el update usamos POST con _method=PUT como mencionaste
-  data.append('_method', 'PUT');
   const response = await api.post<ProductResponse>(`${ENDPOINT}/${id}`, data, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      "Content-Type": "multipart/form-data",
     },
   });
   return response.data;
 }
 
-export async function deleteProduct(id: number): Promise<any> {
-  const { data } = await api.delete<any>(`${ENDPOINT}/${id}`);
+export async function deleteProduct(id: number): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(`${ENDPOINT}/${id}`);
   return data;
 }
 
 export async function deleteTechnicalSheet(
   productId: number,
   request: DeleteTechnicalSheetRequest
-): Promise<any> {
-  const { data } = await api.delete<any>(
+): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(
     `${ENDPOINT}/${productId}/technical-sheet`,
     { data: request }
   );

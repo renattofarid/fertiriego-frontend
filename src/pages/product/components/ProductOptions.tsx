@@ -1,7 +1,6 @@
 "use client";
 
 import SearchInput from "@/components/SearchInput";
-import { FormSelect } from "@/components/FormSelect";
 import type { CategoryResource } from "@/pages/category/lib/category.interface";
 import type { BrandResource } from "@/pages/brand/lib/brand.interface";
 

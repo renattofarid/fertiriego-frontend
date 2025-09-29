@@ -39,7 +39,7 @@ export function useProductById(id: number) {
 
   useEffect(() => {
     fetchProduct(id);
-  }, [id]);
+  }, [id, fetchProduct]);
 
   return {
     data: product,
