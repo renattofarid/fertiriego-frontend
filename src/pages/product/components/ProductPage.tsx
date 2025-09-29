@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProduct } from "../lib/product.hook";
 import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
@@ -8,7 +9,7 @@ import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
 import ProductOptions from "./ProductOptions";
 import { ProductForm } from "./ProductForm";
-import { deleteProduct, deleteTechnicalSheet } from "../lib/product.actions";
+import { deleteProduct } from "../lib/product.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -22,17 +23,16 @@ import { PRODUCT, type ProductResource } from "../lib/product.interface";
 import { useProductStore } from "../lib/product.store";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Eye, Trash2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import type { ProductSchema } from "../lib/product.schema";
 
 const { MODEL, ICON } = PRODUCT;
 
-type ViewMode = "list" | "create" | "edit" | "view";
+type ViewMode = "list" | "create" | "edit";
 
 export default function ProductPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -42,19 +42,13 @@ export default function ProductPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
-  const [deleteSheetValue, setDeleteSheetValue] = useState<string | null>(null);
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
   const { data: brands } = useAllBrands();
   const { data: units } = useAllUnits();
-  const {
-    isSubmitting,
-    createProduct,
-    updateProduct,
-    fetchProduct,
-    product
-  } = useProductStore();
+  const { isSubmitting, createProduct, updateProduct, fetchProduct, product } =
+    useProductStore();
 
   useEffect(() => {
     const filterParams = {
@@ -66,10 +60,18 @@ export default function ProductPage() {
       ...(selectedType && { product_type: selectedType }),
     };
     refetch(filterParams);
-  }, [page, search, per_page, selectedCategory, selectedBrand, selectedType, refetch]);
+  }, [
+    page,
+    search,
+    per_page,
+    selectedCategory,
+    selectedBrand,
+    selectedType,
+    refetch,
+  ]);
 
   useEffect(() => {
-    if (selectedProductId && (viewMode === "edit" || viewMode === "view")) {
+    if (selectedProductId && viewMode === "edit") {
       fetchProduct(selectedProductId);
     }
   }, [selectedProductId, viewMode, fetchProduct]);
@@ -89,9 +91,8 @@ export default function ProductPage() {
       await refetch(filterParams);
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : ERROR_MESSAGE(MODEL, "delete");
+      const errorMessage =
+        error instanceof Error ? error.message : ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -109,8 +110,7 @@ export default function ProductPage() {
   };
 
   const handleViewProduct = (id: number) => {
-    setSelectedProductId(id);
-    setViewMode("view");
+    navigate(`/productos/${id}`);
   };
 
   const handleBackToList = () => {
@@ -118,21 +118,6 @@ export default function ProductPage() {
     setSelectedProductId(null);
   };
 
-  const handleDeleteTechnicalSheet = async () => {
-    if (!deleteSheetValue || !selectedProductId) return;
-    try {
-      await deleteTechnicalSheet(selectedProductId, { value: deleteSheetValue });
-      await fetchProduct(selectedProductId); // Refresh product data
-      successToast("Ficha técnica eliminada exitosamente");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : "Error al eliminar la ficha técnica";
-      errorToast(errorMessage);
-    } finally {
-      setDeleteSheetValue(null);
-    }
-  };
 
   const getDefaultValues = (): Partial<ProductSchema> => ({
     name: "",
@@ -173,123 +158,20 @@ export default function ProductPage() {
       await refetch(filterParams);
       handleBackToList();
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error
-        ? error.message
-        : ERROR_MESSAGE(MODEL, viewMode === "create" ? "create" : "update");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : ERROR_MESSAGE(MODEL, viewMode === "create" ? "create" : "update");
       errorToast(errorMessage);
     }
   };
 
-  // Render product details view
-  const renderProductDetails = () => {
-    if (!product) return null;
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              Detalles del Producto
-            </CardTitle>
-            <Button variant="outline" onClick={handleBackToList}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Nombre</label>
-              <p className="text-lg font-semibold">{product.name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Tipo</label>
-              <div className="mt-1">
-                <Badge variant="outline">{product.product_type}</Badge>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Categoría</label>
-              <p>{product.category_name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Marca</label>
-              <p>{product.brand_name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Unidad</label>
-              <p>{product.unit_name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Fecha de Creación</label>
-              <p>{new Date(product.created_at).toLocaleDateString("es-ES")}</p>
-            </div>
-          </div>
-
-          <Separator />
-
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Fichas Técnicas</label>
-            <div className="mt-2 space-y-2">
-              {product.technical_sheet.length > 0 ? (
-                product.technical_sheet.map((sheet, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 border rounded">
-                    <span className="text-sm">{sheet.split('/').pop()}</span>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(sheet, '_blank')}
-                      >
-                        Ver
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setDeleteSheetValue(sheet)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted-foreground">No hay fichas técnicas</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">Imágenes del Producto</label>
-            <div className="mt-2">
-              {product.product_images.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {product.product_images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Imagen ${index + 1}`}
-                      className="w-full h-32 object-cover rounded border"
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">No hay imágenes</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
 
   // Render form view (create/edit)
   const renderFormView = () => {
     const isEdit = viewMode === "edit";
-    const defaultValues = isEdit && product ? mapProductToForm(product) : getDefaultValues();
+    const defaultValues =
+      isEdit && product ? mapProductToForm(product) : getDefaultValues();
 
     return (
       <Card>
@@ -375,21 +257,12 @@ export default function ProductPage() {
     <div className="space-y-4">
       {viewMode === "list" && renderListView()}
       {(viewMode === "create" || viewMode === "edit") && renderFormView()}
-      {viewMode === "view" && renderProductDetails()}
 
       {deleteId !== null && (
         <SimpleDeleteDialog
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
-        />
-      )}
-
-      {deleteSheetValue !== null && (
-        <SimpleDeleteDialog
-          open={true}
-          onOpenChange={(open) => !open && setDeleteSheetValue(null)}
-          onConfirm={handleDeleteTechnicalSheet}
         />
       )}
     </div>

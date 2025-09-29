@@ -15,6 +15,7 @@ import BoxPage from "./pages/box/components/BoxPage";
 import UnitPage from "./pages/unit/components/UnitPage";
 import CategoryPage from "./pages/category/components/CategoryPage";
 import ProductPage from "./pages/product/components/ProductPage";
+import ProductDetail from "./pages/product/components/ProductDetail";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
@@ -195,6 +196,15 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductRoute}>
                 <ProductPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={`${ProductRoute}/:id`}
+            element={
+              <ProtectedRoute path={ProductRoute}>
+                <ProductDetail />
               </ProtectedRoute>
             }
           />

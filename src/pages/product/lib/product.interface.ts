@@ -3,7 +3,7 @@ import type { Links, Meta } from "@/lib/pagination.interface";
 import { Package } from "lucide-react";
 import type { ProductSchema } from "./product.schema";
 
-const ROUTE = "/producto";
+const ROUTE = "/productos";
 const NAME = "Producto";
 
 export const PRODUCT: ModelComplete<ProductSchema> = {
@@ -62,7 +62,11 @@ export interface ProductResource {
   product_type: string;
   technical_sheet: string[];
   product_images: string[];
-  components: unknown[];
+  components: {
+    component_id: number;
+    component_name: string | null;
+    component_quantity: number;
+  }[];
   created_at: string;
 }
 
@@ -76,4 +80,115 @@ export interface getProductProps {
 
 export interface DeleteTechnicalSheetRequest {
   value: string;
+}
+
+// Product Image Interfaces
+export interface ProductImageResource {
+  id: number;
+  product_id: string;
+  product_name: string;
+  image_url: string;
+  alt_text: string;
+  created_at: string;
+}
+
+export interface ProductImageResponse {
+  data: ProductImageResource[];
+  links: Links;
+  meta: Meta;
+}
+
+export interface ProductImageResourceById {
+  data: ProductImageResource;
+}
+
+export interface CreateProductImageRequest {
+  product_id: number;
+  image_url: File[];
+  alt_text: string;
+}
+
+export interface GetProductImagesProps {
+  productId: number;
+  params?: Record<string, unknown>;
+}
+
+// Product Price Interfaces
+export interface ProductPriceResource {
+  id: number;
+  product_id: number;
+  product_name: string;
+  branch_id: number;
+  branch_name: string;
+  category: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  price_soles: string;
+  price_usd: string;
+  created_at: string;
+}
+
+export interface ProductPriceResponse {
+  data: ProductPriceResource[];
+  links: Links;
+  meta: Meta;
+}
+
+export interface ProductPriceResourceById {
+  data: ProductPriceResource;
+}
+
+export interface CreateProductPriceRequest {
+  product_id: number;
+  branch_id: number;
+  category: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  price_soles: number;
+  price_usd: number;
+}
+
+export interface UpdateProductPriceRequest {
+  branch_id?: number;
+  category?: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  price_soles?: number;
+  price_usd?: number;
+}
+
+export interface GetProductPricesProps {
+  productId: number;
+  params?: Record<string, unknown>;
+}
+
+// Product Component Interfaces
+export interface ProductComponentResource {
+  id: number;
+  product_id: number;
+  product_name: string;
+  component_id: number;
+  component_name: string | null;
+  quantity: number;
+  created_at: string;
+}
+
+export interface ProductComponentResponse {
+  data: ProductComponentResource[];
+  links: Links;
+  meta: Meta;
+}
+
+export interface ProductComponentResourceById {
+  data: ProductComponentResource;
+}
+
+export interface CreateProductComponentRequest {
+  product_id: number;
+  component_id: number;
+  quantity: number;
+}
+
+export interface UpdateProductComponentRequest {
+  component_id?: number;
+  quantity?: number;
+}
+
+export interface GetProductComponentsProps {
+  productId: number;
+  params?: Record<string, unknown>;
 }
