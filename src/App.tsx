@@ -19,10 +19,13 @@ import ProductDetail from "./pages/product/components/ProductDetail";
 import RolePage from "./pages/role/components/RolePage";
 import ClientPage from "./pages/client/components/ClientPage";
 import ClientAddPage from "./pages/client/components/ClientAddPage";
+import ClientEditPage from "./pages/client/components/ClientEditPage";
 import SupplierPage from "./pages/supplier/components/SupplierPage";
 import SupplierAddPage from "./pages/supplier/components/SupplierAddPage";
+import SupplierEditPage from "./pages/supplier/components/SupplierEditPage";
 import WorkerPage from "./pages/worker/components/WorkerPage";
 import WorkerAddPage from "./pages/worker/components/WorkerAddPage";
+import WorkerEditPage from "./pages/worker/components/WorkerEditPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
@@ -252,6 +255,15 @@ export default function App() {
           />
 
           <Route
+            path="/clientes/editar/:id"
+            element={
+              <ProtectedRoute path={ClientRoute}>
+                <ClientEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={SupplierRoute}
             element={
               <ProtectedRoute path={SupplierRoute}>
@@ -270,6 +282,15 @@ export default function App() {
           />
 
           <Route
+            path="/proveedores/editar/:id"
+            element={
+              <ProtectedRoute path={SupplierRoute}>
+                <SupplierEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={WorkerRoute}
             element={
               <ProtectedRoute path={WorkerRoute}>
@@ -283,6 +304,15 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/editar/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerEditPage />
               </ProtectedRoute>
             }
           />

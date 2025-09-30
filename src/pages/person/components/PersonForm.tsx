@@ -27,6 +27,7 @@ interface PersonFormProps {
   isSubmitting?: boolean;
   onCancel?: () => void;
   roleId: number; // Role ID to assign automatically
+  isWorker?: boolean; // If true, only allow DNI and NATURAL person
 }
 
 export const PersonForm = ({
@@ -35,27 +36,27 @@ export const PersonForm = ({
   isSubmitting = false,
   onCancel,
   roleId,
+  isWorker = false,
 }: PersonFormProps) => {
   const isEditing = !!initialData;
 
   const form = useForm<PersonSchema>({
     resolver: zodResolver(personCreateSchema),
     defaultValues: {
-      type_document: initialData?.person?.type_document || "DNI",
-      type_person: initialData?.person?.type_person || "NATURAL",
-      number_document: initialData?.person?.number_document || "",
-      names: initialData?.person?.names || "",
-      gender: (initialData?.person?.gender as "M" | "F" | "O") || "M",
-      birth_date: initialData?.person?.birth_date || "",
-      father_surname: initialData?.person?.father_surname || "",
-      mother_surname: initialData?.person?.mother_surname || "",
-      business_name: initialData?.person?.business_name || "",
-      commercial_name: initialData?.person?.commercial_name || "",
-      address: initialData?.person?.address || "",
-      phone: initialData?.person?.phone || "",
-      email: initialData?.person?.email || "",
-      ocupation: initialData?.person?.ocupation || "",
-      status: initialData?.person?.status || "Activo",
+      type_document: (initialData?.type_document as "DNI" | "RUC") || "DNI",
+      type_person:
+        (initialData?.type_person as "NATURAL" | "JURIDICA") || "NATURAL",
+      number_document: initialData?.number_document || "",
+      names: initialData?.names || "",
+      gender: (initialData?.gender as "M" | "F" | "O") || "M",
+      birth_date: initialData?.birth_date || "",
+      father_surname: initialData?.father_surname || "",
+      mother_surname: initialData?.mother_surname || "",
+      business_name: initialData?.business_name || "",
+      commercial_name: initialData?.commercial_name || "",
+      address: initialData?.address || "",
+      phone: initialData?.phone || "",
+      email: initialData?.email || "",
       rol_id: roleId.toString(),
     },
     mode: "onChange", // Validate on change for immediate feedback
@@ -74,6 +75,15 @@ export const PersonForm = ({
     business_name: false,
     address: false,
   });
+
+  // Auto-set person type based on document type
+  useEffect(() => {
+    if (type_document === "DNI" && type_person !== "NATURAL") {
+      form.setValue("type_person", "NATURAL", { shouldValidate: true });
+    } else if (type_document === "RUC" && type_person !== "JURIDICA") {
+      form.setValue("type_person", "JURIDICA", { shouldValidate: true });
+    }
+  }, [type_document, type_person, form]);
 
   // Reset document type when person type changes to JURIDICA
   useEffect(() => {
@@ -176,7 +186,9 @@ export const PersonForm = ({
             label="Tipo de Documento"
             placeholder="Seleccione tipo"
             options={
-              type_person === "JURIDICA"
+              isWorker
+                ? [{ value: "DNI", label: "DNI" }] // Workers can only use DNI
+                : type_person === "JURIDICA"
                 ? [{ value: "RUC", label: "RUC" }]
                 : [
                     { value: "DNI", label: "DNI" },
@@ -289,10 +301,14 @@ export const PersonForm = ({
                   {field.value && !errors.number_document && (
                     <>
                       {type_document === "DNI" && field.value.length === 8 && (
-                        <p className="text-green-600">✓ DNI válido (8 dígitos)</p>
+                        <p className="text-green-600">
+                          ✓ DNI válido (8 dígitos)
+                        </p>
                       )}
                       {type_document === "RUC" && field.value.length === 11 && (
-                        <p className="text-green-600">✓ RUC válido (11 dígitos)</p>
+                        <p className="text-green-600">
+                          ✓ RUC válido (11 dígitos)
+                        </p>
                       )}
                       {type_document === "CE" &&
                         field.value.length >= 8 &&
@@ -339,10 +355,15 @@ export const PersonForm = ({
             name="type_person"
             label="Tipo de Persona"
             placeholder="Seleccione tipo"
-            options={[
-              { value: "NATURAL", label: "Natural" },
-              { value: "JURIDICA", label: "Jurídica" },
-            ]}
+            disabled={isWorker} // Workers are always natural persons
+            options={
+              isWorker
+                ? [{ value: "NATURAL", label: "Natural" }] // Workers are always natural
+                : [
+                    { value: "NATURAL", label: "Natural" },
+                    { value: "JURIDICA", label: "Jurídica" },
+                  ]
+            }
           />
         </div>
 
@@ -408,7 +429,9 @@ export const PersonForm = ({
               name="birth_date"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={errors.birth_date ? "text-destructive" : ""}>
+                  <FormLabel
+                    className={errors.birth_date ? "text-destructive" : ""}
+                  >
                     Fecha de Nacimiento {errors.birth_date && "*"}
                   </FormLabel>
                   <FormControl>
@@ -416,8 +439,16 @@ export const PersonForm = ({
                       type="date"
                       {...field}
                       className={`
-                        ${errors.birth_date ? "border-destructive focus-visible:ring-destructive" : ""}
-                        ${dirtyFields.birth_date && !errors.birth_date ? "border-green-500" : ""}
+                        ${
+                          errors.birth_date
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.birth_date && !errors.birth_date
+                            ? "border-green-500"
+                            : ""
+                        }
                       `}
                     />
                   </FormControl>
@@ -475,6 +506,45 @@ export const PersonForm = ({
                 </FormItem>
               )}
             />
+
+            {/* <FormField
+              control={form.control}
+              name="ocupation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel
+                    className={errors.ocupation ? "text-destructive" : ""}
+                  >
+                    Ocupación {errors.ocupation && "*"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ingrese la ocupación"
+                      {...field}
+                      className={`
+                        ${
+                          errors.ocupation
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.ocupation && !errors.ocupation
+                            ? "border-green-500"
+                            : ""
+                        }
+                      `}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  
+                  <div className="h-4 text-xs">
+                    {!errors.ocupation && dirtyFields.ocupation && (
+                      <p className="text-green-600">✓ Ocupación válida</p>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            /> */}
           </div>
         )}
 
@@ -486,7 +556,9 @@ export const PersonForm = ({
               name="business_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={errors.business_name ? "text-destructive" : ""}>
+                  <FormLabel
+                    className={errors.business_name ? "text-destructive" : ""}
+                  >
                     Razón Social {errors.business_name && "*"}
                   </FormLabel>
                   <FormControl>
@@ -494,9 +566,21 @@ export const PersonForm = ({
                       placeholder="Ingrese la razón social"
                       {...field}
                       className={`
-                        ${fieldsFromSearch.business_name ? "bg-blue-50 border-blue-200" : ""}
-                        ${errors.business_name ? "border-destructive focus-visible:ring-destructive" : ""}
-                        ${dirtyFields.business_name && !errors.business_name ? "border-green-500" : ""}
+                        ${
+                          fieldsFromSearch.business_name
+                            ? "bg-blue-50 border-blue-200"
+                            : ""
+                        }
+                        ${
+                          errors.business_name
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.business_name && !errors.business_name
+                            ? "border-green-500"
+                            : ""
+                        }
                       `}
                     />
                   </FormControl>
@@ -516,7 +600,9 @@ export const PersonForm = ({
               name="commercial_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={errors.commercial_name ? "text-destructive" : ""}>
+                  <FormLabel
+                    className={errors.commercial_name ? "text-destructive" : ""}
+                  >
                     Nombre Comercial {errors.commercial_name && "*"}
                   </FormLabel>
                   <FormControl>
@@ -524,8 +610,16 @@ export const PersonForm = ({
                       placeholder="Ingrese el nombre comercial"
                       {...field}
                       className={`
-                        ${errors.commercial_name ? "border-destructive focus-visible:ring-destructive" : ""}
-                        ${dirtyFields.commercial_name && !errors.commercial_name ? "border-green-500" : ""}
+                        ${
+                          errors.commercial_name
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.commercial_name && !errors.commercial_name
+                            ? "border-green-500"
+                            : ""
+                        }
                       `}
                     />
                   </FormControl>
@@ -533,7 +627,9 @@ export const PersonForm = ({
                   {/* Fixed height container for feedback */}
                   <div className="h-4 text-xs">
                     {!errors.commercial_name && dirtyFields.commercial_name && (
-                      <p className="text-green-600">✓ Nombre comercial válido</p>
+                      <p className="text-green-600">
+                        ✓ Nombre comercial válido
+                      </p>
                     )}
                   </div>
                 </FormItem>
@@ -575,7 +671,9 @@ export const PersonForm = ({
                 {/* Fixed height container for feedback */}
                 <div className="h-4 text-xs">
                   {!errors.email && dirtyFields.email && (
-                    <p className="text-green-600">✓ Correo electrónico válido</p>
+                    <p className="text-green-600">
+                      ✓ Correo electrónico válido
+                    </p>
                   )}
                 </div>
               </FormItem>
@@ -653,50 +751,6 @@ export const PersonForm = ({
           )}
         />
 
-        {/* Additional Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="ocupation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className={errors.ocupation ? "text-destructive" : ""}>
-                  Ocupación {errors.ocupation && "*"}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la ocupación"
-                    {...field}
-                    className={`
-                      ${errors.ocupation ? "border-destructive focus-visible:ring-destructive" : ""}
-                      ${dirtyFields.ocupation && !errors.ocupation ? "border-green-500" : ""}
-                    `}
-                  />
-                </FormControl>
-                <FormMessage />
-                {/* Fixed height container for feedback */}
-                <div className="h-4 text-xs">
-                  {!errors.ocupation && dirtyFields.ocupation && (
-                    <p className="text-green-600">✓ Ocupación válida</p>
-                  )}
-                </div>
-              </FormItem>
-            )}
-          />
-
-          <FormSelect
-            control={form.control}
-            name="status"
-            label="Estado"
-            placeholder="Seleccione estado"
-            options={[
-              { value: "Activo", label: "Activo" },
-              { value: "Inactivo", label: "Inactivo" },
-              { value: "Suspendido", label: "Suspendido" },
-            ]}
-          />
-        </div>
-
         {/* Form Actions */}
         <div className="flex justify-end gap-3">
           {onCancel && (
@@ -725,7 +779,6 @@ export const PersonForm = ({
               </>
             )}
           </Button>
-
         </div>
 
         {/* Form validation summary */}
@@ -733,13 +786,23 @@ export const PersonForm = ({
           <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start">
               <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <svg
+                  className="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
-                  Hay {Object.keys(errors).length} error{Object.keys(errors).length > 1 ? 'es' : ''} que necesita{Object.keys(errors).length > 1 ? 'n' : ''} corrección
+                  Hay {Object.keys(errors).length} error
+                  {Object.keys(errors).length > 1 ? "es" : ""} que necesita
+                  {Object.keys(errors).length > 1 ? "n" : ""} corrección
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   <ul className="space-y-1">

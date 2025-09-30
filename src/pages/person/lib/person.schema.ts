@@ -36,12 +36,12 @@ export const personCreateSchema = z
       ),
 
     names: onlyLettersSchema("nombre"),
-    gender: genderSchema,
+    gender: genderSchema.optional(),
     birth_date: z
       .string()
-      .min(1, "La fecha de nacimiento es obligatoria")
+      .optional()
       .refine(
-        (val) => !isNaN(Date.parse(val)),
+        (val) => !val || !isNaN(Date.parse(val)),
         "Ingrese una fecha válida"
       ),
     father_surname: onlyLettersSchema("apellido paterno"),
@@ -77,15 +77,11 @@ export const personCreateSchema = z
       .email("Ingrese un correo electrónico válido")
       .max(255, "El correo no puede exceder 255 caracteres"),
 
-    ocupation: z
-      .string()
-      .min(1, "La ocupación es obligatoria")
-      .max(100, "La ocupación no puede exceder 100 caracteres"),
-
-    status: z
-      .string()
-      .min(1, "El estado es obligatorio")
-      .max(50, "El estado no puede exceder 50 caracteres"),
+    // ocupation: z
+    //   .string()
+    //   .max(100, "La ocupación no puede exceder 100 caracteres")
+    //   .optional()
+    //   .or(z.literal("")),
 
     rol_id: requiredStringId("Debe seleccionar un rol válido"),
   })
@@ -130,6 +126,31 @@ export const personCreateSchema = z
           path: ["mother_surname"],
         });
       }
+
+      if (!data.gender) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El género es obligatorio para personas naturales",
+          path: ["gender"],
+        });
+      }
+
+      if (!data.birth_date || data.birth_date.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "La fecha de nacimiento es obligatoria para personas naturales",
+          path: ["birth_date"],
+        });
+      }
+
+      // if (!data.ocupation || data.ocupation.trim() === "") {
+      //   ctx.addIssue({
+      //     code: z.ZodIssueCode.custom,
+      //     message: "La ocupación es obligatoria para personas naturales",
+      //     path: ["ocupation"],
+      //   });
+      // }
     }
 
     // Validaciones específicas por tipo de documento
@@ -149,7 +170,10 @@ export const personCreateSchema = z
       });
     }
 
-    if (data.type_document === "CE" && (data.number_document.length < 8 || data.number_document.length > 9)) {
+    if (
+      data.type_document === "CE" &&
+      (data.number_document.length < 8 || data.number_document.length > 9)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "El Carnet de Extranjería debe tener entre 8 y 9 dígitos",
@@ -157,7 +181,10 @@ export const personCreateSchema = z
       });
     }
 
-    if (data.type_document === "PASAPORTE" && (data.number_document.length < 8 || data.number_document.length > 11)) {
+    if (
+      data.type_document === "PASAPORTE" &&
+      (data.number_document.length < 8 || data.number_document.length > 11)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "El Pasaporte debe tener entre 8 y 11 caracteres",

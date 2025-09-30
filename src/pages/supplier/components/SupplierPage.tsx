@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useSuppliers } from "../lib/supplier.hook";
 import TitleComponent from "@/components/TitleComponent";
 import SupplierActions from "./SupplierActions";
@@ -6,12 +7,6 @@ import PersonTable from "@/pages/person/components/PersonTable";
 import PersonOptions from "@/pages/person/components/PersonOptions";
 import { deletePerson } from "@/pages/person/lib/person.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   successToast,
   errorToast,
@@ -28,6 +23,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 const { MODEL, ICON } = SUPPLIER;
 
 export default function SupplierPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -59,7 +55,6 @@ export default function SupplierPage() {
 
   const handleCloseRoleAssignment = () => {
     setRoleAssignmentPerson(null);
-    refetch(); // Refresh the data to show updated roles
   };
 
   return (
@@ -76,7 +71,7 @@ export default function SupplierPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: () => console.log("TODO: Edit supplier"),
+          onEdit: (person) => navigate(`/proveedores/editar/${person}`),
           onDelete: setDeleteId,
           onManageRoles: handleManageRoles,
         })}
@@ -95,23 +90,14 @@ export default function SupplierPage() {
       />
 
       {/* Role Assignment Modal */}
-      <Dialog
-        open={!!roleAssignmentPerson}
-        onOpenChange={(open) => !open && handleCloseRoleAssignment()}
-      >
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Asignación de Roles - {MODEL.name}</DialogTitle>
-          </DialogHeader>
-          {roleAssignmentPerson && (
-            <PersonRoleAssignment
-              personId={roleAssignmentPerson.id}
-              personName={roleAssignmentPerson.names}
-              onClose={handleCloseRoleAssignment}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {roleAssignmentPerson && (
+        <PersonRoleAssignment
+          personId={roleAssignmentPerson.id}
+          personName={roleAssignmentPerson.business_name}
+          open={!!roleAssignmentPerson}
+          onClose={handleCloseRoleAssignment}
+        />
+      )}
 
       {deleteId !== null && (
         <SimpleDeleteDialog

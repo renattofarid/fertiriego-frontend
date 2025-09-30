@@ -8,6 +8,7 @@ import {
   deletePerson,
   getPersonRoles,
   updatePersonRoles,
+  getPersonRoleDetails,
 } from "./person.actions";
 import type {
   PersonResource,
@@ -16,6 +17,7 @@ import type {
   GetPersonsProps,
   UpdatePersonRolesRequest,
   PersonRoleResource,
+  PersonRoleDetailResource,
 } from "./person.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
@@ -24,11 +26,13 @@ interface PersonStore {
   person: PersonResource | null;
   allPersons: PersonResource[] | null;
   personRoles: PersonRoleResource[] | null;
+  personRoleDetails: PersonRoleDetailResource[] | null;
   meta: Meta | null;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
   isLoadingRoles: boolean;
+  isLoadingRoleDetails: boolean;
   error: string | null;
   fetchPersons: ({ params }: GetPersonsProps) => Promise<void>;
   fetchAllPersons: () => Promise<void>;
@@ -37,6 +41,7 @@ interface PersonStore {
   updatePerson: (id: number, data: UpdatePersonRequest) => Promise<void>;
   deletePerson: (id: number) => Promise<void>;
   fetchPersonRoles: (personId: number) => Promise<void>;
+  fetchPersonRoleDetails: (personId: number) => Promise<void>;
   updatePersonRoles: (
     personId: number,
     data: UpdatePersonRolesRequest
@@ -49,11 +54,13 @@ export const usePersonStore = create<PersonStore>((set) => ({
   person: null,
   allPersons: null,
   personRoles: null,
+  personRoleDetails: null,
   meta: null,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
   isLoadingRoles: false,
+  isLoadingRoleDetails: false,
   error: null,
 
   fetchPersons: async ({ params }: GetPersonsProps) => {
@@ -129,6 +136,19 @@ export const usePersonStore = create<PersonStore>((set) => ({
       set({
         error: "Error al cargar los roles de la persona",
         isLoadingRoles: false,
+      });
+    }
+  },
+
+  fetchPersonRoleDetails: async (personId: number) => {
+    set({ isLoadingRoleDetails: true, error: null });
+    try {
+      const data = await getPersonRoleDetails(personId);
+      set({ personRoleDetails: data, isLoadingRoleDetails: false });
+    } catch {
+      set({
+        error: "Error al cargar los detalles de roles de la persona",
+        isLoadingRoleDetails: false,
       });
     }
   },

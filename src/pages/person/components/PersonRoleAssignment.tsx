@@ -17,44 +17,56 @@ import {
   AlertCircle
 } from "lucide-react";
 import { useAllRoles } from "@/pages/role/lib/role.hook";
-import { usePersonRoles } from "../lib/person.hook";
+import { usePersonRoleDetails } from "../lib/person.hook";
 import { usePersonStore } from "../lib/person.store";
 import { successToast, errorToast } from "@/lib/core.function";
+import { GeneralModal } from "@/components/GeneralModal";
 import type { PersonRoleAssignment } from "../lib/person.interface";
 
 interface PersonRoleAssignmentProps {
   personId: number;
   personName: string;
-  onClose?: () => void;
+  open: boolean;
+  onClose: () => void;
 }
 
 export function PersonRoleAssignment({
   personId,
   personName,
+  open,
   onClose,
 }: PersonRoleAssignmentProps) {
   const [selectedRoles, setSelectedRoles] = useState<PersonRoleAssignment[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
   const allRoles = useAllRoles();
-  const { data: currentRoles, refetch: refetchPersonRoles } = usePersonRoles(personId);
+  const { data: currentRoleDetails, refetch: refetchPersonRoleDetails } = usePersonRoleDetails(personId);
   const { updatePersonRoles, isSubmitting } = usePersonStore();
 
   // Initialize selected roles when data loads
   useEffect(() => {
-    if (allRoles && currentRoles) {
+    if (allRoles && currentRoleDetails) {
       const initialRoles: PersonRoleAssignment[] = allRoles.map(role => {
-        const existingRole = currentRoles.find(pr => pr.role_id === role.id);
+        const existingRole = currentRoleDetails.find(pr => pr.role_id === role.id);
         return {
           role_id: role.id,
-          status: existingRole?.status || false,
+          status: !!existingRole, // If the role exists in currentRoleDetails, it's active
         };
       });
       setSelectedRoles(initialRoles);
     }
-  }, [allRoles, currentRoles]);
+  }, [allRoles, currentRoleDetails]);
 
   const handleRoleToggle = (roleId: number, checked: boolean) => {
+    // Si está intentando desmarcar un rol, verificar que no sea el último
+    if (!checked) {
+      const currentActiveRoles = selectedRoles.filter(role => role.status);
+      if (currentActiveRoles.length === 1 && currentActiveRoles[0].role_id === roleId) {
+        errorToast("Una persona debe tener al menos un rol asignado");
+        return;
+      }
+    }
+
     setSelectedRoles(prev =>
       prev.map(role =>
         role.role_id === roleId
@@ -66,12 +78,19 @@ export function PersonRoleAssignment({
   };
 
   const handleSubmit = async () => {
+    // Validar que haya al menos un rol activo
+    const activeSelectedRoles = selectedRoles.filter(role => role.status);
+    if (activeSelectedRoles.length === 0) {
+      errorToast("Una persona debe tener al menos un rol asignado");
+      return;
+    }
+
     try {
       await updatePersonRoles(personId, { roles: selectedRoles });
       successToast("Roles actualizados exitosamente");
-      refetchPersonRoles();
+      refetchPersonRoleDetails();
       setHasChanges(false);
-      onClose?.();
+      onClose();
     } catch (error: unknown) {
       const errorMessage = error instanceof Error
         ? error.message
@@ -81,12 +100,12 @@ export function PersonRoleAssignment({
   };
 
   const handleReset = () => {
-    if (allRoles && currentRoles) {
+    if (allRoles && currentRoleDetails) {
       const resetRoles: PersonRoleAssignment[] = allRoles.map(role => {
-        const existingRole = currentRoles.find(pr => pr.role_id === role.id);
+        const existingRole = currentRoleDetails.find(pr => pr.role_id === role.id);
         return {
           role_id: role.id,
-          status: existingRole?.status || false,
+          status: !!existingRole,
         };
       });
       setSelectedRoles(resetRoles);
@@ -105,7 +124,7 @@ export function PersonRoleAssignment({
     return allRoles?.find(role => role.id === roleId)?.code || "";
   };
 
-  if (!allRoles || !currentRoles) {
+  if (!allRoles || currentRoleDetails === null) {
     return (
       <div className="flex items-center justify-center p-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -114,16 +133,14 @@ export function PersonRoleAssignment({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Asignación de Roles para {personName}
-          </CardTitle>
-        </CardHeader>
-      </Card>
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title="Asignación de Roles"
+      subtitle={`Gestionar roles para ${personName}`}
+      maxWidth="!max-w-6xl"
+    >
+      <div className="space-y-6">
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Available Roles */}
@@ -199,7 +216,7 @@ export function PersonRoleAssignment({
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <ShoppingCart className="h-5 w-5" />
-              Carrito de Roles ({activeRoles.length})
+              Asignación de Roles ({activeRoles.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -283,11 +300,9 @@ export function PersonRoleAssignment({
             </div>
 
             <div className="flex items-center gap-3">
-              {onClose && (
-                <Button variant="outline" onClick={onClose}>
-                  Cancelar
-                </Button>
-              )}
+              <Button variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
 
               {hasChanges && (
                 <Button variant="outline" onClick={handleReset}>
@@ -316,6 +331,7 @@ export function PersonRoleAssignment({
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </GeneralModal>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePersonStore } from "@/pages/person/lib/person.store";
-import { CLIENT_ROLE_CODE, CLIENT_ROLE_ID } from "./client.interface";
+import { CLIENT_ROLE_CODE } from "./client.interface";
 
 export function useClients(params?: Record<string, any>) {
   const { persons, meta, isLoading, error, fetchPersons } = usePersonStore();
@@ -16,16 +16,8 @@ export function useClients(params?: Record<string, any>) {
     }
   }, [persons, fetchPersons]);
 
-  // Filter persons that have the CLIENT role
-  const clientPersons =
-    persons?.filter(
-      (person) =>
-        // Check if person has CLIENT role as primary role or in their roles
-        person.rol_id === CLIENT_ROLE_ID
-    ) || [];
-
   return {
-    data: clientPersons,
+    data: persons,
     meta,
     isLoading,
     error,

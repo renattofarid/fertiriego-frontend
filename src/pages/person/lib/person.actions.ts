@@ -9,6 +9,7 @@ import {
   type UpdatePersonRequest,
   type UpdatePersonRolesRequest,
   type PersonRolesResponse,
+  type PersonRoleDetailResource,
 } from "./person.interface";
 import type { AxiosRequestConfig } from "axios";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -101,5 +102,19 @@ export async function updatePersonRoles(
   request: UpdatePersonRolesRequest
 ): Promise<{ message: string }> {
   const { data } = await api.post<{ message: string }>(`${ENDPOINT}/${personId}/roles`, request);
+  return data;
+}
+
+// New function using the personrole endpoint
+export async function getPersonRoleDetails(
+  personId: number
+): Promise<PersonRoleDetailResource[]> {
+  const config: AxiosRequestConfig = {
+    params: {
+      all: true,
+      person_id: personId,
+    },
+  };
+  const { data } = await api.get<PersonRoleDetailResource[]>("/personrole", config);
   return data;
 }

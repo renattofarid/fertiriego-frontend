@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWorkers } from "../lib/worker.hook";
 import TitleComponent from "@/components/TitleComponent";
 import WorkerActions from "./WorkerActions";
@@ -6,7 +7,12 @@ import PersonTable from "@/pages/person/components/PersonTable";
 import PersonOptions from "@/pages/person/components/PersonOptions";
 import { deletePerson } from "@/pages/person/lib/person.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   successToast,
   errorToast,
@@ -23,11 +29,13 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 const { MODEL, ICON } = WORKER;
 
 export default function WorkerPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [roleAssignmentPerson, setRoleAssignmentPerson] = useState<PersonResource | null>(null);
+  const [roleAssignmentPerson, setRoleAssignmentPerson] =
+    useState<PersonResource | null>(null);
   const { data, meta, isLoading, refetch } = useWorkers();
 
   useEffect(() => {
@@ -70,7 +78,7 @@ export default function WorkerPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: () => console.log("TODO: Edit worker"),
+          onEdit: (person) => navigate(`/trabajadores/editar/${person}`),
           onDelete: setDeleteId,
           onManageRoles: handleManageRoles,
         })}
@@ -99,8 +107,9 @@ export default function WorkerPage() {
           </DialogHeader>
           {roleAssignmentPerson && (
             <PersonRoleAssignment
+              open={!!roleAssignmentPerson}
               personId={roleAssignmentPerson.id}
-              personName={roleAssignmentPerson.person.full_name}
+              personName={roleAssignmentPerson.names}
               onClose={handleCloseRoleAssignment}
             />
           )}
@@ -112,8 +121,8 @@ export default function WorkerPage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
-          title={`Eliminar ${MODEL.name}`}
-          description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
+          // title={`Eliminar ${MODEL.name}`}
+          // description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
         />
       )}
     </div>

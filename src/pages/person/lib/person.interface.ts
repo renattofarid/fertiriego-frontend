@@ -41,8 +41,6 @@ export const PERSON: ModelComplete<PersonSchema> = {
     gender: "M",
     birth_date: "",
     commercial_name: "",
-    ocupation: "",
-    status: "Activo",
     father_surname: "",
     mother_surname: "",
     business_name: "",
@@ -63,6 +61,7 @@ export interface PersonResponse {
 export interface PersonResource {
   id: number;
   type_document: string;
+  type_person: string;
   number_document: string;
   names: string;
   father_surname: string;
@@ -94,12 +93,17 @@ export interface CreatePersonRequest {
   type_document: "DNI" | "RUC" | "CE" | "PASAPORTE";
   type_person: "NATURAL" | "JURIDICA";
   names: string;
+  gender?: string;
+  birth_date?: string;
   father_surname: string;
   mother_surname: string;
   business_name: string;
+  commercial_name?: string;
   address: string;
   phone: string;
   email: string;
+  ocupation?: string;
+  status: string;
   rol_id: number;
   number_document: string;
 }
@@ -146,4 +150,14 @@ export interface PersonRoleResource {
 
 export interface PersonRolesResponse {
   data: PersonRoleResource[];
+}
+
+// New interface for /personrole endpoint
+export interface PersonRoleDetailResource {
+  id: number;
+  person_id: number;
+  person: PersonResource;
+  role_id: number;
+  role_name: string;
+  created_at: string;
 }

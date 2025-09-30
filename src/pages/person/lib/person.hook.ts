@@ -76,3 +76,25 @@ export function usePersonRoles(personId: number) {
     refetch: () => fetchPersonRoles(personId),
   };
 }
+
+export function usePersonRoleDetails(personId: number) {
+  const {
+    personRoleDetails,
+    isLoadingRoleDetails,
+    error,
+    fetchPersonRoleDetails,
+  } = usePersonStore();
+
+  useEffect(() => {
+    if (personId) {
+      fetchPersonRoleDetails(personId);
+    }
+  }, [personId, fetchPersonRoleDetails]);
+
+  return {
+    data: personRoleDetails,
+    isLoading: isLoadingRoleDetails,
+    error,
+    refetch: () => fetchPersonRoleDetails(personId),
+  };
+}

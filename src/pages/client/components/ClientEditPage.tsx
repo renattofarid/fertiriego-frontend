@@ -1,34 +1,65 @@
 "use client";
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import TitleComponent from "@/components/TitleComponent";
 import { BackButton } from "@/components/BackButton";
-import TitleFormComponent from "@/components/TitleFormComponent";
-import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
-import { createPersonWithRole } from "@/pages/person/lib/person.actions";
+import { PersonForm } from "@/pages/person/components/PersonForm";
 import {
-  ERROR_MESSAGE,
-  errorToast,
+  findPersonById,
+  updatePerson,
+} from "@/pages/person/lib/person.actions";
+import {
   SUCCESS_MESSAGE,
+  ERROR_MESSAGE,
   successToast,
+  errorToast,
 } from "@/lib/core.function";
 import { CLIENT, CLIENT_ROLE_ID } from "../lib/client.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 import FormWrapper from "@/components/FormWrapper";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 const { MODEL } = CLIENT;
 
-export default function ClientAddPage() {
+export default function ClientEditPage() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [personData, setPersonData] = useState<PersonResource | null>(null);
+
+  useEffect(() => {
+    const loadPersonData = async () => {
+      if (!id) {
+        navigate("/clientes");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await findPersonById(Number(id));
+        const person = response.data;
+        setPersonData(person);
+      } catch {
+        errorToast("Error al cargar los datos del cliente");
+        navigate("/clientes");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPersonData();
+  }, [id, navigate]);
 
   const handleSubmit = async (data: PersonSchema) => {
+    if (!personData) return;
+
     setIsSubmitting(true);
     try {
-      // Transform PersonSchema to CreatePersonRequest
-      const createPersonData = {
-        username: data.number_document, // Use document number as username
-        password: data.number_document, // Use document number as password
+      // Transform PersonSchema to UpdatePersonRequest
+      const updatePersonData = {
         type_document: data.type_document,
         type_person: data.type_person,
         number_document: data.number_document,
@@ -43,13 +74,11 @@ export default function ClientAddPage() {
         address: data.address || "",
         phone: data.phone,
         email: data.email,
-        status: "Activo",
-        rol_id: CLIENT_ROLE_ID,
       };
 
-      await createPersonWithRole(createPersonData, CLIENT_ROLE_ID);
+      await updatePerson(personData.id, updatePersonData);
       successToast(
-        SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "update")
       );
       navigate("/clientes");
     } catch (error: unknown) {
@@ -63,27 +92,38 @@ export default function ClientAddPage() {
         error.response.data !== null &&
         "message" in error.response.data
           ? (error.response.data.message as string)
-          : "Error al crear cliente";
+          : "Error al actualizar cliente";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Cliente", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Cliente", gender: false }, "update")
       );
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <FormWrapper>
       <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/clientes" /> 
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton to="/clientes" />
           <TitleFormComponent title={MODEL.name} mode="edit" />
         </div>
       </div>
 
       <PersonForm
+        initialData={personData}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         onCancel={() => navigate("/clientes")}
