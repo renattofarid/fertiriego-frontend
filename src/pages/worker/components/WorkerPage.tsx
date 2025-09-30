@@ -72,7 +72,7 @@ export default function WorkerPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <WorkerActions onRefresh={() => refetch()} />
+        <WorkerActions />
       </div>
 
       <PersonTable

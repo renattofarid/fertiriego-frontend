@@ -21,7 +21,11 @@ import { FormSelect } from "@/components/FormSelect";
 import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
 import { useState } from "react";
 import React from "react";
-import { searchDNI, searchRUC, isValidData } from "@/lib/document-search.service";
+import {
+  searchDNI,
+  searchRUC,
+  isValidData,
+} from "@/lib/document-search.service";
 import { Search } from "lucide-react";
 
 interface MetricFormProps {
@@ -59,7 +63,7 @@ export const UserForm = ({
     father_surname: false,
     mother_surname: false,
     business_name: false,
-    address: false
+    address: false,
   });
 
   // Lógica de validación entre tipo de persona y tipo de documento
@@ -78,12 +82,18 @@ export const UserForm = ({
     { value: "RUC", label: "RUC" },
     { value: "CE", label: "Carnet de Extranjería" },
     { value: "PASAPORTE", label: "Pasaporte" },
-  ].filter(option => getValidDocumentTypes(type_person).includes(option.value));
+  ].filter((option) =>
+    getValidDocumentTypes(type_person ?? "").includes(option.value)
+  );
 
   // Resetear el tipo de documento si no es válido para el tipo de persona seleccionado
   React.useEffect(() => {
-    if (type_person && type_document && !getValidDocumentTypes(type_person).includes(type_document)) {
-      form.setValue("type_document", "");
+    if (
+      type_person &&
+      type_document &&
+      !getValidDocumentTypes(type_person).includes(type_document)
+    ) {
+      form.setValue("type_document", undefined);
       form.setValue("number_document", "");
     }
   }, [type_person, type_document, form]);
@@ -157,49 +167,89 @@ export const UserForm = ({
                           size="icon"
                           disabled={
                             !field.value ||
-                            (type_document === "DNI" && field.value.length !== 8) ||
-                            (type_document === "RUC" && field.value.length !== 11) ||
+                            (type_document === "DNI" &&
+                              field.value.length !== 8) ||
+                            (type_document === "RUC" &&
+                              field.value.length !== 11) ||
                             isSearching
                           }
                           onClick={async () => {
                             if (field.value) {
                               setIsSearching(true);
                               try {
-                                if (type_document === "DNI" && field.value.length === 8) {
-                                  const response = await searchDNI({ search: field.value });
+                                if (
+                                  type_document === "DNI" &&
+                                  field.value.length === 8
+                                ) {
+                                  const response = await searchDNI({
+                                    search: field.value,
+                                  });
                                   if (response.data) {
-                                    const newFieldsFromSearch = { ...fieldsFromSearch };
+                                    const newFieldsFromSearch = {
+                                      ...fieldsFromSearch,
+                                    };
                                     if (isValidData(response.data.names)) {
-                                      form.setValue("names", response.data.names);
+                                      form.setValue(
+                                        "names",
+                                        response.data.names
+                                      );
                                       newFieldsFromSearch.names = true;
                                     }
-                                    if (isValidData(response.data.father_surname)) {
-                                      form.setValue("father_surname", response.data.father_surname);
+                                    if (
+                                      isValidData(response.data.father_surname)
+                                    ) {
+                                      form.setValue(
+                                        "father_surname",
+                                        response.data.father_surname
+                                      );
                                       newFieldsFromSearch.father_surname = true;
                                     }
-                                    if (isValidData(response.data.mother_surname)) {
-                                      form.setValue("mother_surname", response.data.mother_surname);
+                                    if (
+                                      isValidData(response.data.mother_surname)
+                                    ) {
+                                      form.setValue(
+                                        "mother_surname",
+                                        response.data.mother_surname
+                                      );
                                       newFieldsFromSearch.mother_surname = true;
                                     }
                                     setFieldsFromSearch(newFieldsFromSearch);
                                   }
-                                } else if (type_document === "RUC" && field.value.length === 11) {
-                                  const response = await searchRUC({ search: field.value });
+                                } else if (
+                                  type_document === "RUC" &&
+                                  field.value.length === 11
+                                ) {
+                                  const response = await searchRUC({
+                                    search: field.value,
+                                  });
                                   if (response.data) {
-                                    const newFieldsFromSearch = { ...fieldsFromSearch };
-                                    if (isValidData(response.data.business_name)) {
-                                      form.setValue("business_name", response.data.business_name);
+                                    const newFieldsFromSearch = {
+                                      ...fieldsFromSearch,
+                                    };
+                                    if (
+                                      isValidData(response.data.business_name)
+                                    ) {
+                                      form.setValue(
+                                        "business_name",
+                                        response.data.business_name
+                                      );
                                       newFieldsFromSearch.business_name = true;
                                     }
                                     if (isValidData(response.data.address)) {
-                                      form.setValue("address", response.data.address!);
+                                      form.setValue(
+                                        "address",
+                                        response.data.address!
+                                      );
                                       newFieldsFromSearch.address = true;
                                     }
                                     setFieldsFromSearch(newFieldsFromSearch);
                                   }
                                 }
                               } catch (error) {
-                                console.error("Error searching document:", error);
+                                console.error(
+                                  "Error searching document:",
+                                  error
+                                );
                               } finally {
                                 setIsSearching(false);
                               }

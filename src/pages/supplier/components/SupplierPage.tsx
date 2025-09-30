@@ -65,7 +65,7 @@ export default function SupplierPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <SupplierActions onRefresh={() => refetch()} />
+        <SupplierActions/>
       </div>
 
       <PersonTable

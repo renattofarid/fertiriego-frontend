@@ -5,11 +5,7 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CLIENT } from "../lib/client.interface";
 
-interface ClientActionsProps {
-  onRefresh?: () => void;
-}
-
-export default function ClientActions({ onRefresh }: ClientActionsProps) {
+export default function ClientActions() {
   const { MODEL } = CLIENT;
   const navigate = useNavigate();
 

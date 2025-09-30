@@ -65,7 +65,7 @@ export default function ClientPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <ClientActions onRefresh={() => refetch()} />
+        <ClientActions />
       </div>
 
       <PersonTable

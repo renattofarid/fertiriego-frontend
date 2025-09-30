@@ -5,11 +5,7 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { SUPPLIER } from "../lib/supplier.interface";
 
-interface SupplierActionsProps {
-  onRefresh?: () => void;
-}
-
-export default function SupplierActions({ onRefresh }: SupplierActionsProps) {
+export default function SupplierActions() {
   const { MODEL } = SUPPLIER;
   const navigate = useNavigate();
 

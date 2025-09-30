@@ -5,11 +5,7 @@ import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WORKER } from "../lib/worker.interface";
 
-interface WorkerActionsProps {
-  onRefresh?: () => void;
-}
-
-export default function WorkerActions({ onRefresh }: WorkerActionsProps) {
+export default function WorkerActions() {
   const { MODEL } = WORKER;
   const navigate = useNavigate();
 

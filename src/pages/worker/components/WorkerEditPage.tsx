@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import TitleComponent from "@/components/TitleComponent";
 import { BackButton } from "@/components/BackButton";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { PersonForm } from "@/pages/person/components/PersonForm";
@@ -21,7 +20,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL, ICON } = WORKER;
+const { MODEL } = WORKER;
 
 export default function WorkerEditPage() {
   const { id } = useParams<{ id: string }>();
