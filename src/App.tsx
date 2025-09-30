@@ -16,6 +16,10 @@ import UnitPage from "./pages/unit/components/UnitPage";
 import CategoryPage from "./pages/category/components/CategoryPage";
 import ProductPage from "./pages/product/components/ProductPage";
 import ProductDetail from "./pages/product/components/ProductDetail";
+import RolePage from "./pages/role/components/RolePage";
+import ClientPage from "./pages/client/components/ClientPage";
+import SupplierPage from "./pages/supplier/components/SupplierPage";
+import WorkerPage from "./pages/worker/components/WorkerPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
@@ -26,6 +30,10 @@ import { BOX } from "./pages/box/lib/box.interface";
 import { UNIT } from "./pages/unit/lib/unit.interface";
 import { CATEGORY } from "./pages/category/lib/category.interface";
 import { PRODUCT } from "./pages/product/lib/product.interface";
+import { ROLE } from "./pages/role/lib/role.interface";
+import { CLIENT } from "./pages/client/lib/client.interface";
+import { SUPPLIER } from "./pages/supplier/lib/supplier.interface";
+import { WORKER } from "./pages/worker/lib/worker.interface";
 import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
 
@@ -39,6 +47,10 @@ const { ROUTE: BoxRoute } = BOX;
 const { ROUTE: UnitRoute } = UNIT;
 const { ROUTE: CategoryRoute } = CATEGORY;
 const { ROUTE: ProductRoute } = PRODUCT;
+const { ROUTE: RoleRoute } = ROLE;
+const { ROUTE: ClientRoute } = CLIENT;
+const { ROUTE: SupplierRoute } = SUPPLIER;
+const { ROUTE: WorkerRoute } = WORKER;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -205,6 +217,42 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductRoute}>
                 <ProductDetail />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={RoleRoute}
+            element={
+              <ProtectedRoute path={RoleRoute}>
+                <RolePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ClientRoute}
+            element={
+              <ProtectedRoute path={ClientRoute}>
+                <ClientPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={SupplierRoute}
+            element={
+              <ProtectedRoute path={SupplierRoute}>
+                <SupplierPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={WorkerRoute}
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerPage />
               </ProtectedRoute>
             }
           />
