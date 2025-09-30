@@ -10,7 +10,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { roleCreateSchema, roleUpdateSchema, type RoleSchema } from "../lib/role.schema";
+import {
+  roleCreateSchema,
+  roleUpdateSchema,
+  type RoleSchema,
+} from "../lib/role.schema";
 import type { RoleResource } from "../lib/role.interface";
 import { Shield, Save } from "lucide-react";
 
@@ -31,7 +35,7 @@ export function RoleForm({
   const schema = isEditing ? roleUpdateSchema : roleCreateSchema;
 
   const form = useForm<RoleSchema>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as any,
     defaultValues: {
       code: initialData?.code || "",
       name: initialData?.name || "",
@@ -101,7 +105,11 @@ export function RoleForm({
               </>
             ) : (
               <>
-                {isEditing ? <Save className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                {isEditing ? (
+                  <Save className="h-4 w-4" />
+                ) : (
+                  <Shield className="h-4 w-4" />
+                )}
                 {isEditing ? "Actualizar" : "Crear"} Rol
               </>
             )}

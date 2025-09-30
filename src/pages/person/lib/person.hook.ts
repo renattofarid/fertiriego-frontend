@@ -2,11 +2,10 @@ import { useEffect } from "react";
 import { usePersonStore } from "./person.store";
 
 export function usePersons(params?: Record<string, unknown>) {
-  const { persons, meta, isLoading, error, fetchPersons } =
-    usePersonStore();
+  const { persons, meta, isLoading, error, fetchPersons } = usePersonStore();
 
   useEffect(() => {
-    if (!persons) fetchPersons(params);
+    if (!persons) fetchPersons({ params });
   }, [persons, fetchPersons]);
 
   return {
@@ -19,10 +18,7 @@ export function usePersons(params?: Record<string, unknown>) {
 }
 
 export function useAllPersons() {
-  const {
-    allPersons,
-    fetchAllPersons,
-  } = usePersonStore();
+  const { allPersons, fetchAllPersons } = usePersonStore();
 
   useEffect(() => {
     if (!allPersons) {
@@ -34,12 +30,7 @@ export function useAllPersons() {
 }
 
 export function usePersonById(id: number) {
-  const {
-    person,
-    isFinding,
-    error,
-    fetchPersonById,
-  } = usePersonStore();
+  const { person, isFinding, error, fetchPersonById } = usePersonStore();
 
   useEffect(() => {
     if (id) {
@@ -56,12 +47,8 @@ export function usePersonById(id: number) {
 }
 
 export function usePersonRoles(personId: number) {
-  const {
-    personRoles,
-    isLoadingRoles,
-    error,
-    fetchPersonRoles,
-  } = usePersonStore();
+  const { personRoles, isLoadingRoles, error, fetchPersonRoles } =
+    usePersonStore();
 
   useEffect(() => {
     if (personId) {

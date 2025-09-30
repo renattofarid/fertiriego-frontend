@@ -7,7 +7,7 @@ import {
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import { ROLE, type RoleResource } from "../lib/role.interface";
+import { ROLE } from "../lib/role.interface";
 import { useRoles, useRoleById } from "../lib/role.hook";
 import { useRoleStore } from "../lib/role.store";
 import { RoleForm } from "./RoleForm";
@@ -19,27 +19,25 @@ interface Props {
   onSuccess?: () => void;
 }
 
-const { MODEL, EMPTY } = ROLE;
+const { MODEL } = ROLE;
 
-export default function RoleModal({ roleId, open, onOpenChange, onSuccess }: Props) {
+export default function RoleModal({
+  roleId,
+  open,
+  onOpenChange,
+  onSuccess,
+}: Props) {
   const { refetch } = useRoles();
   const mode = roleId ? "update" : "create";
   const title = roleId ? `Editar ${MODEL.name}` : `Crear ${MODEL.name}`;
 
-  const {
-    data: role,
-    isFinding: findingRole,
-  } = mode === "create"
-    ? {
-        data: EMPTY,
-        isFinding: false,
-      }
-    : useRoleById(roleId!);
-
-  const mapRoleToForm = (data: RoleResource): Partial<RoleSchema> => ({
-    name: data?.name || "",
-    code: data?.code || "",
-  });
+  const { data: role, isFinding: findingRole } =
+    mode === "create"
+      ? {
+          data: null,
+          isFinding: false,
+        }
+      : useRoleById(roleId!);
 
   const { isSubmitting, updateRole, createRole } = useRoleStore();
 
@@ -48,23 +46,29 @@ export default function RoleModal({ roleId, open, onOpenChange, onSuccess }: Pro
       await createRole(data)
         .then(() => {
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
-          refetch();
+          refetch({});
           onSuccess?.();
           onOpenChange(false);
         })
         .catch((error) => {
-          errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "create"));
+          errorToast(
+            error.response.data.message,
+            ERROR_MESSAGE(MODEL, "create")
+          );
         });
     } else {
       await updateRole(roleId!, data)
         .then(() => {
           successToast(SUCCESS_MESSAGE(MODEL, "update"));
-          refetch();
+          refetch({});
           onSuccess?.();
           onOpenChange(false);
         })
         .catch((error) => {
-          errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "update"));
+          errorToast(
+            error.response.data.message,
+            ERROR_MESSAGE(MODEL, "update")
+          );
         });
     }
   };

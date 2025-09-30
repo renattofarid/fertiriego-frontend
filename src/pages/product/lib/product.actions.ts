@@ -6,18 +6,15 @@ import {
   type ProductResourceById,
   type ProductResponse,
   type DeleteTechnicalSheetRequest,
-  type ProductImageResource,
   type ProductImageResponse,
   type ProductImageResourceById,
   type CreateProductImageRequest,
   type GetProductImagesProps,
-  type ProductPriceResource,
   type ProductPriceResponse,
   type ProductPriceResourceById,
   type CreateProductPriceRequest,
   type UpdateProductPriceRequest,
   type GetProductPricesProps,
-  type ProductComponentResource,
   type ProductComponentResponse,
   type ProductComponentResourceById,
   type CreateProductComponentRequest,
@@ -118,7 +115,9 @@ export async function getProductImages({
 export async function getProductImageById(
   id: number
 ): Promise<ProductImageResourceById> {
-  const response = await api.get<ProductImageResourceById>(`/productimage/${id}`);
+  const response = await api.get<ProductImageResourceById>(
+    `/productimage/${id}`
+  );
   return response.data;
 }
 
@@ -126,23 +125,29 @@ export async function createProductImage(
   request: CreateProductImageRequest
 ): Promise<{ message: string }> {
   const formData = new FormData();
-  formData.append('product_id', request.product_id.toString());
-  formData.append('alt_text', request.alt_text);
+  formData.append("product_id", request.product_id.toString());
+  formData.append("alt_text", request.alt_text);
 
   // Agregar múltiples imágenes
   request.image_url.forEach((file, index) => {
     formData.append(`image_url[${index}]`, file);
   });
 
-  const { data } = await api.post<{ message: string }>('/productimage', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  const { data } = await api.post<{ message: string }>(
+    "/productimage",
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return data;
 }
 
-export async function deleteProductImage(id: number): Promise<{ message: string }> {
+export async function deleteProductImage(
+  id: number
+): Promise<{ message: string }> {
   const { data } = await api.delete<{ message: string }>(`/productimage/${id}`);
   return data;
 }
@@ -168,14 +173,19 @@ export async function getProductPrices({
 export async function getProductPriceById(
   id: number
 ): Promise<ProductPriceResourceById> {
-  const response = await api.get<ProductPriceResourceById>(`/productprice/${id}`);
+  const response = await api.get<ProductPriceResourceById>(
+    `/productprice/${id}`
+  );
   return response.data;
 }
 
 export async function createProductPrice(
   request: CreateProductPriceRequest
 ): Promise<{ message: string }> {
-  const { data } = await api.post<{ message: string }>('/productprice', request);
+  const { data } = await api.post<{ message: string }>(
+    "/productprice",
+    request
+  );
   return data;
 }
 
@@ -183,11 +193,16 @@ export async function updateProductPrice(
   id: number,
   request: UpdateProductPriceRequest
 ): Promise<{ message: string }> {
-  const { data } = await api.put<{ message: string }>(`/productprice/${id}`, request);
+  const { data } = await api.put<{ message: string }>(
+    `/productprice/${id}`,
+    request
+  );
   return data;
 }
 
-export async function deleteProductPrice(id: number): Promise<{ message: string }> {
+export async function deleteProductPrice(
+  id: number
+): Promise<{ message: string }> {
   const { data } = await api.delete<{ message: string }>(`/productprice/${id}`);
   return data;
 }
@@ -213,14 +228,19 @@ export async function getProductComponents({
 export async function getProductComponentById(
   id: number
 ): Promise<ProductComponentResourceById> {
-  const response = await api.get<ProductComponentResourceById>(`/combocomponent/${id}`);
+  const response = await api.get<ProductComponentResourceById>(
+    `/combocomponent/${id}`
+  );
   return response.data;
 }
 
 export async function createProductComponent(
   request: CreateProductComponentRequest
 ): Promise<{ message: string }> {
-  const { data } = await api.post<{ message: string }>('/combocomponent', request);
+  const { data } = await api.post<{ message: string }>(
+    "/combocomponent",
+    request
+  );
   return data;
 }
 
@@ -228,11 +248,18 @@ export async function updateProductComponent(
   id: number,
   request: UpdateProductComponentRequest
 ): Promise<{ message: string }> {
-  const { data } = await api.put<{ message: string }>(`/combocomponent/${id}`, request);
+  const { data } = await api.put<{ message: string }>(
+    `/combocomponent/${id}`,
+    request
+  );
   return data;
 }
 
-export async function deleteProductComponent(id: number): Promise<{ message: string }> {
-  const { data } = await api.delete<{ message: string }>(`/combocomponent/${id}`);
+export async function deleteProductComponent(
+  id: number
+): Promise<{ message: string }> {
+  const { data } = await api.delete<{ message: string }>(
+    `/combocomponent/${id}`
+  );
   return data;
 }

@@ -2,11 +2,10 @@ import { useEffect } from "react";
 import { useRoleStore } from "./role.store";
 
 export function useRoles(params?: Record<string, unknown>) {
-  const { roles, meta, isLoading, error, fetchRoles } =
-    useRoleStore();
+  const { roles, meta, isLoading, error, fetchRoles } = useRoleStore();
 
   useEffect(() => {
-    if (!roles) fetchRoles(params);
+    if (!roles) fetchRoles({ params });
   }, [roles, fetchRoles]);
 
   return {
@@ -19,10 +18,7 @@ export function useRoles(params?: Record<string, unknown>) {
 }
 
 export function useAllRoles() {
-  const {
-    allRoles,
-    fetchAllRoles,
-  } = useRoleStore();
+  const { allRoles, fetchAllRoles } = useRoleStore();
 
   useEffect(() => {
     if (!allRoles) {
@@ -34,12 +30,7 @@ export function useAllRoles() {
 }
 
 export function useRoleById(id: number) {
-  const {
-    role,
-    isFinding,
-    error,
-    fetchRoleById,
-  } = useRoleStore();
+  const { role, isFinding, error, fetchRoleById } = useRoleStore();
 
   useEffect(() => {
     if (id) {
