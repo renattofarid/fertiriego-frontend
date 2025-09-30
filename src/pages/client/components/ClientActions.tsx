@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import PersonModal from "@/pages/person/components/PersonModal";
-import { CLIENT, CLIENT_ROLE_ID } from "../lib/client.interface";
+import { useNavigate } from "react-router-dom";
+import { CLIENT } from "../lib/client.interface";
 
 interface ClientActionsProps {
   onRefresh?: () => void;
@@ -12,27 +11,17 @@ interface ClientActionsProps {
 
 export default function ClientActions({ onRefresh }: ClientActionsProps) {
   const { MODEL } = CLIENT;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <>
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          className="ml-auto"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
-        </Button>
-      </div>
-
-      <PersonModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSuccess={onRefresh}
-        roleId={CLIENT_ROLE_ID}
-        title={MODEL.name}
-      />
-    </>
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        className="ml-auto"
+        onClick={() => navigate("/clientes/agregar")}
+      >
+        <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
+      </Button>
+    </div>
   );
 }

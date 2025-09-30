@@ -40,19 +40,21 @@ export default function PersonModal({
       try {
         // Transform PersonSchema to CreatePersonRequest
         const createPersonData = {
-          username: data.username,
-          password: data.password,
           type_document: data.type_document,
           type_person: data.type_person,
+          number_document: data.number_document,
           names: data.names || "",
+          gender: data.gender,
+          birth_date: data.birth_date,
           father_surname: data.father_surname || "",
           mother_surname: data.mother_surname || "",
           business_name: data.business_name || "",
-          address: data.address,
+          commercial_name: data.commercial_name || "",
+          address: data.address || "",
           phone: data.phone,
           email: data.email,
-          rol_id: parseInt(data.rol_id),
-          number_document: data.number_document,
+          ocupation: data.ocupation,
+          status: data.status,
         };
 
         await createPersonWithRole(createPersonData, roleId);

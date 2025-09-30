@@ -35,11 +35,14 @@ export const PERSON: ModelComplete<PersonSchema> = {
     },
   },
   EMPTY: {
-    username: "",
-    password: "",
     type_document: "DNI",
     type_person: "NATURAL",
     names: "",
+    gender: "M",
+    birth_date: "",
+    commercial_name: "",
+    ocupation: "",
+    status: "Activo",
     father_surname: "",
     mother_surname: "",
     business_name: "",
@@ -59,27 +62,26 @@ export interface PersonResponse {
 
 export interface PersonResource {
   id: number;
+  type_document: string;
+  number_document: string;
+  names: string;
+  father_surname: string;
+  mother_surname: string;
+  gender: string;
+  birth_date: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name: string;
+  commercial_name: string;
+  user_id?: string;
+  created_at: string;
+  roles: Role[];
+}
+
+interface Role {
+  id: number;
   name: string;
-  username: string;
-  person_id: number;
-  person: {
-    id: number;
-    type_document: "DNI" | "RUC" | "CE" | "PASAPORTE";
-    type_person: "NATURAL" | "JURIDICA";
-    number_document: string;
-    names: string;
-    father_surname: string;
-    mother_surname: string;
-    business_name: string;
-    address: string;
-    phone: string;
-    email: string;
-    ocupation: string | null;
-    status: string;
-    full_name: string;
-  };
-  rol_id: number;
-  rol_name: string;
 }
 
 export interface PersonResourceById {
@@ -119,7 +121,7 @@ export interface UpdatePersonRequest {
 }
 
 export interface GetPersonsProps {
-  params?: Record<string, unknown>;
+  params?: Record<any, unknown>;
 }
 
 // Role Assignment Interfaces

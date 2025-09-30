@@ -6,6 +6,12 @@ import { SelectActions } from "@/components/SelectActions";
 import type { PersonResource } from "../lib/person.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const PersonColumns = ({
   onEdit,
@@ -17,74 +23,98 @@ export const PersonColumns = ({
   onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
-    accessorKey: "person.full_name",
+    accessorKey: "full_name",
     header: "Nombre Completo",
     cell: ({ row }) => {
-      const person = row.original.person;
+      const person = row.original;
+      const typeDocument = person?.type_document;
       return (
         <div>
-          <span className="font-semibold">{person?.full_name ?? ""}</span>
+          <div className="font-medium">
+            {typeDocument === "RUC"
+              ? person.business_name
+              : typeDocument === "PASAPORTE"
+              ? person.names
+              : typeDocument === "CE"
+              ? person.names
+              : `${person.names} ${person.father_surname} ${person.mother_surname}`}
+          </div>
           <div className="text-sm text-muted-foreground">
-            {person?.type_document ?? ""}: {person?.number_document ?? ""}
+            {typeDocument}: {person.number_document}
           </div>
         </div>
       );
     },
   },
+  // {
+  //   accessorKey: "person.type_person",
+  //   header: "Tipo",
+  //   cell: ({ row }) => {
+  //     const typePersona = row.original. ?? "NATURAL";
+  //     return (
+  //       <Badge variant={typePersona === "NATURAL" ? "default" : "secondary"}>
+  //         {typePersona}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
-    accessorKey: "username",
-    header: "Usuario",
-    cell: ({ getValue }) => (
-      <Badge variant="outline" className="font-mono">
-        {getValue() as string}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "person.type_person",
-    header: "Tipo",
-    cell: ({ row }) => {
-      const typePersona = row.original.person?.type_person ?? "NATURAL";
-      return (
-        <Badge variant={typePersona === "NATURAL" ? "default" : "secondary"}>
-          {typePersona}
-        </Badge>
-      );
-    },
-  },
-  {
-    accessorKey: "person.email",
+    accessorKey: "email",
     header: "Email",
     cell: ({ getValue }) => (
       <span className="text-sm">{getValue() as string}</span>
     ),
   },
   {
-    accessorKey: "person.phone",
+    accessorKey: "phone",
     header: "Teléfono",
     cell: ({ getValue }) => (
       <span className="text-sm">{getValue() as string}</span>
     ),
   },
   {
-    accessorKey: "rol_name",
-    header: "Rol Principal",
-    cell: ({ getValue }) => (
-      <Badge variant="outline">{getValue() as string}</Badge>
-    ),
-  },
-  {
-    accessorKey: "person.status",
-    header: "Estado",
+    accessorKey: "roles",
+    header: "Roles",
     cell: ({ row }) => {
-      const status = row.original.person?.status ?? "Desconocido";
+      const roles = row.original.roles;
+      const firstTwoRoles = roles.slice(0, 2);
+      const remainingRoles = roles.slice(2);
+
       return (
-        <Badge variant={status === "Activo" ? "default" : "destructive"}>
-          {status}
-        </Badge>
+        <div className="flex gap-1 flex-wrap">
+          {firstTwoRoles.map((role, index) => (
+            <Badge key={index} variant="default">
+              {role.name}
+            </Badge>
+          ))}
+          {remainingRoles.length > 0 && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="default">+{remainingRoles.length}</Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{remainingRoles.map((r) => r.name).join(", ")}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       );
     },
   },
+  // {
+  //   accessorKey: "person.status",
+  //   header: "Estado",
+  //   cell: ({ row }) => {
+  //     const status = row.original. ?? "Desconocido";
+  //     return (
+  //       <Badge variant={status === "Activo" ? "default" : "destructive"}>
+  //         {status}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     id: "actions",
     header: "Acciones",

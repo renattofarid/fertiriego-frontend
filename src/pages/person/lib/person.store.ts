@@ -30,14 +30,17 @@ interface PersonStore {
   isSubmitting: boolean;
   isLoadingRoles: boolean;
   error: string | null;
-  fetchPersons: (params: GetPersonsProps) => Promise<void>;
+  fetchPersons: ({ params }: GetPersonsProps) => Promise<void>;
   fetchAllPersons: () => Promise<void>;
   fetchPersonById: (id: number) => Promise<void>;
   createPerson: (data: CreatePersonRequest) => Promise<void>;
   updatePerson: (id: number, data: UpdatePersonRequest) => Promise<void>;
   deletePerson: (id: number) => Promise<void>;
   fetchPersonRoles: (personId: number) => Promise<void>;
-  updatePersonRoles: (personId: number, data: UpdatePersonRolesRequest) => Promise<void>;
+  updatePersonRoles: (
+    personId: number,
+    data: UpdatePersonRolesRequest
+  ) => Promise<void>;
   clearState: () => void;
 }
 
@@ -53,7 +56,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   isLoadingRoles: false,
   error: null,
 
-  fetchPersons: async (params?: Record<string, any>) => {
+  fetchPersons: async ({ params }: GetPersonsProps) => {
     set({ isLoading: true, error: null });
     try {
       const { data, meta } = await getPersons({ params });
@@ -123,11 +126,17 @@ export const usePersonStore = create<PersonStore>((set) => ({
       const { data } = await getPersonRoles(personId);
       set({ personRoles: data, isLoadingRoles: false });
     } catch {
-      set({ error: "Error al cargar los roles de la persona", isLoadingRoles: false });
+      set({
+        error: "Error al cargar los roles de la persona",
+        isLoadingRoles: false,
+      });
     }
   },
 
-  updatePersonRoles: async (personId: number, data: UpdatePersonRolesRequest) => {
+  updatePersonRoles: async (
+    personId: number,
+    data: UpdatePersonRolesRequest
+  ) => {
     set({ isSubmitting: true, error: null });
     try {
       await updatePersonRoles(personId, data);

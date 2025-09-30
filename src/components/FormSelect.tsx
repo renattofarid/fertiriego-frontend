@@ -66,7 +66,7 @@ export function FormSelect({
         const selected = options.find((opt) => opt.value === field.value);
 
         return (
-          <FormItem className="flex flex-col justify-between">
+          <FormItem className="flex flex-col justify-start">
             {typeof label === "function" ? (
               label()
             ) : (
@@ -108,7 +108,7 @@ export function FormSelect({
                     role="combobox"
                     disabled={disabled}
                     className={cn(
-                      "w-full justify-between min-h-10 flex",
+                      "w-full justify-between min-h-7 flex",
                       !field.value && "text-muted-foreground"
                     )}
                   >

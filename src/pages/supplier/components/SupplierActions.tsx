@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import PersonModal from "@/pages/person/components/PersonModal";
-import { SUPPLIER, SUPPLIER_ROLE_ID } from "../lib/supplier.interface";
+import { useNavigate } from "react-router-dom";
+import { SUPPLIER } from "../lib/supplier.interface";
 
 interface SupplierActionsProps {
   onRefresh?: () => void;
@@ -12,27 +11,17 @@ interface SupplierActionsProps {
 
 export default function SupplierActions({ onRefresh }: SupplierActionsProps) {
   const { MODEL } = SUPPLIER;
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
-    <>
-      <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          className="ml-auto"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
-        </Button>
-      </div>
-
-      <PersonModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSuccess={onRefresh}
-        roleId={SUPPLIER_ROLE_ID}
-        title={MODEL.name}
-      />
-    </>
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        className="ml-auto"
+        onClick={() => navigate("/proveedores/agregar")}
+      >
+        <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
+      </Button>
+    </div>
   );
 }

@@ -100,6 +100,6 @@ export async function updatePersonRoles(
   personId: number,
   request: UpdatePersonRolesRequest
 ): Promise<{ message: string }> {
-  const { data } = await api.put<{ message: string }>(`${ENDPOINT}/${personId}/roles`, request);
+  const { data } = await api.post<{ message: string }>(`${ENDPOINT}/${personId}/roles`, request);
   return data;
 }

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, EyeOff, Loader, Search, Save, UserPlus } from "lucide-react";
+import { Loader, Search, Save, UserPlus } from "lucide-react";
 import { personCreateSchema, type PersonSchema } from "../lib/person.schema";
 import { FormSelect } from "@/components/FormSelect";
 import {
@@ -41,26 +41,32 @@ export const PersonForm = ({
   const form = useForm<PersonSchema>({
     resolver: zodResolver(personCreateSchema),
     defaultValues: {
-      username: initialData?.username || "",
-      password: "",
       type_document: initialData?.person?.type_document || "DNI",
       type_person: initialData?.person?.type_person || "NATURAL",
+      number_document: initialData?.person?.number_document || "",
       names: initialData?.person?.names || "",
+      gender: (initialData?.person?.gender as "M" | "F" | "O") || "M",
+      birth_date: initialData?.person?.birth_date || "",
       father_surname: initialData?.person?.father_surname || "",
       mother_surname: initialData?.person?.mother_surname || "",
       business_name: initialData?.person?.business_name || "",
+      commercial_name: initialData?.person?.commercial_name || "",
       address: initialData?.person?.address || "",
       phone: initialData?.person?.phone || "",
       email: initialData?.person?.email || "",
-      number_document: initialData?.person?.number_document || "",
+      ocupation: initialData?.person?.ocupation || "",
+      status: initialData?.person?.status || "Activo",
       rol_id: roleId.toString(),
     },
-    mode: "onChange",
+    mode: "onChange", // Validate on change for immediate feedback
   });
 
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
   const [isSearching, setIsSearching] = useState(false);
+
+  // Get form state for better UX
+  const { errors, isValid, dirtyFields } = form.formState;
   const [fieldsFromSearch, setFieldsFromSearch] = useState({
     names: false,
     father_surname: false,
@@ -69,7 +75,13 @@ export const PersonForm = ({
     address: false,
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  // Reset document type when person type changes to JURIDICA
+  useEffect(() => {
+    if (type_person === "JURIDICA" && type_document !== "RUC") {
+      form.setValue("type_document", "RUC", { shouldValidate: true });
+      form.setValue("number_document", "", { shouldValidate: true });
+    }
+  }, [type_person, type_document, form]);
 
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
@@ -156,79 +168,23 @@ export const PersonForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* User Credentials */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Usuario</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese el usuario" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contraseña</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Ingrese la contraseña"
-                      {...field}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
         {/* Document Information */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <FormField
+          <FormSelect
             control={form.control}
             name="type_document"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Documento</FormLabel>
-                <FormSelect
-                  control={form.control}
-                  label=""
-                  placeholder="Seleccione tipo"
-                  options={[
+            label="Tipo de Documento"
+            placeholder="Seleccione tipo"
+            options={
+              type_person === "JURIDICA"
+                ? [{ value: "RUC", label: "RUC" }]
+                : [
                     { value: "DNI", label: "DNI" },
                     { value: "RUC", label: "RUC" },
                     { value: "CE", label: "CE" },
                     { value: "PASAPORTE", label: "PASAPORTE" },
-                  ]}
-                  {...field}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
+                  ]
+            }
           />
 
           <FormField
@@ -236,13 +192,78 @@ export const PersonForm = ({
             name="number_document"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Número de Documento</FormLabel>
+                <FormLabel
+                  className={errors.number_document ? "text-destructive" : ""}
+                >
+                  Número de Documento {errors.number_document && "*"}
+                </FormLabel>
                 <FormControl>
                   <div className="relative">
                     <Input
-                      placeholder="Ingrese el número"
+                      placeholder={
+                        type_document === "DNI"
+                          ? "Ingrese 8 dígitos"
+                          : type_document === "RUC"
+                          ? "Ingrese 11 dígitos"
+                          : type_document === "CE"
+                          ? "Ingrese 8-9 dígitos"
+                          : type_document === "PASAPORTE"
+                          ? "Ingrese 8-11 caracteres"
+                          : "Ingrese el número"
+                      }
                       {...field}
-                      className={fieldsFromSearch.names ? "bg-blue-50" : ""}
+                      className={`
+                        ${
+                          fieldsFromSearch.names
+                            ? "bg-blue-50 border-blue-200"
+                            : ""
+                        }
+                        ${
+                          errors.number_document
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.number_document && !errors.number_document
+                            ? "border-green-500"
+                            : ""
+                        }
+                      `}
+                      maxLength={
+                        type_document === "DNI"
+                          ? 8
+                          : type_document === "RUC"
+                          ? 11
+                          : type_document === "CE"
+                          ? 9
+                          : type_document === "PASAPORTE"
+                          ? 11
+                          : 11
+                      }
+                      onChange={(e) => {
+                        let value;
+                        // For DNI, RUC, CE only allow numbers
+                        if (
+                          type_document === "DNI" ||
+                          type_document === "RUC" ||
+                          type_document === "CE"
+                        ) {
+                          value = e.target.value.replace(/\D/g, "");
+                        } else {
+                          // For PASAPORTE allow alphanumeric
+                          value = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
+                        }
+
+                        field.onChange(value);
+
+                        // Auto-search when completing DNI (8 digits) or RUC (11 digits)
+                        if (
+                          (type_document === "DNI" && value.length === 8) ||
+                          (type_document === "RUC" && value.length === 11)
+                        ) {
+                          setTimeout(() => handleDocumentSearch(), 100);
+                        }
+                      }}
                     />
                     {(type_document === "DNI" || type_document === "RUC") && (
                       <Button
@@ -263,49 +284,150 @@ export const PersonForm = ({
                   </div>
                 </FormControl>
                 <FormMessage />
+                {/* Fixed height container for feedback messages */}
+                <div className="h-4 text-xs">
+                  {field.value && !errors.number_document && (
+                    <>
+                      {type_document === "DNI" && field.value.length === 8 && (
+                        <p className="text-green-600">✓ DNI válido (8 dígitos)</p>
+                      )}
+                      {type_document === "RUC" && field.value.length === 11 && (
+                        <p className="text-green-600">✓ RUC válido (11 dígitos)</p>
+                      )}
+                      {type_document === "CE" &&
+                        field.value.length >= 8 &&
+                        field.value.length <= 9 && (
+                          <p className="text-green-600">
+                            ✓ CE válido ({field.value.length} dígitos)
+                          </p>
+                        )}
+                      {type_document === "PASAPORTE" &&
+                        field.value.length >= 8 &&
+                        field.value.length <= 11 && (
+                          <p className="text-green-600">
+                            ✓ Pasaporte válido ({field.value.length} caracteres)
+                          </p>
+                        )}
+                      {/* Show progress */}
+                      {((type_document === "DNI" && field.value.length < 8) ||
+                        (type_document === "RUC" && field.value.length < 11) ||
+                        (type_document === "CE" && field.value.length < 8) ||
+                        (type_document === "PASAPORTE" &&
+                          field.value.length < 8)) && (
+                        <p className="text-amber-600">
+                          {type_document === "DNI" &&
+                            `${8 - field.value.length} dígitos restantes`}
+                          {type_document === "RUC" &&
+                            `${11 - field.value.length} dígitos restantes`}
+                          {type_document === "CE" &&
+                            field.value.length < 8 &&
+                            `${8 - field.value.length} dígitos restantes`}
+                          {type_document === "PASAPORTE" &&
+                            field.value.length < 8 &&
+                            `${8 - field.value.length} caracteres restantes`}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
               </FormItem>
             )}
           />
 
-          <FormField
+          <FormSelect
             control={form.control}
             name="type_person"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Persona</FormLabel>
-                <FormSelect
-                  control={form.control}
-                  label=""
-                  placeholder="Seleccione tipo"
-                  options={[
-                    { value: "NATURAL", label: "Natural" },
-                    { value: "JURIDICA", label: "Jurídica" },
-                  ]}
-                  {...field}
-                />
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Tipo de Persona"
+            placeholder="Seleccione tipo"
+            options={[
+              { value: "NATURAL", label: "Natural" },
+              { value: "JURIDICA", label: "Jurídica" },
+            ]}
           />
         </div>
 
         {/* Personal Information - Natural Person */}
         {type_person === "NATURAL" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <FormField
               control={form.control}
               name="names"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nombres</FormLabel>
+                  <FormLabel className={errors.names ? "text-destructive" : ""}>
+                    Nombres {errors.names && "*"}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ingrese los nombres"
                       {...field}
-                      className={fieldsFromSearch.names ? "bg-blue-50" : ""}
+                      className={`
+                        ${
+                          fieldsFromSearch.names
+                            ? "bg-blue-50 border-blue-200"
+                            : ""
+                        }
+                        ${
+                          errors.names
+                            ? "border-destructive focus-visible:ring-destructive"
+                            : ""
+                        }
+                        ${
+                          dirtyFields.names && !errors.names
+                            ? "border-green-500"
+                            : ""
+                        }
+                      `}
                     />
                   </FormControl>
                   <FormMessage />
+                  {/* Fixed height container for feedback */}
+                  <div className="h-4 text-xs">
+                    {!errors.names && dirtyFields.names && (
+                      <p className="text-green-600">✓ Nombres válidos</p>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormSelect
+              control={form.control}
+              name="gender"
+              label="Género"
+              placeholder="Seleccione género"
+              options={[
+                { value: "M", label: "Masculino" },
+                { value: "F", label: "Femenino" },
+                { value: "O", label: "Otro" },
+              ]}
+            />
+
+            <FormField
+              control={form.control}
+              name="birth_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={errors.birth_date ? "text-destructive" : ""}>
+                    Fecha de Nacimiento {errors.birth_date && "*"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      className={`
+                        ${errors.birth_date ? "border-destructive focus-visible:ring-destructive" : ""}
+                        ${dirtyFields.birth_date && !errors.birth_date ? "border-green-500" : ""}
+                      `}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  {/* Fixed height container for feedback */}
+                  <div className="h-4 text-xs">
+                    {!errors.birth_date && dirtyFields.birth_date && (
+                      <p className="text-green-600">✓ Fecha válida</p>
+                    )}
+                  </div>
                 </FormItem>
               )}
             />
@@ -326,6 +448,8 @@ export const PersonForm = ({
                     />
                   </FormControl>
                   <FormMessage />
+                  {/* Fixed height container for consistency */}
+                  <div className="h-4"></div>
                 </FormItem>
               )}
             />
@@ -346,6 +470,8 @@ export const PersonForm = ({
                     />
                   </FormControl>
                   <FormMessage />
+                  {/* Fixed height container for consistency */}
+                  <div className="h-4"></div>
                 </FormItem>
               )}
             />
@@ -354,25 +480,66 @@ export const PersonForm = ({
 
         {/* Business Information - Legal Person */}
         {type_person === "JURIDICA" && (
-          <FormField
-            control={form.control}
-            name="business_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Razón Social</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la razón social"
-                    {...field}
-                    className={
-                      fieldsFromSearch.business_name ? "bg-blue-50" : ""
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="business_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={errors.business_name ? "text-destructive" : ""}>
+                    Razón Social {errors.business_name && "*"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ingrese la razón social"
+                      {...field}
+                      className={`
+                        ${fieldsFromSearch.business_name ? "bg-blue-50 border-blue-200" : ""}
+                        ${errors.business_name ? "border-destructive focus-visible:ring-destructive" : ""}
+                        ${dirtyFields.business_name && !errors.business_name ? "border-green-500" : ""}
+                      `}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  {/* Fixed height container for feedback */}
+                  <div className="h-4 text-xs">
+                    {!errors.business_name && dirtyFields.business_name && (
+                      <p className="text-green-600">✓ Razón social válida</p>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="commercial_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={errors.commercial_name ? "text-destructive" : ""}>
+                    Nombre Comercial {errors.commercial_name && "*"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ingrese el nombre comercial"
+                      {...field}
+                      className={`
+                        ${errors.commercial_name ? "border-destructive focus-visible:ring-destructive" : ""}
+                        ${dirtyFields.commercial_name && !errors.commercial_name ? "border-green-500" : ""}
+                      `}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  {/* Fixed height container for feedback */}
+                  <div className="h-4 text-xs">
+                    {!errors.commercial_name && dirtyFields.commercial_name && (
+                      <p className="text-green-600">✓ Nombre comercial válido</p>
+                    )}
+                  </div>
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         {/* Contact Information */}
@@ -382,15 +549,35 @@ export const PersonForm = ({
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Correo Electrónico</FormLabel>
+                <FormLabel className={errors.email ? "text-destructive" : ""}>
+                  Correo Electrónico {errors.email && "*"}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
-                    placeholder="Ingrese el correo"
+                    placeholder="ejemplo@correo.com"
                     {...field}
+                    className={`
+                      ${
+                        errors.email
+                          ? "border-destructive focus-visible:ring-destructive"
+                          : ""
+                      }
+                      ${
+                        dirtyFields.email && !errors.email
+                          ? "border-green-500"
+                          : ""
+                      }
+                    `}
                   />
                 </FormControl>
                 <FormMessage />
+                {/* Fixed height container for feedback */}
+                <div className="h-4 text-xs">
+                  {!errors.email && dirtyFields.email && (
+                    <p className="text-green-600">✓ Correo electrónico válido</p>
+                  )}
+                </div>
               </FormItem>
             )}
           />
@@ -400,11 +587,47 @@ export const PersonForm = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Teléfono</FormLabel>
+                <FormLabel className={errors.phone ? "text-destructive" : ""}>
+                  Teléfono {errors.phone && "*"}
+                </FormLabel>
                 <FormControl>
-                  <Input placeholder="Ingrese el teléfono" {...field} />
+                  <Input
+                    placeholder="987654321 (9 dígitos)"
+                    {...field}
+                    className={`
+                      ${
+                        errors.phone
+                          ? "border-destructive focus-visible:ring-destructive"
+                          : ""
+                      }
+                      ${
+                        dirtyFields.phone && !errors.phone
+                          ? "border-green-500"
+                          : ""
+                      }
+                    `}
+                    maxLength={9}
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/\D/g, "");
+                      field.onChange(value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
+                {/* Fixed height container for feedback */}
+                <div className="h-4 text-xs">
+                  {!errors.phone && dirtyFields.phone && (
+                    <p className="text-green-600">✓ Teléfono válido</p>
+                  )}
+                  {field.value &&
+                    field.value.length < 9 &&
+                    field.value.length > 0 && (
+                      <p className="text-amber-600">
+                        {9 - field.value.length} dígitos restantes
+                      </p>
+                    )}
+                </div>
               </FormItem>
             )}
           />
@@ -424,9 +647,55 @@ export const PersonForm = ({
                 />
               </FormControl>
               <FormMessage />
+              {/* Fixed height container for consistency */}
+              <div className="h-4"></div>
             </FormItem>
           )}
         />
+
+        {/* Additional Information */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="ocupation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className={errors.ocupation ? "text-destructive" : ""}>
+                  Ocupación {errors.ocupation && "*"}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ingrese la ocupación"
+                    {...field}
+                    className={`
+                      ${errors.ocupation ? "border-destructive focus-visible:ring-destructive" : ""}
+                      ${dirtyFields.ocupation && !errors.ocupation ? "border-green-500" : ""}
+                    `}
+                  />
+                </FormControl>
+                <FormMessage />
+                {/* Fixed height container for feedback */}
+                <div className="h-4 text-xs">
+                  {!errors.ocupation && dirtyFields.ocupation && (
+                    <p className="text-green-600">✓ Ocupación válida</p>
+                  )}
+                </div>
+              </FormItem>
+            )}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="status"
+            label="Estado"
+            placeholder="Seleccione estado"
+            options={[
+              { value: "Activo", label: "Activo" },
+              { value: "Inactivo", label: "Inactivo" },
+              { value: "Suspendido", label: "Suspendido" },
+            ]}
+          />
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end gap-3">
@@ -435,7 +704,11 @@ export const PersonForm = ({
               Cancelar
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting} className="gap-2">
+          <Button
+            type="submit"
+            disabled={isSubmitting || !isValid}
+            className={`gap-2 ${!isValid ? "opacity-50" : ""}`}
+          >
             {isSubmitting ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
@@ -452,7 +725,36 @@ export const PersonForm = ({
               </>
             )}
           </Button>
+
         </div>
+
+        {/* Form validation summary */}
+        {Object.keys(errors).length > 0 && (
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Hay {Object.keys(errors).length} error{Object.keys(errors).length > 1 ? 'es' : ''} que necesita{Object.keys(errors).length > 1 ? 'n' : ''} corrección
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <ul className="space-y-1">
+                    {Object.entries(errors).map(([field, error]) => (
+                      <li key={field} className="flex items-start">
+                        <span className="inline-block w-1 h-1 bg-red-400 rounded-full mt-2 mr-2 flex-shrink-0"></span>
+                        {error?.message || `Error en ${field}`}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </form>
     </Form>
   );

@@ -9,28 +9,41 @@ const typePersonSchema = z.enum(["NATURAL", "JURIDICA"], {
   error: "Debe seleccionar un tipo de persona",
 });
 
+const genderSchema = z.enum(["M", "F", "O"], {
+  error: "Debe seleccionar un género",
+});
+
 export type TypeDocument = z.infer<typeof typeDocumentSchema>;
 export type TypePerson = z.infer<typeof typePersonSchema>;
+export type Gender = z.infer<typeof genderSchema>;
 
 export const personCreateSchema = z
   .object({
-    username: z
-      .string()
-      .min(4, "El usuario debe tener al menos 4 caracteres")
-      .max(20, "El usuario no puede tener más de 20 caracteres"),
-
-    password: z
-      .string()
-      .min(8, "La contraseña debe tener al menos 8 caracteres")
-      .regex(/[A-Z]/, "Debe contener al menos una mayúscula")
-      .regex(/[a-z]/, "Debe contener al menos una minúscula")
-      .regex(/[0-9]/, "Debe contener al menos un número"),
-
     type_document: typeDocumentSchema,
 
     type_person: typePersonSchema,
 
+    number_document: z
+      .string()
+      .min(1, "El número de documento es obligatorio")
+      .refine(
+        (val) => /^[0-9]+$/.test(val),
+        "El número de documento solo puede contener números"
+      )
+      .refine(
+        (val) => val.length >= 8 && val.length <= 11,
+        "El número de documento debe tener entre 8 y 11 dígitos"
+      ),
+
     names: onlyLettersSchema("nombre"),
+    gender: genderSchema,
+    birth_date: z
+      .string()
+      .min(1, "La fecha de nacimiento es obligatoria")
+      .refine(
+        (val) => !isNaN(Date.parse(val)),
+        "Ingrese una fecha válida"
+      ),
     father_surname: onlyLettersSchema("apellido paterno"),
     mother_surname: onlyLettersSchema("apellido materno"),
 
@@ -40,23 +53,41 @@ export const personCreateSchema = z
       .optional()
       .or(z.literal("")),
 
+    commercial_name: z
+      .string()
+      .max(255, "El nombre comercial no puede exceder 255 caracteres")
+      .optional()
+      .or(z.literal("")),
+
     address: z
       .string()
-      .min(5, "Debe ingresar una dirección válida")
-      .max(200, "La dirección no puede exceder 200 caracteres"),
+      .min(5, "La dirección debe tener al menos 5 caracteres")
+      .max(200, "La dirección no puede exceder 200 caracteres")
+      .optional()
+      .or(z.literal("")),
 
-    phone: z.string().regex(/^[0-9]{9}$/, "El teléfono debe tener 9 dígitos"),
+    phone: z
+      .string()
+      .min(1, "El teléfono es obligatorio")
+      .regex(/^[0-9]{9}$/, "El teléfono debe tener exactamente 9 dígitos"),
 
-    email: z.string().email("Debe ingresar un correo válido"),
+    email: z
+      .string()
+      .min(1, "El correo electrónico es obligatorio")
+      .email("Ingrese un correo electrónico válido")
+      .max(255, "El correo no puede exceder 255 caracteres"),
+
+    ocupation: z
+      .string()
+      .min(1, "La ocupación es obligatoria")
+      .max(100, "La ocupación no puede exceder 100 caracteres"),
+
+    status: z
+      .string()
+      .min(1, "El estado es obligatorio")
+      .max(50, "El estado no puede exceder 50 caracteres"),
 
     rol_id: requiredStringId("Debe seleccionar un rol válido"),
-
-    number_document: z
-      .string()
-      .refine(
-        (val) => /^[0-9]{8,11}$/.test(val),
-        "El número de documento debe tener entre 8 y 11 dígitos"
-      ),
   })
   .superRefine((data, ctx) => {
     // Validación condicional para business_name
@@ -66,6 +97,13 @@ export const personCreateSchema = z
           code: z.ZodIssueCode.custom,
           message: "La razón social es obligatoria para personas jurídicas",
           path: ["business_name"],
+        });
+      }
+      if (!data.commercial_name || data.commercial_name.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El nombre comercial es obligatorio para personas jurídicas",
+          path: ["commercial_name"],
         });
       }
     }
@@ -93,10 +131,42 @@ export const personCreateSchema = z
         });
       }
     }
+
+    // Validaciones específicas por tipo de documento
+    if (data.type_document === "DNI" && data.number_document.length !== 8) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El DNI debe tener exactamente 8 dígitos",
+        path: ["number_document"],
+      });
+    }
+
+    if (data.type_document === "RUC" && data.number_document.length !== 11) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El RUC debe tener exactamente 11 dígitos",
+        path: ["number_document"],
+      });
+    }
+
+    if (data.type_document === "CE" && (data.number_document.length < 8 || data.number_document.length > 9)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El Carnet de Extranjería debe tener entre 8 y 9 dígitos",
+        path: ["number_document"],
+      });
+    }
+
+    if (data.type_document === "PASAPORTE" && (data.number_document.length < 8 || data.number_document.length > 11)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "El Pasaporte debe tener entre 8 y 11 caracteres",
+        path: ["number_document"],
+      });
+    }
   });
 
 export const personUpdateSchema = personCreateSchema.partial().extend({
-  password: personCreateSchema.shape.password.optional().or(z.literal("")),
   business_name: personCreateSchema.shape.business_name
     .optional()
     .or(z.literal("")),

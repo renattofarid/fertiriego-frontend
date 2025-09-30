@@ -18,8 +18,11 @@ import ProductPage from "./pages/product/components/ProductPage";
 import ProductDetail from "./pages/product/components/ProductDetail";
 import RolePage from "./pages/role/components/RolePage";
 import ClientPage from "./pages/client/components/ClientPage";
+import ClientAddPage from "./pages/client/components/ClientAddPage";
 import SupplierPage from "./pages/supplier/components/SupplierPage";
+import SupplierAddPage from "./pages/supplier/components/SupplierAddPage";
 import WorkerPage from "./pages/worker/components/WorkerPage";
+import WorkerAddPage from "./pages/worker/components/WorkerAddPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
@@ -240,6 +243,15 @@ export default function App() {
           />
 
           <Route
+            path="/clientes/agregar"
+            element={
+              <ProtectedRoute path={ClientRoute}>
+                <ClientAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={SupplierRoute}
             element={
               <ProtectedRoute path={SupplierRoute}>
@@ -249,10 +261,28 @@ export default function App() {
           />
 
           <Route
+            path="/proveedores/agregar"
+            element={
+              <ProtectedRoute path={SupplierRoute}>
+                <SupplierAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={WorkerRoute}
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/agregar"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerAddPage />
               </ProtectedRoute>
             }
           />

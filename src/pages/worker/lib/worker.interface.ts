@@ -35,5 +35,5 @@ export const WORKER: ModelComplete<any> = {
   EMPTY: {},
 };
 
-export const WORKER_ROLE_CODE = "WORKER";
-export const WORKER_ROLE_ID = 4;
+export const WORKER_ROLE_CODE = "Trabajador";
+export const WORKER_ROLE_ID = 3;

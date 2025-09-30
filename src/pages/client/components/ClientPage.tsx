@@ -6,7 +6,12 @@ import PersonTable from "@/pages/person/components/PersonTable";
 import PersonOptions from "@/pages/person/components/PersonOptions";
 import { deletePerson } from "@/pages/person/lib/person.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   successToast,
   errorToast,
@@ -27,7 +32,8 @@ export default function ClientPage() {
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [roleAssignmentPerson, setRoleAssignmentPerson] = useState<PersonResource | null>(null);
+  const [roleAssignmentPerson, setRoleAssignmentPerson] =
+    useState<PersonResource | null>(null);
   const { data, meta, isLoading, refetch } = useClients();
 
   useEffect(() => {
@@ -112,8 +118,8 @@ export default function ClientPage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
-          title={`Eliminar ${MODEL.name}`}
-          description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
+          // title={`Eliminar ${MODEL.name}`}
+          // description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
         />
       )}
     </div>
