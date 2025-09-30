@@ -20,6 +20,7 @@ import {
   isValidData,
 } from "@/lib/document-search.service";
 import type { PersonResource } from "../lib/person.interface";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 
 interface PersonFormProps {
   initialData?: PersonResource | null;
@@ -237,7 +238,7 @@ export const PersonForm = ({
                         }
                         ${
                           dirtyFields.number_document && !errors.number_document
-                            ? "border-green-500"
+                            ? "border-primary"
                             : ""
                         }
                       `}
@@ -301,26 +302,24 @@ export const PersonForm = ({
                   {field.value && !errors.number_document && (
                     <>
                       {type_document === "DNI" && field.value.length === 8 && (
-                        <p className="text-green-600">
-                          ✓ DNI válido (8 dígitos)
-                        </p>
+                        <p className="text-primary">✓ DNI válido (8 dígitos)</p>
                       )}
                       {type_document === "RUC" && field.value.length === 11 && (
-                        <p className="text-green-600">
+                        <p className="text-primary">
                           ✓ RUC válido (11 dígitos)
                         </p>
                       )}
                       {type_document === "CE" &&
                         field.value.length >= 8 &&
                         field.value.length <= 9 && (
-                          <p className="text-green-600">
+                          <p className="text-primary">
                             ✓ CE válido ({field.value.length} dígitos)
                           </p>
                         )}
                       {type_document === "PASAPORTE" &&
                         field.value.length >= 8 &&
                         field.value.length <= 11 && (
-                          <p className="text-green-600">
+                          <p className="text-primary">
                             ✓ Pasaporte válido ({field.value.length} caracteres)
                           </p>
                         )}
@@ -369,7 +368,7 @@ export const PersonForm = ({
 
         {/* Personal Information - Natural Person */}
         {type_person === "NATURAL" && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormField
               control={form.control}
               name="names"
@@ -395,7 +394,7 @@ export const PersonForm = ({
                         }
                         ${
                           dirtyFields.names && !errors.names
-                            ? "border-green-500"
+                            ? "border-primary"
                             : ""
                         }
                       `}
@@ -405,7 +404,7 @@ export const PersonForm = ({
                   {/* Fixed height container for feedback */}
                   <div className="h-4 text-xs">
                     {!errors.names && dirtyFields.names && (
-                      <p className="text-green-600">✓ Nombres válidos</p>
+                      <p className="text-primary">✓ Nombres válidos</p>
                     )}
                   </div>
                 </FormItem>
@@ -424,43 +423,12 @@ export const PersonForm = ({
               ]}
             />
 
-            <FormField
+            <DatePickerFormField
               control={form.control}
               name="birth_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel
-                    className={errors.birth_date ? "text-destructive" : ""}
-                  >
-                    Fecha de Nacimiento {errors.birth_date && "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      className={`
-                        ${
-                          errors.birth_date
-                            ? "border-destructive focus-visible:ring-destructive"
-                            : ""
-                        }
-                        ${
-                          dirtyFields.birth_date && !errors.birth_date
-                            ? "border-green-500"
-                            : ""
-                        }
-                      `}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for feedback */}
-                  <div className="h-4 text-xs">
-                    {!errors.birth_date && dirtyFields.birth_date && (
-                      <p className="text-green-600">✓ Fecha válida</p>
-                    )}
-                  </div>
-                </FormItem>
-              )}
+              label="Fecha de Nacimiento"
+              placeholder="Seleccione fecha"
+              captionLayout="dropdown"
             />
 
             <FormField
@@ -529,7 +497,7 @@ export const PersonForm = ({
                         }
                         ${
                           dirtyFields.ocupation && !errors.ocupation
-                            ? "border-green-500"
+                            ? "border-primary"
                             : ""
                         }
                       `}
@@ -539,7 +507,7 @@ export const PersonForm = ({
                   
                   <div className="h-4 text-xs">
                     {!errors.ocupation && dirtyFields.ocupation && (
-                      <p className="text-green-600">✓ Ocupación válida</p>
+                      <p className="text-primary">✓ Ocupación válida</p>
                     )}
                   </div>
                 </FormItem>
@@ -578,7 +546,7 @@ export const PersonForm = ({
                         }
                         ${
                           dirtyFields.business_name && !errors.business_name
-                            ? "border-green-500"
+                            ? "border-primary"
                             : ""
                         }
                       `}
@@ -588,7 +556,7 @@ export const PersonForm = ({
                   {/* Fixed height container for feedback */}
                   <div className="h-4 text-xs">
                     {!errors.business_name && dirtyFields.business_name && (
-                      <p className="text-green-600">✓ Razón social válida</p>
+                      <p className="text-primary">✓ Razón social válida</p>
                     )}
                   </div>
                 </FormItem>
@@ -617,7 +585,7 @@ export const PersonForm = ({
                         }
                         ${
                           dirtyFields.commercial_name && !errors.commercial_name
-                            ? "border-green-500"
+                            ? "border-primary"
                             : ""
                         }
                       `}
@@ -627,9 +595,7 @@ export const PersonForm = ({
                   {/* Fixed height container for feedback */}
                   <div className="h-4 text-xs">
                     {!errors.commercial_name && dirtyFields.commercial_name && (
-                      <p className="text-green-600">
-                        ✓ Nombre comercial válido
-                      </p>
+                      <p className="text-primary">✓ Nombre comercial válido</p>
                     )}
                   </div>
                 </FormItem>
@@ -661,7 +627,7 @@ export const PersonForm = ({
                       }
                       ${
                         dirtyFields.email && !errors.email
-                          ? "border-green-500"
+                          ? "border-primary"
                           : ""
                       }
                     `}
@@ -671,9 +637,7 @@ export const PersonForm = ({
                 {/* Fixed height container for feedback */}
                 <div className="h-4 text-xs">
                   {!errors.email && dirtyFields.email && (
-                    <p className="text-green-600">
-                      ✓ Correo electrónico válido
-                    </p>
+                    <p className="text-primary">✓ Correo electrónico válido</p>
                   )}
                 </div>
               </FormItem>
@@ -700,7 +664,7 @@ export const PersonForm = ({
                       }
                       ${
                         dirtyFields.phone && !errors.phone
-                          ? "border-green-500"
+                          ? "border-primary"
                           : ""
                       }
                     `}
@@ -716,7 +680,7 @@ export const PersonForm = ({
                 {/* Fixed height container for feedback */}
                 <div className="h-4 text-xs">
                   {!errors.phone && dirtyFields.phone && (
-                    <p className="text-green-600">✓ Teléfono válido</p>
+                    <p className="text-primary">✓ Teléfono válido</p>
                   )}
                   {field.value &&
                     field.value.length < 9 &&

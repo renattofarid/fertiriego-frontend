@@ -46,18 +46,32 @@ export const PersonColumns = ({
       );
     },
   },
-  // {
-  //   accessorKey: "person.type_person",
-  //   header: "Tipo",
-  //   cell: ({ row }) => {
-  //     const typePersona = row.original. ?? "NATURAL";
-  //     return (
-  //       <Badge variant={typePersona === "NATURAL" ? "default" : "secondary"}>
-  //         {typePersona}
-  //       </Badge>
-  //     );
-  //   },
-  // },
+  {
+    accessorKey: "type_person",
+    header: "Tipo",
+    cell: ({ row }) => {
+      const typePersona = row.original.type_person ?? "NATURAL";
+      return (
+        <Badge variant={typePersona === "NATURAL" ? "default" : "secondary"}>
+          {typePersona}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "type_document",
+    header: "Tipo Documento",
+    cell: ({ getValue }) => (
+      <Badge variant="outline">{getValue() as string}</Badge>
+    ),
+  },
+  {
+    accessorKey: "number_document",
+    header: "N° Doc.",
+    cell: ({ getValue }) => (
+      <span className="text-sm">{getValue() as string}</span>
+    ),
+  },
   {
     accessorKey: "email",
     header: "Email",
@@ -102,6 +116,20 @@ export const PersonColumns = ({
         </div>
       );
     },
+  },
+  {
+    accessorKey: "address",
+    header: "Dirección",
+    cell: ({ getValue }) => (
+      <span className="text-sm">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "birth_date",
+    header: "Fecha de Nacimiento",
+    cell: ({ getValue }) => (
+      <span className="text-sm">{getValue() as string}</span>
+    ),
   },
   // {
   //   accessorKey: "person.status",

@@ -21,7 +21,12 @@ export default function PersonTable({
         columns={columns}
         data={data}
         isLoading={isLoading}
-        initialColumnVisibility={{}}
+        initialColumnVisibility={{
+          email: false,
+          type_person: false,
+          birth_date: false,
+          address: false,
+        }}
       >
         {children}
       </DataTable>
