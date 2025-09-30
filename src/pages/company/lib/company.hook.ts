@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useCompanyStore } from "./company.store";
 
-export function useCompany(params?: Record<string, any>) {
+export function useCompany(params?: Record<string, unknown>) {
   const { companies, meta, isLoading, error, fetchCompanies } =
     useCompanyStore();
 

@@ -50,6 +50,7 @@ interface DatePickerFormFieldProps<T extends FieldValues> {
   disabled?: boolean;
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   onChange?: (date: Date | undefined) => void;
+  endMonth?: Date;
 }
 
 export function DatePickerFormField<T extends FieldValues>({
@@ -62,6 +63,7 @@ export function DatePickerFormField<T extends FieldValues>({
   disabled = false,
   captionLayout = "label",
   onChange,
+  endMonth,
 }: DatePickerFormFieldProps<T>) {
   const isMobile = useIsMobile();
   const { field, fieldState } = useController({ control, name });
@@ -163,8 +165,8 @@ export function DatePickerFormField<T extends FieldValues>({
               captionLayout={captionLayout}
               onSelect={handleChange}
               disabled={disabled}
-              initialFocus
-              toYear={new Date().getFullYear() + 5}
+              autoFocus
+              endMonth={endMonth}
             />
           </PopoverContent>
         </Popover>

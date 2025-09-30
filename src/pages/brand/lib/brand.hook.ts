@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useBrandStore } from "./brand.store";
 
-export function useBrand(params?: Record<string, any>) {
+export function useBrand(params?: Record<string, unknown>) {
   const { brands, meta, isLoading, error, fetchBrands } =
     useBrandStore();
 

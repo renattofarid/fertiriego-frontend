@@ -31,4 +31,10 @@ export interface ModelComplete<T> {
   EMPTY: T;
 }
 
+export interface Option {
+  label: string | (() => React.ReactNode);
+  value: string;
+  description?: string;
+}
+
 export type Action = "create" | "update" | "delete";

@@ -74,8 +74,12 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
           refetchBranch();
           refetch();
         })
-        .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "update")
+          );
         });
     }
   };

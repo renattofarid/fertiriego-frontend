@@ -45,9 +45,7 @@ export default function CompanyModal({
       }
     : useCompanyById(id!);
 
-  const mapCompanyToForm = (
-    data: CompanyResource
-  ): Partial<CompanySchema> => ({
+  const mapCompanyToForm = (data: CompanyResource): Partial<CompanySchema> => ({
     social_reason: data.social_reason,
     ruc: data.ruc,
     trade_name: data.trade_name,
@@ -82,8 +80,12 @@ export default function CompanyModal({
           refetchCompany();
           refetch();
         })
-        .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "update")
+          );
         });
     }
   };
@@ -91,7 +93,12 @@ export default function CompanyModal({
   const isLoadingAny = isSubmitting || findingCompany;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title}>
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      maxWidth="!max-w-2xl"
+    >
       {!isLoadingAny && company ? (
         <CompanyForm
           defaultValues={mapCompanyToForm(company)}

@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useUserStore } from "./Users.store";
 
-export function useUsers(params?: Record<string, any>) {
+export function useUsers(params?: Record<string, unknown>) {
   const { Users, meta, isLoading, error, fetchUsers } = useUserStore();
 
   useEffect(() => {

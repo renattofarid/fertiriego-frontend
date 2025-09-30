@@ -19,7 +19,9 @@ import {
 } from "../lib/company.schema.ts";
 import { Loader } from "lucide-react";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { searchRUC, isValidData } from "@/lib/document-search.service";
+import { Search } from "lucide-react";
 
 interface CompanyFormProps {
   defaultValues: Partial<CompanySchema>;
@@ -37,6 +39,11 @@ export const CompanyForm = ({
   mode = "create",
 }: CompanyFormProps) => {
   const { user } = useAuthStore();
+  const [isSearching, setIsSearching] = useState(false);
+  const [fieldsFromSearch, setFieldsFromSearch] = useState({
+    social_reason: false,
+    address: false,
+  });
 
   const form = useForm({
     resolver: zodResolver(
@@ -69,6 +76,7 @@ export const CompanyForm = ({
                   <Input
                     variant="primary"
                     placeholder="Ej: Comercial Ferriego SAC"
+                    disabled={fieldsFromSearch.social_reason}
                     {...field}
                   />
                 </FormControl>
@@ -84,11 +92,62 @@ export const CompanyForm = ({
               <FormItem>
                 <FormLabel>RUC</FormLabel>
                 <FormControl>
-                  <Input
-                    variant="primary"
-                    placeholder="Ej: 20123456789"
-                    {...field}
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      variant="primary"
+                      placeholder="Ej: 20123456789"
+                      maxLength={11}
+                      {...field}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={
+                        !field.value || field.value.length !== 11 || isSearching
+                      }
+                      onClick={async () => {
+                        if (field.value && field.value.length === 11) {
+                          setIsSearching(true);
+                          try {
+                            const response = await searchRUC({
+                              search: field.value,
+                            });
+                            if (response.data) {
+                              const newFieldsFromSearch = {
+                                ...fieldsFromSearch,
+                              };
+                              if (isValidData(response.data.business_name)) {
+                                form.setValue(
+                                  "social_reason",
+                                  response.data.business_name
+                                );
+                                newFieldsFromSearch.social_reason = true;
+                              }
+                              if (isValidData(response.data.address)) {
+                                form.setValue(
+                                  "address",
+                                  response.data.address!
+                                );
+                                newFieldsFromSearch.address = true;
+                              }
+                              setFieldsFromSearch(newFieldsFromSearch);
+                            }
+                          } catch (error) {
+                            console.error("Error searching RUC:", error);
+                          } finally {
+                            setIsSearching(false);
+                          }
+                        }
+                      }}
+                    >
+                      {isSearching ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -123,6 +182,7 @@ export const CompanyForm = ({
                   <Input
                     variant="primary"
                     placeholder="Ej: Av. Los Olivos 123, Lima"
+                    disabled={fieldsFromSearch.address}
                     {...field}
                   />
                 </FormControl>
@@ -141,7 +201,7 @@ export const CompanyForm = ({
                   <Input
                     variant="primary"
                     placeholder="Ej: 987654321"
-                    maxLength={9}                    
+                    maxLength={9}
                     {...field}
                   />
                 </FormControl>
@@ -168,9 +228,8 @@ export const CompanyForm = ({
               </FormItem>
             )}
           />
-
         </div>
-
+        
         <div className="flex gap-4 w-full justify-end">
           <Button type="button" variant="neutral" onClick={onCancel}>
             Cancelar

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useUnitStore } from "./unit.store";
 
-export function useUnit(params?: Record<string, any>) {
+export function useUnit(params?: Record<string, unknown>) {
   const { units, meta, isLoading, error, fetchUnits } = useUnitStore();
 
   useEffect(() => {

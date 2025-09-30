@@ -23,7 +23,13 @@ interface Props {
 
 const { MODEL, EMPTY } = WAREHOUSE;
 
-export default function WarehouseModal({ id, open, title, mode, onClose }: Props) {
+export default function WarehouseModal({
+  id,
+  open,
+  title,
+  mode,
+  onClose,
+}: Props) {
   const { refetch } = useWarehouse();
   const { user } = useAuthStore();
 
@@ -39,7 +45,9 @@ export default function WarehouseModal({ id, open, title, mode, onClose }: Props
       }
     : useWarehouseById(id!);
 
-  const mapWarehouseToForm = (data: WarehouseResource): Partial<WarehouseSchema> => ({
+  const mapWarehouseToForm = (
+    data: WarehouseResource
+  ): Partial<WarehouseSchema> => ({
     name: data?.name || "",
     address: data?.address || "",
     capacity: data?.capacity || 0,
@@ -49,7 +57,8 @@ export default function WarehouseModal({ id, open, title, mode, onClose }: Props
     branch_id: data?.branch_id?.toString() || "0",
   });
 
-  const { isSubmitting, updateWarehouse, createWarehouse } = useWarehouseStore();
+  const { isSubmitting, updateWarehouse, createWarehouse } =
+    useWarehouseStore();
 
   const handleSubmit = async (data: WarehouseSchema) => {
     if (mode === "create") {
@@ -74,8 +83,12 @@ export default function WarehouseModal({ id, open, title, mode, onClose }: Props
           refetchWarehouse();
           refetch();
         })
-        .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "update")
+          );
         });
     }
   };

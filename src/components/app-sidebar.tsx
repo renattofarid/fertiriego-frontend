@@ -20,6 +20,12 @@ import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
 import { BRAND } from "@/pages/brand/lib/brand.interface";
 import { BOX } from "@/pages/box/lib/box.interface";
 import { UNIT } from "@/pages/unit/lib/unit.interface";
+import { CATEGORY } from "@/pages/category/lib/category.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
+import { ROLE } from "@/pages/role/lib/role.interface";
+import { CLIENT } from "@/pages/client/lib/client.interface";
+import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
+import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -72,6 +78,42 @@ const {
   MODEL: { name: UnitTitle },
 } = UNIT;
 
+const {
+  ICON_REACT: CategoryIcon,
+  ROUTE: CategoryRoute,
+  MODEL: { name: CategoryTitle },
+} = CATEGORY;
+
+const {
+  ICON_REACT: ProductIcon,
+  ROUTE: ProductRoute,
+  MODEL: { name: ProductTitle },
+} = PRODUCT;
+
+const {
+  ICON_REACT: RoleIcon,
+  ROUTE: RoleRoute,
+  MODEL: { name: RoleTitle },
+} = ROLE;
+
+const {
+  ICON_REACT: ClientIcon,
+  ROUTE: ClientRoute,
+  MODEL: { name: ClientTitle },
+} = CLIENT;
+
+const {
+  ICON_REACT: SupplierIcon,
+  ROUTE: SupplierRoute,
+  MODEL: { name: SupplierTitle },
+} = SUPPLIER;
+
+const {
+  ICON_REACT: WorkerIcon,
+  ROUTE: WorkerRoute,
+  MODEL: { name: WorkerTitle },
+} = WORKER;
+
 const data = {
   navMain: [
     {
@@ -112,6 +154,16 @@ const data = {
       icon: Package,
       items: [
         {
+          title: CategoryTitle,
+          url: CategoryRoute,
+          icon: CategoryIcon,
+        },
+        {
+          title: ProductTitle,
+          url: ProductRoute,
+          icon: ProductIcon,
+        },
+        {
           title: BrandTitle,
           url: BrandRoute,
           icon: BrandIcon,
@@ -128,6 +180,26 @@ const data = {
       url: "#",
       icon: ShieldUser,
       items: [
+        {
+          title: RoleTitle,
+          url: RoleRoute,
+          icon: RoleIcon,
+        },
+        {
+          title: ClientTitle,
+          url: ClientRoute,
+          icon: ClientIcon,
+        },
+        {
+          title: SupplierTitle,
+          url: SupplierRoute,
+          icon: SupplierIcon,
+        },
+        {
+          title: WorkerTitle,
+          url: WorkerRoute,
+          icon: WorkerIcon,
+        },
         {
           title: UserTitle,
           url: UserRoute,
