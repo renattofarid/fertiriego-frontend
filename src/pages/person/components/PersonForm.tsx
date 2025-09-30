@@ -186,6 +186,7 @@ export const PersonForm = ({
             name="type_document"
             label="Tipo de Documento"
             placeholder="Seleccione tipo"
+            disabled={isWorker || isEditing} // Workers can only use DNI
             options={
               isWorker
                 ? [{ value: "DNI", label: "DNI" }] // Workers can only use DNI
@@ -213,6 +214,7 @@ export const PersonForm = ({
                 <FormControl>
                   <div className="relative">
                     <Input
+                      disabled={isEditing}
                       placeholder={
                         type_document === "DNI"
                           ? "Ingrese 8 dígitos"
@@ -285,7 +287,7 @@ export const PersonForm = ({
                         size="sm"
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={handleDocumentSearch}
-                        disabled={isSearching || !field.value}
+                        disabled={isSearching || !field.value || isEditing}
                       >
                         {isSearching ? (
                           <Loader className="h-4 w-4 animate-spin" />
@@ -354,7 +356,7 @@ export const PersonForm = ({
             name="type_person"
             label="Tipo de Persona"
             placeholder="Seleccione tipo"
-            disabled={isWorker} // Workers are always natural persons
+            disabled={isWorker || isEditing} // Workers are always natural persons
             options={
               isWorker
                 ? [{ value: "NATURAL", label: "Natural" }] // Workers are always natural
@@ -379,6 +381,7 @@ export const PersonForm = ({
                   </FormLabel>
                   <FormControl>
                     <Input
+                      disabled={isEditing}
                       placeholder="Ingrese los nombres"
                       {...field}
                       className={`
@@ -411,26 +414,6 @@ export const PersonForm = ({
               )}
             />
 
-            <FormSelect
-              control={form.control}
-              name="gender"
-              label="Género"
-              placeholder="Seleccione género"
-              options={[
-                { value: "M", label: "Masculino" },
-                { value: "F", label: "Femenino" },
-                { value: "O", label: "Otro" },
-              ]}
-            />
-
-            <DatePickerFormField
-              control={form.control}
-              name="birth_date"
-              label="Fecha de Nacimiento"
-              placeholder="Seleccione fecha"
-              captionLayout="dropdown"
-            />
-
             <FormField
               control={form.control}
               name="father_surname"
@@ -439,6 +422,7 @@ export const PersonForm = ({
                   <FormLabel>Apellido Paterno</FormLabel>
                   <FormControl>
                     <Input
+                      disabled={isEditing}
                       placeholder="Ingrese apellido paterno"
                       {...field}
                       className={
@@ -461,6 +445,7 @@ export const PersonForm = ({
                   <FormLabel>Apellido Materno</FormLabel>
                   <FormControl>
                     <Input
+                      disabled={isEditing}
                       placeholder="Ingrese apellido materno"
                       {...field}
                       className={
@@ -473,6 +458,33 @@ export const PersonForm = ({
                   <div className="h-4"></div>
                 </FormItem>
               )}
+            />
+
+            <FormSelect
+              control={form.control}
+              name="gender"
+              label="Género"
+              placeholder="Seleccione género"
+              options={[
+                { value: "M", label: "Masculino" },
+                { value: "F", label: "Femenino" },
+                { value: "O", label: "Otro" },
+              ]}
+            />
+
+            <DatePickerFormField
+              control={form.control}
+              name="birth_date"
+              label="Fecha de Nacimiento"
+              placeholder="Seleccione fecha"
+              captionLayout="dropdown"
+              endMonth={
+                new Date(
+                  new Date().getFullYear() - 18,
+                  new Date().getMonth(),
+                  new Date().getDate()
+                )
+              }
             />
 
             {/* <FormField
@@ -531,6 +543,7 @@ export const PersonForm = ({
                   </FormLabel>
                   <FormControl>
                     <Input
+                      disabled={isEditing}
                       placeholder="Ingrese la razón social"
                       {...field}
                       className={`

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { usePersonStore } from "@/pages/person/lib/person.store";
 import { SUPPLIER_ROLE_CODE } from "./supplier.interface";
 
-export function useSuppliers(params?: Record<string, any>) {
+export function useSuppliers(params?: Record<string, unknown>) {
   const { persons, meta, isLoading, error, fetchPersons } = usePersonStore();
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export function useSuppliers(params?: Record<string, any>) {
     meta,
     isLoading,
     error,
-    refetch: (refetchParams?: Record<string, any>) => {
+    refetch: (refetchParams?: Record<string, unknown>) => {
       const supplierParams = {
         ...refetchParams,
         role_names: [SUPPLIER_ROLE_CODE],

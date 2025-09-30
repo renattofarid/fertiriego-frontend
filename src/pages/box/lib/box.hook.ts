@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useBoxStore } from "./box.store";
 
-export function useBox(params?: Record<string, any>) {
+export function useBox(params?: Record<string, unknown>) {
   const { boxes, meta, isLoading, error, fetchBoxes } =
     useBoxStore();
 

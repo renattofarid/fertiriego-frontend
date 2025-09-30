@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useWarehouseStore } from "./warehouse.store";
 
-export function useWarehouse(params?: Record<string, any>) {
+export function useWarehouse(params?: Record<string, unknown>) {
   const { warehouses, meta, isLoading, error, fetchWarehouses } =
     useWarehouseStore();
 

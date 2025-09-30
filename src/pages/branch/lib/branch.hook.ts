@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useBranchStore } from "./branch.store";
 
-export function useBranch(params?: Record<string, any>) {
+export function useBranch(params?: Record<string, unknown>) {
   const { branches, meta, isLoading, error, fetchBranches } =
     useBranchStore();
 

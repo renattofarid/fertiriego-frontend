@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useCategoryStore } from "./category.store";
 
-export function useCategory(params?: Record<string, any>) {
+export function useCategory(params?: Record<string, unknown>) {
   const { categories, meta, isLoading, error, fetchCategories } =
     useCategoryStore();
 

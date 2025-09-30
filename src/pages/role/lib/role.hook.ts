@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRoleStore } from "./role.store";
 
-export function useRoles(params?: Record<string, any>) {
+export function useRoles(params?: Record<string, unknown>) {
   const { roles, meta, isLoading, error, fetchRoles } =
     useRoleStore();
 

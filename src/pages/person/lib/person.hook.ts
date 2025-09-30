@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { usePersonStore } from "./person.store";
 
-export function usePersons(params?: Record<string, any>) {
+export function usePersons(params?: Record<string, unknown>) {
   const { persons, meta, isLoading, error, fetchPersons } =
     usePersonStore();
 

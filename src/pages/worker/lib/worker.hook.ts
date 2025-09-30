@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { usePersonStore } from "@/pages/person/lib/person.store";
 import { WORKER_ROLE_CODE } from "./worker.interface";
 
-export function useWorkers(params?: Record<string, any>) {
+export function useWorkers(params?: Record<string, unknown>) {
   const { persons, meta, isLoading, error, fetchPersons } = usePersonStore();
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export function useWorkers(params?: Record<string, any>) {
     meta,
     isLoading,
     error,
-    refetch: (refetchParams?: Record<string, any>) => {
+    refetch: (refetchParams?: Record<string, unknown>) => {
       const workerParams = {
         ...refetchParams,
         role_names: [WORKER_ROLE_CODE],

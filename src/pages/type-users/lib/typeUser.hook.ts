@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useTypeUserStore } from "./typeUsers.store";
 
-export function useTypeUsers(params?: Record<string, any>) {
+export function useTypeUsers(params?: Record<string, unknown>) {
   const { typeUsers, meta, isLoading, error, fetchTypeUsers } =
     useTypeUserStore();
 

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useProductStore } from "./product.store";
 
-export function useProduct(params?: Record<string, any>) {
+export function useProduct(params?: Record<string, unknown>) {
   const { products, meta, isLoading, error, fetchProducts } =
     useProductStore();
 
