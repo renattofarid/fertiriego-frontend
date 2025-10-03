@@ -16,6 +16,7 @@ import { ProductTypeColumns } from "./ProductTypeColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { PRODUCT_TYPE } from "../lib/product-type.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import TypeUserOptions from "@/pages/type-users/components/TypeUserOptions";
 
 const { MODEL, ICON, TITLES } = PRODUCT_TYPE;
 
@@ -96,7 +97,9 @@ export default function ProductTypePage() {
           onDelete: setDeleteId,
         })}
         data={data || []}
-      />
+      >
+        <TypeUserOptions search={search} setSearch={setSearch} />
+      </ProductTypeTable>
 
       <DataTablePagination
         page={page}

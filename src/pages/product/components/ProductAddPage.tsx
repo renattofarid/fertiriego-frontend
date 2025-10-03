@@ -26,15 +26,16 @@ const { MODEL } = PRODUCT;
 export default function ProductAddPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { data: categories, isLoading: categoriesLoading } = useAllCategories();
   const { data: brands, isLoading: brandsLoading } = useAllBrands();
   const { data: units, isLoading: unitsLoading } = useAllUnits();
   const { data: productTypes } = useAllProductTypes();
-  
+
   const { createProduct } = useProductStore();
 
-  const isLoading = categoriesLoading || brandsLoading || unitsLoading || !productTypes;
+  const isLoading =
+    categoriesLoading || brandsLoading || unitsLoading || !productTypes;
 
   const getDefaultValues = (): Partial<ProductSchema> => ({
     name: "",
@@ -51,12 +52,8 @@ export default function ProductAddPage() {
       await createProduct(data);
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate("/productos");
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : ERROR_MESSAGE(MODEL, "create");
-      errorToast(errorMessage);
+    } catch (error: any) {
+      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "create"));
     } finally {
       setIsSubmitting(false);
     }
