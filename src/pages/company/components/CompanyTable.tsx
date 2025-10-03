@@ -21,7 +21,9 @@ export default function CompanyTable({
         columns={columns}
         data={data}
         isLoading={isLoading}
-        initialColumnVisibility={{}}
+        initialColumnVisibility={{
+          responsible_full_name: false,
+        }}
       >
         {children}
       </DataTable>

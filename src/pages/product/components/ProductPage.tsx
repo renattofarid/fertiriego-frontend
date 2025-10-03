@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProductSchema } from "../lib/product.schema";
+import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
+import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -41,10 +43,16 @@ export default function ProductPage() {
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
+  // const { data: productTypes } = useAllProductTypes();
+  const productTypes: ProductTypeResource[] = [
+    { id: 1, code: "NORMAL", name: "Normal", created_at: "2024-01-01" },
+  ];
   const { data: brands } = useAllBrands();
   const { data: units } = useAllUnits();
   const { isSubmitting, createProduct, updateProduct, fetchProduct, product } =
@@ -118,7 +126,6 @@ export default function ProductPage() {
     setSelectedProductId(null);
   };
 
-
   const getDefaultValues = (): Partial<ProductSchema> => ({
     name: "",
     category_id: undefined,
@@ -166,7 +173,6 @@ export default function ProductPage() {
     }
   };
 
-
   // Render form view (create/edit)
   const renderFormView = () => {
     const isEdit = viewMode === "edit";
@@ -187,7 +193,7 @@ export default function ProductPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {categories && brands && units && (
+          {categories && brands && units && productTypes && (
             <ProductForm
               defaultValues={defaultValues}
               onSubmit={handleSubmit}
@@ -198,6 +204,7 @@ export default function ProductPage() {
               units={units}
               product={isEdit ? product || undefined : undefined}
               onCancel={handleBackToList}
+              productTypes={productTypes}
             />
           )}
         </CardContent>

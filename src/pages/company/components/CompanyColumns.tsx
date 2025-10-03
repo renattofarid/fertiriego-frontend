@@ -25,7 +25,7 @@ export const CompanyColumns = ({
     accessorKey: "ruc",
     header: "RUC",
     cell: ({ getValue }) => (
-      <span className="font-mono">{getValue() as string}</span>
+      <Badge className="font-mono">{getValue() as string}</Badge>
     ),
   },
   {
@@ -44,19 +44,9 @@ export const CompanyColumns = ({
     cell: ({ getValue }) => getValue() as string,
   },
   {
-    accessorKey: "status",
-    header: "Estado",
-    cell: ({ getValue }) => {
-      const status = getValue() as string;
-      return (
-        <Badge
-          variant={status === "active" ? "default" : "destructive"}
-          className={`font-semibold`}
-        >
-          {status === "active" ? "Activo" : "Inactivo"}
-        </Badge>
-      );
-    },
+    accessorKey: "responsible_full_name",
+    header: "Responsable",
+    cell: ({ getValue }) => getValue() as string,
   },
   {
     id: "actions",
