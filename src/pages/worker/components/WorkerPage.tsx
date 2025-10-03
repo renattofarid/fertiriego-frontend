@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useWorkers } from "../lib/worker.hook";
 import TitleComponent from "@/components/TitleComponent";
 import WorkerActions from "./WorkerActions";
@@ -29,7 +29,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 const { MODEL, ICON } = WORKER;
 
 export default function WorkerPage() {
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -55,9 +55,9 @@ export default function WorkerPage() {
     }
   };
 
-  const handleManageRoles = (person: PersonResource) => {
-    setRoleAssignmentPerson(person);
-  };
+  // const handleManageRoles = (person: PersonResource) => {
+  //   setRoleAssignmentPerson(person);
+  // };
 
   const handleCloseRoleAssignment = () => {
     setRoleAssignmentPerson(null);
@@ -78,8 +78,9 @@ export default function WorkerPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
+          onEdit: (person) => navigate(`/trabajadores/editar/${person}`),
           onDelete: setDeleteId,
-          onManageRoles: handleManageRoles,
+          // onManageRoles: handleManageRoles,
         })}
         data={data || []}
       >

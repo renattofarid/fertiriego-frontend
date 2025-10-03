@@ -83,7 +83,7 @@ export const personCreateSchema = z
     //   .optional()
     //   .or(z.literal("")),
 
-    rol_id: requiredStringId("Debe seleccionar un rol válido"),
+    role_id: requiredStringId("Debe seleccionar un rol válido"),
   })
   .superRefine((data, ctx) => {
     // Validación condicional para business_name

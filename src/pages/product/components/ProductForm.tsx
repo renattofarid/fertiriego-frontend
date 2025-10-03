@@ -170,7 +170,7 @@ export const ProductForm = ({
 
           <FormSelect
             control={form.control}
-            name="product_type"
+            name="product_type_id"
             label="Tipo de Producto"
             placeholder="Seleccione el tipo"
             options={productTypes.map((productType) => ({

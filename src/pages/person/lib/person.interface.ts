@@ -47,7 +47,7 @@ export const PERSON: ModelComplete<PersonSchema> = {
     address: "",
     phone: "",
     email: "",
-    rol_id: "",
+    role_id: "",
     number_document: "",
   },
 };
@@ -104,7 +104,7 @@ export interface CreatePersonRequest {
   email: string;
   ocupation?: string;
   status: string;
-  rol_id: number;
+  role_id: number;
   number_document: string;
 }
 

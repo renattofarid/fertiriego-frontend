@@ -8,11 +8,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 
 export const PersonColumns = ({
+  onEdit,
   onDelete,
-  onManageRoles,
-}: {
+}: // onManageRoles,
+{
+  onEdit: (id: number) => void;
   onDelete: (id: number) => void;
-  onManageRoles: (person: PersonResource) => void;
+  // onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
     accessorKey: "full_name",
@@ -113,12 +115,12 @@ export const PersonColumns = ({
       return (
         <SelectActions>
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onManageRoles(person)}>
+            {/* <DropdownMenuItem onClick={() => onManageRoles(person)}>
               Gestionar Roles
-            </DropdownMenuItem>
-            {/* <DropdownMenuItem onClick={() => onEdit(person.id)}>
-              Editar
             </DropdownMenuItem> */}
+            <DropdownMenuItem onClick={() => onEdit(person.id)}>
+              Editar
+            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onDelete(person.id)}>
               Eliminar
             </DropdownMenuItem>

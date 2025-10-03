@@ -10,7 +10,8 @@ export const productTypeSchemaCreate = z.object({
     .min(1, { message: "El código es requerido" })
     .max(20, { message: "El código no puede exceder 20 caracteres" })
     .refine((val) => /^[A-Z0-9\-_]+$/.test(val), {
-      message: "El código solo puede contener letras mayúsculas, números, guiones y guiones bajos",
+      message:
+        "El código solo puede contener letras mayúsculas, números, guiones y guiones bajos",
     }),
 });
 

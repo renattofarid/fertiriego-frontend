@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
-import { useProductTypeLocalStorage } from "../lib/product-type-localStorage.hook";
+import { useEffect, useState } from "react";
+import { useProductType } from "../lib/product-type.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductTypeActions from "./ProductTypeActions";
 import ProductTypeTable from "./ProductTypeTable";
 import ProductTypeModal from "./ProductTypeModal";
+import { deleteProductType } from "../lib/product-type.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -29,45 +30,27 @@ export default function ProductTypePage() {
     number | null
   >(null);
 
-  const { productTypes, isLoading, fetchAll, remove } = useProductTypeLocalStorage();
+  const { data, meta, isLoading, refetch } = useProductType();
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
-
-  // Filtrar y paginar los datos en el cliente
-  const filteredData = useMemo(() => {
-    if (!productTypes) return [];
-
-    let filtered = productTypes;
-
-    // Aplicar búsqueda
-    if (search) {
-      const searchLower = search.toLowerCase();
-      filtered = filtered.filter(
-        (pt) =>
-          pt.name.toLowerCase().includes(searchLower) ||
-          pt.code.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [productTypes, search]);
-
-  // Calcular paginación
-  const paginatedData = useMemo(() => {
-    const start = (page - 1) * per_page;
-    const end = start + per_page;
-    return filteredData.slice(start, end);
-  }, [filteredData, page, per_page]);
-
-  const totalPages = Math.ceil(filteredData.length / per_page);
+    const filterParams = {
+      page,
+      search,
+      per_page,
+    };
+    refetch(filterParams);
+  }, [page, search, per_page, refetch]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await remove(deleteId);
-      fetchAll();
+      await deleteProductType(deleteId);
+      const filterParams = {
+        page,
+        search,
+        per_page,
+      };
+      await refetch(filterParams);
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: unknown) {
       const errorMessage =
@@ -112,33 +95,25 @@ export default function ProductTypePage() {
           onEdit: handleEditProductType,
           onDelete: setDeleteId,
         })}
-        data={paginatedData}
-      >
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Buscar..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="px-3 py-2 border rounded-md"
-          />
-        </div>
-      </ProductTypeTable>
+        data={data || []}
+      />
 
       <DataTablePagination
         page={page}
-        totalPages={totalPages}
+        totalPages={meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={filteredData.length}
+        totalData={meta?.total || 0}
       />
 
       {modalOpen && (
         <ProductTypeModal
           id={selectedProductTypeId || undefined}
           open={modalOpen}
-          title={modalMode === "create" ? TITLES.create.title : TITLES.update.title}
+          title={
+            modalMode === "create" ? TITLES.create.title : TITLES.update.title
+          }
           mode={modalMode}
           onClose={handleCloseModal}
         />

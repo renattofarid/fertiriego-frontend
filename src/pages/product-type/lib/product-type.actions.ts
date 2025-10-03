@@ -53,7 +53,10 @@ export async function updateProductType(
   id: number,
   data: ProductTypeSchema
 ): Promise<ProductTypeResponse> {
-  const response = await api.put<ProductTypeResponse>(`${ENDPOINT}/${id}`, data);
+  const response = await api.put<ProductTypeResponse>(
+    `${ENDPOINT}/${id}`,
+    data
+  );
   return response.data;
 }
 

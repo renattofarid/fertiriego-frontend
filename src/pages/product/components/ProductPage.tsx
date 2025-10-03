@@ -4,7 +4,6 @@ import { useProduct } from "../lib/product.hook";
 import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
-import { useProductTypeLocalStorage } from "@/pages/product-type/lib/product-type-localStorage.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
@@ -27,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProductSchema } from "../lib/product.schema";
+import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -48,13 +48,10 @@ export default function ProductPage() {
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
-  const { productTypes, fetchAll: fetchProductTypes } = useProductTypeLocalStorage();
+  const { data: productTypes } = useAllProductTypes();
   const { data: brands } = useAllBrands();
   const { data: units } = useAllUnits();
 
-  useEffect(() => {
-    fetchProductTypes();
-  }, [fetchProductTypes]);
   const { isSubmitting, createProduct, updateProduct, fetchProduct, product } =
     useProductStore();
 
@@ -128,19 +125,19 @@ export default function ProductPage() {
 
   const getDefaultValues = (): Partial<ProductSchema> => ({
     name: "",
-    category_id: undefined,
-    brand_id: undefined,
-    unit_id: undefined,
-    product_type: "",
+    category_id: "",
+    brand_id: "",
+    unit_id: "",
+    product_type_id: "",
     technical_sheet: [],
   });
 
   const mapProductToForm = (data: ProductResource): Partial<ProductSchema> => ({
     name: data.name,
-    category_id: data.category_id,
-    brand_id: data.brand_id,
-    unit_id: data.unit_id,
-    product_type: data.product_type,
+    category_id: data.category_id?.toString(),
+    brand_id: data.brand_id?.toString(),
+    unit_id: data.unit_id?.toString(),
+    product_type_id: data.product_type_id?.toString(),
     technical_sheet: [], // Files are handled separately
   });
 
@@ -193,20 +190,29 @@ export default function ProductPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {categories && brands && units && productTypes && (
-            <ProductForm
-              defaultValues={defaultValues}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode={isEdit ? "update" : "create"}
-              categories={categories}
-              brands={brands}
-              units={units}
-              product={isEdit ? product || undefined : undefined}
-              onCancel={handleBackToList}
-              productTypes={productTypes}
-            />
-          )}
+          {categories &&
+            categories.length > 0 &&
+            brands &&
+            brands.length > 0 &&
+            units &&
+            units.length > 0 &&
+            productTypes &&
+            productTypes.length > 0 &&
+            data &&
+            !isLoading && (
+              <ProductForm
+                defaultValues={defaultValues}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+                mode={isEdit ? "update" : "create"}
+                categories={categories}
+                brands={brands}
+                units={units}
+                product={isEdit ? product || undefined : undefined}
+                onCancel={handleBackToList}
+                productTypes={productTypes}
+              />
+            )}
         </CardContent>
       </Card>
     );

@@ -44,10 +44,10 @@ export default function SupplierAddPage() {
         phone: data.phone,
         email: data.email,
         status: "Activo",
-        rol_id: SUPPLIER_ROLE_ID,
+        role_id: Number(data.role_id),
       };
 
-      await createPersonWithRole(createPersonData, SUPPLIER_ROLE_ID);
+      await createPersonWithRole(createPersonData, Number(data.role_id));
       successToast(
         SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
       );
