@@ -15,6 +15,8 @@ import BoxPage from "./pages/box/components/BoxPage";
 import UnitPage from "./pages/unit/components/UnitPage";
 import CategoryPage from "./pages/category/components/CategoryPage";
 import ProductPage from "./pages/product/components/ProductPage";
+import ProductAddPage from "./pages/product/components/ProductAddPage";
+import ProductEditPage from "./pages/product/components/ProductEditPage";
 import ProductDetail from "./pages/product/components/ProductDetail";
 import RolePage from "./pages/role/components/RolePage";
 import ClientPage from "./pages/client/components/ClientPage";
@@ -226,6 +228,24 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductRoute}>
                 <ProductDetail />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/productos/agregar"
+            element={
+              <ProtectedRoute path={ProductRoute}>
+                <ProductAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/productos/actualizar/:id"
+            element={
+              <ProtectedRoute path={ProductRoute}>
+                <ProductEditPage />
               </ProtectedRoute>
             }
           />
