@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useClients } from "../lib/client.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ClientActions from "./ClientActions";
@@ -23,7 +23,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 const { MODEL, ICON } = CLIENT;
 
 export default function ClientPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -71,7 +71,6 @@ export default function ClientPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: (person) => navigate(`/clientes/editar/${person}`),
           onDelete: setDeleteId,
           onManageRoles: handleManageRoles,
         })}

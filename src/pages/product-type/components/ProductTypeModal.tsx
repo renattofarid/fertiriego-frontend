@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import FormSkeleton from "@/components/FormSkeleton";
 import { GeneralModal } from "@/components/GeneralModal";
 import type { ProductTypeSchema } from "../lib/product-type.schema";
@@ -11,8 +12,7 @@ import {
   PRODUCT_TYPE,
   type ProductTypeResource,
 } from "../lib/product-type.interface";
-import { useProductType, useProductTypeById } from "../lib/product-type.hook";
-import { useProductTypeStore } from "../lib/product-type.store";
+import { useProductTypeLocalStorage } from "../lib/product-type-localStorage.hook";
 import { ProductTypeForm } from "./ProductTypeForm";
 
 interface Props {
@@ -32,19 +32,20 @@ export default function ProductTypeModal({
   mode,
   onClose,
 }: Props) {
-  const { refetch } = useProductType();
+  const { create, update, getById, fetchAll } = useProductTypeLocalStorage();
+  const [productType, setProductType] = useState<ProductTypeResource | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    data: productType,
-    isFinding: findingProductType,
-    refetch: refetchProductType,
-  } = mode === "create"
-    ? {
-        data: EMPTY,
-        isFinding: false,
-        refetch: refetch,
+  useEffect(() => {
+    if (mode === "update" && id) {
+      const found = getById(id);
+      if (found) {
+        setProductType(found);
       }
-    : useProductTypeById(id!);
+    } else {
+      setProductType(EMPTY as ProductTypeResource);
+    }
+  }, [id, mode, getById]);
 
   const mapProductTypeToForm = (
     data: ProductTypeResource | { name: string; code: string }
@@ -53,43 +54,28 @@ export default function ProductTypeModal({
     code: data.code,
   });
 
-  const { isSubmitting, updateProductType, createProductType } =
-    useProductTypeStore();
-
   const handleSubmit = async (data: ProductTypeSchema) => {
-    if (mode === "create") {
-      await createProductType(data)
-        .then(() => {
-          onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "create"));
-          refetch();
-        })
-        .catch((error: any) => {
-          errorToast(
-            error.response.data.message ??
-              error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
-          );
-        });
-    } else {
-      await updateProductType(id!, data)
-        .then(() => {
-          onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
-          refetchProductType();
-          refetch();
-        })
-        .catch((error: any) => {
-          errorToast(
-            error.response.data.message ??
-              error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
-          );
-        });
+    setIsSubmitting(true);
+    try {
+      if (mode === "create") {
+        await create(data);
+        successToast(SUCCESS_MESSAGE(MODEL, "create"));
+      } else if (id) {
+        await update(id, data);
+        successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      }
+      fetchAll();
+      onClose();
+    } catch (error: any) {
+      errorToast(
+        error.message ?? ERROR_MESSAGE(MODEL, mode === "create" ? "create" : "update")
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const isLoadingAny = isSubmitting || findingProductType;
+  const isLoadingAny = isSubmitting || !productType;
 
   return (
     <GeneralModal

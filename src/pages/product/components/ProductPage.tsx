@@ -4,6 +4,7 @@ import { useProduct } from "../lib/product.hook";
 import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
+import { useProductTypeLocalStorage } from "@/pages/product-type/lib/product-type-localStorage.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
@@ -26,8 +27,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ProductSchema } from "../lib/product.schema";
-import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
-import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -49,12 +48,13 @@ export default function ProductPage() {
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
-  // const { data: productTypes } = useAllProductTypes();
-  const productTypes: ProductTypeResource[] = [
-    { id: 1, code: "NORMAL", name: "Normal", created_at: "2024-01-01" },
-  ];
+  const { productTypes, fetchAll: fetchProductTypes } = useProductTypeLocalStorage();
   const { data: brands } = useAllBrands();
   const { data: units } = useAllUnits();
+
+  useEffect(() => {
+    fetchProductTypes();
+  }, [fetchProductTypes]);
   const { isSubmitting, createProduct, updateProduct, fetchProduct, product } =
     useProductStore();
 

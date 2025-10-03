@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import { useSuppliers } from "../lib/supplier.hook";
 import TitleComponent from "@/components/TitleComponent";
 import SupplierActions from "./SupplierActions";
@@ -23,7 +23,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 const { MODEL, ICON } = SUPPLIER;
 
 export default function SupplierPage() {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
@@ -65,13 +65,12 @@ export default function SupplierPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <SupplierActions/>
+        <SupplierActions />
       </div>
 
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: (person) => navigate(`/proveedores/editar/${person}`),
           onDelete: setDeleteId,
           onManageRoles: handleManageRoles,
         })}

@@ -22,6 +22,7 @@ import { BOX } from "@/pages/box/lib/box.interface";
 import { UNIT } from "@/pages/unit/lib/unit.interface";
 import { CATEGORY } from "@/pages/category/lib/category.interface";
 import { PRODUCT } from "@/pages/product/lib/product.interface";
+import { PRODUCT_TYPE } from "@/pages/product-type/lib/product-type.interface";
 import { ROLE } from "@/pages/role/lib/role.interface";
 import { CLIENT } from "@/pages/client/lib/client.interface";
 import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
@@ -89,6 +90,12 @@ const {
   ROUTE: ProductRoute,
   MODEL: { name: ProductTitle },
 } = PRODUCT;
+
+const {
+  ICON_REACT: ProductTypeIcon,
+  ROUTE: ProductTypeRoute,
+  MODEL: { name: ProductTypeTitle },
+} = PRODUCT_TYPE;
 
 const {
   ICON_REACT: RoleIcon,
@@ -162,6 +169,11 @@ const data = {
           title: ProductTitle,
           url: ProductRoute,
           icon: ProductIcon,
+        },
+        {
+          title: ProductTypeTitle,
+          url: ProductTypeRoute,
+          icon: ProductTypeIcon,
         },
         {
           title: BrandTitle,
