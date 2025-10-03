@@ -58,7 +58,7 @@ export const PersonForm = ({
       address: initialData?.address || "",
       phone: initialData?.phone || "",
       email: initialData?.email || "",
-      rol_id: roleId.toString(),
+      role_id: roleId.toString(),
     },
     mode: "onChange", // Validate on change for immediate feedback
   });
@@ -167,7 +167,10 @@ export const PersonForm = ({
 
   const handleSubmit = async (data: PersonSchema) => {
     try {
-      await onSubmit(data);
+      // Only include role_id when creating (not editing)
+      const submitData = isEditing ? { ...data, role_id: "" } : data;
+
+      await onSubmit(submitData);
       if (!isEditing) {
         form.reset();
       }

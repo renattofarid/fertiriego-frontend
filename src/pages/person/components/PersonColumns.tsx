@@ -6,21 +6,15 @@ import { SelectActions } from "@/components/SelectActions";
 import type { PersonResource } from "../lib/person.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export const PersonColumns = ({
   onEdit,
   onDelete,
-  onManageRoles,
-}: {
+}: // onManageRoles,
+{
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
-  onManageRoles: (person: PersonResource) => void;
+  // onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
     accessorKey: "full_name",
@@ -87,37 +81,6 @@ export const PersonColumns = ({
     ),
   },
   {
-    accessorKey: "roles",
-    header: "Roles",
-    cell: ({ row }) => {
-      const roles = row.original.roles;
-      const firstTwoRoles = roles.slice(0, 2);
-      const remainingRoles = roles.slice(2);
-
-      return (
-        <div className="flex gap-1 flex-wrap">
-          {firstTwoRoles.map((role, index) => (
-            <Badge key={index} variant="default">
-              {role.name}
-            </Badge>
-          ))}
-          {remainingRoles.length > 0 && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="default">+{remainingRoles.length}</Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{remainingRoles.map((r) => r.name).join(", ")}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
-      );
-    },
-  },
-  {
     accessorKey: "address",
     header: "Dirección",
     cell: ({ getValue }) => (
@@ -152,9 +115,9 @@ export const PersonColumns = ({
       return (
         <SelectActions>
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onManageRoles(person)}>
+            {/* <DropdownMenuItem onClick={() => onManageRoles(person)}>
               Gestionar Roles
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem onClick={() => onEdit(person.id)}>
               Editar
             </DropdownMenuItem>

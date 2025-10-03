@@ -15,6 +15,8 @@ import BoxPage from "./pages/box/components/BoxPage";
 import UnitPage from "./pages/unit/components/UnitPage";
 import CategoryPage from "./pages/category/components/CategoryPage";
 import ProductPage from "./pages/product/components/ProductPage";
+import ProductAddPage from "./pages/product/components/ProductAddPage";
+import ProductEditPage from "./pages/product/components/ProductEditPage";
 import ProductDetail from "./pages/product/components/ProductDetail";
 import RolePage from "./pages/role/components/RolePage";
 import ClientPage from "./pages/client/components/ClientPage";
@@ -42,6 +44,8 @@ import { SUPPLIER } from "./pages/supplier/lib/supplier.interface";
 import { WORKER } from "./pages/worker/lib/worker.interface";
 import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
+import { PRODUCT_TYPE } from "./pages/product-type/lib/product-type.interface";
+import ProductTypePage from "./pages/product-type/components/ProductTypePage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -53,6 +57,7 @@ const { ROUTE: BoxRoute } = BOX;
 const { ROUTE: UnitRoute } = UNIT;
 const { ROUTE: CategoryRoute } = CATEGORY;
 const { ROUTE: ProductRoute } = PRODUCT;
+const { ROUTE: ProductTypeRoute } = PRODUCT_TYPE;
 const { ROUTE: RoleRoute } = ROLE;
 const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
@@ -228,6 +233,24 @@ export default function App() {
           />
 
           <Route
+            path="/productos/agregar"
+            element={
+              <ProtectedRoute path={ProductRoute}>
+                <ProductAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/productos/actualizar/:id"
+            element={
+              <ProtectedRoute path={ProductRoute}>
+                <ProductEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={RoleRoute}
             element={
               <ProtectedRoute path={RoleRoute}>
@@ -286,6 +309,15 @@ export default function App() {
             element={
               <ProtectedRoute path={SupplierRoute}>
                 <SupplierEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductTypeRoute}
+            element={
+              <ProtectedRoute path={ProductTypeRoute}>
+                <ProductTypePage />
               </ProtectedRoute>
             }
           />

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { Upload, Plus, Trash2, Eye } from "lucide-react";
-import { successToast, errorToast } from "@/lib/core.function";
+import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { useProductStore } from "../lib/product.store";
 import { prodAssetURL } from "@/lib/config";
 
@@ -62,10 +62,17 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       setShowImageUpload(false);
       setSelectedFiles([]);
       setAltText("");
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Error al subir las imágenes";
-      errorToast(errorMessage);
+    } catch (error: any) {
+      errorToast(
+        error.response.data.message,
+        ERROR_MESSAGE(
+          {
+            name: "Imagen de Producto",
+            gender: true,
+          },
+          "create"
+        )
+      );
     }
   };
 

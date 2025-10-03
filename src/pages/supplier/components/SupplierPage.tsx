@@ -49,9 +49,9 @@ export default function SupplierPage() {
     }
   };
 
-  const handleManageRoles = (person: PersonResource) => {
-    setRoleAssignmentPerson(person);
-  };
+  // const handleManageRoles = (person: PersonResource) => {
+  //   setRoleAssignmentPerson(person);
+  // };
 
   const handleCloseRoleAssignment = () => {
     setRoleAssignmentPerson(null);
@@ -73,7 +73,7 @@ export default function SupplierPage() {
         columns={PersonColumns({
           onEdit: (person) => navigate(`/proveedores/editar/${person}`),
           onDelete: setDeleteId,
-          onManageRoles: handleManageRoles,
+          // onManageRoles: handleManageRoles,
         })}
         data={data || []}
       >

@@ -27,6 +27,7 @@ import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useProductStore } from "../lib/product.store";
 import { successToast, errorToast } from "@/lib/core.function";
+import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
 
 interface ProductFormProps {
   defaultValues: Partial<ProductSchema>;
@@ -38,6 +39,7 @@ interface ProductFormProps {
   brands: BrandResource[];
   units: UnitResource[];
   product?: ProductResource;
+  productTypes: ProductTypeResource[];
 }
 
 export const ProductForm = ({
@@ -50,6 +52,7 @@ export const ProductForm = ({
   brands,
   units,
   product,
+  productTypes,
 }: ProductFormProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [existingFiles, setExistingFiles] = useState<string[]>(
@@ -70,19 +73,22 @@ export const ProductForm = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    setSelectedFiles(prev => [...prev, ...files]);
+    setSelectedFiles((prev) => [...prev, ...files]);
 
     // Update form value
-    const currentFiles = form.getValues('technical_sheet') || [];
-    form.setValue('technical_sheet', [...currentFiles, ...files]);
+    const currentFiles = form.getValues("technical_sheet") || [];
+    form.setValue("technical_sheet", [...currentFiles, ...files]);
   };
 
   const removeSelectedFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
 
     // Update form value
-    const currentFiles = form.getValues('technical_sheet') || [];
-    form.setValue('technical_sheet', currentFiles.filter((_, i) => i !== index));
+    const currentFiles = form.getValues("technical_sheet") || [];
+    form.setValue(
+      "technical_sheet",
+      currentFiles.filter((_, i) => i !== index)
+    );
   };
 
   const removeExistingFile = async (fileUrl: string) => {
@@ -90,7 +96,7 @@ export const ProductForm = ({
 
     try {
       await deleteTechnicalSheet(product.id, { value: fileUrl });
-      setExistingFiles(prev => prev.filter(url => url !== fileUrl));
+      setExistingFiles((prev) => prev.filter((url) => url !== fileUrl));
       successToast("Ficha técnica eliminada exitosamente");
     } catch (error) {
       errorToast("Error al eliminar la ficha técnica");
@@ -98,7 +104,7 @@ export const ProductForm = ({
   };
 
   const getFileName = (url: string) => {
-    return url.split('/').pop() || 'Archivo';
+    return url.split("/").pop() || "Archivo";
   };
 
   const openFileDialog = () => {
@@ -164,14 +170,13 @@ export const ProductForm = ({
 
           <FormSelect
             control={form.control}
-            name="product_type"
+            name="product_type_id"
             label="Tipo de Producto"
             placeholder="Seleccione el tipo"
-            options={[
-              { value: "Normal", label: "Normal" },
-              { value: "Kit", label: "Kit" },
-              { value: "Servicio", label: "Servicio" },
-            ]}
+            options={productTypes.map((productType) => ({
+              value: productType.id.toString(),
+              label: productType.name,
+            }))}
           />
         </div>
 

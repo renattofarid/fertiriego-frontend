@@ -3,50 +3,44 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { SelectActions } from "@/components/SelectActions";
-import type { CompanyResource } from "../lib/company.interface";
+import type { ProductTypeResource } from "../lib/product-type.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 
-export const CompanyColumns = ({
+export const ProductTypeColumns = ({
   onEdit,
   onDelete,
 }: {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
-}): ColumnDef<CompanyResource>[] => [
+}): ColumnDef<ProductTypeResource>[] => [
   {
-    accessorKey: "social_reason",
-    header: "Razón Social",
+    accessorKey: "name",
+    header: "Nombre",
     cell: ({ getValue }) => (
       <span className="font-semibold">{getValue() as string}</span>
     ),
   },
   {
-    accessorKey: "ruc",
-    header: "RUC",
+    accessorKey: "code",
+    header: "Código",
     cell: ({ getValue }) => (
-      <Badge className="font-mono">{getValue() as string}</Badge>
+      <Badge variant="outline" className="font-mono">
+        {getValue() as string}
+      </Badge>
     ),
   },
   {
-    accessorKey: "trade_name",
-    header: "Nombre Comercial",
-    cell: ({ getValue }) => getValue() as string,
-  },
-  {
-    accessorKey: "phone",
-    header: "Teléfono",
-    cell: ({ getValue }) => getValue() as string,
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-    cell: ({ getValue }) => getValue() as string,
-  },
-  {
-    accessorKey: "responsible_full_name",
-    header: "Responsable",
-    cell: ({ getValue }) => getValue() as string,
+    accessorKey: "created_at",
+    header: "Fecha de Creación",
+    cell: ({ getValue }) => {
+      const date = new Date(getValue() as string);
+      return date.toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    },
   },
   {
     id: "actions",

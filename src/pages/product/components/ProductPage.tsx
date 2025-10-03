@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useProduct } from "../lib/product.hook";
 import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
-import { useAllUnits } from "@/pages/unit/lib/unit.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
 import ProductOptions from "./ProductOptions";
-import { ProductForm } from "./ProductForm";
 import { deleteProduct } from "../lib/product.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
@@ -19,17 +17,10 @@ import {
 } from "@/lib/core.function";
 import { ProductColumns } from "./ProductColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { PRODUCT, type ProductResource } from "../lib/product.interface";
-import { useProductStore } from "../lib/product.store";
+import { PRODUCT } from "../lib/product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ProductSchema } from "../lib/product.schema";
 
 const { MODEL, ICON } = PRODUCT;
-
-type ViewMode = "list" | "create" | "edit";
 
 export default function ProductPage() {
   const navigate = useNavigate();
@@ -40,15 +31,10 @@ export default function ProductPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
   const { data: brands } = useAllBrands();
-  const { data: units } = useAllUnits();
-  const { isSubmitting, createProduct, updateProduct, fetchProduct, product } =
-    useProductStore();
 
   useEffect(() => {
     const filterParams = {
@@ -69,12 +55,6 @@ export default function ProductPage() {
     selectedType,
     refetch,
   ]);
-
-  useEffect(() => {
-    if (selectedProductId && viewMode === "edit") {
-      fetchProduct(selectedProductId);
-    }
-  }, [selectedProductId, viewMode, fetchProduct]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -100,114 +80,19 @@ export default function ProductPage() {
   };
 
   const handleCreateProduct = () => {
-    setViewMode("create");
-    setSelectedProductId(null);
+    navigate("/productos/agregar");
   };
 
   const handleEditProduct = (id: number) => {
-    setSelectedProductId(id);
-    setViewMode("edit");
+    navigate(`/productos/actualizar/${id}`);
   };
 
   const handleViewProduct = (id: number) => {
     navigate(`/productos/${id}`);
   };
 
-  const handleBackToList = () => {
-    setViewMode("list");
-    setSelectedProductId(null);
-  };
-
-
-  const getDefaultValues = (): Partial<ProductSchema> => ({
-    name: "",
-    category_id: undefined,
-    brand_id: undefined,
-    unit_id: undefined,
-    product_type: "",
-    technical_sheet: [],
-  });
-
-  const mapProductToForm = (data: ProductResource): Partial<ProductSchema> => ({
-    name: data.name,
-    category_id: data.category_id,
-    brand_id: data.brand_id,
-    unit_id: data.unit_id,
-    product_type: data.product_type,
-    technical_sheet: [], // Files are handled separately
-  });
-
-  const handleSubmit = async (data: ProductSchema) => {
-    try {
-      if (viewMode === "create") {
-        await createProduct(data);
-        successToast(SUCCESS_MESSAGE(MODEL, "create"));
-      } else if (viewMode === "edit" && selectedProductId) {
-        await updateProduct(selectedProductId, data);
-        successToast(SUCCESS_MESSAGE(MODEL, "update"));
-      }
-
-      const filterParams = {
-        page,
-        search,
-        per_page,
-        ...(selectedCategory && { category_id: selectedCategory }),
-        ...(selectedBrand && { brand_id: selectedBrand }),
-        ...(selectedType && { product_type: selectedType }),
-      };
-      await refetch(filterParams);
-      handleBackToList();
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : ERROR_MESSAGE(MODEL, viewMode === "create" ? "create" : "update");
-      errorToast(errorMessage);
-    }
-  };
-
-
-  // Render form view (create/edit)
-  const renderFormView = () => {
-    const isEdit = viewMode === "edit";
-    const defaultValues =
-      isEdit && product ? mapProductToForm(product) : getDefaultValues();
-
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {isEdit ? "Editar Producto" : "Crear Nuevo Producto"}
-            </CardTitle>
-            <Button variant="outline" onClick={handleBackToList}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Volver
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {categories && brands && units && (
-            <ProductForm
-              defaultValues={defaultValues}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode={isEdit ? "update" : "create"}
-              categories={categories}
-              brands={brands}
-              units={units}
-              product={isEdit ? product || undefined : undefined}
-              onCancel={handleBackToList}
-            />
-          )}
-        </CardContent>
-      </Card>
-    );
-  };
-
-  // Render list view
-  const renderListView = () => (
-    <>
+  return (
+    <div className="space-y-4">
       <div className="flex justify-between items-center">
         <TitleComponent
           title={MODEL.plural!}
@@ -250,13 +135,6 @@ export default function ProductPage() {
         setPerPage={setPerPage}
         totalData={meta?.total || 0}
       />
-    </>
-  );
-
-  return (
-    <div className="space-y-4">
-      {viewMode === "list" && renderListView()}
-      {(viewMode === "create" || viewMode === "edit") && renderFormView()}
 
       {deleteId !== null && (
         <SimpleDeleteDialog

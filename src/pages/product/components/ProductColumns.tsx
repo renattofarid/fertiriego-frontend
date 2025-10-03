@@ -48,11 +48,13 @@ export const ProductColumns = ({
     cell: ({ getValue }) => getValue() as string,
   },
   {
-    accessorKey: "product_type",
+    accessorKey: "product_type_name",
     header: "Tipo",
     cell: ({ getValue }) => {
       const type = getValue() as string;
-      const getVariant = (type: string): "default" | "destructive" | "secondary" | "outline" => {
+      const getVariant = (
+        type: string
+      ): "default" | "destructive" | "secondary" | "outline" => {
         switch (type) {
           case "Normal":
             return "default";

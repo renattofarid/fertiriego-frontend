@@ -42,7 +42,8 @@ export const COMPANY: ModelComplete<CompanyResource> = {
     phone: "",
     email: "",
     responsible_id: 0,
-    status: "active",
+    responsible_full_name: "",
+    created_at: "",
   },
 };
 
@@ -61,7 +62,8 @@ export interface CompanyResource {
   phone: string;
   email: string;
   responsible_id: number;
-  status: string;
+  responsible_full_name: string;
+  created_at: string;
 }
 
 export interface CompanyResourceById {

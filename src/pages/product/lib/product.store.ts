@@ -9,7 +9,10 @@ import {
 } from "./product.actions";
 import type { ProductSchema } from "./product.schema";
 import type { Meta } from "@/lib/pagination.interface";
-import type { ProductResource, DeleteTechnicalSheetRequest } from "./product.interface";
+import type {
+  ProductResource,
+  DeleteTechnicalSheetRequest,
+} from "./product.interface";
 
 interface ProductStore {
   allProducts: ProductResource[] | null;
@@ -26,18 +29,21 @@ interface ProductStore {
   fetchProduct: (id: number) => Promise<void>;
   createProduct: (data: ProductSchema) => Promise<void>;
   updateProduct: (id: number, data: ProductSchema) => Promise<void>;
-  deleteTechnicalSheet: (productId: number, request: DeleteTechnicalSheetRequest) => Promise<void>;
+  deleteTechnicalSheet: (
+    productId: number,
+    request: DeleteTechnicalSheetRequest
+  ) => Promise<void>;
 }
 
 // Helper function to create FormData from ProductSchema
 const createFormData = (data: ProductSchema): FormData => {
   const formData = new FormData();
 
-  formData.append('name', data.name);
-  formData.append('category_id', data.category_id.toString());
-  formData.append('brand_id', data.brand_id.toString());
-  formData.append('unit_id', data.unit_id.toString());
-  formData.append('product_type', data.product_type);
+  formData.append("name", data.name);
+  formData.append("category_id", data.category_id?.toString());
+  formData.append("brand_id", data.brand_id?.toString());
+  formData.append("unit_id", data.unit_id?.toString());
+  formData.append("product_type_id", data.product_type_id?.toString());
 
   // Append technical sheet files
   if (data.technical_sheet && data.technical_sheet.length > 0) {
@@ -116,7 +122,10 @@ export const useProductStore = create<ProductStore>((set) => ({
     }
   },
 
-  deleteTechnicalSheet: async (productId: number, request: DeleteTechnicalSheetRequest) => {
+  deleteTechnicalSheet: async (
+    productId: number,
+    request: DeleteTechnicalSheetRequest
+  ) => {
     set({ error: null });
     try {
       await deleteTechnicalSheet(productId, request);

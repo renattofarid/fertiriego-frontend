@@ -55,9 +55,9 @@ export default function WorkerPage() {
     }
   };
 
-  const handleManageRoles = (person: PersonResource) => {
-    setRoleAssignmentPerson(person);
-  };
+  // const handleManageRoles = (person: PersonResource) => {
+  //   setRoleAssignmentPerson(person);
+  // };
 
   const handleCloseRoleAssignment = () => {
     setRoleAssignmentPerson(null);
@@ -80,7 +80,7 @@ export default function WorkerPage() {
         columns={PersonColumns({
           onEdit: (person) => navigate(`/trabajadores/editar/${person}`),
           onDelete: setDeleteId,
-          onManageRoles: handleManageRoles,
+          // onManageRoles: handleManageRoles,
         })}
         data={data || []}
       >
