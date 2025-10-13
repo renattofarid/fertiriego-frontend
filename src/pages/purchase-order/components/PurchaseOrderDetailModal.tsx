@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
 import { Loader } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store";
@@ -127,8 +127,9 @@ export function PurchaseOrderDetailModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <FormLabel>Producto</FormLabel>
+            <Label htmlFor="product_id">Producto</Label>
             <select
+              id="product_id"
               value={formData.product_id}
               onChange={(e) =>
                 setFormData({ ...formData, product_id: e.target.value })
@@ -146,8 +147,9 @@ export function PurchaseOrderDetailModal({
           </div>
 
           <div>
-            <FormLabel>Cantidad Solicitada</FormLabel>
+            <Label htmlFor="quantity_requested">Cantidad Solicitada</Label>
             <Input
+              id="quantity_requested"
               type="number"
               variant="primary"
               placeholder="0"
@@ -159,8 +161,9 @@ export function PurchaseOrderDetailModal({
           </div>
 
           <div>
-            <FormLabel>Precio Unitario Estimado</FormLabel>
+            <Label htmlFor="unit_price_estimated">Precio Unitario Estimado</Label>
             <Input
+              id="unit_price_estimated"
               type="number"
               step="0.01"
               variant="primary"

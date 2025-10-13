@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   purchaseOrderSchemaCreate,
   purchaseOrderSchemaUpdate,
@@ -21,7 +22,6 @@ import {
 import { Loader, Plus, Trash2, Edit } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
-import type { SupplierResource } from "@/pages/supplier/lib/supplier.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState } from "react";
@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -42,7 +43,7 @@ interface PurchaseOrderFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
-  suppliers: SupplierResource[];
+  suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   products: ProductResource[];
   purchaseOrder?: PurchaseOrderResource;
@@ -70,13 +71,13 @@ export const PurchaseOrderForm = ({
   const [details, setDetails] = useState<DetailRow[]>(
     mode === "update" && purchaseOrder
       ? purchaseOrder.details.map((d) => ({
-          product_id: d.product_id.toString(),
-          product_name: d.product_name,
-          quantity_requested: d.quantity_requested.toString(),
-          unit_price_estimated: d.unit_price_estimated,
-          subtotal:
-            d.quantity_requested * parseFloat(d.unit_price_estimated),
-        }))
+        product_id: d.product_id.toString(),
+        product_name: d.product_name,
+        quantity_requested: d.quantity_requested.toString(),
+        unit_price_estimated: d.unit_price_estimated,
+        subtotal:
+          d.quantity_requested * parseFloat(d.unit_price_estimated),
+      }))
       : []
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -179,7 +180,7 @@ export const PurchaseOrderForm = ({
                 placeholder="Seleccione un proveedor"
                 options={suppliers.map((supplier) => ({
                   value: supplier.id.toString(),
-                  label: supplier.fullname || supplier.business_name || "",
+                  label: supplier.business_name
                 }))}
                 disabled={mode === "update"}
               />
@@ -273,8 +274,9 @@ export const PurchaseOrderForm = ({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
                 <div className="md:col-span-2">
-                  <FormLabel>Producto</FormLabel>
+                  <Label htmlFor="detail_product_id">Producto</Label>
                   <select
+                    id="detail_product_id"
                     value={currentDetail.product_id}
                     onChange={(e) =>
                       setCurrentDetail({
@@ -294,8 +296,9 @@ export const PurchaseOrderForm = ({
                 </div>
 
                 <div>
-                  <FormLabel>Cantidad</FormLabel>
+                  <Label htmlFor="detail_quantity">Cantidad</Label>
                   <Input
+                    id="detail_quantity"
                     type="number"
                     variant="primary"
                     placeholder="0"
@@ -310,8 +313,9 @@ export const PurchaseOrderForm = ({
                 </div>
 
                 <div>
-                  <FormLabel>Precio Unitario</FormLabel>
+                  <Label htmlFor="detail_price">Precio Unitario</Label>
                   <Input
+                    id="detail_price"
                     type="number"
                     step="0.01"
                     variant="primary"
