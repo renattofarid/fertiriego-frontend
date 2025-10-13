@@ -46,6 +46,10 @@ import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
 import { PRODUCT_TYPE } from "./pages/product-type/lib/product-type.interface";
 import ProductTypePage from "./pages/product-type/components/ProductTypePage";
+import { PURCHASE_ORDER } from "./pages/purchase-order/lib/purchase-order.interface";
+import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPage";
+import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
+import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -62,6 +66,7 @@ const { ROUTE: RoleRoute } = ROLE;
 const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
+const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -345,6 +350,33 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PurchaseOrderRoute}
+            element={
+              <ProtectedRoute path={PurchaseOrderRoute}>
+                <PurchaseOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ordenes-compra/agregar"
+            element={
+              <ProtectedRoute path={PurchaseOrderRoute}>
+                <PurchaseOrderAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ordenes-compra/actualizar/:id"
+            element={
+              <ProtectedRoute path={PurchaseOrderRoute}>
+                <PurchaseOrderEditPage />
               </ProtectedRoute>
             }
           />
