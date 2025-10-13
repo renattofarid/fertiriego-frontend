@@ -13,7 +13,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import {
   purchaseOrderSchemaCreate,
   purchaseOrderSchemaUpdate,
@@ -21,10 +20,11 @@ import {
 } from "../lib/purchase-order.schema";
 import { Loader, Plus, Trash2, Edit } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -87,6 +87,54 @@ export const PurchaseOrderForm = ({
     unit_price_estimated: "",
     subtotal: 0,
   });
+
+  // Controlador temporal para el select de productos
+  const tempForm = useForm({
+    defaultValues: {
+      temp_product_id: currentDetail.product_id,
+      temp_quantity: currentDetail.quantity_requested,
+      temp_price: currentDetail.unit_price_estimated,
+    },
+  });
+
+  // Sincronizar el formulario temporal con el estado actual
+  useEffect(() => {
+    tempForm.setValue("temp_product_id", currentDetail.product_id);
+    tempForm.setValue("temp_quantity", currentDetail.quantity_requested);
+    tempForm.setValue("temp_price", currentDetail.unit_price_estimated);
+  }, [currentDetail, tempForm]);
+
+  // Observar cambios en todos los campos del formulario temporal
+  const selectedProductId = tempForm.watch("temp_product_id");
+  const selectedQuantity = tempForm.watch("temp_quantity");
+  const selectedPrice = tempForm.watch("temp_price");
+  
+  useEffect(() => {
+    if (selectedProductId !== currentDetail.product_id) {
+      setCurrentDetail({
+        ...currentDetail,
+        product_id: selectedProductId || "",
+      });
+    }
+  }, [selectedProductId, currentDetail]);
+
+  useEffect(() => {
+    if (selectedQuantity !== currentDetail.quantity_requested) {
+      setCurrentDetail({
+        ...currentDetail,
+        quantity_requested: selectedQuantity || "",
+      });
+    }
+  }, [selectedQuantity, currentDetail]);
+
+  useEffect(() => {
+    if (selectedPrice !== currentDetail.unit_price_estimated) {
+      setCurrentDetail({
+        ...currentDetail,
+        unit_price_estimated: selectedPrice || "",
+      });
+    }
+  }, [selectedPrice, currentDetail]);
 
   const form = useForm({
     resolver: zodResolver(
@@ -215,32 +263,20 @@ export const PurchaseOrderForm = ({
                 )}
               />
 
-              <FormField
+              <DatePickerFormField
                 control={form.control}
                 name="issue_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha de Emisión</FormLabel>
-                    <FormControl>
-                      <Input variant="primary" type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Fecha de Emisión"
+                placeholder="Seleccione la fecha de emisión"
+                dateFormat="dd/MM/yyyy"
               />
 
-              <FormField
+              <DatePickerFormField
                 control={form.control}
                 name="expected_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Fecha Esperada</FormLabel>
-                    <FormControl>
-                      <Input variant="primary" type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Fecha Esperada"
+                placeholder="Seleccione la fecha esperada"
+                dateFormat="dd/MM/yyyy"
               />
 
               <div className="md:col-span-2">
@@ -274,59 +310,60 @@ export const PurchaseOrderForm = ({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
                 <div className="md:col-span-2">
-                  <Label htmlFor="detail_product_id">Producto</Label>
-                  <select
-                    id="detail_product_id"
-                    value={currentDetail.product_id}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        product_id: e.target.value,
-                      })
-                    }
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background"
-                  >
-                    <option value="">Seleccione un producto</option>
-                    {products.map((product) => (
-                      <option key={product.id} value={product.id.toString()}>
-                        {product.name}
-                      </option>
-                    ))}
-                  </select>
+                  <Form {...tempForm}>
+                    <FormSelect
+                      control={tempForm.control}
+                      name="temp_product_id"
+                      label="Producto"
+                      placeholder="Seleccione un producto"
+                      options={products.map((product) => ({
+                        value: product.id.toString(),
+                        label: product.name,
+                      }))}
+                    />
+                  </Form>
                 </div>
 
                 <div>
-                  <Label htmlFor="detail_quantity">Cantidad</Label>
-                  <Input
-                    id="detail_quantity"
-                    type="number"
-                    variant="primary"
-                    placeholder="0"
-                    value={currentDetail.quantity_requested}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        quantity_requested: e.target.value,
-                      })
-                    }
+                  <FormField
+                    control={tempForm.control}
+                    name="temp_quantity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Cantidad</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            variant="primary"
+                            placeholder="0"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="detail_price">Precio Unitario</Label>
-                  <Input
-                    id="detail_price"
-                    type="number"
-                    step="0.01"
-                    variant="primary"
-                    placeholder="0.00"
-                    value={currentDetail.unit_price_estimated}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        unit_price_estimated: e.target.value,
-                      })
-                    }
+                  <FormField
+                    control={tempForm.control}
+                    name="temp_price"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Precio Unitario</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            variant="primary"
+                            placeholder="0.00"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
 

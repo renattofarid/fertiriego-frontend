@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,15 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { FormSelect } from "@/components/FormSelect";
 import { Loader } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store";
@@ -44,6 +53,14 @@ export function PurchaseOrderDetailModal({
     unit_price_estimated: "",
   });
 
+  const form = useForm({
+    defaultValues: {
+      product_id: "",
+      quantity_requested: "",
+      unit_price_estimated: "",
+    },
+  });
+
   useEffect(() => {
     if (detailId) {
       fetchDetail(detailId);
@@ -54,18 +71,37 @@ export function PurchaseOrderDetailModal({
         quantity_requested: "",
         unit_price_estimated: "",
       });
+      form.reset({
+        product_id: "",
+        quantity_requested: "",
+        unit_price_estimated: "",
+      });
     }
-  }, [detailId, fetchDetail, resetDetail]);
+  }, [detailId, fetchDetail, resetDetail, form]);
 
   useEffect(() => {
     if (detail && detailId) {
-      setFormData({
+      const newFormData = {
         product_id: detail.product_id.toString(),
         quantity_requested: detail.quantity_requested.toString(),
         unit_price_estimated: detail.unit_price_estimated,
-      });
+      };
+      setFormData(newFormData);
+      form.reset(newFormData);
     }
-  }, [detail, detailId]);
+  }, [detail, detailId, form]);
+
+  // Sincronizar formulario con estado local
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      setFormData({
+        product_id: values.product_id || "",
+        quantity_requested: values.quantity_requested || "",
+        unit_price_estimated: values.unit_price_estimated || "",
+      });
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   const calculateSubtotal = () => {
     const quantity = parseFloat(formData.quantity_requested) || 0;
@@ -125,58 +161,58 @@ export function PurchaseOrderDetailModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="product_id">Producto</Label>
-            <select
-              id="product_id"
-              value={formData.product_id}
-              onChange={(e) =>
-                setFormData({ ...formData, product_id: e.target.value })
-              }
-              className="w-full h-10 px-3 rounded-md border border-input bg-background"
+        <Form {...form}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FormSelect
+              control={form.control}
+              name="product_id"
+              label="Producto"
+              placeholder="Seleccione un producto"
+              options={products.map((product) => ({
+                value: product.id.toString(),
+                label: product.name,
+              }))}
               disabled={!!detailId}
-            >
-              <option value="">Seleccione un producto</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id.toString()}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <Label htmlFor="quantity_requested">Cantidad Solicitada</Label>
-            <Input
-              id="quantity_requested"
-              type="number"
-              variant="primary"
-              placeholder="0"
-              value={formData.quantity_requested}
-              onChange={(e) =>
-                setFormData({ ...formData, quantity_requested: e.target.value })
-              }
             />
-          </div>
 
-          <div>
-            <Label htmlFor="unit_price_estimated">Precio Unitario Estimado</Label>
-            <Input
-              id="unit_price_estimated"
-              type="number"
-              step="0.01"
-              variant="primary"
-              placeholder="0.00"
-              value={formData.unit_price_estimated}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  unit_price_estimated: e.target.value,
-                })
-              }
+            <FormField
+              control={form.control}
+              name="quantity_requested"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cantidad Solicitada</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      variant="primary"
+                      placeholder="0"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
+
+            <FormField
+              control={form.control}
+              name="unit_price_estimated"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Precio Unitario Estimado</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      variant="primary"
+                      placeholder="0.00"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <div className="bg-sidebar p-4 rounded-lg">
             <div className="flex justify-between items-center">
@@ -199,6 +235,7 @@ export function PurchaseOrderDetailModal({
             </Button>
           </DialogFooter>
         </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
