@@ -205,6 +205,11 @@ const data = {
           url: PurchaseOrderRoute,
           icon: PurchaseOrderIcon,
         },
+        {
+          title: "Compras",
+          url: PurchaseRoute,
+          icon: ShoppingCart,
+        },
       ],
     },
     {
