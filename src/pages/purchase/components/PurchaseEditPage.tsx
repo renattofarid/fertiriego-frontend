@@ -24,7 +24,7 @@ import { PurchaseDetailModal } from "./PurchaseDetailModal";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { PurchaseInstallmentModal } from "./PurchaseInstallmentModal";
 import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
-import { ERROR_MESSAGE, errorToast, SUCCESS_MESSAGE, successToast } from "@/lib/core.function";
+import { errorToast } from "@/lib/core.function";
 
 export const PurchaseEditPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -86,10 +86,10 @@ export const PurchaseEditPage = () => {
     setIsSubmitting(true);
     try {
       await updatePurchase(Number(id), data);
-      successToast(SUCCESS_MESSAGE({ name: "Compra", gender: false }, "update"));
+      // El toast de éxito se muestra en el store
       navigate("/compras");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE({ name: "Compra", gender: false }, "update"));
+      errorToast(error.response?.data?.message || "Error al actualizar la compra");
     } finally {
       setIsSubmitting(false);
     }

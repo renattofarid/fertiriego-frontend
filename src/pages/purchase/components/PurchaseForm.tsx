@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DOCUMENT_TYPES, PAYMENT_TYPES, CURRENCIES } from "../lib/purchase.interface";
+import { errorToast } from "@/lib/core.function";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -252,6 +253,23 @@ export const PurchaseForm = ({
       return;
     }
 
+    const newAmount = parseFloat(currentInstallment.amount);
+    const purchaseTotal = calculateDetailsTotal();
+
+    // Calcular el total de cuotas (excluyendo la que se está editando si aplica)
+    let currentInstallmentsTotal = installments.reduce((sum, inst, idx) => {
+      if (editingInstallmentIndex !== null && idx === editingInstallmentIndex) {
+        return sum; // Excluir la cuota que se está editando
+      }
+      return sum + parseFloat(inst.amount);
+    }, 0);
+
+    // Validar que no exceda el total de la compra
+    if (currentInstallmentsTotal + newAmount > purchaseTotal) {
+      errorToast(`El total de cuotas no puede exceder el total de la compra (${purchaseTotal.toFixed(2)})`);
+      return;
+    }
+
     const newInstallment: InstallmentRow = { ...currentInstallment };
 
     if (editingInstallmentIndex !== null) {
@@ -287,7 +305,21 @@ export const PurchaseForm = ({
     return installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
   };
 
+  // Validar si las cuotas coinciden con el total (si hay cuotas)
+  const installmentsMatchTotal = () => {
+    if (installments.length === 0) return true; // Si no hay cuotas, está ok
+    const purchaseTotal = calculateDetailsTotal();
+    const installmentsTotal = calculateInstallmentsTotal();
+    return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia de 0.01 por redondeos
+  };
+
   const handleFormSubmit = (data: any) => {
+    // Validar antes de enviar
+    if (installments.length > 0 && !installmentsMatchTotal()) {
+      errorToast(`El total de cuotas (${calculateInstallmentsTotal().toFixed(2)}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(2)})`);
+      return;
+    }
+
     onSubmit({
       ...data,
       details,
@@ -335,7 +367,7 @@ export const PurchaseForm = ({
               <FormSelect
                 control={form.control}
                 name="purchase_order_id"
-                label="Orden de Compra (Opcional)"
+                label="Orden de Compra"
                 placeholder="Seleccione una orden"
                 options={[
                   { value: "", label: "Ninguna" },
@@ -643,58 +675,68 @@ export const PurchaseForm = ({
               </div>
 
               {installments.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Cuota #</TableHead>
-                        <TableHead className="text-right">Días Vencimiento</TableHead>
-                        <TableHead className="text-right">Monto</TableHead>
-                        <TableHead className="text-center">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {installments.map((inst, index) => (
-                        <TableRow key={index}>
-                          <TableCell>Cuota {index + 1}</TableCell>
-                          <TableCell className="text-right">{inst.due_days} días</TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {parseFloat(inst.amount).toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditInstallment(index)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveInstallment(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                <>
+                  <div className="border rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Cuota #</TableHead>
+                          <TableHead className="text-right">Días Vencimiento</TableHead>
+                          <TableHead className="text-right">Monto</TableHead>
+                          <TableHead className="text-center">Acciones</TableHead>
                         </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={2} className="text-right font-bold">
-                          TOTAL CUOTAS:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-blue-600">
-                          {calculateInstallmentsTotal().toFixed(2)}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {installments.map((inst, index) => (
+                          <TableRow key={index}>
+                            <TableCell>Cuota {index + 1}</TableCell>
+                            <TableCell className="text-right">{inst.due_days} días</TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {parseFloat(inst.amount).toFixed(2)}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div className="flex justify-center gap-2">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditInstallment(index)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRemoveInstallment(index)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow>
+                          <TableCell colSpan={2} className="text-right font-bold">
+                            TOTAL CUOTAS:
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-lg text-blue-600">
+                            {calculateInstallmentsTotal().toFixed(2)}
+                          </TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </div>
+                  {/* Advertencia de validación */}
+                  {!installmentsMatchTotal() && (
+                    <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                      <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                        ⚠️ El total de cuotas ({calculateInstallmentsTotal().toFixed(2)}) debe ser igual al total de la compra ({calculateDetailsTotal().toFixed(2)})
+                      </p>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Badge variant="outline" className="text-lg p-3">
@@ -717,7 +759,8 @@ export const PurchaseForm = ({
             disabled={
               isSubmitting ||
               !form.formState.isValid ||
-              (mode === "create" && details.length === 0)
+              (mode === "create" && details.length === 0) ||
+              (mode === "create" && installments.length > 0 && !installmentsMatchTotal())
             }
           >
             <Loader

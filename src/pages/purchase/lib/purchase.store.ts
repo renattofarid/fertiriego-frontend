@@ -127,10 +127,8 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
       await storePurchase(request);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "create"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },

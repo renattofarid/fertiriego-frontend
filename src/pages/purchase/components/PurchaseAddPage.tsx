@@ -14,7 +14,7 @@ import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { ERROR_MESSAGE, errorToast, SUCCESS_MESSAGE, successToast } from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 
 export const PurchaseAddPage = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export const PurchaseAddPage = () => {
     setIsSubmitting(true);
     try {
       await createPurchase(data);
-      successToast(SUCCESS_MESSAGE({ name: "Compra", gender: false }, "create"));
+      successToast("Compra creada correctamente");
       navigate("/compras");
     } catch (error: any) {
       errorToast(error.response?.data?.message || ERROR_MESSAGE);
