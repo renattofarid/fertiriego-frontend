@@ -29,9 +29,12 @@ export async function getPersons({
   return data;
 }
 
-export async function getAllPersons(): Promise<PersonResource[]> {
+export async function getAllPersons({
+  params,
+}: GetPersonsProps): Promise<PersonResource[]> {
   const config: AxiosRequestConfig = {
     params: {
+      ...params,
       all: true,
     },
   };

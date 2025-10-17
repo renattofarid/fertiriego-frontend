@@ -30,3 +30,22 @@ export function useSuppliers(params?: Record<string, unknown>) {
     },
   };
 }
+
+export function useAllSuppliers() {
+  const { allPersons = [], error, fetchAllPersons } = usePersonStore();
+
+  useEffect(() => {
+    if (!allPersons) fetchAllPersons({
+      params: {
+        role_names: [SUPPLIER_ROLE_CODE]
+      }
+    });
+  }, [allPersons, fetchAllPersons]);
+
+  return {
+    data: allPersons,
+    isLoading: false,
+    error,
+    refetch: fetchAllPersons,
+  };
+}

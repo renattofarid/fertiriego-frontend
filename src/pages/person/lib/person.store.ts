@@ -35,7 +35,7 @@ interface PersonStore {
   isLoadingRoleDetails: boolean;
   error: string | null;
   fetchPersons: ({ params }: GetPersonsProps) => Promise<void>;
-  fetchAllPersons: () => Promise<void>;
+  fetchAllPersons: ({ params }: GetPersonsProps) => Promise<void>;
   fetchPersonById: (id: number) => Promise<void>;
   createPerson: (data: CreatePersonRequest) => Promise<void>;
   updatePerson: (id: number, data: UpdatePersonRequest) => Promise<void>;
@@ -73,10 +73,10 @@ export const usePersonStore = create<PersonStore>((set) => ({
     }
   },
 
-  fetchAllPersons: async () => {
+  fetchAllPersons: async ({ params }: GetPersonsProps) => {
     set({ error: null });
     try {
-      const data = await getAllPersons();
+      const data = await getAllPersons({ params });
       set({ allPersons: data });
     } catch {
       set({ error: "Error al cargar todas las personas" });
