@@ -153,7 +153,7 @@ export function PurchaseManagementSheet({
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto p-6">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <PackageOpen className="h-5 w-5" />
@@ -190,7 +190,7 @@ export function PurchaseManagementSheet({
               </div>
               <div>
                 <span className="text-muted-foreground">Saldo:</span>
-                <p className="font-bold text-red-600 text-lg">
+                <p className="font-bold text-orange-600 text-lg">
                   {purchase.currency === "PEN" ? "S/." : "$"}{" "}
                   {parseFloat(purchase.current_amount).toFixed(2)}
                 </p>

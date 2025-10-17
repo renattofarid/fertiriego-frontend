@@ -81,7 +81,7 @@ export function PurchaseInstallmentTable({
               <TableCell className="text-right font-semibold">
                 {parseFloat(inst.amount).toFixed(2)}
               </TableCell>
-              <TableCell className="text-right font-semibold text-red-600">
+              <TableCell className="text-right font-semibold text-orange-600">
                 {parseFloat(inst.pending_amount).toFixed(2)}
               </TableCell>
               <TableCell>{getStatusBadge(inst.status)}</TableCell>

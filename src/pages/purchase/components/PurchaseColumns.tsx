@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2, Eye, Settings } from "lucide-react";
+import { Edit, MoreVertical, Trash2, Eye, Settings, Wallet } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseResource } from "../lib/purchase.interface";
 
@@ -15,6 +15,7 @@ interface PurchaseColumnsProps {
   onDelete: (id: number) => void;
   onViewDetails: (purchase: PurchaseResource) => void;
   onManage: (purchase: PurchaseResource) => void;
+  onQuickPay: (purchase: PurchaseResource) => void;
 }
 
 export const getPurchaseColumns = ({
@@ -22,6 +23,7 @@ export const getPurchaseColumns = ({
   onDelete,
   onViewDetails,
   onManage,
+  onQuickPay,
 }: PurchaseColumnsProps): ColumnDef<PurchaseResource>[] => [
     {
       accessorKey: "correlativo",
@@ -109,7 +111,7 @@ export const getPurchaseColumns = ({
         const isPaid = currentAmount === 0;
 
         return (
-          <span className={`font-semibold ${isPaid ? "text-green-600" : "text-red-600"}`}>
+          <span className={`font-semibold ${isPaid ? "text-green-600" : "text-orange-600"}`}>
             {currency} {currentAmount.toFixed(2)}
           </span>
         );
@@ -148,18 +150,37 @@ export const getPurchaseColumns = ({
     {
       accessorKey: "installments",
       header: "Cuotas",
-      cell: ({ row }) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onManage(row.original)}
-          className="h-auto p-1"
-        >
-          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-            {row.original.installments?.length || 0} cuota(s)
-          </Badge>
-        </Button>
-      ),
+      cell: ({ row }) => {
+        const hasPendingPayments = row.original.installments?.some(
+          (inst) => parseFloat(inst.pending_amount) > 0
+        );
+
+        return (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onManage(row.original)}
+              className="h-auto p-1"
+            >
+              <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                {row.original.installments?.length || 0} cuota(s)
+              </Badge>
+            </Button>
+            {hasPendingPayments && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onQuickPay(row.original)}
+                className="h-8 w-8 p-0"
+                title="Pago rápido"
+              >
+                <Wallet className="h-4 w-4 text-green-600" />
+              </Button>
+            )}
+          </div>
+        );
+      },
     },
     {
       id: "actions",

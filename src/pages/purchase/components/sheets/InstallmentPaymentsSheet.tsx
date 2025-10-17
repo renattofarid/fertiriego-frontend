@@ -97,12 +97,12 @@ export function InstallmentPaymentsSheet({
 
   if (!installment) return null;
 
-  const totalPaid = payments?.reduce((sum, p) => sum + p.total_paid, 0) || 0;
-  const pending = parseFloat(installment.pending_amount);
+  const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.total_paid.toString()), 0) || 0;
+  const pending = parseFloat(installment.pending_amount.toString());
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto p-6">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
@@ -164,7 +164,7 @@ export function InstallmentPaymentsSheet({
               </div>
               <div>
                 <span className="text-muted-foreground">Saldo Pendiente:</span>
-                <p className="font-bold text-red-600 text-lg">
+                <p className="font-bold text-orange-600 text-lg">
                   {pending.toFixed(2)}
                 </p>
               </div>

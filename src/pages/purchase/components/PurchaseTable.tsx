@@ -8,6 +8,7 @@ interface PurchaseTableProps {
   onDelete: (id: number) => void;
   onViewDetails: (purchase: PurchaseResource) => void;
   onManage: (purchase: PurchaseResource) => void;
+  onQuickPay: (purchase: PurchaseResource) => void;
   isLoading: boolean;
   children?: React.ReactNode;
 }
@@ -18,10 +19,11 @@ export const PurchaseTable = ({
   onDelete,
   onViewDetails,
   onManage,
+  onQuickPay,
   isLoading,
   children,
 }: PurchaseTableProps) => {
-  const columns = getPurchaseColumns({ onEdit, onDelete, onViewDetails, onManage });
+  const columns = getPurchaseColumns({ onEdit, onDelete, onViewDetails, onManage, onQuickPay });
 
   return (
     <div className="border-none text-muted-foreground max-w-full">

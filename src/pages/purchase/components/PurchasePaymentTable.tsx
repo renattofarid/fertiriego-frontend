@@ -44,7 +44,7 @@ export function PurchasePaymentTable({
   };
 
   const calculateTotal = () => {
-    return payments.reduce((sum, payment) => sum + payment.total_paid, 0);
+    return payments.reduce((sum, payment) => sum + parseFloat(payment.total_paid.toString()), 0);
   };
 
   if (!payments || payments.length === 0) {
@@ -95,22 +95,22 @@ export function PurchasePaymentTable({
                   {payment.reference_number}
                 </TableCell>
                 <TableCell className="text-right">
-                  {payment.amount_cash > 0 ? payment.amount_cash.toFixed(2) : "-"}
+                  {parseFloat(payment.amount_cash.toString()) > 0 ? parseFloat(payment.amount_cash.toString()).toFixed(2) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  {payment.amount_yape > 0 ? payment.amount_yape.toFixed(2) : "-"}
+                  {parseFloat(payment.amount_yape.toString()) > 0 ? parseFloat(payment.amount_yape.toString()).toFixed(2) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  {payment.amount_plin > 0 ? payment.amount_plin.toFixed(2) : "-"}
+                  {parseFloat(payment.amount_plin.toString()) > 0 ? parseFloat(payment.amount_plin.toString()).toFixed(2) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  {payment.amount_deposit > 0 ? payment.amount_deposit.toFixed(2) : "-"}
+                  {parseFloat(payment.amount_deposit.toString()) > 0 ? parseFloat(payment.amount_deposit.toString()).toFixed(2) : "-"}
                 </TableCell>
                 <TableCell className="text-right">
-                  {payment.amount_transfer > 0 ? payment.amount_transfer.toFixed(2) : "-"}
+                  {parseFloat(payment.amount_transfer.toString()) > 0 ? parseFloat(payment.amount_transfer.toString()).toFixed(2) : "-"}
                 </TableCell>
                 <TableCell className="text-right font-bold text-green-600">
-                  {payment.total_paid.toFixed(2)}
+                  {parseFloat(payment.total_paid.toString()).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">

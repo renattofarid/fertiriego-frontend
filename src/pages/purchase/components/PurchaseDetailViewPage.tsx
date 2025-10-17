@@ -158,7 +158,7 @@ export const PurchaseDetailViewPage = () => {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Saldo Pendiente</span>
-                <p className="font-bold text-2xl text-red-600">
+                <p className="font-bold text-2xl text-orange-600">
                   {purchase.currency === "PEN" ? "S/." : "$"} {parseFloat(purchase.current_amount).toFixed(2)}
                 </p>
               </div>
@@ -282,7 +282,7 @@ export const PurchaseDetailViewPage = () => {
                             </div>
                             <div>
                               <span className="text-muted-foreground">Saldo:</span>
-                              <p className="font-semibold text-lg text-red-600">
+                              <p className="font-semibold text-lg text-orange-600">
                                 {parseFloat(installment.pending_amount).toFixed(2)}
                               </p>
                             </div>
@@ -325,9 +325,9 @@ export const PurchaseDetailViewPage = () => {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
                     <span className="font-semibold">Saldo Pendiente:</span>
-                    <span className="text-2xl font-bold text-red-600">
+                    <span className="text-2xl font-bold text-orange-600">
                       {purchase.currency === "PEN" ? "S/." : "$"}{" "}
                       {parseFloat(purchase.current_amount).toFixed(2)}
                     </span>

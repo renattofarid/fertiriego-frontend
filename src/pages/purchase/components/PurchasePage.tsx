@@ -8,10 +8,11 @@ import { PurchaseOptions } from "./PurchaseOptions";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import DataTablePagination from "@/components/DataTablePagination";
-import type { PurchaseResource } from "../lib/purchase.interface";
+import type { PurchaseResource, PurchaseInstallmentResource } from "../lib/purchase.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { ERROR_MESSAGE, errorToast, SUCCESS_MESSAGE, successToast } from "@/lib/core.function";
 import { PurchaseManagementSheet } from "./sheets/PurchaseManagementSheet";
+import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
 
 export const PurchasePage = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ export const PurchasePage = () => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedPurchase, setSelectedPurchase] = useState<PurchaseResource | null>(null);
   const [isManagementSheetOpen, setIsManagementSheetOpen] = useState(false);
+  const [selectedInstallment, setSelectedInstallment] = useState<PurchaseInstallmentResource | null>(null);
+  const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
 
   const { data, meta, isLoading, refetch } = usePurchase();
   const { removePurchase } = usePurchaseStore();
@@ -76,9 +79,34 @@ export const PurchasePage = () => {
     setIsManagementSheetOpen(true);
   };
 
+  const handleQuickPay = (purchase: PurchaseResource) => {
+    // Tomar la primera cuota pendiente si existe
+    const pendingInstallment = purchase.installments?.find(
+      (inst) => parseFloat(inst.pending_amount) > 0
+    );
+
+    if (pendingInstallment) {
+      setSelectedInstallment(pendingInstallment);
+      setIsPaymentSheetOpen(true);
+    }
+  };
+
   const handleCloseManagementSheet = () => {
     setIsManagementSheetOpen(false);
     setSelectedPurchase(null);
+    const filterParams = {
+      page,
+      search,
+      per_page,
+      ...(selectedStatus && { status: selectedStatus }),
+      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
+    };
+    refetch(filterParams);
+  };
+
+  const handleClosePaymentSheet = () => {
+    setIsPaymentSheetOpen(false);
+    setSelectedInstallment(null);
     const filterParams = {
       page,
       search,
@@ -106,6 +134,7 @@ export const PurchasePage = () => {
         onDelete={setDeleteId}
         onViewDetails={handleViewDetails}
         onManage={handleManage}
+        onQuickPay={handleQuickPay}
         isLoading={isLoading}
       >
         <PurchaseOptions
@@ -139,6 +168,12 @@ export const PurchasePage = () => {
         open={isManagementSheetOpen}
         onClose={handleCloseManagementSheet}
         purchase={selectedPurchase}
+      />
+
+      <InstallmentPaymentsSheet
+        open={isPaymentSheetOpen}
+        onClose={handleClosePaymentSheet}
+        installment={selectedInstallment}
       />
     </div>
   );
