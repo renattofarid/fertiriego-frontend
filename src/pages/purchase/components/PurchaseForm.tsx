@@ -106,7 +106,6 @@ export const PurchaseForm = ({
       temp_product_id: currentDetail.product_id,
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
-      temp_tax: currentDetail.tax,
     },
   });
 
@@ -121,7 +120,6 @@ export const PurchaseForm = ({
   const selectedProductId = detailTempForm.watch("temp_product_id");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
-  const selectedTax = detailTempForm.watch("temp_tax");
 
   // Watchers para cuotas
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
@@ -132,7 +130,6 @@ export const PurchaseForm = ({
     detailTempForm.setValue("temp_product_id", currentDetail.product_id);
     detailTempForm.setValue("temp_quantity", currentDetail.quantity);
     detailTempForm.setValue("temp_unit_price", currentDetail.unit_price);
-    detailTempForm.setValue("temp_tax", currentDetail.tax);
   }, [currentDetail, detailTempForm]);
 
   // Sincronizar cuotas
@@ -160,11 +157,6 @@ export const PurchaseForm = ({
     }
   }, [selectedUnitPrice]);
 
-  useEffect(() => {
-    if (selectedTax !== currentDetail.tax) {
-      setCurrentDetail({ ...currentDetail, tax: selectedTax || "" });
-    }
-  }, [selectedTax]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -197,8 +189,7 @@ export const PurchaseForm = ({
     if (
       !currentDetail.product_id ||
       !currentDetail.quantity ||
-      !currentDetail.unit_price ||
-      !currentDetail.tax
+      !currentDetail.unit_price
     ) {
       return;
     }
@@ -206,13 +197,14 @@ export const PurchaseForm = ({
     const product = products.find((p) => p.id.toString() === currentDetail.product_id);
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    const tax = parseFloat(currentDetail.tax);
     const subtotal = quantity * unitPrice;
+    const tax = subtotal * 0.18; // Calcular impuesto automáticamente (18%)
     const total = subtotal + tax;
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: product?.name,
+      tax: tax.toFixed(2),
       subtotal,
       total,
     };
@@ -443,7 +435,7 @@ export const PurchaseForm = ({
               <CardTitle>Detalles de la Compra</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 bg-sidebar rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
                 <div className="md:col-span-2">
                   <Form {...detailTempForm}>
                     <FormSelect
@@ -496,26 +488,7 @@ export const PurchaseForm = ({
                   )}
                 />
 
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_tax"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Impuesto</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          variant="primary"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div className="md:col-span-5 flex justify-end">
+                <div className="md:col-span-4 flex justify-end">
                   <Button
                     type="button"
                     variant="default"
@@ -523,8 +496,7 @@ export const PurchaseForm = ({
                     disabled={
                       !currentDetail.product_id ||
                       !currentDetail.quantity ||
-                      !currentDetail.unit_price ||
-                      !currentDetail.tax
+                      !currentDetail.unit_price
                     }
                   >
                     <Plus className="h-4 w-4 mr-2" />
