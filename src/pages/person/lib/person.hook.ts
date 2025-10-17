@@ -22,7 +22,7 @@ export function useAllPersons() {
 
   useEffect(() => {
     if (!allPersons) {
-      fetchAllPersons();
+      fetchAllPersons({});
     }
   }, [allPersons, fetchAllPersons]);
 
