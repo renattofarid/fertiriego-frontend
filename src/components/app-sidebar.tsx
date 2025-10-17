@@ -28,6 +28,7 @@ import { CLIENT } from "@/pages/client/lib/client.interface";
 import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
+import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
