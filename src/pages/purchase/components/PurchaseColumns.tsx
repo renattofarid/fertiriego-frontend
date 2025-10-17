@@ -6,18 +6,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2 } from "lucide-react";
+import { Edit, MoreVertical, Trash2, Eye, Settings } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseResource } from "../lib/purchase.interface";
 
 interface PurchaseColumnsProps {
   onEdit: (purchase: PurchaseResource) => void;
   onDelete: (id: number) => void;
+  onViewDetails: (purchase: PurchaseResource) => void;
+  onManage: (purchase: PurchaseResource) => void;
 }
 
 export const getPurchaseColumns = ({
   onEdit,
   onDelete,
+  onViewDetails,
+  onManage,
 }: PurchaseColumnsProps): ColumnDef<PurchaseResource>[] => [
     {
       accessorKey: "correlativo",
@@ -129,18 +133,32 @@ export const getPurchaseColumns = ({
       accessorKey: "details",
       header: "Detalles",
       cell: ({ row }) => (
-        <Badge variant="outline">
-          {row.original.details?.length || 0} item(s)
-        </Badge>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onManage(row.original)}
+          className="h-auto p-1"
+        >
+          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+            {row.original.details?.length || 0} item(s)
+          </Badge>
+        </Button>
       ),
     },
     {
       accessorKey: "installments",
       header: "Cuotas",
       cell: ({ row }) => (
-        <Badge variant="outline">
-          {row.original.installments?.length || 0} cuota(s)
-        </Badge>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onManage(row.original)}
+          className="h-auto p-1"
+        >
+          <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+            {row.original.installments?.length || 0} cuota(s)
+          </Badge>
+        </Button>
       ),
     },
     {
@@ -154,6 +172,14 @@ export const getPurchaseColumns = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
+              <Eye className="mr-2 h-4 w-4" />
+              Ver Detalle
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onManage(row.original)}>
+              <Settings className="mr-2 h-4 w-4" />
+              Gestionar
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(row.original)}>
               <Edit className="mr-2 h-4 w-4" />
               Editar

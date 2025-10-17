@@ -318,3 +318,70 @@ export const INSTALLMENT_STATUSES = [
   { value: "PAGADO", label: "Pagado" },
   { value: "VENCIDO", label: "Vencido" },
 ] as const;
+
+// ===== MODEL COMPLETE =====
+
+import type { ModelComplete } from "@/lib/core.interface";
+import type { PurchaseSchema } from "./purchase.schema";
+import { ShoppingCart, PackageOpen, CreditCard, Wallet } from "lucide-react";
+
+const NAME = "Compra";
+const NAME_DETAIL = "Detalle de Compra";
+const NAME_INSTALLMENT = "Cuota de Compra";
+const NAME_PAYMENT = "Pago de Compra";
+
+export const PURCHASE: ModelComplete<PurchaseSchema> = {
+  MODEL: {
+    name: NAME,
+    description: "Gestión de compras del sistema.",
+    plural: "Compras",
+    gender: false,
+  },
+  ICON: "ShoppingCart",
+  ICON_REACT: ShoppingCart,
+  ENDPOINT: PURCHASE_ENDPOINT,
+  QUERY_KEY: PURCHASE_QUERY_KEY,
+  ROUTE: PurchaseRoute,
+};
+
+export const PURCHASE_DETAIL: ModelComplete<any> = {
+  MODEL: {
+    name: NAME_DETAIL,
+    description: "Gestión de detalles de compra.",
+    plural: "Detalles de Compra",
+    gender: false,
+  },
+  ICON: "PackageOpen",
+  ICON_REACT: PackageOpen,
+  ENDPOINT: PURCHASE_DETAIL_ENDPOINT,
+  QUERY_KEY: PURCHASE_DETAIL_QUERY_KEY,
+  ROUTE: PurchaseRoute,
+};
+
+export const PURCHASE_INSTALLMENT: ModelComplete<any> = {
+  MODEL: {
+    name: NAME_INSTALLMENT,
+    description: "Gestión de cuotas de compra.",
+    plural: "Cuotas de Compra",
+    gender: false,
+  },
+  ICON: "CreditCard",
+  ICON_REACT: CreditCard,
+  ENDPOINT: PURCHASE_INSTALLMENT_ENDPOINT,
+  QUERY_KEY: PURCHASE_INSTALLMENT_QUERY_KEY,
+  ROUTE: PurchaseRoute,
+};
+
+export const PURCHASE_PAYMENT: ModelComplete<any> = {
+  MODEL: {
+    name: NAME_PAYMENT,
+    description: "Gestión de pagos de compra.",
+    plural: "Pagos de Compra",
+    gender: false,
+  },
+  ICON: "Wallet",
+  ICON_REACT: Wallet,
+  ENDPOINT: PURCHASE_PAYMENT_ENDPOINT,
+  QUERY_KEY: PURCHASE_PAYMENT_QUERY_KEY,
+  ROUTE: PurchaseRoute,
+};

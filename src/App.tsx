@@ -51,7 +51,7 @@ import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPa
 import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
-import { PurchasePage, PurchaseAddPage, PurchaseEditPage } from "./pages/purchase/components";
+import { PurchasePage, PurchaseAddPage, PurchaseEditPage, PurchaseDetailViewPage } from "./pages/purchase/components";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -406,6 +406,15 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseRoute}>
                 <PurchaseEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/compras/detalle/:id"
+            element={
+              <ProtectedRoute path={PurchaseRoute}>
+                <PurchaseDetailViewPage />
               </ProtectedRoute>
             }
           />

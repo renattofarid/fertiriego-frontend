@@ -13,6 +13,9 @@ import {
   type GetPurchaseInstallmentsParams,
 } from "./purchase.actions";
 import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import { PURCHASE_INSTALLMENT } from "./purchase.interface";
+
+const { MODEL } = PURCHASE_INSTALLMENT;
 
 interface PurchaseInstallmentStore {
   // State
@@ -80,10 +83,10 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
     try {
       await createPurchaseInstallment(data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE({ name: "Cuota", gender: false }, "create"));
+      successToast(SUCCESS_MESSAGE(MODEL, "create"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE({ name: "Cuota", gender: false }, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE({ name: "Cuota", gender: false }, "create"));
+      set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },
@@ -94,10 +97,10 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
     try {
       await updatePurchaseInstallment(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE({ name: "Cuota", gender: false }, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE({ name: "Cuota", gender: false }, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE({ name: "Cuota", gender: false }, "update"));
+      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "update"));
       throw error;
     }
   },

@@ -6,10 +6,28 @@ interface PurchaseTableProps {
   data: PurchaseResource[];
   onEdit: (purchase: PurchaseResource) => void;
   onDelete: (id: number) => void;
+  onViewDetails: (purchase: PurchaseResource) => void;
+  onManage: (purchase: PurchaseResource) => void;
+  isLoading: boolean;
+  children?: React.ReactNode;
 }
 
-export const PurchaseTable = ({ data, onEdit, onDelete }: PurchaseTableProps) => {
-  const columns = getPurchaseColumns({ onEdit, onDelete });
+export const PurchaseTable = ({
+  data,
+  onEdit,
+  onDelete,
+  onViewDetails,
+  onManage,
+  isLoading,
+  children,
+}: PurchaseTableProps) => {
+  const columns = getPurchaseColumns({ onEdit, onDelete, onViewDetails, onManage });
 
-  return <DataTable columns={columns} data={data} />;
+  return (
+    <div className="border-none text-muted-foreground max-w-full">
+      <DataTable columns={columns} data={data} isLoading={isLoading}>
+        {children}
+      </DataTable>
+    </div>
+  );
 };

@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import SearchInput from "@/components/SearchInput";
 
 interface PurchaseOptionsProps {
   search: string;
@@ -34,15 +35,8 @@ export const PurchaseOptions = ({
 
   return (
     <div className="flex flex-col md:flex-row gap-4 py-4">
-      <div className="relative flex-1">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por correlativo, documento o proveedor..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-8"
-        />
-      </div>
+
+      <SearchInput onChange={setSearch} value={search} placeholder="Buscar..." />
 
       <Select value={selectedStatus} onValueChange={setSelectedStatus}>
         <SelectTrigger className="w-full md:w-[180px]">

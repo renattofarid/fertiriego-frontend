@@ -14,6 +14,9 @@ import {
   type GetPurchaseDetailsParams,
 } from "./purchase.actions";
 import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import { PURCHASE_DETAIL } from "./purchase.interface";
+
+const { MODEL } = PURCHASE_DETAIL;
 
 interface PurchaseDetailStore {
   // State
@@ -82,10 +85,10 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
     try {
       await createPurchaseDetail(data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE({ name: "Detalle", gender: false }, "create"));
+      successToast(SUCCESS_MESSAGE(MODEL, "create"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE({ name: "Detalle", gender: false }, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE({ name: "Detalle", gender: false }, "create"));
+      set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },
@@ -96,10 +99,10 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
     try {
       await updatePurchaseDetail(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE({ name: "Detalle", gender: false }, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE({ name: "Detalle", gender: false }, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE({ name: "Detalle", gender: false }, "update"));
+      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "update"));
       throw error;
     }
   },
@@ -110,10 +113,10 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
     try {
       await deletePurchaseDetail(id);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE({ name: "Detalle", gender: false }, "delete"));
+      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE({ name: "Detalle", gender: false }, "delete"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE({ name: "Detalle", gender: false }, "delete"));
+      set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "delete"));
       throw error;
     }
   },

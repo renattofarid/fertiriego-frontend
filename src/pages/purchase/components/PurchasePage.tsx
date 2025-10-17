@@ -8,10 +8,10 @@ import { PurchaseOptions } from "./PurchaseOptions";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import DataTablePagination from "@/components/DataTablePagination";
-import { ShoppingCart } from "lucide-react";
 import type { PurchaseResource } from "../lib/purchase.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { ERROR_MESSAGE, errorToast, SUCCESS_MESSAGE, successToast } from "@/lib/core.function";
+import { PurchaseManagementSheet } from "./sheets/PurchaseManagementSheet";
 
 export const PurchasePage = () => {
   const navigate = useNavigate();
@@ -21,6 +21,8 @@ export const PurchasePage = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPaymentType, setSelectedPaymentType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedPurchase, setSelectedPurchase] = useState<PurchaseResource | null>(null);
+  const [isManagementSheetOpen, setIsManagementSheetOpen] = useState(false);
 
   const { data, meta, isLoading, refetch } = usePurchase();
   const { removePurchase } = usePurchaseStore();
@@ -50,7 +52,7 @@ export const PurchasePage = () => {
       await refetch(filterParams);
       successToast(SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete"));
     } catch (error: any) {
-      const errorMessage = error.response.data.message ?? ERROR_MESSAGE;
+      const errorMessage = error.response?.data?.message ?? ERROR_MESSAGE;
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -65,37 +67,56 @@ export const PurchasePage = () => {
     navigate(`/compras/actualizar/${purchase.id}`);
   };
 
+  const handleViewDetails = (purchase: PurchaseResource) => {
+    navigate(`/compras/detalle/${purchase.id}`);
+  };
+
+  const handleManage = (purchase: PurchaseResource) => {
+    setSelectedPurchase(purchase);
+    setIsManagementSheetOpen(true);
+  };
+
+  const handleCloseManagementSheet = () => {
+    setIsManagementSheetOpen(false);
+    setSelectedPurchase(null);
+    const filterParams = {
+      page,
+      search,
+      per_page,
+      ...(selectedStatus && { status: selectedStatus }),
+      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
+    };
+    refetch(filterParams);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <TitleComponent
           title="Compras"
           subtitle="Gestión de compras y pagos"
-          icon={"ShoppingCart"}
+          icon="ShoppingCart"
         />
         <PurchaseActions onCreatePurchase={handleCreatePurchase} />
       </div>
 
-      <PurchaseOptions
-        search={search}
-        setSearch={setSearch}
-        selectedStatus={selectedStatus}
-        setSelectedStatus={setSelectedStatus}
-        selectedPaymentType={selectedPaymentType}
-        setSelectedPaymentType={setSelectedPaymentType}
-      />
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <PurchaseTable
-          data={data || []}
-          onEdit={handleEditPurchase}
-          onDelete={setDeleteId}
+      <PurchaseTable
+        data={data || []}
+        onEdit={handleEditPurchase}
+        onDelete={setDeleteId}
+        onViewDetails={handleViewDetails}
+        onManage={handleManage}
+        isLoading={isLoading}
+      >
+        <PurchaseOptions
+          search={search}
+          setSearch={setSearch}
+          selectedStatus={selectedStatus}
+          setSelectedStatus={setSelectedStatus}
+          selectedPaymentType={selectedPaymentType}
+          setSelectedPaymentType={setSelectedPaymentType}
         />
-      )}
+      </PurchaseTable>
 
       <DataTablePagination
         page={page}
@@ -113,6 +134,12 @@ export const PurchasePage = () => {
           onConfirm={handleDelete}
         />
       )}
+
+      <PurchaseManagementSheet
+        open={isManagementSheetOpen}
+        onClose={handleCloseManagementSheet}
+        purchase={selectedPurchase}
+      />
     </div>
   );
 };
