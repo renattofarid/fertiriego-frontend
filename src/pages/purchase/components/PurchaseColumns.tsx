@@ -107,7 +107,6 @@ export const getPurchaseColumns = ({
       cell: ({ row }) => {
         const currency = row.original.currency === "PEN" ? "S/." : "$";
         const currentAmount = parseFloat(row.original.current_amount);
-        const totalAmount = parseFloat(row.original.total_amount);
         const isPaid = currentAmount === 0;
 
         return (

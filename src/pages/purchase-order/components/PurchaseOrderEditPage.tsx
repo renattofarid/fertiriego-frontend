@@ -179,14 +179,11 @@ export default function PurchaseOrderEditPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            {products && (
-              <PurchaseOrderDetailTable
-                details={details || []}
-                products={products}
-                onEdit={handleEditDetail}
-                onRefresh={() => id && fetchDetails(Number(id))}
-              />
-            )}
+            <PurchaseOrderDetailTable
+              details={details || []}
+              onEdit={handleEditDetail}
+              onRefresh={() => id && fetchDetails(Number(id))}
+            />
           </CardContent>
         </Card>
       </div>

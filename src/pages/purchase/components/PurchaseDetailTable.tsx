@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseDetailResource } from "../lib/purchase.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
@@ -18,14 +17,12 @@ import { errorToast, successToast } from "@/lib/core.function";
 
 interface PurchaseDetailTableProps {
   details: PurchaseDetailResource[];
-  products: ProductResource[];
   onEdit: (detailId: number) => void;
   onRefresh: () => void;
 }
 
 export function PurchaseDetailTable({
   details,
-  products,
   onEdit,
   onRefresh,
 }: PurchaseDetailTableProps) {

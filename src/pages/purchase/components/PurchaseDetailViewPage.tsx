@@ -5,8 +5,6 @@ import TitleComponent from "@/components/TitleComponent";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
-import { usePurchasePaymentStore } from "../lib/purchase-payment.store";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,8 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PackageOpen, CreditCard, Wallet, Edit } from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
-import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
-import { PurchasePaymentTable } from "./PurchasePaymentTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
 import type { PurchaseInstallmentResource } from "../lib/purchase.interface";
 
@@ -30,7 +26,6 @@ export const PurchaseDetailViewPage = () => {
   const { purchase, fetchPurchase, isFinding } = usePurchaseStore();
   const { details, fetchDetails } = usePurchaseDetailStore();
   const { installments, fetchInstallments } = usePurchaseInstallmentStore();
-  const { data: products } = useAllProducts();
 
   useEffect(() => {
     if (!id) {
@@ -59,7 +54,7 @@ export const PurchaseDetailViewPage = () => {
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <BackButton to="/compras" />
-            <TitleComponent title="Detalle de Compra" mode="view" />
+            <TitleComponent title="Detalle de Compra" />
           </div>
         </div>
         <FormSkeleton />
@@ -72,7 +67,7 @@ export const PurchaseDetailViewPage = () => {
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
           <BackButton to="/compras" />
-          <TitleComponent title="Detalle de Compra" mode="view" />
+          <TitleComponent title="Detalle de Compra" />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
@@ -87,7 +82,7 @@ export const PurchaseDetailViewPage = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <BackButton to="/compras" />
-            <TitleComponent title={`Compra ${purchase.correlativo}`} mode="view" />
+            <TitleComponent title={`Compra ${purchase.correlativo}`} />
           </div>
           <Button onClick={handleEditPurchase} variant="outline">
             <Edit className="h-4 w-4 mr-2" />
@@ -212,14 +207,11 @@ export const PurchaseDetailViewPage = () => {
                 <CardTitle>Detalles de la Compra</CardTitle>
               </CardHeader>
               <CardContent>
-                {products && (
-                  <PurchaseDetailTable
-                    details={details || []}
-                    products={products}
-                    onEdit={() => {}}
-                    onRefresh={() => {}}
-                  />
-                )}
+                <PurchaseDetailTable
+                  details={details || []}
+                  onEdit={() => {}}
+                  onRefresh={() => {}}
+                />
               </CardContent>
             </Card>
           </TabsContent>

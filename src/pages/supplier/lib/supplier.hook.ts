@@ -32,16 +32,18 @@ export function useSuppliers(params?: Record<string, unknown>) {
 }
 
 export function useAllSuppliers() {
-  const { allPersons, error, fetchAllPersons } = usePersonStore();
+  const { allPersons = [], error, fetchAllPersons } = usePersonStore();
 
   useEffect(() => {
-    if (!allPersons) fetchAllPersons();
+    if (!allPersons) fetchAllPersons({
+      params: {
+        role_names: [SUPPLIER_ROLE_CODE]
+      }
+    });
   }, [allPersons, fetchAllPersons]);
 
   return {
-    data: allPersons?.filter((person) =>
-      person.roles?.some((role) => role.name === SUPPLIER_ROLE_CODE)
-    ) || [],
+    data: allPersons,
     isLoading: false,
     error,
     refetch: fetchAllPersons,

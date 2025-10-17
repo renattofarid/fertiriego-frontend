@@ -206,14 +206,11 @@ export const PurchaseEditPage = () => {
             </Button>
           </CardHeader>
           <CardContent>
-            {products && (
-              <PurchaseDetailTable
-                details={details || []}
-                products={products}
-                onEdit={handleEditDetail}
-                onRefresh={() => id && fetchDetails(Number(id))}
-              />
-            )}
+            <PurchaseDetailTable
+              details={details || []}
+              onEdit={handleEditDetail}
+              onRefresh={() => id && fetchDetails(Number(id))}
+            />
           </CardContent>
         </Card>
 

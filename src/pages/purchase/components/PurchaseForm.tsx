@@ -78,7 +78,6 @@ export const PurchaseForm = ({
   warehouses,
   products,
   purchaseOrders,
-  purchase,
   currentUserId,
 }: PurchaseFormProps) => {
   // Estados para detalles
@@ -324,7 +323,7 @@ export const PurchaseForm = ({
                 placeholder="Seleccione un proveedor"
                 options={suppliers.map((supplier) => ({
                   value: supplier.id.toString(),
-                  label: supplier.business_name || supplier.full_name,
+                  label: supplier.business_name ?? supplier.names + " " + supplier.father_surname + " " + supplier.mother_surname,
                 }))}
                 disabled={mode === "update"}
               />

@@ -266,14 +266,11 @@ export function PurchaseManagementSheet({
                     <Plus className="h-4 w-4 mr-2" />
                     Agregar Detalle
                   </Button>
-                  {products && (
-                    <PurchaseDetailTable
-                      details={details || []}
-                      products={products}
-                      onEdit={handleEditDetail}
-                      onRefresh={() => purchase && fetchDetails(purchase.id)}
-                    />
-                  )}
+                  <PurchaseDetailTable
+                    details={details || []}
+                    onEdit={handleEditDetail}
+                    onRefresh={() => purchase && fetchDetails(purchase.id)}
+                  />
                 </>
               )}
             </TabsContent>

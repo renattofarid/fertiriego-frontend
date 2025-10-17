@@ -342,6 +342,23 @@ export const PURCHASE: ModelComplete<PurchaseSchema> = {
   ENDPOINT: PURCHASE_ENDPOINT,
   QUERY_KEY: PURCHASE_QUERY_KEY,
   ROUTE: PurchaseRoute,
+  ROUTE_ADD: PurchaseAddRoute,
+  ROUTE_UPDATE: PurchaseEditRoute,
+  TITLES: {
+    create: {
+      title: `Crear ${NAME}`,
+      subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+    },
+    update: {
+      title: `Actualizar ${NAME}`,
+      subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+    },
+    delete: {
+      title: `Eliminar ${NAME}`,
+      subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+    },
+  },
+  EMPTY: {} as any,
 };
 
 export const PURCHASE_DETAIL: ModelComplete<any> = {
@@ -356,6 +373,23 @@ export const PURCHASE_DETAIL: ModelComplete<any> = {
   ENDPOINT: PURCHASE_DETAIL_ENDPOINT,
   QUERY_KEY: PURCHASE_DETAIL_QUERY_KEY,
   ROUTE: PurchaseRoute,
+  ROUTE_ADD: PurchaseRoute,
+  ROUTE_UPDATE: PurchaseRoute,
+  TITLES: {
+    create: {
+      title: `Crear ${NAME_DETAIL}`,
+      subtitle: `Complete los campos para crear un nuevo detalle`,
+    },
+    update: {
+      title: `Actualizar ${NAME_DETAIL}`,
+      subtitle: `Actualice los campos para modificar el detalle`,
+    },
+    delete: {
+      title: `Eliminar ${NAME_DETAIL}`,
+      subtitle: `Confirme para eliminar el detalle`,
+    },
+  },
+  EMPTY: {} as any,
 };
 
 export const PURCHASE_INSTALLMENT: ModelComplete<any> = {
@@ -370,6 +404,23 @@ export const PURCHASE_INSTALLMENT: ModelComplete<any> = {
   ENDPOINT: PURCHASE_INSTALLMENT_ENDPOINT,
   QUERY_KEY: PURCHASE_INSTALLMENT_QUERY_KEY,
   ROUTE: PurchaseRoute,
+  ROUTE_ADD: PurchaseRoute,
+  ROUTE_UPDATE: PurchaseRoute,
+  TITLES: {
+    create: {
+      title: `Crear ${NAME_INSTALLMENT}`,
+      subtitle: `Complete los campos para crear una nueva cuota`,
+    },
+    update: {
+      title: `Actualizar ${NAME_INSTALLMENT}`,
+      subtitle: `Actualice los campos para modificar la cuota`,
+    },
+    delete: {
+      title: `Eliminar ${NAME_INSTALLMENT}`,
+      subtitle: `Confirme para eliminar la cuota`,
+    },
+  },
+  EMPTY: {} as any,
 };
 
 export const PURCHASE_PAYMENT: ModelComplete<any> = {
@@ -384,4 +435,21 @@ export const PURCHASE_PAYMENT: ModelComplete<any> = {
   ENDPOINT: PURCHASE_PAYMENT_ENDPOINT,
   QUERY_KEY: PURCHASE_PAYMENT_QUERY_KEY,
   ROUTE: PurchaseRoute,
+  ROUTE_ADD: PurchaseRoute,
+  ROUTE_UPDATE: PurchaseRoute,
+  TITLES: {
+    create: {
+      title: `Crear ${NAME_PAYMENT}`,
+      subtitle: `Complete los campos para crear un nuevo pago`,
+    },
+    update: {
+      title: `Actualizar ${NAME_PAYMENT}`,
+      subtitle: `Actualice los campos para modificar el pago`,
+    },
+    delete: {
+      title: `Eliminar ${NAME_PAYMENT}`,
+      subtitle: `Confirme para eliminar el pago`,
+    },
+  },
+  EMPTY: {} as any,
 };
