@@ -94,6 +94,7 @@ export const PersonForm = ({
     }
   }, [type_person, type_document, form]);
 
+
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
     const typeDocument = form.getValues("type_document");
@@ -169,6 +170,11 @@ export const PersonForm = ({
     try {
       // Only include role_id when creating (not editing)
       const submitData = isEditing ? { ...data, role_id: "" } : data;
+
+      // If document type is RUC, set names equal to business_name
+      if (data.type_document === "RUC" && data.business_name) {
+        submitData.names = data.business_name;
+      }
 
       await onSubmit(submitData);
       if (!isEditing) {
