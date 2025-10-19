@@ -18,12 +18,13 @@ import {
   purchaseShippingGuideSchemaUpdate,
   type PurchaseShippingGuideSchema,
 } from "../lib/purchase-shipping-guide.schema";
-import { Loader, Plus, Trash2, Edit } from "lucide-react";
+import { Loader, Plus, Trash2, Edit, Search } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import { useState, useEffect } from "react";
+import { searchRUC, isValidData } from "@/lib/document-search.service";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -68,6 +69,10 @@ export const PurchaseShippingGuideForm = ({
     product_id: "",
     quantity: "",
     unit: "",
+  });
+  const [isSearching, setIsSearching] = useState(false);
+  const [fieldsFromSearch, setFieldsFromSearch] = useState({
+    carrier_name: false,
   });
 
   const form = useForm({
@@ -258,12 +263,55 @@ export const PurchaseShippingGuideForm = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="carrier_name"
+                name="carrier_ruc"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre del Transportista</FormLabel>
+                    <FormLabel>RUC del Transportista</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Nombre o Razón Social" />
+                      <div className="flex gap-2">
+                        <Input {...field} placeholder="20123456789" maxLength={11} />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          disabled={
+                            !field.value || field.value.length !== 11 || isSearching
+                          }
+                          onClick={async () => {
+                            if (field.value && field.value.length === 11) {
+                              setIsSearching(true);
+                              try {
+                                const response = await searchRUC({
+                                  search: field.value,
+                                });
+                                if (response.data) {
+                                  const newFieldsFromSearch = {
+                                    ...fieldsFromSearch,
+                                  };
+                                  if (isValidData(response.data.business_name)) {
+                                    form.setValue(
+                                      "carrier_name",
+                                      response.data.business_name
+                                    );
+                                    newFieldsFromSearch.carrier_name = true;
+                                  }
+                                  setFieldsFromSearch(newFieldsFromSearch);
+                                }
+                              } catch (error) {
+                                console.error("Error searching RUC:", error);
+                              } finally {
+                                setIsSearching(false);
+                              }
+                            }
+                          }}
+                        >
+                          {isSearching ? (
+                            <Loader className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Search className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -272,12 +320,16 @@ export const PurchaseShippingGuideForm = ({
 
               <FormField
                 control={form.control}
-                name="carrier_ruc"
+                name="carrier_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>RUC del Transportista</FormLabel>
+                    <FormLabel>Nombre del Transportista</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="20123456789" maxLength={11} />
+                      <Input
+                        {...field}
+                        placeholder="Nombre o Razón Social"
+                        disabled={fieldsFromSearch.carrier_name}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
