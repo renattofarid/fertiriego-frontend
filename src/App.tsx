@@ -52,6 +52,13 @@ import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrde
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
 import { PurchasePage, PurchaseAddPage, PurchaseEditPage, PurchaseDetailViewPage } from "./pages/purchase/components";
+import { PurchaseShippingGuideRoute } from "./pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
+import {
+  PurchaseShippingGuidePage,
+  PurchaseShippingGuideAddPage,
+  PurchaseShippingGuideEditPage,
+  PurchaseShippingGuideDetailViewPage
+} from "./pages/purchase-shipping-guide/components";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -415,6 +422,42 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseRoute}>
                 <PurchaseDetailViewPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PurchaseShippingGuideRoute}
+            element={
+              <ProtectedRoute path={PurchaseShippingGuideRoute}>
+                <PurchaseShippingGuidePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guias-compra/agregar"
+            element={
+              <ProtectedRoute path={PurchaseShippingGuideRoute}>
+                <PurchaseShippingGuideAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guias-compra/actualizar/:id"
+            element={
+              <ProtectedRoute path={PurchaseShippingGuideRoute}>
+                <PurchaseShippingGuideEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guias-compra/detalle/:id"
+            element={
+              <ProtectedRoute path={PurchaseShippingGuideRoute}>
+                <PurchaseShippingGuideDetailViewPage />
               </ProtectedRoute>
             }
           />
