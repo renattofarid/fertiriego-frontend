@@ -29,6 +29,7 @@ import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
+import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -129,6 +130,12 @@ const {
   MODEL: { name: PurchaseOrderTitle },
 } = PURCHASE_ORDER;
 
+const {
+  ICON_REACT: PurchaseShippingGuideIcon,
+  ROUTE: PurchaseShippingGuideRoute,
+  MODEL: { name: PurchaseShippingGuideTitle },
+} = PURCHASE_SHIPPING_GUIDE;
+
 const data = {
   navMain: [
     {
@@ -209,6 +216,11 @@ const data = {
           title: "Compras",
           url: PurchaseRoute,
           icon: ShoppingCart,
+        },
+        {
+          title: PurchaseShippingGuideTitle,
+          url: PurchaseShippingGuideRoute,
+          icon: PurchaseShippingGuideIcon,
         },
       ],
     },
