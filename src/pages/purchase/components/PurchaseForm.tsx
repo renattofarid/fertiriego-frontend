@@ -193,6 +193,9 @@ export const PurchaseForm = ({
   // Watch para la orden de compra seleccionada
   const selectedPurchaseOrderId = form.watch("purchase_order_id");
 
+  // Watch para el tipo de pago
+  const selectedPaymentType = form.watch("payment_type");
+
   // Auto-llenar datos cuando se selecciona una orden de compra
   useEffect(() => {
     if (!selectedPurchaseOrderId || selectedPurchaseOrderId === "") {
@@ -363,7 +366,13 @@ export const PurchaseForm = ({
   };
 
   const handleFormSubmit = (data: any) => {
-    // Validar antes de enviar
+    // Validar que si es a crédito, debe tener cuotas
+    if (selectedPaymentType === "credito" && installments.length === 0) {
+      errorToast("Para pagos a crédito, debe agregar al menos una cuota");
+      return;
+    }
+
+    // Validar que las cuotas coincidan con el total si hay cuotas
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(`El total de cuotas (${calculateInstallmentsTotal().toFixed(2)}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(2)})`);
       return;
@@ -389,6 +398,22 @@ export const PurchaseForm = ({
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="md:col-span-2 lg:col-span-3">
+                <FormSelect
+                  control={form.control}
+                  name="purchase_order_id"
+                  label="Orden de Compra (Opcional - Auto-llena los datos)"
+                  placeholder="Seleccione una orden de compra"
+                  options={[
+                    { value: "", label: "Ninguna - Llenar manualmente" },
+                    ...purchaseOrders.map((po) => ({
+                      value: po.id.toString(),
+                      label: `${po.correlativo} - ${po.order_number} (${po.supplier_fullname})`,
+                    })),
+                  ]}
+                />
+              </div>
+
               <FormSelect
                 control={form.control}
                 name="supplier_id"
@@ -411,20 +436,6 @@ export const PurchaseForm = ({
                   label: warehouse.name,
                 }))}
                 disabled={mode === "update"}
-              />
-
-              <FormSelect
-                control={form.control}
-                name="purchase_order_id"
-                label="Orden de Compra"
-                placeholder="Seleccione una orden"
-                options={[
-                  { value: "", label: "Ninguna" },
-                  ...purchaseOrders.map((po) => ({
-                    value: po.id.toString(),
-                    label: po.correlativo + " - " + po.order_number,
-                  })),
-                ]}
               />
 
               <FormSelect
@@ -666,7 +677,9 @@ export const PurchaseForm = ({
         {mode === "create" && (
           <Card>
             <CardHeader>
-              <CardTitle>Cuotas (Opcional)</CardTitle>
+              <CardTitle>
+                Cuotas {selectedPaymentType === "credito" ? "(Obligatorio)" : "(Opcional)"}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
@@ -809,6 +822,7 @@ export const PurchaseForm = ({
               isSubmitting ||
               !form.formState.isValid ||
               (mode === "create" && details.length === 0) ||
+              (mode === "create" && selectedPaymentType === "credito" && installments.length === 0) ||
               (mode === "create" && installments.length > 0 && !installmentsMatchTotal())
             }
           >
