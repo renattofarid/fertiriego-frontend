@@ -83,7 +83,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
         order_number: data.order_number,
         issue_date: data.issue_date,
         expected_date: data.expected_date,
-        observations: data.observations,
+        observations: data.observations || "",
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
           quantity_requested: Number(detail.quantity_requested),

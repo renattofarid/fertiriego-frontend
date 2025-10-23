@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
+import type { Matcher } from "react-day-picker";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -48,6 +49,7 @@ interface DatePickerFormFieldProps<T extends FieldValues> {
   description?: string;
   dateFormat?: string;
   disabled?: boolean;
+  disabledRange?: Matcher | Matcher[];
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
   onChange?: (date: Date | undefined) => void;
   endMonth?: Date;
@@ -61,6 +63,7 @@ export function DatePickerFormField<T extends FieldValues>({
   description,
   dateFormat = "yyyy-MM-dd",
   disabled = false,
+  disabledRange,
   captionLayout = "label",
   onChange,
   endMonth,
@@ -132,8 +135,8 @@ export function DatePickerFormField<T extends FieldValues>({
               month={visibleMonth}
               onMonthChange={setVisibleMonth}
               captionLayout={captionLayout}
+              disabled={disabledRange}
               onSelect={handleChange}
-              disabled={disabled}
               className="mx-auto [--cell-size:clamp(0px,calc(100vw/7.5),52px)]"
             />
           </DrawerContent>
@@ -164,7 +167,7 @@ export function DatePickerFormField<T extends FieldValues>({
               onMonthChange={setVisibleMonth}
               captionLayout={captionLayout}
               onSelect={handleChange}
-              disabled={disabled}
+              disabled={disabledRange}
               autoFocus
               endMonth={endMonth}
             />

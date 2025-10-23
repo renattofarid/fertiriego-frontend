@@ -8,3 +8,6 @@ export { default as PurchaseOrderActions } from "./PurchaseOrderActions";
 export { default as PurchaseOrderOptions } from "./PurchaseOrderOptions";
 export { PurchaseOrderDetailModal } from "./PurchaseOrderDetailModal";
 export { PurchaseOrderDetailTable } from "./PurchaseOrderDetailTable";
+
+// Forms
+export { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";

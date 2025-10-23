@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
@@ -24,13 +23,12 @@ const { MODEL } = PURCHASE_ORDER;
 
 export default function PurchaseOrderAddPage() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
-  const { createPurchaseOrder } = usePurchaseOrderStore();
+  const { createPurchaseOrder, isSubmitting } = usePurchaseOrderStore();
 
   const isLoading = suppliersLoading || warehousesLoading || productsLoading;
 
@@ -38,22 +36,26 @@ export default function PurchaseOrderAddPage() {
     supplier_id: "",
     warehouse_id: "",
     order_number: "",
-    issue_date: new Date().toISOString().split("T")[0],
+    issue_date: "",
     expected_date: "",
     observations: "",
     details: [],
   });
 
   const handleSubmit = async (data: PurchaseOrderSchema) => {
-    setIsSubmitting(true);
+    if (isSubmitting) return; // Prevenir múltiples envíos
+
     try {
       await createPurchaseOrder(data);
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
-      navigate("/ordenes-compra");
+      // Navegar después de un breve delay para que el usuario vea el toast
+      setTimeout(() => {
+        navigate("/ordenes-compra");
+      }, 500);
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"));
-    } finally {
-      setIsSubmitting(false);
+      errorToast(
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create")
+      );
     }
   };
 

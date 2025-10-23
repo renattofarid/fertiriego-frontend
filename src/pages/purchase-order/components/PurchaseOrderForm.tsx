@@ -18,13 +18,13 @@ import {
   purchaseOrderSchemaUpdate,
   type PurchaseOrderSchema,
 } from "../lib/purchase-order.schema";
-import { Loader, Plus, Trash2, Edit } from "lucide-react";
+import { Loader, Trash2, Edit } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -71,13 +72,12 @@ export const PurchaseOrderForm = ({
   const [details, setDetails] = useState<DetailRow[]>(
     mode === "update" && purchaseOrder
       ? purchaseOrder.details.map((d) => ({
-        product_id: d.product_id.toString(),
-        product_name: d.product_name,
-        quantity_requested: d.quantity_requested.toString(),
-        unit_price_estimated: d.unit_price_estimated,
-        subtotal:
-          d.quantity_requested * parseFloat(d.unit_price_estimated),
-      }))
+          product_id: d.product_id.toString(),
+          product_name: d.product_name,
+          quantity_requested: d.quantity_requested.toString(),
+          unit_price_estimated: d.unit_price_estimated,
+          subtotal: d.quantity_requested * parseFloat(d.unit_price_estimated),
+        }))
       : []
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -87,54 +87,6 @@ export const PurchaseOrderForm = ({
     unit_price_estimated: "",
     subtotal: 0,
   });
-
-  // Controlador temporal para el select de productos
-  const tempForm = useForm({
-    defaultValues: {
-      temp_product_id: currentDetail.product_id,
-      temp_quantity: currentDetail.quantity_requested,
-      temp_price: currentDetail.unit_price_estimated,
-    },
-  });
-
-  // Sincronizar el formulario temporal con el estado actual
-  useEffect(() => {
-    tempForm.setValue("temp_product_id", currentDetail.product_id);
-    tempForm.setValue("temp_quantity", currentDetail.quantity_requested);
-    tempForm.setValue("temp_price", currentDetail.unit_price_estimated);
-  }, [currentDetail, tempForm]);
-
-  // Observar cambios en todos los campos del formulario temporal
-  const selectedProductId = tempForm.watch("temp_product_id");
-  const selectedQuantity = tempForm.watch("temp_quantity");
-  const selectedPrice = tempForm.watch("temp_price");
-  
-  useEffect(() => {
-    if (selectedProductId !== currentDetail.product_id) {
-      setCurrentDetail({
-        ...currentDetail,
-        product_id: selectedProductId || "",
-      });
-    }
-  }, [selectedProductId, currentDetail]);
-
-  useEffect(() => {
-    if (selectedQuantity !== currentDetail.quantity_requested) {
-      setCurrentDetail({
-        ...currentDetail,
-        quantity_requested: selectedQuantity || "",
-      });
-    }
-  }, [selectedQuantity, currentDetail]);
-
-  useEffect(() => {
-    if (selectedPrice !== currentDetail.unit_price_estimated) {
-      setCurrentDetail({
-        ...currentDetail,
-        unit_price_estimated: selectedPrice || "",
-      });
-    }
-  }, [selectedPrice, currentDetail]);
 
   const form = useForm({
     resolver: zodResolver(
@@ -147,24 +99,17 @@ export const PurchaseOrderForm = ({
     mode: "onChange",
   });
 
-  const handleAddDetail = () => {
-    if (
-      !currentDetail.product_id ||
-      !currentDetail.quantity_requested ||
-      !currentDetail.unit_price_estimated
-    ) {
-      return;
-    }
-
-    const product = products.find((p) => p.id.toString() === currentDetail.product_id);
-    const subtotal =
-      parseFloat(currentDetail.quantity_requested) *
-      parseFloat(currentDetail.unit_price_estimated);
+  const handleAddDetail = async (data: any) => {
+    const product = products.find(
+      (p) => p.id.toString() === data.product_id
+    );
 
     const newDetail: DetailRow = {
-      ...currentDetail,
+      product_id: data.product_id,
       product_name: product?.name,
-      subtotal,
+      quantity_requested: data.quantity_requested,
+      unit_price_estimated: data.unit_price_estimated,
+      subtotal: data.subtotal,
     };
 
     if (editingIndex !== null) {
@@ -185,6 +130,9 @@ export const PurchaseOrderForm = ({
       unit_price_estimated: "",
       subtotal: 0,
     });
+
+    // Disparar validación del formulario
+    await form.trigger();
   };
 
   const handleEditDetail = (index: number) => {
@@ -192,10 +140,13 @@ export const PurchaseOrderForm = ({
     setEditingIndex(index);
   };
 
-  const handleRemoveDetail = (index: number) => {
+  const handleRemoveDetail = async (index: number) => {
     const updatedDetails = details.filter((_, i) => i !== index);
     setDetails(updatedDetails);
     form.setValue("details", updatedDetails);
+
+    // Disparar validación del formulario
+    await form.trigger();
   };
 
   const calculateTotal = () => {
@@ -203,6 +154,8 @@ export const PurchaseOrderForm = ({
   };
 
   const handleFormSubmit = (data: any) => {
+    if (isSubmitting) return; // Prevenir múltiples envíos
+
     onSubmit({
       ...data,
       details,
@@ -228,7 +181,13 @@ export const PurchaseOrderForm = ({
                 placeholder="Seleccione un proveedor"
                 options={suppliers.map((supplier) => ({
                   value: supplier.id.toString(),
-                  label: supplier.business_name
+                  label:
+                    supplier.business_name ??
+                    supplier.names +
+                      " " +
+                      supplier.father_surname +
+                      " " +
+                      supplier.mother_surname,
                 }))}
                 disabled={mode === "update"}
               />
@@ -267,6 +226,7 @@ export const PurchaseOrderForm = ({
                 control={form.control}
                 name="issue_date"
                 label="Fecha de Emisión"
+                disabledRange={{ after: new Date() }}
                 placeholder="Seleccione la fecha de emisión"
                 dateFormat="dd/MM/yyyy"
               />
@@ -308,80 +268,22 @@ export const PurchaseOrderForm = ({
               <CardTitle>Detalles de la Orden</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <div className="md:col-span-2">
-                  <Form {...tempForm}>
-                    <FormSelect
-                      control={tempForm.control}
-                      name="temp_product_id"
-                      label="Producto"
-                      placeholder="Seleccione un producto"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                      }))}
-                    />
-                  </Form>
-                </div>
-
-                <div>
-                  <FormField
-                    control={tempForm.control}
-                    name="temp_quantity"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cantidad</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            variant="primary"
-                            placeholder="0"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div>
-                  <FormField
-                    control={tempForm.control}
-                    name="temp_price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Precio Unitario</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            variant="primary"
-                            placeholder="0.00"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="md:col-span-4 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddDetail}
-                    disabled={
-                      !currentDetail.product_id ||
-                      !currentDetail.quantity_requested ||
-                      !currentDetail.unit_price_estimated
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
-                </div>
+              <div className="p-4 bg-sidebar rounded-lg">
+                <PurchaseOrderDetailForm
+                  products={products}
+                  detail={editingIndex !== null ? currentDetail : null}
+                  onSubmit={handleAddDetail}
+                  onCancel={() => {
+                    setCurrentDetail({
+                      product_id: "",
+                      quantity_requested: "",
+                      unit_price_estimated: "",
+                      subtotal: 0,
+                    });
+                    setEditingIndex(null);
+                  }}
+                  isEditing={editingIndex !== null}
+                />
               </div>
 
               {details.length > 0 && (
@@ -391,7 +293,9 @@ export const PurchaseOrderForm = ({
                       <TableRow>
                         <TableHead>Producto</TableHead>
                         <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">P. Unitario</TableHead>
+                        <TableHead className="text-right">
+                          P. Unitario
+                        </TableHead>
                         <TableHead className="text-right">Subtotal</TableHead>
                         <TableHead className="text-center">Acciones</TableHead>
                       </TableRow>
@@ -404,7 +308,8 @@ export const PurchaseOrderForm = ({
                             {detail.quantity_requested}
                           </TableCell>
                           <TableCell className="text-right">
-                            S/. {parseFloat(detail.unit_price_estimated).toFixed(2)}
+                            S/.{" "}
+                            {parseFloat(detail.unit_price_estimated).toFixed(2)}
                           </TableCell>
                           <TableCell className="text-right font-bold">
                             S/. {detail.subtotal.toFixed(2)}
