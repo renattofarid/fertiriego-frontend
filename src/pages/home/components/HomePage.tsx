@@ -166,11 +166,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-4 md:space-y-6 md:p-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
           Vista general de tu sistema de gestión
         </p>
       </div>
@@ -183,7 +183,7 @@ export default function HomePage() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPurchases}</div>
+            <div className="text-xl md:text-2xl font-bold">{stats.totalPurchases}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.paidPurchases} pagadas, {stats.pendingPurchases} pendientes
             </p>
@@ -196,7 +196,7 @@ export default function HomePage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-xl md:text-2xl font-bold break-words">
               S/. {stats.totalPurchaseAmount.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -213,7 +213,7 @@ export default function HomePage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-xl md:text-2xl font-bold text-orange-600 break-words">
               S/. {stats.pendingAmount.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">Por pagar</p>
@@ -226,46 +226,59 @@ export default function HomePage() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+            <div className="text-xl md:text-2xl font-bold">{stats.totalProducts}</div>
             <p className="text-xs text-muted-foreground mt-1">En el catálogo</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
         {/* Compras por Mes */}
         <Card>
           <CardHeader>
-            <CardTitle>Compras por Mes</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-base md:text-lg">Compras por Mes</CardTitle>
+            <CardDescription className="text-xs md:text-sm">
               Monto total de compras en los últimos 6 meses
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-0 sm:px-2 md:px-6">
             {purchasesByMonth.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                <BarChart data={purchasesByMonth}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    className="stroke-muted"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 12 }}
-                    tickLine={false}
-                  />
-                  <YAxis tick={{ fontSize: 12 }} tickLine={false} />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar
-                    dataKey="total"
-                    fill="var(--chart-1)"
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ChartContainer>
+              <div className="w-full overflow-x-auto">
+                <ChartContainer config={chartConfig} className="h-[280px] sm:h-[300px] w-full min-w-[300px]">
+                  <BarChart
+                    data={purchasesByMonth}
+                    margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      className="stroke-muted"
+                    />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 10 }}
+                      tickLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                      interval={0}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 10 }}
+                      tickLine={false}
+                      width={40}
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar
+                      dataKey="total"
+                      fill="var(--chart-1)"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[280px] sm:h-[300px] flex items-center justify-center text-muted-foreground text-sm">
                 No hay datos disponibles
               </div>
             )}
@@ -275,52 +288,54 @@ export default function HomePage() {
         {/* Estado de Compras */}
         <Card>
           <CardHeader>
-            <CardTitle>Estado de Compras</CardTitle>
-            <CardDescription>Distribución por estado</CardDescription>
+            <CardTitle className="text-base md:text-lg">Estado de Compras</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Distribución por estado</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 md:px-6">
             {purchasesByStatus.length > 0 ? (
               <div className="space-y-4">
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-[240px] w-full"
-                >
-                  <PieChart>
-                    <Pie
-                      data={purchasesByStatus}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                      nameKey="name"
-                    >
-                      {purchasesByStatus.map((entry) => (
-                        <Cell
-                          key={`cell-${entry.name}`}
-                          fill={
-                            chartConfig[entry.name as keyof typeof chartConfig]
-                              ?.color || "var(--chart-1)"
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ChartContainer>
-                <div className="flex justify-center gap-4 flex-wrap">
+                <div className="w-full flex justify-center">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-[200px] sm:h-[220px] md:h-[240px] w-full max-w-[280px] sm:max-w-full"
+                  >
+                    <PieChart>
+                      <Pie
+                        data={purchasesByStatus}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={65}
+                        paddingAngle={5}
+                        dataKey="value"
+                        nameKey="name"
+                      >
+                        {purchasesByStatus.map((entry) => (
+                          <Cell
+                            key={`cell-${entry.name}`}
+                            fill={
+                              chartConfig[entry.name as keyof typeof chartConfig]
+                                ?.color || "var(--chart-1)"
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ChartContainer>
+                </div>
+                <div className="flex justify-center gap-2 md:gap-4 flex-wrap px-2">
                   {purchasesByStatus.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-2">
+                    <div key={entry.name} className="flex items-center gap-1 md:gap-2">
                       <div
-                        className="h-3 w-3 rounded-full"
+                        className="h-3 w-3 rounded-full flex-shrink-0"
                         style={{
                           backgroundColor:
                             chartConfig[entry.name as keyof typeof chartConfig]
                               ?.color || "var(--chart-1)",
                         }}
                       />
-                      <span className="text-sm">
+                      <span className="text-xs md:text-sm whitespace-nowrap">
                         {chartConfig[entry.name as keyof typeof chartConfig]
                           ?.label || entry.name}
                         : {entry.value}
@@ -330,7 +345,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[200px] sm:h-[220px] md:h-[240px] flex items-center justify-center text-muted-foreground text-sm">
                 No hay datos disponibles
               </div>
             )}
@@ -340,51 +355,52 @@ export default function HomePage() {
         {/* Tipo de Pago */}
         <Card>
           <CardHeader>
-            <CardTitle>Tipo de Pago</CardTitle>
-            <CardDescription>Distribución por método de pago</CardDescription>
+            <CardTitle className="text-base md:text-lg">Tipo de Pago</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Distribución por método de pago</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 md:px-6">
             {purchasesByPaymentType.length > 0 ? (
               <div className="space-y-4">
-                <ChartContainer
-                  config={chartConfig}
-                  className="h-[240px] w-full"
-                >
-                  <PieChart>
-                    <Pie
-                      data={purchasesByPaymentType}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      nameKey="name"
-                      label
-                    >
-                      {purchasesByPaymentType.map((entry) => (
-                        <Cell
-                          key={`cell-${entry.name}`}
-                          fill={
-                            chartConfig[entry.name as keyof typeof chartConfig]
-                              ?.color || "var(--chart-2)"
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                  </PieChart>
-                </ChartContainer>
-                <div className="flex justify-center gap-4 flex-wrap">
+                <div className="w-full flex justify-center">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-[200px] sm:h-[220px] md:h-[240px] w-full max-w-[280px] sm:max-w-full"
+                  >
+                    <PieChart>
+                      <Pie
+                        data={purchasesByPaymentType}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={65}
+                        dataKey="value"
+                        nameKey="name"
+                      >
+                        {purchasesByPaymentType.map((entry) => (
+                          <Cell
+                            key={`cell-${entry.name}`}
+                            fill={
+                              chartConfig[entry.name as keyof typeof chartConfig]
+                                ?.color || "var(--chart-2)"
+                            }
+                          />
+                        ))}
+                      </Pie>
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                    </PieChart>
+                  </ChartContainer>
+                </div>
+                <div className="flex justify-center gap-2 md:gap-4 flex-wrap px-2">
                   {purchasesByPaymentType.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-2">
+                    <div key={entry.name} className="flex items-center gap-1 md:gap-2">
                       <div
-                        className="h-3 w-3 rounded-full"
+                        className="h-3 w-3 rounded-full flex-shrink-0"
                         style={{
                           backgroundColor:
                             chartConfig[entry.name as keyof typeof chartConfig]
                               ?.color || "var(--chart-2)",
                         }}
                       />
-                      <span className="text-sm">
+                      <span className="text-xs md:text-sm whitespace-nowrap">
                         {chartConfig[entry.name as keyof typeof chartConfig]
                           ?.label || entry.name}
                         : {entry.value}
@@ -394,7 +410,7 @@ export default function HomePage() {
                 </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="h-[200px] sm:h-[220px] md:h-[240px] flex items-center justify-center text-muted-foreground text-sm">
                 No hay datos disponibles
               </div>
             )}
@@ -404,38 +420,38 @@ export default function HomePage() {
         {/* Resumen de Pagos */}
         <Card>
           <CardHeader>
-            <CardTitle>Resumen Financiero</CardTitle>
-            <CardDescription>Estado de pagos y saldos</CardDescription>
+            <CardTitle className="text-base md:text-lg">Resumen Financiero</CardTitle>
+            <CardDescription className="text-xs md:text-sm">Estado de pagos y saldos</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <span className="font-medium">Pagado</span>
+              <div className="flex items-center justify-between p-2 md:p-3 bg-green-50 dark:bg-green-950 rounded-lg gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                  <span className="font-medium text-sm md:text-base">Pagado</span>
                 </div>
-                <span className="text-lg font-bold text-green-600">
+                <span className="text-sm md:text-lg font-bold text-green-600 whitespace-nowrap">
                   S/.{" "}
                   {(stats.totalPurchaseAmount - stats.pendingAmount).toFixed(2)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-orange-600" />
-                  <span className="font-medium">Pendiente</span>
+              <div className="flex items-center justify-between p-2 md:p-3 bg-orange-50 dark:bg-orange-950 rounded-lg gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
+                  <span className="font-medium text-sm md:text-base">Pendiente</span>
                 </div>
-                <span className="text-lg font-bold text-orange-600">
+                <span className="text-sm md:text-lg font-bold text-orange-600 whitespace-nowrap">
                   S/. {stats.pendingAmount.toFixed(2)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  <span className="font-medium">Progreso de Pago</span>
+              <div className="flex items-center justify-between p-2 md:p-3 bg-blue-50 dark:bg-blue-950 rounded-lg gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
+                  <span className="font-medium text-sm md:text-base">Progreso de Pago</span>
                 </div>
-                <span className="text-lg font-bold text-blue-600">
+                <span className="text-sm md:text-lg font-bold text-blue-600 whitespace-nowrap">
                   {stats.totalPurchaseAmount > 0
                     ? (
                         ((stats.totalPurchaseAmount - stats.pendingAmount) /
@@ -449,23 +465,23 @@ export default function HomePage() {
             </div>
 
             <div className="pt-4 border-t">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">
+              <div className="flex justify-between items-center mb-2 gap-2">
+                <span className="text-xs md:text-sm text-muted-foreground">
                   Total Compras
                 </span>
-                <Badge variant="outline">{stats.totalPurchases}</Badge>
+                <Badge variant="outline" className="text-xs">{stats.totalPurchases}</Badge>
               </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-muted-foreground">
+              <div className="flex justify-between items-center mb-2 gap-2">
+                <span className="text-xs md:text-sm text-muted-foreground">
                   Compras Pagadas
                 </span>
-                <Badge variant="default">{stats.paidPurchases}</Badge>
+                <Badge variant="default" className="text-xs">{stats.paidPurchases}</Badge>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">
+              <div className="flex justify-between items-center gap-2">
+                <span className="text-xs md:text-sm text-muted-foreground">
                   Compras Pendientes
                 </span>
-                <Badge variant="secondary">{stats.pendingPurchases}</Badge>
+                <Badge variant="secondary" className="text-xs">{stats.pendingPurchases}</Badge>
               </div>
             </div>
           </CardContent>

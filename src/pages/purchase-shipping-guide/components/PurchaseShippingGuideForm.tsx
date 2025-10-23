@@ -95,6 +95,45 @@ export const PurchaseShippingGuideForm = ({
   const selectedProductId = detailTempForm.watch("temp_product_id");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnit = detailTempForm.watch("temp_unit");
+  const selectedPurchaseId = form.watch("purchase_id");
+
+  // Auto-llenar datos cuando se selecciona una compra
+  useEffect(() => {
+    if (!selectedPurchaseId || selectedPurchaseId === "" || mode !== "create") {
+      return;
+    }
+
+    const selectedPurchase = purchases.find(
+      (p) => p.id.toString() === selectedPurchaseId
+    );
+
+    if (!selectedPurchase) return;
+
+    // Auto-llenar datos del proveedor en dirección de origen
+    if (selectedPurchase.supplier_fullname) {
+      form.setValue(
+        "origin_address",
+        `Proveedor: ${selectedPurchase.supplier_fullname}`
+      );
+    }
+
+    // Auto-llenar detalles de productos de la compra
+    if (selectedPurchase.details && selectedPurchase.details.length > 0) {
+      const purchaseDetails: DetailRow[] = selectedPurchase.details.map(
+        (detail) => {
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product_name,
+            quantity: detail.quantity,
+            unit: "UND", // Unidad por defecto
+          };
+        }
+      );
+
+      setDetails(purchaseDetails);
+      form.setValue("details", purchaseDetails);
+    }
+  }, [selectedPurchaseId, purchases, form, mode]);
 
   // Sincronizar detalles
   useEffect(() => {

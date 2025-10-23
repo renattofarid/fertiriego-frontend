@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { type Control } from "react-hook-form";
 import { useState } from "react";
 import React from "react";
 import {
@@ -29,7 +30,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import type { Control } from "react-hook-form";
 import type { Option } from "@/lib/core.interface";
 
 interface FormSelectProps {
@@ -39,9 +39,12 @@ interface FormSelectProps {
   placeholder?: string;
   options: Option[];
   control: Control<any>;
+  portalContainer?: HTMLElement | null;
   disabled?: boolean;
   tooltip?: string | React.ReactNode;
   strictFilter?: boolean;
+  classNameOption?: string;
+  withValue?: boolean;
 }
 
 export function FormSelect({
@@ -54,6 +57,8 @@ export function FormSelect({
   disabled,
   tooltip,
   strictFilter = false,
+  classNameOption,
+  withValue = true,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -66,7 +71,7 @@ export function FormSelect({
         const selected = options.find((opt) => opt.value === field.value);
 
         return (
-          <FormItem className="flex flex-col justify-start">
+          <FormItem className="flex flex-col justify-between">
             {typeof label === "function" ? (
               label()
             ) : (
@@ -176,10 +181,18 @@ export function FormSelect({
                               : "opacity-0"
                           )}
                         />
-                        <div className="min-w-0 flex-1">
-                          {typeof option.label === "function"
-                            ? option.label()
-                            : option.label}
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className={cn("truncate", classNameOption)}>
+                            {typeof option.label === "function"
+                              ? option.label()
+                              : option.label}
+                          </span>
+                          {option.description && (
+                            <span className="text-[10px] text-muted-foreground truncate">
+                              {withValue && `${option.value} - `}{" "}
+                              {option.description}
+                            </span>
+                          )}
                         </div>
                       </CommandItem>
                     ))}

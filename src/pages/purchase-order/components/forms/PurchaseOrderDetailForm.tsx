@@ -75,7 +75,11 @@ export function PurchaseOrderDetailForm({
   };
 
   const handleSubmit = () => {
-    if (!formData.product_id || !formData.quantity_requested || !formData.unit_price_estimated) {
+    if (
+      !formData.product_id ||
+      !formData.quantity_requested ||
+      !formData.unit_price_estimated
+    ) {
       return;
     }
 
@@ -114,6 +118,7 @@ export function PurchaseOrderDetailForm({
           options={products.map((product) => ({
             value: product.id.toString(),
             label: product.name,
+            description: product.category_name,
           }))}
         />
 
