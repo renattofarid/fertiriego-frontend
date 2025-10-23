@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseInstallmentResource } from "../../lib/purchase.interface";
 import { usePurchasePaymentStore } from "../../lib/purchase-payment.store";
+import { usePurchaseInstallmentStore } from "../../lib/purchase-installment.store";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PurchasePaymentTable } from "../PurchasePaymentTable";
 import { PurchasePaymentForm } from "../forms/PurchasePaymentForm";
@@ -21,15 +22,18 @@ interface InstallmentPaymentsSheetProps {
   open: boolean;
   onClose: () => void;
   installment: PurchaseInstallmentResource | null;
+  onPaymentSuccess?: () => void;
 }
 
 export function InstallmentPaymentsSheet({
   open,
   onClose,
   installment,
+  onPaymentSuccess,
 }: InstallmentPaymentsSheetProps) {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [editingPaymentId, setEditingPaymentId] = useState<number | null>(null);
+  const [currentInstallment, setCurrentInstallment] = useState<PurchaseInstallmentResource | null>(installment);
 
   const { user } = useAuthStore();
 
@@ -44,11 +48,25 @@ export function InstallmentPaymentsSheet({
     resetPayment,
   } = usePurchasePaymentStore();
 
+  const {
+    installment: updatedInstallment,
+    fetchInstallment,
+  } = usePurchaseInstallmentStore();
+
   useEffect(() => {
     if (installment && open) {
+      setCurrentInstallment(installment);
       fetchPayments(installment.id);
+      fetchInstallment(installment.id);
     }
   }, [installment, open]);
+
+  // Actualizar el estado local cuando llegue la cuota actualizada del store
+  useEffect(() => {
+    if (updatedInstallment) {
+      setCurrentInstallment(updatedInstallment);
+    }
+  }, [updatedInstallment]);
 
   useEffect(() => {
     if (editingPaymentId) {
@@ -89,16 +107,24 @@ export function InstallmentPaymentsSheet({
       }
       setShowPaymentForm(false);
       setEditingPaymentId(null);
-      fetchPayments(installment.id);
+      
+      // Refrescar pagos y cuota actualizada
+      await fetchPayments(installment.id);
+      await fetchInstallment(installment.id);
+      
+      // Notificar al componente padre que hubo un pago exitoso
+      if (onPaymentSuccess) {
+        onPaymentSuccess();
+      }
     } catch (error: any) {
       errorToast(error.response?.data?.message || "Error al guardar el pago");
     }
   };
 
-  if (!installment) return null;
+  if (!currentInstallment) return null;
 
   const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.total_paid.toString()), 0) || 0;
-  const pending = parseFloat(installment.pending_amount.toString());
+  const pending = parseFloat(currentInstallment.pending_amount.toString());
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -106,7 +132,7 @@ export function InstallmentPaymentsSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5" />
-            Pagos de Cuota {installment.correlativo}
+            Pagos de Cuota {currentInstallment.correlativo}
           </SheetTitle>
           <SheetDescription>
             Gestiona los pagos realizados a esta cuota
@@ -122,28 +148,28 @@ export function InstallmentPaymentsSheet({
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Cuota #:</span>
-                <p className="font-semibold text-lg">{installment.installment_number}</p>
+                <p className="font-semibold text-lg">{currentInstallment.installment_number}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Estado:</span>
                 <div className="mt-1">
                   <Badge
                     variant={
-                      installment.status === "PAGADO"
+                      currentInstallment.status === "PAGADO"
                         ? "default"
-                        : installment.status === "VENCIDO"
+                        : currentInstallment.status === "VENCIDO"
                           ? "destructive"
                           : "secondary"
                     }
                   >
-                    {installment.status}
+                    {currentInstallment.status}
                   </Badge>
                 </div>
               </div>
               <div>
                 <span className="text-muted-foreground">Fecha Vencimiento:</span>
                 <p className="font-semibold">
-                  {new Date(installment.due_date).toLocaleDateString("es-ES", {
+                  {new Date(currentInstallment.due_date).toLocaleDateString("es-ES", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
@@ -153,7 +179,7 @@ export function InstallmentPaymentsSheet({
               <div>
                 <span className="text-muted-foreground">Monto Original:</span>
                 <p className="font-bold text-lg">
-                  {parseFloat(installment.amount).toFixed(2)}
+                  {parseFloat(currentInstallment.amount).toFixed(2)}
                 </p>
               </div>
               <div>
@@ -202,7 +228,7 @@ export function InstallmentPaymentsSheet({
               <PurchasePaymentTable
                 payments={payments || []}
                 onEdit={handleEditPayment}
-                onRefresh={() => installment && fetchPayments(installment.id)}
+                onRefresh={() => currentInstallment && fetchPayments(currentInstallment.id)}
               />
             </>
           )}
