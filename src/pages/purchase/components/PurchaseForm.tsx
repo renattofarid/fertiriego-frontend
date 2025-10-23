@@ -367,7 +367,7 @@ export const PurchaseForm = ({
 
   const handleFormSubmit = (data: any) => {
     // Validar que si es a crédito, debe tener cuotas
-    if (selectedPaymentType === "credito" && installments.length === 0) {
+    if (selectedPaymentType === "CREDITO" && installments.length === 0) {
       errorToast("Para pagos a crédito, debe agregar al menos una cuota");
       return;
     }
@@ -673,13 +673,11 @@ export const PurchaseForm = ({
           </Card>
         )}
 
-        {/* Cuotas */}
-        {mode === "create" && (
+        {/* Cuotas - Solo mostrar si es a crédito */}
+        {mode === "create" && selectedPaymentType === "CREDITO" && (
           <Card>
             <CardHeader>
-              <CardTitle>
-                Cuotas {selectedPaymentType === "credito" ? "(Obligatorio)" : "(Opcional)"}
-              </CardTitle>
+              <CardTitle>Cuotas (Obligatorio)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
@@ -822,7 +820,7 @@ export const PurchaseForm = ({
               isSubmitting ||
               !form.formState.isValid ||
               (mode === "create" && details.length === 0) ||
-              (mode === "create" && selectedPaymentType === "credito" && installments.length === 0) ||
+              (mode === "create" && selectedPaymentType === "CREDITO" && installments.length === 0) ||
               (mode === "create" && installments.length > 0 && !installmentsMatchTotal())
             }
           >
