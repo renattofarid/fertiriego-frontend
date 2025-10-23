@@ -134,19 +134,6 @@ export const PurchaseForm = ({
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
   const selectedAmount = installmentTempForm.watch("temp_amount");
 
-  // Sincronizar detalles
-  useEffect(() => {
-    detailTempForm.setValue("temp_product_id", currentDetail.product_id);
-    detailTempForm.setValue("temp_quantity", currentDetail.quantity);
-    detailTempForm.setValue("temp_unit_price", currentDetail.unit_price);
-  }, [currentDetail, detailTempForm]);
-
-  // Sincronizar cuotas
-  useEffect(() => {
-    installmentTempForm.setValue("temp_due_days", currentInstallment.due_days);
-    installmentTempForm.setValue("temp_amount", currentInstallment.amount);
-  }, [currentInstallment, installmentTempForm]);
-
   // Observers para detalles
   useEffect(() => {
     if (selectedProductId !== currentDetail.product_id) {
@@ -305,18 +292,30 @@ export const PurchaseForm = ({
       form.setValue("details", updatedDetails);
     }
 
-    setCurrentDetail({
+    // Limpiar formulario y estado
+    const emptyDetail = {
       product_id: "",
       quantity: "",
       unit_price: "",
       tax: "",
       subtotal: 0,
       total: 0,
+    };
+    setCurrentDetail(emptyDetail);
+    detailTempForm.reset({
+      temp_product_id: "",
+      temp_quantity: "",
+      temp_unit_price: "",
     });
   };
 
   const handleEditDetail = (index: number) => {
-    setCurrentDetail(details[index]);
+    const detail = details[index];
+    setCurrentDetail(detail);
+    // Actualizar formulario temporal manualmente
+    detailTempForm.setValue("temp_product_id", detail.product_id);
+    detailTempForm.setValue("temp_quantity", detail.quantity);
+    detailTempForm.setValue("temp_unit_price", detail.unit_price);
     setEditingDetailIndex(index);
   };
 
@@ -378,7 +377,11 @@ export const PurchaseForm = ({
   };
 
   const handleEditInstallment = (index: number) => {
-    setCurrentInstallment(installments[index]);
+    const inst = installments[index];
+    setCurrentInstallment(inst);
+    // Actualizar formulario temporal manualmente
+    installmentTempForm.setValue("temp_due_days", inst.due_days);
+    installmentTempForm.setValue("temp_amount", inst.amount);
     setEditingInstallmentIndex(index);
   };
 
@@ -419,10 +422,18 @@ export const PurchaseForm = ({
       return;
     }
 
+    // Filtrar cuotas válidas y convertir a números
+    const validInstallments = installments
+      .filter(inst => inst.due_days && inst.amount)
+      .map(inst => ({
+        due_days: inst.due_days,
+        amount: inst.amount,
+      }));
+
     onSubmit({
       ...data,
       details,
-      installments,
+      installments: validInstallments,
     });
   };
 
