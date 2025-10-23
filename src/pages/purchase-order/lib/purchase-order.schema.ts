@@ -40,7 +40,7 @@ export const purchaseOrderSchemaCreate = z.object({
     .string()
     .max(500, { message: "Las observaciones no pueden exceder 500 caracteres" })
     .optional()
-    .default(""),
+    .or(z.literal("")),
   details: z
     .array(purchaseOrderDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),

@@ -91,7 +91,7 @@ export const PurchasePage = () => {
     }
   };
 
-  const handleCloseManagementSheet = () => {
+  const handleCloseManagementSheet = async () => {
     setIsManagementSheetOpen(false);
     setSelectedPurchase(null);
     const filterParams = {
@@ -101,10 +101,10 @@ export const PurchasePage = () => {
       ...(selectedStatus && { status: selectedStatus }),
       ...(selectedPaymentType && { payment_type: selectedPaymentType }),
     };
-    refetch(filterParams);
+    await refetch(filterParams);
   };
 
-  const handleClosePaymentSheet = () => {
+  const handleClosePaymentSheet = async () => {
     setIsPaymentSheetOpen(false);
     setSelectedInstallment(null);
     const filterParams = {
@@ -114,7 +114,19 @@ export const PurchasePage = () => {
       ...(selectedStatus && { status: selectedStatus }),
       ...(selectedPaymentType && { payment_type: selectedPaymentType }),
     };
-    refetch(filterParams);
+    await refetch(filterParams);
+  };
+
+  const handlePaymentSuccess = async () => {
+    // Refrescar los datos inmediatamente después de un pago exitoso
+    const filterParams = {
+      page,
+      search,
+      per_page,
+      ...(selectedStatus && { status: selectedStatus }),
+      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
+    };
+    await refetch(filterParams);
   };
 
   return (
@@ -174,6 +186,7 @@ export const PurchasePage = () => {
         open={isPaymentSheetOpen}
         onClose={handleClosePaymentSheet}
         installment={selectedInstallment}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </div>
   );
