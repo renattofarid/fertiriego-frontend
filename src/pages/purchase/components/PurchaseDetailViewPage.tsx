@@ -211,6 +211,7 @@ export const PurchaseDetailViewPage = () => {
                   details={details || []}
                   onEdit={() => {}}
                   onRefresh={() => {}}
+                  isPurchasePaid={purchase.status === 'PAGADA'}
                 />
               </CardContent>
             </Card>

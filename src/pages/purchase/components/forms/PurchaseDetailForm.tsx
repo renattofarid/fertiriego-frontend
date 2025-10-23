@@ -56,12 +56,20 @@ export function PurchaseDetailForm({
 
   useEffect(() => {
     const subscription = form.watch((values) => {
+      const quantity = parseFloat(values.quantity || "0");
+      const price = parseFloat(values.unit_price || "0");
+      const subtotal = quantity * price;
+      const calculatedTax = subtotal * 0.18; // IGV 18% automático
+
       setFormData({
         product_id: values.product_id || "",
         quantity: values.quantity || "",
         unit_price: values.unit_price || "",
-        tax: values.tax || "",
+        tax: calculatedTax.toFixed(2),
       });
+
+      // Actualizar el valor del campo tax en el formulario
+      form.setValue("tax", calculatedTax.toFixed(2));
     });
     return () => subscription.unsubscribe();
   }, [form]);
@@ -72,9 +80,14 @@ export function PurchaseDetailForm({
     return quantity * price;
   };
 
+  const calculateTax = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.18; // IGV 18%
+  };
+
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const tax = parseFloat(formData.tax) || 0;
+    const tax = calculateTax();
     return subtotal + tax;
   };
 
@@ -142,23 +155,12 @@ export function PurchaseDetailForm({
           )}
         />
 
+        {/* Campo oculto para el IGV */}
         <FormField
           control={form.control}
           name="tax"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Impuesto (IGV)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  variant="primary"
-                  placeholder="0.00"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+            <input type="hidden" {...field} />
           )}
         />
 
@@ -169,7 +171,13 @@ export function PurchaseDetailForm({
               {calculateSubtotal().toFixed(2)}
             </span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center text-blue-600">
+            <span className="font-semibold">IGV (18%):</span>
+            <span className="text-lg font-semibold">
+              {calculateTax().toFixed(2)}
+            </span>
+          </div>
+          <div className="flex justify-between items-center border-t pt-2">
             <span className="font-semibold">Total:</span>
             <span className="text-lg font-bold text-green-600">
               {calculateTotal().toFixed(2)}

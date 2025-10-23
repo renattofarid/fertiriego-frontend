@@ -152,9 +152,14 @@ export function PurchaseManagementSheet({
   if (!purchase) return null;
 
   // Determinar si se pueden agregar detalles o cuotas
-  const isPaid = purchase.status === "PAGADA";
+  const isPaid = purchase.status === "PAGADO";
   const isCash = purchase.payment_type === "CONTADO";
-  const canAddDetails = !isPaid && !isCash;
+  const hasPayments = parseFloat(purchase.total_amount) !== parseFloat(purchase.current_amount);
+
+  // Para detalles: NO se puede si está pagada O (es al contado Y tiene pagos)
+  const canAddDetails = !isPaid && !(isCash && hasPayments);
+
+  // Para cuotas: NO se puede si está pagada O es al contado
   const canAddInstallments = !isPaid && !isCash;
 
   return (
@@ -280,14 +285,14 @@ export function PurchaseManagementSheet({
                     <p className="text-sm text-muted-foreground text-center">
                       {isPaid
                         ? "No se pueden agregar detalles a una compra pagada"
-                        : "No se pueden agregar detalles a pagos al contado"}
+                        : "No se pueden agregar detalles a pagos al contado con pagos registrados"}
                     </p>
                   )}
                   <PurchaseDetailTable
                     details={details || []}
                     onEdit={handleEditDetail}
                     onRefresh={() => purchase && fetchDetails(purchase.id)}
-                    isPurchasePaid={isPaid}
+                    isPurchasePaid={isPaid || (isCash && hasPayments)}
                   />
                 </>
               )}
@@ -334,6 +339,7 @@ export function PurchaseManagementSheet({
                     installments={installments || []}
                     onEdit={handleEditInstallment}
                     onRefresh={() => purchase && fetchInstallments(purchase.id)}
+                    isCashPayment={isCash}
                   />
                 </>
               )}

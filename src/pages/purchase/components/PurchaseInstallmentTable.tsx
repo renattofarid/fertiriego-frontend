@@ -21,11 +21,13 @@ interface PurchaseInstallmentTableProps {
   installments: PurchaseInstallmentResource[];
   onEdit: (installmentId: number) => void;
   onRefresh: () => void;
+  isCashPayment?: boolean;
 }
 
 export function PurchaseInstallmentTable({
   installments,
   onEdit,
+  isCashPayment = false,
 }: PurchaseInstallmentTableProps) {
   const calculateTotal = () => {
     return installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
@@ -92,7 +94,7 @@ export function PurchaseInstallmentTable({
               </TableCell>
               <TableCell>{getStatusBadge(inst.status)}</TableCell>
               <TableCell className="text-center">
-                {inst.status === "PAGADO" ? (
+                {inst.status === "PAGADO" || isCashPayment ? (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -108,7 +110,11 @@ export function PurchaseInstallmentTable({
                         </span>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>No se puede editar una cuota pagada</p>
+                        <p>
+                          {inst.status === "PAGADO"
+                            ? "No se puede editar una cuota pagada"
+                            : "No se puede editar una cuota de pago al contado"}
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

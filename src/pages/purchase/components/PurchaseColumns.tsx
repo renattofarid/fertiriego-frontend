@@ -184,35 +184,44 @@ export const getPurchaseColumns = ({
     {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Detalle
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManage(row.original)}>
-              <Settings className="mr-2 h-4 w-4" />
-              Gestionar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(row.original.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const isPaid = row.original.status === "PAGADA";
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Detalle
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onManage(row.original)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Gestionar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !isPaid && onEdit(row.original)}
+                disabled={isPaid}
+                className={isPaid ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Editar {isPaid && "(Pagado)"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !isPaid && onDelete(row.original.id)}
+                disabled={isPaid}
+                className={isPaid ? "opacity-50 cursor-not-allowed" : "text-red-600"}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar {isPaid && "(Pagado)"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
