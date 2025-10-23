@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit } from "lucide-react";
+import { Edit, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -22,12 +22,16 @@ interface PurchaseInstallmentTableProps {
   onEdit: (installmentId: number) => void;
   onRefresh: () => void;
   isCashPayment?: boolean;
+  purchaseTotalAmount?: number;
+  onSyncInstallment?: (installmentId: number, newAmount: number) => void;
 }
 
 export function PurchaseInstallmentTable({
   installments,
   onEdit,
   isCashPayment = false,
+  purchaseTotalAmount,
+  onSyncInstallment,
 }: PurchaseInstallmentTableProps) {
   const calculateTotal = () => {
     return installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
@@ -94,39 +98,66 @@ export function PurchaseInstallmentTable({
               </TableCell>
               <TableCell>{getStatusBadge(inst.status)}</TableCell>
               <TableCell className="text-center">
-                {inst.status === "PAGADO" || isCashPayment ? (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            disabled
-                            className="cursor-not-allowed"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>
-                          {inst.status === "PAGADO"
-                            ? "No se puede editar una cuota pagada"
-                            : "No se puede editar una cuota de pago al contado"}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(inst.id)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                )}
+                <div className="flex justify-center gap-2">
+                  {inst.status === "PAGADO" || isCashPayment ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              disabled
+                              className="cursor-not-allowed"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {inst.status === "PAGADO"
+                              ? "No se puede editar una cuota pagada"
+                              : "No se puede editar una cuota de pago al contado"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(inst.id)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  )}
+
+                  {/* Botón de sincronizar para cuotas al contado desincronizadas */}
+                  {isCashPayment &&
+                    purchaseTotalAmount &&
+                    onSyncInstallment &&
+                    parseFloat(inst.pending_amount) === parseFloat(inst.amount) &&
+                    Math.abs(parseFloat(inst.amount) - purchaseTotalAmount) > 0.01 && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onSyncInstallment(inst.id, purchaseTotalAmount)}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Sincronizar con total de compra ({purchaseTotalAmount.toFixed(2)})</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                </div>
               </TableCell>
             </TableRow>
           ))}

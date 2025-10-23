@@ -149,6 +149,20 @@ export function PurchaseManagementSheet({
     }
   };
 
+  const handleSyncInstallment = async (installmentId: number, newAmount: number) => {
+    if (!purchase) return;
+
+    try {
+      await updateInstallment(installmentId, {
+        amount: newAmount.toFixed(2),
+      });
+      successToast("Cuota sincronizada exitosamente");
+      fetchInstallments(purchase.id);
+    } catch (error: any) {
+      errorToast(error.response?.data?.message || "Error al sincronizar la cuota");
+    }
+  };
+
   if (!purchase) return null;
 
   // Determinar si se pueden agregar detalles o cuotas
@@ -340,6 +354,8 @@ export function PurchaseManagementSheet({
                     onEdit={handleEditInstallment}
                     onRefresh={() => purchase && fetchInstallments(purchase.id)}
                     isCashPayment={isCash}
+                    purchaseTotalAmount={parseFloat(purchase.total_amount)}
+                    onSyncInstallment={handleSyncInstallment}
                   />
                 </>
               )}
