@@ -1,6 +1,7 @@
 "use client";
 
 import { useNavigate } from "react-router-dom";
+import { useRef } from "react";
 import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
@@ -23,6 +24,7 @@ const { MODEL } = PURCHASE_ORDER;
 
 export default function PurchaseOrderAddPage() {
   const navigate = useNavigate();
+  const isSubmittingRef = useRef(false);
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
@@ -43,7 +45,10 @@ export default function PurchaseOrderAddPage() {
   });
 
   const handleSubmit = async (data: PurchaseOrderSchema) => {
-    if (isSubmitting) return; // Prevenir múltiples envíos
+    // Doble protección: ref inmediato + estado del store
+    if (isSubmittingRef.current || isSubmitting) return;
+
+    isSubmittingRef.current = true;
 
     try {
       await createPurchaseOrder(data);
@@ -56,6 +61,8 @@ export default function PurchaseOrderAddPage() {
       errorToast(
         error.response?.data?.message || ERROR_MESSAGE(MODEL, "create")
       );
+      // Solo resetear el ref en caso de error (en éxito, navega)
+      isSubmittingRef.current = false;
     }
   };
 
