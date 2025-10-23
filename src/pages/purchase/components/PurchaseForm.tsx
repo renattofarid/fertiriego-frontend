@@ -20,7 +20,6 @@ import {
 } from "../lib/purchase.schema";
 import { Loader, Plus, Trash2, Edit } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
-import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseResource } from "../lib/purchase.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -37,8 +36,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DOCUMENT_TYPES, PAYMENT_TYPES, CURRENCIES } from "../lib/purchase.interface";
+import {
+  DOCUMENT_TYPES,
+  PAYMENT_TYPES,
+  CURRENCIES,
+} from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
+import { format } from "date-fns";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -83,7 +87,9 @@ export const PurchaseForm = ({
 }: PurchaseFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
-  const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(null);
+  const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
+    null
+  );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
     quantity: "",
@@ -95,7 +101,9 @@ export const PurchaseForm = ({
 
   // Estados para cuotas
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
-  const [editingInstallmentIndex, setEditingInstallmentIndex] = useState<number | null>(null);
+  const [editingInstallmentIndex, setEditingInstallmentIndex] = useState<
+    number | null
+  >(null);
   const [currentInstallment, setCurrentInstallment] = useState<InstallmentRow>({
     due_days: "",
     amount: "",
@@ -142,37 +150,51 @@ export const PurchaseForm = ({
   // Observers para detalles
   useEffect(() => {
     if (selectedProductId !== currentDetail.product_id) {
-      setCurrentDetail((prev) => ({ ...prev, product_id: selectedProductId || "" }));
+      setCurrentDetail((prev) => ({
+        ...prev,
+        product_id: selectedProductId || "",
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProductId]);
 
   useEffect(() => {
     if (selectedQuantity !== currentDetail.quantity) {
-      setCurrentDetail((prev) => ({ ...prev, quantity: selectedQuantity || "" }));
+      setCurrentDetail((prev) => ({
+        ...prev,
+        quantity: selectedQuantity || "",
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedQuantity]);
 
   useEffect(() => {
     if (selectedUnitPrice !== currentDetail.unit_price) {
-      setCurrentDetail((prev) => ({ ...prev, unit_price: selectedUnitPrice || "" }));
+      setCurrentDetail((prev) => ({
+        ...prev,
+        unit_price: selectedUnitPrice || "",
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
-
   // Observers para cuotas
   useEffect(() => {
     if (selectedDueDays !== currentInstallment.due_days) {
-      setCurrentInstallment((prev) => ({ ...prev, due_days: selectedDueDays || "" }));
+      setCurrentInstallment((prev) => ({
+        ...prev,
+        due_days: selectedDueDays || "",
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDueDays]);
 
   useEffect(() => {
     if (selectedAmount !== currentInstallment.amount) {
-      setCurrentInstallment((prev) => ({ ...prev, amount: selectedAmount || "" }));
+      setCurrentInstallment((prev) => ({
+        ...prev,
+        amount: selectedAmount || "",
+      }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAmount]);
@@ -195,6 +217,13 @@ export const PurchaseForm = ({
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+
+  // Establecer fecha de emisión automáticamente al cargar el formulario
+  useEffect(() => {
+    const today = new Date();
+    const formattedDate = format(today, "yyyy-MM-dd");
+    form.setValue("issue_date", formattedDate);
+  }, [form]);
 
   // Auto-llenar datos cuando se selecciona una orden de compra
   useEffect(() => {
@@ -247,7 +276,9 @@ export const PurchaseForm = ({
       return;
     }
 
-    const product = products.find((p) => p.id.toString() === currentDetail.product_id);
+    const product = products.find(
+      (p) => p.id.toString() === currentDetail.product_id
+    );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
     const subtotal = quantity * unitPrice;
@@ -318,7 +349,11 @@ export const PurchaseForm = ({
 
     // Validar que no exceda el total de la compra
     if (currentInstallmentsTotal + newAmount > purchaseTotal) {
-      errorToast(`El total de cuotas no puede exceder el total de la compra (${purchaseTotal.toFixed(2)})`);
+      errorToast(
+        `El total de cuotas no puede exceder el total de la compra (${purchaseTotal.toFixed(
+          2
+        )})`
+      );
       return;
     }
 
@@ -374,7 +409,13 @@ export const PurchaseForm = ({
 
     // Validar que las cuotas coincidan con el total si hay cuotas
     if (installments.length > 0 && !installmentsMatchTotal()) {
-      errorToast(`El total de cuotas (${calculateInstallmentsTotal().toFixed(2)}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(2)})`);
+      errorToast(
+        `El total de cuotas (${calculateInstallmentsTotal().toFixed(
+          2
+        )}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(
+          2
+        )})`
+      );
       return;
     }
 
@@ -421,7 +462,13 @@ export const PurchaseForm = ({
                 placeholder="Seleccione un proveedor"
                 options={suppliers.map((supplier) => ({
                   value: supplier.id.toString(),
-                  label: supplier.business_name ?? supplier.names + " " + supplier.father_surname + " " + supplier.mother_surname,
+                  label:
+                    supplier.business_name ??
+                    supplier.names +
+                      " " +
+                      supplier.father_surname +
+                      " " +
+                      supplier.mother_surname,
                 }))}
                 disabled={mode === "update"}
               />
@@ -465,14 +512,6 @@ export const PurchaseForm = ({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-
-              <DatePickerFormField
-                control={form.control}
-                name="issue_date"
-                label="Fecha de Emisión"
-                placeholder="Seleccione la fecha"
-                dateFormat="dd/MM/yyyy"
               />
 
               <FormSelect
@@ -615,7 +654,9 @@ export const PurchaseForm = ({
                       {details.map((detail, index) => (
                         <TableRow key={index}>
                           <TableCell>{detail.product_name}</TableCell>
-                          <TableCell className="text-right">{detail.quantity}</TableCell>
+                          <TableCell className="text-right">
+                            {detail.quantity}
+                          </TableCell>
                           <TableCell className="text-right">
                             {parseFloat(detail.unit_price).toFixed(2)}
                           </TableCell>
@@ -729,7 +770,9 @@ export const PurchaseForm = ({
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {editingInstallmentIndex !== null ? "Actualizar" : "Agregar"}
+                    {editingInstallmentIndex !== null
+                      ? "Actualizar"
+                      : "Agregar"}
                   </Button>
                 </div>
               </div>
@@ -741,16 +784,22 @@ export const PurchaseForm = ({
                       <TableHeader>
                         <TableRow>
                           <TableHead>Cuota #</TableHead>
-                          <TableHead className="text-right">Días Vencimiento</TableHead>
+                          <TableHead className="text-right">
+                            Días Vencimiento
+                          </TableHead>
                           <TableHead className="text-right">Monto</TableHead>
-                          <TableHead className="text-center">Acciones</TableHead>
+                          <TableHead className="text-center">
+                            Acciones
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {installments.map((inst, index) => (
                           <TableRow key={index}>
                             <TableCell>Cuota {index + 1}</TableCell>
-                            <TableCell className="text-right">{inst.due_days} días</TableCell>
+                            <TableCell className="text-right">
+                              {inst.due_days} días
+                            </TableCell>
                             <TableCell className="text-right font-semibold">
                               {parseFloat(inst.amount).toFixed(2)}
                             </TableCell>
@@ -777,7 +826,10 @@ export const PurchaseForm = ({
                           </TableRow>
                         ))}
                         <TableRow>
-                          <TableCell colSpan={2} className="text-right font-bold">
+                          <TableCell
+                            colSpan={2}
+                            className="text-right font-bold"
+                          >
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
@@ -792,7 +844,10 @@ export const PurchaseForm = ({
                   {!installmentsMatchTotal() && (
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                        ⚠️ El total de cuotas ({calculateInstallmentsTotal().toFixed(2)}) debe ser igual al total de la compra ({calculateDetailsTotal().toFixed(2)})
+                        ⚠️ El total de cuotas (
+                        {calculateInstallmentsTotal().toFixed(2)}) debe ser
+                        igual al total de la compra (
+                        {calculateDetailsTotal().toFixed(2)})
                       </p>
                     </div>
                   )}
@@ -820,8 +875,12 @@ export const PurchaseForm = ({
               isSubmitting ||
               !form.formState.isValid ||
               (mode === "create" && details.length === 0) ||
-              (mode === "create" && selectedPaymentType === "CREDITO" && installments.length === 0) ||
-              (mode === "create" && installments.length > 0 && !installmentsMatchTotal())
+              (mode === "create" &&
+                selectedPaymentType === "CREDITO" &&
+                installments.length === 0) ||
+              (mode === "create" &&
+                installments.length > 0 &&
+                !installmentsMatchTotal())
             }
           >
             <Loader
