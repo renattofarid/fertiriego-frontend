@@ -20,6 +20,7 @@ import type {
   PersonRoleDetailResource,
 } from "./person.interface";
 import type { Meta } from "@/lib/pagination.interface";
+import { CLIENT_ROLE_ID } from "@/pages/client/lib/client.interface";
 
 interface PersonStore {
   persons: PersonResource[] | null;
@@ -120,7 +121,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   deletePerson: async (id: number) => {
     set({ error: null });
     try {
-      await deletePerson(id);
+      await deletePerson(id, CLIENT_ROLE_ID);
     } catch (err) {
       set({ error: "Error al eliminar la persona" });
       throw err;
