@@ -52,9 +52,9 @@ export default function PurchaseOrderPage() {
       };
       await refetch(filterParams);
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : ERROR_MESSAGE(MODEL, "delete");
+        error.response.data.message || ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -77,7 +77,9 @@ export default function PurchaseOrderPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <PurchaseOrderActions onCreatePurchaseOrder={handleCreatePurchaseOrder} />
+        <PurchaseOrderActions
+          onCreatePurchaseOrder={handleCreatePurchaseOrder}
+        />
       </div>
 
       <PurchaseOrderTable
