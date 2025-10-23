@@ -9,22 +9,29 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { PurchaseDetailResource } from "../lib/purchase.interface";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { errorToast, successToast } from "@/lib/core.function";
 
 interface PurchaseDetailTableProps {
   details: PurchaseDetailResource[];
   onEdit: (detailId: number) => void;
   onRefresh: () => void;
+  isPurchasePaid?: boolean;
 }
 
 export function PurchaseDetailTable({
   details,
   onEdit,
   onRefresh,
+  isPurchasePaid = false,
 }: PurchaseDetailTableProps) {
   const { deleteDetail } = usePurchaseDetailStore();
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -34,12 +41,9 @@ export function PurchaseDetailTable({
 
     try {
       await deleteDetail(deleteId);
-      successToast("Detalle eliminado exitosamente");
       onRefresh();
     } catch (error: any) {
-      errorToast(
-        error.response?.data?.message || "Error al eliminar el detalle"
-      );
+      // El error ya se maneja en el store
     } finally {
       setDeleteId(null);
     }
@@ -102,20 +106,65 @@ export function PurchaseDetailTable({
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onEdit(detail.id)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteId(detail.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
+                    {isPurchasePaid ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled
+                                className="cursor-not-allowed"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>No se puede editar un detalle de compra pagada</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(detail.id)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    )}
+
+                    {isPurchasePaid ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled
+                                className="cursor-not-allowed"
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>No se puede eliminar un detalle de compra pagada</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDeleteId(detail.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

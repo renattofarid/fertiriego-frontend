@@ -55,36 +55,53 @@ export function PurchaseDetailForm({
   }, [detail, form]);
 
   useEffect(() => {
-    const subscription = form.watch((values) => {
-      setFormData({
-        product_id: values.product_id || "",
-        quantity: values.quantity || "",
-        unit_price: values.unit_price || "",
-        tax: values.tax || "",
-      });
+    const subscription = form.watch((values, { name }) => {
+      // Solo calcular cuando cambian quantity o unit_price, no cuando cambia tax
+      if (name === "tax") return;
+
+      const quantity = parseFloat(values.quantity || "0");
+      const price = parseFloat(values.unit_price || "0");
+      const subtotal = quantity * price;
+      const calculatedTax = subtotal * 0.18; // IGV 18% automático
+
+      // Actualizar el valor del campo tax en el formulario sin disparar el watch
+      const taxValue = calculatedTax.toFixed(2);
+      if (form.getValues("tax") !== taxValue) {
+        form.setValue("tax", taxValue, {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false
+        });
+      }
     });
     return () => subscription.unsubscribe();
   }, [form]);
 
   const calculateSubtotal = () => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const price = parseFloat(formData.unit_price) || 0;
+    const quantity = parseFloat(form.getValues("quantity") || "0");
+    const price = parseFloat(form.getValues("unit_price") || "0");
     return quantity * price;
+  };
+
+  const calculateTax = () => {
+    const subtotal = calculateSubtotal();
+    return subtotal * 0.18; // IGV 18%
   };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const tax = parseFloat(formData.tax) || 0;
+    const tax = calculateTax();
     return subtotal + tax;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const values = form.getValues();
     onSubmit({
-      product_id: Number(formData.product_id),
-      quantity: Number(formData.quantity),
-      unit_price: Number(formData.unit_price),
-      tax: Number(formData.tax),
+      product_id: Number(values.product_id),
+      quantity: Number(values.quantity),
+      unit_price: Number(values.unit_price),
+      tax: Number(values.tax),
     });
   };
 
@@ -142,23 +159,12 @@ export function PurchaseDetailForm({
           )}
         />
 
+        {/* Campo oculto para el IGV */}
         <FormField
           control={form.control}
           name="tax"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Impuesto (IGV)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  variant="primary"
-                  placeholder="0.00"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+            <input type="hidden" {...field} />
           )}
         />
 
@@ -169,7 +175,13 @@ export function PurchaseDetailForm({
               {calculateSubtotal().toFixed(2)}
             </span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center text-blue-600">
+            <span className="font-semibold">IGV (18%):</span>
+            <span className="text-lg font-semibold">
+              {calculateTax().toFixed(2)}
+            </span>
+          </div>
+          <div className="flex justify-between items-center border-t pt-2">
             <span className="font-semibold">Total:</span>
             <span className="text-lg font-bold text-green-600">
               {calculateTotal().toFixed(2)}

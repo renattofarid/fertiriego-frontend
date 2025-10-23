@@ -6,7 +6,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2, Eye, Settings, Wallet } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Edit, MoreVertical, Trash2, Eye, Settings, Wallet, AlertTriangle } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseResource } from "../lib/purchase.interface";
 
@@ -124,7 +130,7 @@ export const getPurchaseColumns = ({
         let variant: "default" | "secondary" | "destructive" = "default";
 
         if (status === "REGISTRADO") variant = "secondary";
-        if (status === "PAGADO") variant = "default";
+        if (status === "PAGADA") variant = "default";
         if (status === "CANCELADO") variant = "destructive";
 
         return <Badge variant={variant}>{status}</Badge>;
@@ -154,65 +160,111 @@ export const getPurchaseColumns = ({
           (inst) => parseFloat(inst.pending_amount) > 0
         );
 
+        // Validar que la suma de cuotas sea igual al total de la compra
+        const totalAmount = parseFloat(row.original.total_amount);
+        const sumOfInstallments = row.original.installments?.reduce(
+          (sum, inst) => sum + parseFloat(inst.amount),
+          0
+        ) || 0;
+        const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
+
         return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManage(row.original)}
-              className="h-auto p-1"
-            >
-              <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-                {row.original.installments?.length || 0} cuota(s)
-              </Badge>
-            </Button>
-            {hasPendingPayments && (
+          <TooltipProvider>
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onQuickPay(row.original)}
-                className="h-8 w-8 p-0"
-                title="Pago rápido"
+                onClick={() => onManage(row.original)}
+                className="h-auto p-1"
               >
-                <Wallet className="h-4 w-4 text-green-600" />
+                <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                  {row.original.installments?.length || 0} cuota(s)
+                </Badge>
               </Button>
-            )}
-          </div>
+
+              {!isValid && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      La suma de cuotas ({sumOfInstallments.toFixed(2)}) no coincide con el total ({totalAmount.toFixed(2)}).
+                      <br />
+                      Por favor, sincronice las cuotas.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              {hasPendingPayments && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onQuickPay(row.original)}
+                      className="h-8 w-8 p-0"
+                      disabled={!isValid}
+                    >
+                      <Wallet className={`h-4 w-4 ${isValid ? "text-green-600" : "text-gray-400"}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      {isValid
+                        ? "Pago rápido"
+                        : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </TooltipProvider>
         );
       },
     },
     {
       id: "actions",
       header: "Acciones",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Detalle
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManage(row.original)}>
-              <Settings className="mr-2 h-4 w-4" />
-              Gestionar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(row.original.id)}
-              className="text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+      cell: ({ row }) => {
+        const isPaid = row.original.status === "PAGADA";
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Detalle
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onManage(row.original)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Gestionar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !isPaid && onEdit(row.original)}
+                disabled={isPaid}
+                className={isPaid ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Editar {isPaid && "(Pagado)"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !isPaid && onDelete(row.original.id)}
+                disabled={isPaid}
+                className={isPaid ? "opacity-50 cursor-not-allowed" : "text-red-600"}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar {isPaid && "(Pagado)"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];

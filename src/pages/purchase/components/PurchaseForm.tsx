@@ -422,13 +422,25 @@ export const PurchaseForm = ({
       return;
     }
 
-    // Filtrar cuotas válidas y convertir a números
-    const validInstallments = installments
-      .filter(inst => inst.due_days && inst.amount)
-      .map(inst => ({
-        due_days: inst.due_days,
-        amount: inst.amount,
-      }));
+    // Preparar cuotas según el tipo de pago
+    let validInstallments;
+
+    if (selectedPaymentType === "CONTADO") {
+      // Para pagos al contado, crear automáticamente una cuota con el total
+      const totalAmount = calculateDetailsTotal();
+      validInstallments = [{
+        due_days: "1",
+        amount: totalAmount.toFixed(2),
+      }];
+    } else {
+      // Para pagos a crédito, usar las cuotas ingresadas
+      validInstallments = installments
+        .filter(inst => inst.due_days && inst.amount)
+        .map(inst => ({
+          due_days: inst.due_days,
+          amount: inst.amount,
+        }));
+    }
 
     onSubmit({
       ...data,

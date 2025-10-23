@@ -11,10 +11,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, CreditCard, Wallet, Edit } from "lucide-react";
+import { PackageOpen, CreditCard, Wallet, Edit, RefreshCw } from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
 import type { PurchaseInstallmentResource } from "../lib/purchase.interface";
+import { errorToast, successToast } from "@/lib/core.function";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const PurchaseDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +32,7 @@ export const PurchaseDetailViewPage = () => {
 
   const { purchase, fetchPurchase, isFinding } = usePurchaseStore();
   const { details, fetchDetails } = usePurchaseDetailStore();
-  const { installments, fetchInstallments } = usePurchaseInstallmentStore();
+  const { installments, fetchInstallments, updateInstallment } = usePurchaseInstallmentStore();
 
   useEffect(() => {
     if (!id) {
@@ -46,6 +53,28 @@ export const PurchaseDetailViewPage = () => {
   const handleViewInstallmentPayments = (installment: PurchaseInstallmentResource) => {
     setSelectedInstallment(installment);
     setIsPaymentSheetOpen(true);
+  };
+
+  const handleSyncInstallment = async (installmentId: number, newAmount: number) => {
+    if (!purchase) return;
+
+    try {
+      await updateInstallment(installmentId, {
+        amount: Number(newAmount.toFixed(2)),
+      });
+      successToast("Cuota sincronizada exitosamente");
+      fetchInstallments(Number(id));
+    } catch (error: any) {
+      errorToast(error.response?.data?.message || "Error al sincronizar la cuota");
+    }
+  };
+
+  const shouldShowSyncButton = (installment: PurchaseInstallmentResource) => {
+    if (!purchase) return false;
+    const isCash = purchase.payment_type === "CONTADO";
+    const hasNoPayments = parseFloat(installment.pending_amount) === parseFloat(installment.amount);
+    const hasDifference = Math.abs(parseFloat(installment.amount) - parseFloat(purchase.total_amount)) > 0.01;
+    return isCash && hasNoPayments && hasDifference;
   };
 
   if (isFinding) {
@@ -162,11 +191,11 @@ export const PurchaseDetailViewPage = () => {
                 <div className="mt-1">
                   <Badge
                     variant={
-                      purchase.status === "PAGADO"
+                      purchase.status === "PAGADA"
                         ? "default"
                         : purchase.status === "CANCELADO"
-                        ? "destructive"
-                        : "secondary"
+                          ? "destructive"
+                          : "secondary"
                     }
                   >
                     {purchase.status}
@@ -210,7 +239,11 @@ export const PurchaseDetailViewPage = () => {
                 <PurchaseDetailTable
                   details={details || []}
                   onEdit={() => {}}
-                  onRefresh={() => {}}
+                  onRefresh={() => {
+                    fetchDetails(Number(id));
+                    fetchPurchase(Number(id));
+                  }}
+                  isPurchasePaid={purchase?.status === "PAGADO"}
                 />
               </CardContent>
             </Card>
@@ -223,6 +256,26 @@ export const PurchaseDetailViewPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Advertencia de desincronización */}
+                  {purchase && purchase.payment_type === "CONTADO" && installments && installments.length > 0 && (() => {
+                    const totalAmount = parseFloat(purchase.total_amount);
+                    const installmentAmount = parseFloat(installments[0]?.amount || "0");
+                    const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
+                    const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                    if (hasNoPayments && hasDifference) {
+                      return (
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no coincide con el total de la compra ({totalAmount.toFixed(2)}).
+                            Debe sincronizar la cuota usando el botón "Sincronizar"
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {installments && installments.length > 0 ? (
                     installments.map((installment) => (
                       <Card key={installment.id} className="border-l-4 border-l-primary">
@@ -237,21 +290,43 @@ export const PurchaseDetailViewPage = () => {
                                   installment.status === "PAGADO"
                                     ? "default"
                                     : installment.status === "VENCIDO"
-                                    ? "destructive"
-                                    : "secondary"
+                                      ? "destructive"
+                                      : "secondary"
                                 }
                               >
                                 {installment.status}
                               </Badge>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleViewInstallmentPayments(installment)}
-                            >
-                              <Wallet className="h-4 w-4 mr-2" />
-                              Ver Pagos
-                            </Button>
+                            <div className="flex gap-2">
+                              {shouldShowSyncButton(installment) && (
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleSyncInstallment(installment.id, parseFloat(purchase?.total_amount || "0"))}
+                                        className="text-blue-600 hover:text-blue-700"
+                                      >
+                                        <RefreshCw className="h-4 w-4 mr-2" />
+                                        Sincronizar
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Sincronizar con total de compra ({purchase?.total_amount})</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewInstallmentPayments(installment)}
+                              >
+                                <Wallet className="h-4 w-4 mr-2" />
+                                Ver Pagos
+                              </Button>
+                            </div>
                           </div>
                         </CardHeader>
                         <CardContent>

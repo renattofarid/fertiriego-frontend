@@ -125,6 +125,8 @@ export function InstallmentPaymentsSheet({
 
   const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.total_paid.toString()), 0) || 0;
   const pending = parseFloat(currentInstallment.pending_amount.toString());
+  const isPaid = currentInstallment.status === "PAGADO";
+  const canAddPayment = pending > 0 && !isPaid;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -219,11 +221,23 @@ export function InstallmentPaymentsSheet({
             </Card>
           ) : (
             <>
-              {pending > 0 && (
+              {canAddPayment ? (
                 <Button onClick={handleAddPayment} className="w-full">
                   <Plus className="h-4 w-4 mr-2" />
                   Registrar Pago
                 </Button>
+              ) : isPaid ? (
+                <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-center">
+                  <p className="text-sm text-green-800 dark:text-green-200 font-semibold">
+                    ✓ Esta cuota ha sido pagada completamente
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-center">
+                  <p className="text-sm text-muted-foreground">
+                    No hay saldo pendiente en esta cuota
+                  </p>
+                </div>
               )}
               <PurchasePaymentTable
                 payments={payments || []}

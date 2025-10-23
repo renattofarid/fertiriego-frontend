@@ -21,7 +21,7 @@ import {
 } from "@/lib/core.function";
 import { PersonColumns } from "@/pages/person/components/PersonColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { WORKER } from "../lib/worker.interface";
+import { WORKER, WORKER_ROLE_ID } from "../lib/worker.interface";
 import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssignment";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -45,7 +45,7 @@ export default function WorkerPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await deletePerson(deleteId);
+      await deletePerson(deleteId, WORKER_ROLE_ID);
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {

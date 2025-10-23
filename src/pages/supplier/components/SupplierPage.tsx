@@ -15,7 +15,7 @@ import {
 } from "@/lib/core.function";
 import { PersonColumns } from "@/pages/person/components/PersonColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { SUPPLIER } from "../lib/supplier.interface";
+import { SUPPLIER, SUPPLIER_ROLE_ID } from "../lib/supplier.interface";
 import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssignment";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -39,7 +39,7 @@ export default function SupplierPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await deletePerson(deleteId);
+      await deletePerson(deleteId, SUPPLIER_ROLE_ID);
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
@@ -65,7 +65,7 @@ export default function SupplierPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <SupplierActions/>
+        <SupplierActions />
       </div>
 
       <PersonTable

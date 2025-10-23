@@ -309,13 +309,13 @@ export const CURRENCIES = [
 
 export const PURCHASE_STATUSES = [
   { value: "REGISTRADO", label: "Registrado" },
-  { value: "PAGADO", label: "Pagado" },
+  { value: "PAGADA", label: "PAGADA" },
   { value: "CANCELADO", label: "Cancelado" },
 ] as const;
 
 export const INSTALLMENT_STATUSES = [
   { value: "PENDIENTE", label: "Pendiente" },
-  { value: "PAGADO", label: "Pagado" },
+  { value: "PAGADO", label: "PAGADO" },
   { value: "VENCIDO", label: "Vencido" },
 ] as const;
 

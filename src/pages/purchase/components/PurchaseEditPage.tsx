@@ -228,6 +228,7 @@ export const PurchaseEditPage = () => {
               installments={installments || []}
               onEdit={handleEditInstallment}
               onRefresh={() => id && fetchInstallments(Number(id))}
+              isCashPayment={purchase?.payment_type === "CONTADO"}
             />
           </CardContent>
         </Card>
