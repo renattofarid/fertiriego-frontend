@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
@@ -34,7 +34,7 @@ const { MODEL } = PURCHASE_ORDER;
 export default function PurchaseOrderEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
 
@@ -42,7 +42,7 @@ export default function PurchaseOrderEditPage() {
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
-  const { updatePurchaseOrder, fetchPurchaseOrder, purchaseOrder, isFinding } =
+  const { updatePurchaseOrder, fetchPurchaseOrder, purchaseOrder, isFinding, isSubmitting } =
     usePurchaseOrderStore();
 
   const { fetchDetails, details } = usePurchaseOrderDetailStore();
@@ -80,17 +80,24 @@ export default function PurchaseOrderEditPage() {
   const handleSubmit = async (data: Partial<PurchaseOrderSchema>) => {
     if (!purchaseOrder || !id) return;
 
-    setIsSubmitting(true);
+    // Doble protección: ref inmediato + estado del store
+    if (isSubmittingRef.current || isSubmitting) return;
+
+    isSubmittingRef.current = true;
+
     try {
       await updatePurchaseOrder(Number(id), data);
       successToast(SUCCESS_MESSAGE(MODEL, "update"));
-      navigate("/ordenes-compra");
+      // Navegar después de un breve delay para que el usuario vea el toast
+      setTimeout(() => {
+        navigate("/ordenes-compra");
+      }, 500);
     } catch (error: any) {
       errorToast(
         error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
       );
-    } finally {
-      setIsSubmitting(false);
+      // Solo resetear el ref en caso de error (en éxito, navega)
+      isSubmittingRef.current = false;
     }
   };
 
