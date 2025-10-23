@@ -86,16 +86,14 @@ export function PurchaseOrderDetailForm({
       subtotal: calculateSubtotal(),
     });
 
-    // Limpiar formulario después de agregar (solo si no está editando)
-    if (!isEditing) {
-      const emptyData = {
-        product_id: "",
-        quantity_requested: "",
-        unit_price_estimated: "",
-      };
-      setFormData(emptyData);
-      form.reset(emptyData);
-    }
+    // Limpiar formulario después de agregar o actualizar
+    const emptyData = {
+      product_id: "",
+      quantity_requested: "",
+      unit_price_estimated: "",
+    };
+    setFormData(emptyData);
+    form.reset(emptyData);
   };
 
   const isFormValid =
@@ -170,9 +168,11 @@ export function PurchaseOrderDetailForm({
         </div>
 
         <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="neutral" onClick={onCancel}>
-            Cancelar
-          </Button>
+          {isEditing && (
+            <Button type="button" variant="neutral" onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
           <Button type="button" onClick={handleSubmit} disabled={!isFormValid}>
             <Plus className="mr-2 h-4 w-4" />
             {isEditing ? "Actualizar" : "Agregar"}
