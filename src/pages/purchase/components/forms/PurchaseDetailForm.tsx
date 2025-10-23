@@ -55,28 +55,31 @@ export function PurchaseDetailForm({
   }, [detail, form]);
 
   useEffect(() => {
-    const subscription = form.watch((values) => {
+    const subscription = form.watch((values, { name }) => {
+      // Solo calcular cuando cambian quantity o unit_price, no cuando cambia tax
+      if (name === "tax") return;
+
       const quantity = parseFloat(values.quantity || "0");
       const price = parseFloat(values.unit_price || "0");
       const subtotal = quantity * price;
       const calculatedTax = subtotal * 0.18; // IGV 18% automático
 
-      setFormData({
-        product_id: values.product_id || "",
-        quantity: values.quantity || "",
-        unit_price: values.unit_price || "",
-        tax: calculatedTax.toFixed(2),
-      });
-
-      // Actualizar el valor del campo tax en el formulario
-      form.setValue("tax", calculatedTax.toFixed(2));
+      // Actualizar el valor del campo tax en el formulario sin disparar el watch
+      const taxValue = calculatedTax.toFixed(2);
+      if (form.getValues("tax") !== taxValue) {
+        form.setValue("tax", taxValue, {
+          shouldDirty: false,
+          shouldTouch: false,
+          shouldValidate: false
+        });
+      }
     });
     return () => subscription.unsubscribe();
   }, [form]);
 
   const calculateSubtotal = () => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const price = parseFloat(formData.unit_price) || 0;
+    const quantity = parseFloat(form.getValues("quantity") || "0");
+    const price = parseFloat(form.getValues("unit_price") || "0");
     return quantity * price;
   };
 
@@ -93,11 +96,12 @@ export function PurchaseDetailForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const values = form.getValues();
     onSubmit({
-      product_id: Number(formData.product_id),
-      quantity: Number(formData.quantity),
-      unit_price: Number(formData.unit_price),
-      tax: Number(formData.tax),
+      product_id: Number(values.product_id),
+      quantity: Number(values.quantity),
+      unit_price: Number(values.unit_price),
+      tax: Number(values.tax),
     });
   };
 

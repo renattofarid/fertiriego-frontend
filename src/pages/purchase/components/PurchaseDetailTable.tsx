@@ -19,7 +19,6 @@ import type { PurchaseDetailResource } from "../lib/purchase.interface";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { errorToast, successToast } from "@/lib/core.function";
 
 interface PurchaseDetailTableProps {
   details: PurchaseDetailResource[];
@@ -42,12 +41,9 @@ export function PurchaseDetailTable({
 
     try {
       await deleteDetail(deleteId);
-      successToast("Detalle eliminado exitosamente");
       onRefresh();
     } catch (error: any) {
-      errorToast(
-        error.response?.data?.message || "Error al eliminar el detalle"
-      );
+      // El error ya se maneja en el store
     } finally {
       setDeleteId(null);
     }

@@ -25,12 +25,14 @@ interface PurchaseManagementSheetProps {
   open: boolean;
   onClose: () => void;
   purchase: PurchaseResource | null;
+  onPurchaseUpdate?: () => void;
 }
 
 export function PurchaseManagementSheet({
   open,
   onClose,
   purchase,
+  onPurchaseUpdate,
 }: PurchaseManagementSheetProps) {
   const [activeTab, setActiveTab] = useState("details");
   const [showDetailForm, setShowDetailForm] = useState(false);
@@ -112,6 +114,7 @@ export function PurchaseManagementSheet({
       setShowDetailForm(false);
       setEditingDetailId(null);
       fetchDetails(purchase.id);
+      onPurchaseUpdate?.(); // Actualizar la compra
     } catch (error: any) {
       errorToast(error.response?.data?.message || "Error al guardar el detalle");
     }
@@ -305,7 +308,12 @@ export function PurchaseManagementSheet({
                   <PurchaseDetailTable
                     details={details || []}
                     onEdit={handleEditDetail}
-                    onRefresh={() => purchase && fetchDetails(purchase.id)}
+                    onRefresh={() => {
+                      if (purchase) {
+                        fetchDetails(purchase.id);
+                        onPurchaseUpdate?.(); // Actualizar la compra
+                      }
+                    }}
                     isPurchasePaid={isPaid || (isCash && hasPayments)}
                   />
                 </>
@@ -349,6 +357,27 @@ export function PurchaseManagementSheet({
                         : "No se pueden agregar cuotas a pagos al contado"}
                     </p>
                   )}
+
+                  {/* Advertencia de desincronización */}
+                  {isCash && installments && installments.length > 0 && (() => {
+                    const totalAmount = parseFloat(purchase.total_amount);
+                    const installmentAmount = parseFloat(installments[0]?.amount || "0");
+                    const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
+                    const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                    if (hasNoPayments && hasDifference) {
+                      return (
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no coincide con el total de la compra ({totalAmount.toFixed(2)}).
+                            Debe sincronizar la cuota usando el botón 🔄
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   <PurchaseInstallmentTable
                     installments={installments || []}
                     onEdit={handleEditInstallment}

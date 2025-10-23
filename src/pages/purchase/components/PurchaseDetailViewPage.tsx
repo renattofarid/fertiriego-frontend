@@ -238,9 +238,12 @@ export const PurchaseDetailViewPage = () => {
               <CardContent>
                 <PurchaseDetailTable
                   details={details || []}
-                  onEdit={() => { }}
-                  onRefresh={() => { }}
-                  isPurchasePaid={purchase.status === 'PAGADA'}
+                  onEdit={() => {}}
+                  onRefresh={() => {
+                    fetchDetails(Number(id));
+                    fetchPurchase(Number(id));
+                  }}
+                  isPurchasePaid={purchase?.status === "PAGADO"}
                 />
               </CardContent>
             </Card>
@@ -253,6 +256,26 @@ export const PurchaseDetailViewPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  {/* Advertencia de desincronización */}
+                  {purchase && purchase.payment_type === "CONTADO" && installments && installments.length > 0 && (() => {
+                    const totalAmount = parseFloat(purchase.total_amount);
+                    const installmentAmount = parseFloat(installments[0]?.amount || "0");
+                    const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
+                    const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                    if (hasNoPayments && hasDifference) {
+                      return (
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no coincide con el total de la compra ({totalAmount.toFixed(2)}).
+                            Debe sincronizar la cuota usando el botón "Sincronizar"
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {installments && installments.length > 0 ? (
                     installments.map((installment) => (
                       <Card key={installment.id} className="border-l-4 border-l-primary">

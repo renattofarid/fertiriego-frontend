@@ -180,6 +180,23 @@ export const PurchasePage = () => {
         open={isManagementSheetOpen}
         onClose={handleCloseManagementSheet}
         purchase={selectedPurchase}
+        onPurchaseUpdate={async () => {
+          const filterParams = {
+            page,
+            search,
+            per_page,
+            ...(selectedStatus && { status: selectedStatus }),
+            ...(selectedPaymentType && { payment_type: selectedPaymentType }),
+          };
+          await refetch(filterParams);
+          // Actualizar el selectedPurchase con los datos más recientes del store
+          if (selectedPurchase && data) {
+            const updatedPurchase = data.find((p: PurchaseResource) => p.id === selectedPurchase.id);
+            if (updatedPurchase) {
+              setSelectedPurchase(updatedPurchase);
+            }
+          }
+        }}
       />
 
       <InstallmentPaymentsSheet
