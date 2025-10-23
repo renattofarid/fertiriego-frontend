@@ -24,11 +24,16 @@ export const PurchaseAddPage = () => {
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } = useAllPurchaseOrders();
+  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
+    useAllPurchaseOrders();
 
   const { createPurchase } = usePurchaseStore();
 
-  const isLoading = suppliersLoading || warehousesLoading || productsLoading || purchaseOrdersLoading;
+  const isLoading =
+    suppliersLoading ||
+    warehousesLoading ||
+    productsLoading ||
+    purchaseOrdersLoading;
 
   const getDefaultValues = (): Partial<PurchaseSchema> => ({
     supplier_id: "",
@@ -37,7 +42,7 @@ export const PurchaseAddPage = () => {
     purchase_order_id: "",
     document_type: "",
     document_number: "",
-    issue_date: new Date().toISOString().split("T")[0],
+    issue_date: "",
     payment_type: "",
     currency: "PEN",
     observations: "",

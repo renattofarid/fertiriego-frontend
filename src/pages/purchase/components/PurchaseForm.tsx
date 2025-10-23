@@ -142,34 +142,39 @@ export const PurchaseForm = ({
   // Observers para detalles
   useEffect(() => {
     if (selectedProductId !== currentDetail.product_id) {
-      setCurrentDetail({ ...currentDetail, product_id: selectedProductId || "" });
+      setCurrentDetail((prev) => ({ ...prev, product_id: selectedProductId || "" }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedProductId]);
 
   useEffect(() => {
     if (selectedQuantity !== currentDetail.quantity) {
-      setCurrentDetail({ ...currentDetail, quantity: selectedQuantity || "" });
+      setCurrentDetail((prev) => ({ ...prev, quantity: selectedQuantity || "" }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedQuantity]);
 
   useEffect(() => {
     if (selectedUnitPrice !== currentDetail.unit_price) {
-      setCurrentDetail({ ...currentDetail, unit_price: selectedUnitPrice || "" });
+      setCurrentDetail((prev) => ({ ...prev, unit_price: selectedUnitPrice || "" }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
 
   // Observers para cuotas
   useEffect(() => {
     if (selectedDueDays !== currentInstallment.due_days) {
-      setCurrentInstallment({ ...currentInstallment, due_days: selectedDueDays || "" });
+      setCurrentInstallment((prev) => ({ ...prev, due_days: selectedDueDays || "" }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDueDays]);
 
   useEffect(() => {
     if (selectedAmount !== currentInstallment.amount) {
-      setCurrentInstallment({ ...currentInstallment, amount: selectedAmount || "" });
+      setCurrentInstallment((prev) => ({ ...prev, amount: selectedAmount || "" }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAmount]);
 
   const form = useForm({
