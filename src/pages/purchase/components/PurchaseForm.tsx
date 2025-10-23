@@ -190,6 +190,50 @@ export const PurchaseForm = ({
     mode: "onChange",
   });
 
+  // Watch para la orden de compra seleccionada
+  const selectedPurchaseOrderId = form.watch("purchase_order_id");
+
+  // Auto-llenar datos cuando se selecciona una orden de compra
+  useEffect(() => {
+    if (!selectedPurchaseOrderId || selectedPurchaseOrderId === "") {
+      return;
+    }
+
+    const selectedPO = purchaseOrders.find(
+      (po) => po.id.toString() === selectedPurchaseOrderId
+    );
+
+    if (!selectedPO) return;
+
+    // Auto-llenar proveedor y almacén
+    form.setValue("supplier_id", selectedPO.supplier_id.toString());
+    form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
+
+    // Auto-llenar detalles de la orden de compra
+    if (selectedPO.details && selectedPO.details.length > 0) {
+      const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
+        const quantity = parseFloat(detail.quantity_requested.toString());
+        const unitPrice = parseFloat(detail.unit_price_estimated);
+        const subtotal = quantity * unitPrice;
+        const tax = subtotal * 0.18; // 18% de impuesto
+        const total = subtotal + tax;
+
+        return {
+          product_id: detail.product_id.toString(),
+          product_name: detail.product_name,
+          quantity: detail.quantity_requested.toString(),
+          unit_price: detail.unit_price_estimated,
+          tax: tax.toFixed(2),
+          subtotal,
+          total,
+        };
+      });
+
+      setDetails(poDetails);
+      form.setValue("details", poDetails);
+    }
+  }, [selectedPurchaseOrderId, purchaseOrders, form]);
+
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
