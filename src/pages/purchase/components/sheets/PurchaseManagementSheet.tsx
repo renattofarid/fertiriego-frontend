@@ -151,6 +151,12 @@ export function PurchaseManagementSheet({
 
   if (!purchase) return null;
 
+  // Determinar si se pueden agregar detalles o cuotas
+  const isPaid = purchase.status === "PAGADA";
+  const isCash = purchase.payment_type === "CONTADO";
+  const canAddDetails = !isPaid && !isCash;
+  const canAddInstallments = !isPaid && !isCash;
+
   return (
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent className="w-full sm:max-w-4xl overflow-y-auto p-6">
@@ -200,7 +206,7 @@ export function PurchaseManagementSheet({
                 <div className="mt-1">
                   <Badge
                     variant={
-                      purchase.status === "PAGADO"
+                      purchase.status === "PAGADA"
                         ? "default"
                         : purchase.status === "CANCELADO"
                         ? "destructive"
@@ -262,14 +268,26 @@ export function PurchaseManagementSheet({
                 </Card>
               ) : (
                 <>
-                  <Button onClick={handleAddDetail} className="w-full">
+                  <Button
+                    onClick={handleAddDetail}
+                    className="w-full"
+                    disabled={!canAddDetails}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Agregar Detalle
                   </Button>
+                  {!canAddDetails && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      {isPaid
+                        ? "No se pueden agregar detalles a una compra pagada"
+                        : "No se pueden agregar detalles a pagos al contado"}
+                    </p>
+                  )}
                   <PurchaseDetailTable
                     details={details || []}
                     onEdit={handleEditDetail}
                     onRefresh={() => purchase && fetchDetails(purchase.id)}
+                    isPurchasePaid={isPaid}
                   />
                 </>
               )}
@@ -297,10 +315,21 @@ export function PurchaseManagementSheet({
                 </Card>
               ) : (
                 <>
-                  <Button onClick={handleAddInstallment} className="w-full">
+                  <Button
+                    onClick={handleAddInstallment}
+                    className="w-full"
+                    disabled={!canAddInstallments}
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Agregar Cuota
                   </Button>
+                  {!canAddInstallments && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      {isPaid
+                        ? "No se pueden agregar cuotas a una compra pagada"
+                        : "No se pueden agregar cuotas a pagos al contado"}
+                    </p>
+                  )}
                   <PurchaseInstallmentTable
                     installments={installments || []}
                     onEdit={handleEditInstallment}

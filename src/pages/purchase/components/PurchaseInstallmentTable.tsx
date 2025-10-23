@@ -9,6 +9,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { PurchaseInstallmentResource } from "../lib/purchase.interface";
 
 interface PurchaseInstallmentTableProps {
@@ -86,13 +92,35 @@ export function PurchaseInstallmentTable({
               </TableCell>
               <TableCell>{getStatusBadge(inst.status)}</TableCell>
               <TableCell className="text-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(inst.id)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                {inst.status === "PAGADO" ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled
+                            className="cursor-not-allowed"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>No se puede editar una cuota pagada</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(inst.id)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}

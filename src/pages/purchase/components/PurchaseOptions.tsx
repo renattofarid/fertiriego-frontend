@@ -42,7 +42,7 @@ export const PurchaseOptions = ({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="REGISTRADO">Registrado</SelectItem>
-          <SelectItem value="PAGADO">Pagado</SelectItem>
+          <SelectItem value="PAGADA">Pagado</SelectItem>
           <SelectItem value="CANCELADO">Cancelado</SelectItem>
         </SelectContent>
       </Select>

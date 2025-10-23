@@ -124,7 +124,7 @@ export const getPurchaseColumns = ({
         let variant: "default" | "secondary" | "destructive" = "default";
 
         if (status === "REGISTRADO") variant = "secondary";
-        if (status === "PAGADO") variant = "default";
+        if (status === "PAGADA") variant = "default";
         if (status === "CANCELADO") variant = "destructive";
 
         return <Badge variant={variant}>{status}</Badge>;

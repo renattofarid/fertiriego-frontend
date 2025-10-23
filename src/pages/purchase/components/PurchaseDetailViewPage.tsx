@@ -162,7 +162,7 @@ export const PurchaseDetailViewPage = () => {
                 <div className="mt-1">
                   <Badge
                     variant={
-                      purchase.status === "PAGADO"
+                      purchase.status === "PAGADA"
                         ? "default"
                         : purchase.status === "CANCELADO"
                         ? "destructive"
