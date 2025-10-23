@@ -6,7 +6,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2, Eye, Settings, Wallet } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Edit, MoreVertical, Trash2, Eye, Settings, Wallet, AlertTriangle } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseResource } from "../lib/purchase.interface";
 
@@ -154,30 +160,67 @@ export const getPurchaseColumns = ({
           (inst) => parseFloat(inst.pending_amount) > 0
         );
 
+        // Validar que la suma de cuotas sea igual al total de la compra
+        const totalAmount = parseFloat(row.original.total_amount);
+        const sumOfInstallments = row.original.installments?.reduce(
+          (sum, inst) => sum + parseFloat(inst.amount),
+          0
+        ) || 0;
+        const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
+
         return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManage(row.original)}
-              className="h-auto p-1"
-            >
-              <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-                {row.original.installments?.length || 0} cuota(s)
-              </Badge>
-            </Button>
-            {hasPendingPayments && (
+          <TooltipProvider>
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onQuickPay(row.original)}
-                className="h-8 w-8 p-0"
-                title="Pago rápido"
+                onClick={() => onManage(row.original)}
+                className="h-auto p-1"
               >
-                <Wallet className="h-4 w-4 text-green-600" />
+                <Badge variant="outline" className="cursor-pointer hover:bg-accent">
+                  {row.original.installments?.length || 0} cuota(s)
+                </Badge>
               </Button>
-            )}
-          </div>
+
+              {!isValid && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      La suma de cuotas ({sumOfInstallments.toFixed(2)}) no coincide con el total ({totalAmount.toFixed(2)}).
+                      <br />
+                      Por favor, sincronice las cuotas.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              {hasPendingPayments && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onQuickPay(row.original)}
+                      className="h-8 w-8 p-0"
+                      disabled={!isValid}
+                    >
+                      <Wallet className={`h-4 w-4 ${isValid ? "text-green-600" : "text-gray-400"}`} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">
+                      {isValid
+                        ? "Pago rápido"
+                        : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </div>
+          </TooltipProvider>
         );
       },
     },

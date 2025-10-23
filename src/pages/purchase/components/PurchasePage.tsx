@@ -80,6 +80,20 @@ export const PurchasePage = () => {
   };
 
   const handleQuickPay = (purchase: PurchaseResource) => {
+    // Validar que la suma de cuotas sea igual al total de la compra
+    const totalAmount = parseFloat(purchase.total_amount);
+    const sumOfInstallments = purchase.installments?.reduce(
+      (sum, inst) => sum + parseFloat(inst.amount),
+      0
+    ) || 0;
+
+    if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
+      errorToast(
+        `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(2)}) no coincide con el total de la compra (${totalAmount.toFixed(2)}). Por favor, sincronice las cuotas.`
+      );
+      return;
+    }
+
     // Tomar la primera cuota pendiente si existe
     const pendingInstallment = purchase.installments?.find(
       (inst) => parseFloat(inst.pending_amount) > 0

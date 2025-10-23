@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import type { PurchaseResource } from "../../lib/purchase.interface";
 import { usePurchaseDetailStore } from "../../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../../lib/purchase-installment.store";
+import { usePurchaseStore } from "../../lib/purchase.store";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { PurchaseDetailTable } from "../PurchaseDetailTable";
 import { PurchaseInstallmentTable } from "../PurchaseInstallmentTable";
@@ -39,8 +40,10 @@ export function PurchaseManagementSheet({
   const [showInstallmentForm, setShowInstallmentForm] = useState(false);
   const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
   const [editingInstallmentId, setEditingInstallmentId] = useState<number | null>(null);
+  const [currentPurchase, setCurrentPurchase] = useState<PurchaseResource | null>(purchase);
 
   const { data: products } = useAllProducts();
+  const { fetchPurchase } = usePurchaseStore();
 
   const {
     details,
@@ -66,10 +69,28 @@ export function PurchaseManagementSheet({
 
   useEffect(() => {
     if (purchase && open) {
+      setCurrentPurchase(purchase);
       fetchDetails(purchase.id);
       fetchInstallments(purchase.id);
     }
   }, [purchase, open]);
+
+  // Función para refrescar los datos de la compra
+  const refreshPurchaseData = async () => {
+    if (!purchase) return;
+
+    try {
+      await fetchPurchase(purchase.id);
+      // Actualizar la compra localmente obteniendo los datos del store
+      const { purchase: updatedPurchase } = usePurchaseStore.getState();
+      if (updatedPurchase) {
+        setCurrentPurchase(updatedPurchase);
+      }
+      onPurchaseUpdate?.(); // Notificar al componente padre
+    } catch (error) {
+      // Error manejado en el store
+    }
+  };
 
   useEffect(() => {
     if (editingDetailId) {
@@ -114,7 +135,7 @@ export function PurchaseManagementSheet({
       setShowDetailForm(false);
       setEditingDetailId(null);
       fetchDetails(purchase.id);
-      onPurchaseUpdate?.(); // Actualizar la compra
+      await refreshPurchaseData(); // Actualizar la compra y la información general
     } catch (error: any) {
       errorToast(error.response?.data?.message || "Error al guardar el detalle");
     }
@@ -157,7 +178,7 @@ export function PurchaseManagementSheet({
 
     try {
       await updateInstallment(installmentId, {
-        amount: newAmount.toFixed(2),
+        amount: Number(newAmount.toFixed(2)),
       });
       successToast("Cuota sincronizada exitosamente");
       fetchInstallments(purchase.id);
@@ -166,12 +187,12 @@ export function PurchaseManagementSheet({
     }
   };
 
-  if (!purchase) return null;
+  if (!currentPurchase) return null;
 
   // Determinar si se pueden agregar detalles o cuotas
-  const isPaid = purchase.status === "PAGADO";
-  const isCash = purchase.payment_type === "CONTADO";
-  const hasPayments = parseFloat(purchase.total_amount) !== parseFloat(purchase.current_amount);
+  const isPaid = currentPurchase.status === "PAGADO";
+  const isCash = currentPurchase.payment_type === "CONTADO";
+  const hasPayments = parseFloat(currentPurchase.total_amount) !== parseFloat(currentPurchase.current_amount);
 
   // Para detalles: NO se puede si está pagada O (es al contado Y tiene pagos)
   const canAddDetails = !isPaid && !(isCash && hasPayments);
@@ -185,7 +206,7 @@ export function PurchaseManagementSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <PackageOpen className="h-5 w-5" />
-            Gestión de Compra {purchase.correlativo}
+            Gestión de Compra {currentPurchase.correlativo}
           </SheetTitle>
           <SheetDescription>
             Administra los detalles, cuotas y pagos de esta compra
@@ -201,26 +222,26 @@ export function PurchaseManagementSheet({
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Proveedor:</span>
-                <p className="font-semibold">{purchase.supplier_fullname}</p>
+                <p className="font-semibold">{currentPurchase.supplier_fullname}</p>
               </div>
               <div>
                 <span className="text-muted-foreground">Documento:</span>
                 <p className="font-semibold">
-                  {purchase.document_type} - {purchase.document_number}
+                  {currentPurchase.document_type} - {currentPurchase.document_number}
                 </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Total:</span>
                 <p className="font-bold text-green-600 text-lg">
-                  {purchase.currency === "PEN" ? "S/." : "$"}{" "}
-                  {parseFloat(purchase.total_amount).toFixed(2)}
+                  {currentPurchase.currency === "PEN" ? "S/." : "$"}{" "}
+                  {parseFloat(currentPurchase.total_amount).toFixed(2)}
                 </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Saldo:</span>
                 <p className="font-bold text-orange-600 text-lg">
-                  {purchase.currency === "PEN" ? "S/." : "$"}{" "}
-                  {parseFloat(purchase.current_amount).toFixed(2)}
+                  {currentPurchase.currency === "PEN" ? "S/." : "$"}{" "}
+                  {parseFloat(currentPurchase.current_amount).toFixed(2)}
                 </p>
               </div>
               <div>
@@ -228,14 +249,14 @@ export function PurchaseManagementSheet({
                 <div className="mt-1">
                   <Badge
                     variant={
-                      purchase.status === "PAGADA"
+                      currentPurchase.status === "PAGADA"
                         ? "default"
-                        : purchase.status === "CANCELADO"
+                        : currentPurchase.status === "CANCELADO"
                         ? "destructive"
                         : "secondary"
                     }
                   >
-                    {purchase.status}
+                    {currentPurchase.status}
                   </Badge>
                 </div>
               </div>
@@ -243,9 +264,9 @@ export function PurchaseManagementSheet({
                 <span className="text-muted-foreground">Tipo de Pago:</span>
                 <div className="mt-1">
                   <Badge
-                    variant={purchase.payment_type === "CONTADO" ? "default" : "secondary"}
+                    variant={currentPurchase.payment_type === "CONTADO" ? "default" : "secondary"}
                   >
-                    {purchase.payment_type}
+                    {currentPurchase.payment_type}
                   </Badge>
                 </div>
               </div>
@@ -308,10 +329,10 @@ export function PurchaseManagementSheet({
                   <PurchaseDetailTable
                     details={details || []}
                     onEdit={handleEditDetail}
-                    onRefresh={() => {
+                    onRefresh={async () => {
                       if (purchase) {
                         fetchDetails(purchase.id);
-                        onPurchaseUpdate?.(); // Actualizar la compra
+                        await refreshPurchaseData(); // Actualizar la compra y la información general
                       }
                     }}
                     isPurchasePaid={isPaid || (isCash && hasPayments)}
@@ -360,7 +381,7 @@ export function PurchaseManagementSheet({
 
                   {/* Advertencia de desincronización */}
                   {isCash && installments && installments.length > 0 && (() => {
-                    const totalAmount = parseFloat(purchase.total_amount);
+                    const totalAmount = parseFloat(currentPurchase.total_amount);
                     const installmentAmount = parseFloat(installments[0]?.amount || "0");
                     const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
                     const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
@@ -383,7 +404,7 @@ export function PurchaseManagementSheet({
                     onEdit={handleEditInstallment}
                     onRefresh={() => purchase && fetchInstallments(purchase.id)}
                     isCashPayment={isCash}
-                    purchaseTotalAmount={parseFloat(purchase.total_amount)}
+                    purchaseTotalAmount={parseFloat(currentPurchase.total_amount)}
                     onSyncInstallment={handleSyncInstallment}
                   />
                 </>
