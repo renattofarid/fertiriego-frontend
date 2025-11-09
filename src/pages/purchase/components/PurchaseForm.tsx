@@ -374,6 +374,8 @@ export const PurchaseForm = ({
       due_days: "",
       amount: "",
     });
+    installmentTempForm.setValue("temp_due_days", "");
+    installmentTempForm.setValue("temp_amount", "");
   };
 
   const handleEditInstallment = (index: number) => {
@@ -428,15 +430,17 @@ export const PurchaseForm = ({
     if (selectedPaymentType === "CONTADO") {
       // Para pagos al contado, crear automáticamente una cuota con el total
       const totalAmount = calculateDetailsTotal();
-      validInstallments = [{
-        due_days: "1",
-        amount: totalAmount.toFixed(2),
-      }];
+      validInstallments = [
+        {
+          due_days: "1",
+          amount: totalAmount.toFixed(2),
+        },
+      ];
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
       validInstallments = installments
-        .filter(inst => inst.due_days && inst.amount)
-        .map(inst => ({
+        .filter((inst) => inst.due_days && inst.amount)
+        .map((inst) => ({
           due_days: inst.due_days,
           amount: inst.amount,
         }));
