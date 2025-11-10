@@ -87,6 +87,20 @@ export const PurchaseForm = ({
 }: PurchaseFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
+  const [includeIgv, setIncludeIgv] = useState<boolean>(false);
+
+  const IGV_RATE = 0.18;
+
+  const formatNumber = (value: number) => {
+    try {
+      return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 6,
+        maximumFractionDigits: 6,
+      }).format(value);
+    } catch (e) {
+      return value.toFixed(6);
+    }
+  };
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -233,16 +247,17 @@ export const PurchaseForm = ({
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const unitPrice = parseFloat(detail.unit_price_estimated);
-        const subtotal = quantity * unitPrice;
-        const tax = subtotal * 0.18; // 18% de impuesto
-        const total = subtotal + tax;
+        // Asumimos que los unit_price en la orden de compra NO incluyen IGV
+  const subtotal = quantity * unitPrice;
+  const tax = subtotal * IGV_RATE; // 18% de impuesto
+  const total = subtotal + tax;
 
         return {
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
           unit_price: detail.unit_price_estimated,
-          tax: tax.toFixed(2),
+          tax: tax.toFixed(6),
           subtotal,
           total,
         };
@@ -268,14 +283,25 @@ export const PurchaseForm = ({
     );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    const subtotal = quantity * unitPrice;
-    const tax = subtotal * 0.18; // Calcular impuesto automáticamente (18%)
-    const total = subtotal + tax;
+    let subtotal = quantity * unitPrice;
+    let tax = 0;
+    let total = 0;
+
+    if (includeIgv) {
+      // unitPrice incluye IGV: descomponer
+      const totalIncl = quantity * unitPrice;
+      subtotal = totalIncl / (1 + IGV_RATE);
+      tax = totalIncl - subtotal;
+      total = totalIncl;
+    } else {
+      tax = subtotal * IGV_RATE; // Calcular impuesto automáticamente (18%)
+      total = subtotal + tax;
+    }
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: product?.name,
-      tax: tax.toFixed(2),
+      tax: tax.toFixed(6),
       subtotal,
       total,
     };
@@ -328,6 +354,52 @@ export const PurchaseForm = ({
   const calculateDetailsTotal = () => {
     return details.reduce((sum, detail) => sum + detail.total, 0);
   };
+
+  const calculateSubtotalTotal = () => {
+    return details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+  };
+
+  const calculateTaxTotal = () => {
+    return details.reduce(
+      (sum, detail) => sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
+      0
+    );
+  };
+
+  // Recalcular detalles cuando cambie el modo de interpretación de precios (incluye IGV o no)
+  useEffect(() => {
+    if (!details || details.length === 0) return;
+
+    const recalculated = details.map((d) => {
+      const q = parseFloat(d.quantity || "0");
+      const up = parseFloat(d.unit_price || "0");
+      let subtotal = 0;
+      let tax = 0;
+      let total = 0;
+
+      if (includeIgv) {
+        const totalIncl = q * up;
+        subtotal = totalIncl / (1 + IGV_RATE);
+        tax = totalIncl - subtotal;
+        total = totalIncl;
+      } else {
+        subtotal = q * up;
+        tax = subtotal * IGV_RATE;
+        total = subtotal + tax;
+      }
+
+      return {
+        ...d,
+        subtotal,
+        total,
+        tax: tax.toFixed(6),
+      };
+    });
+
+    setDetails(recalculated);
+    form.setValue("details", recalculated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeIgv]);
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
@@ -415,10 +487,8 @@ export const PurchaseForm = ({
     // Validar que las cuotas coincidan con el total si hay cuotas
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
-        `El total de cuotas (${calculateInstallmentsTotal().toFixed(
-          2
-        )}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(
-          2
+        `El total de cuotas (${formatNumber(calculateInstallmentsTotal())}) debe ser igual al total de la compra (${formatNumber(
+          calculateDetailsTotal()
         )})`
       );
       return;
@@ -646,7 +716,18 @@ export const PurchaseForm = ({
                   )}
                 />
 
-                <div className="md:col-span-4 flex justify-end">
+                <div className="md:col-span-4 flex items-center justify-between">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={includeIgv}
+                      onChange={(e) => setIncludeIgv(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    <span className="text-sm">Incluir IGV (18%)</span>
+                  </label>
+
+                  <div>
                   <Button
                     type="button"
                     variant="default"
@@ -660,6 +741,7 @@ export const PurchaseForm = ({
                     <Plus className="h-4 w-4 mr-2" />
                     {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
                   </Button>
+                  </div>
                 </div>
               </div>
 
@@ -685,16 +767,18 @@ export const PurchaseForm = ({
                             {detail.quantity}
                           </TableCell>
                           <TableCell className="text-right">
-                            {parseFloat(detail.unit_price).toFixed(2)}
+                            {isNaN(parseFloat(detail.unit_price))
+                              ? detail.unit_price
+                              : formatNumber(parseFloat(detail.unit_price))}
                           </TableCell>
                           <TableCell className="text-right">
-                            {detail.subtotal.toFixed(2)}
+                            {formatNumber(detail.subtotal)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {parseFloat(detail.tax).toFixed(2)}
+                            {formatNumber(parseFloat(detail.tax || "0"))}
                           </TableCell>
                           <TableCell className="text-right font-bold text-green-600">
-                            {detail.total.toFixed(2)}
+                            {formatNumber(detail.total)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -719,11 +803,31 @@ export const PurchaseForm = ({
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={5} className="text-right font-bold">
+                        <TableCell colSpan={4} className="text-right font-bold">
+                          SUBTOTAL:
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatNumber(calculateSubtotalTotal())}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right font-bold">
+                          IGV (18%):
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatNumber(calculateTaxTotal())}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right font-bold">
                           TOTAL:
                         </TableCell>
                         <TableCell className="text-right font-bold text-lg text-green-600">
-                          {calculateDetailsTotal().toFixed(2)}
+                          {formatNumber(calculateDetailsTotal())}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
@@ -872,9 +976,9 @@ export const PurchaseForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {calculateInstallmentsTotal().toFixed(2)}) debe ser
+                        {formatNumber(calculateInstallmentsTotal())}) debe ser
                         igual al total de la compra (
-                        {calculateDetailsTotal().toFixed(2)})
+                        {formatNumber(calculateDetailsTotal())})
                       </p>
                     </div>
                   )}

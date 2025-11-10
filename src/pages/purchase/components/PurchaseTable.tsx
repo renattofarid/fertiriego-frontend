@@ -23,7 +23,13 @@ export const PurchaseTable = ({
   isLoading,
   children,
 }: PurchaseTableProps) => {
-  const columns = getPurchaseColumns({ onEdit, onDelete, onViewDetails, onManage, onQuickPay });
+  const columns = getPurchaseColumns({
+    onEdit,
+    onDelete,
+    onViewDetails,
+    onManage,
+    onQuickPay,
+  });
 
   return (
     <div className="border-none text-muted-foreground max-w-full">
