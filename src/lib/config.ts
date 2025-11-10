@@ -50,3 +50,9 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+  // Locale por defecto de la aplicación. Puede cambiarse si se desea otro locale.
+  // Nota: asumimos 'es-PE' como locale por defecto para mostrar separadores de miles
+  // y formato numérico local. Si se desea detectar dinámicamente, se puede
+  // adaptar para leer de una preferencia del usuario en el futuro.
+  export const APP_LOCALE = "es-PE";

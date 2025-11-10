@@ -2,6 +2,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { formatNumber } from "@/lib/formatCurrency";
 import { SelectActions } from "@/components/SelectActions";
 import type { WarehouseResource } from "../lib/warehouse.interface";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -28,12 +29,10 @@ export const WarehouseColumns = ({
   {
     accessorKey: "capacity",
     header: "Capacidad",
-    cell: ({ getValue }) => {
+      cell: ({ getValue }) => {
       const capacity = getValue() as number;
       return (
-        <span className="font-mono">
-          {capacity.toLocaleString()}
-        </span>
+        <span className="font-mono">{formatNumber(capacity, 0)}</span>
       );
     },
   },

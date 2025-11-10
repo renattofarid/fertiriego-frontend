@@ -27,6 +27,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { useState, useEffect } from "react";
 import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -92,16 +93,7 @@ export const PurchaseForm = ({
 
   const IGV_RATE = 0.18;
 
-  const formatNumber = (value: number) => {
-    try {
-      return new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 6,
-        maximumFractionDigits: 6,
-      }).format(value);
-    } catch (e) {
-      return value.toFixed(6);
-    }
-  };
+  
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );

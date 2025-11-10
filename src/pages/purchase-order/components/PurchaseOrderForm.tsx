@@ -24,7 +24,8 @@ import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState } from "react";
-import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { truncDecimal } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -284,7 +285,7 @@ export const PurchaseOrderForm = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-sm">Total Estimado:</span>
                     <span className="text-lg font-bold text-green-600">
-                      S/. {formatDecimalTrunc(parseFloat(purchaseOrder.total_estimated), 6)}
+                      {formatCurrency(parseFloat(purchaseOrder.total_estimated), { currencySymbol: "S/.", decimals: 6 })}
                     </span>
                   </div>
                 </div>
@@ -361,14 +362,10 @@ export const PurchaseOrderForm = ({
                             {detail.quantity_requested}
                           </TableCell>
                           <TableCell className="text-right">
-                            S/.{" "}
-                            {formatDecimalTrunc(
-                              parseFloat(detail.unit_price_estimated),
-                              6
-                            )}
+                              {formatCurrency(parseFloat(detail.unit_price_estimated), { currencySymbol: "S/.", decimals: 6 })}
                           </TableCell>
                           <TableCell className="text-right font-bold">
-                            S/. {formatDecimalTrunc(detail.subtotal, 6)}
+                            {formatCurrency(detail.subtotal, { currencySymbol: "S/.", decimals: 6 })}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -393,11 +390,11 @@ export const PurchaseOrderForm = ({
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={3} className="text-right font-bold">
+                          <TableCell colSpan={3} className="text-right font-bold">
                           SUBTOTAL:
                         </TableCell>
                         <TableCell className="text-right font-bold text-lg text-green-600">
-                          S/. {formatDecimalTrunc(subtotalBase, 6)}
+                          {formatCurrency(subtotalBase, { currencySymbol: "S/.", decimals: 6 })}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
@@ -412,7 +409,7 @@ export const PurchaseOrderForm = ({
                               IGV (18%) estimado:
                             </TableCell>
                             <TableCell className="text-right font-bold">
-                              S/. {formatDecimalTrunc(igvAmount, 6)}
+                              {formatCurrency(igvAmount, { currencySymbol: "S/.", decimals: 6 })}
                             </TableCell>
                             <TableCell></TableCell>
                           </TableRow>
@@ -425,7 +422,7 @@ export const PurchaseOrderForm = ({
                               TOTAL (con IGV) estimado:
                             </TableCell>
                             <TableCell className="text-right font-bold text-lg text-green-600">
-                              S/. {formatDecimalTrunc(totalWithIgv, 6)}
+                              {formatCurrency(totalWithIgv, { currencySymbol: "S/.", decimals: 6 })}
                             </TableCell>
                             <TableCell></TableCell>
                           </TableRow>
