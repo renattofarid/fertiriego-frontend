@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldUser, Package, ShoppingCart } from "lucide-react";
+import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,7 @@ import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
+import { SaleRoute } from "@/pages/sale/lib/sale.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -214,6 +215,18 @@ const data = {
           title: PurchaseShippingGuideTitle,
           url: PurchaseShippingGuideRoute,
           icon: PurchaseShippingGuideIcon,
+        },
+      ],
+    },
+    {
+      title: "Ventas",
+      url: "#",
+      icon: ShoppingBag,
+      items: [
+        {
+          title: "Ventas",
+          url: SaleRoute,
+          icon: ShoppingBag,
         },
       ],
     },

@@ -59,6 +59,8 @@ import {
   PurchaseShippingGuideEditPage,
   PurchaseShippingGuideDetailViewPage
 } from "./pages/purchase-shipping-guide/components";
+import { SaleRoute } from "./pages/sale/lib/sale.interface";
+import { SalePage, SaleAddPage } from "./pages/sale/components";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -458,6 +460,24 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseShippingGuideRoute}>
                 <PurchaseShippingGuideDetailViewPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={SaleRoute}
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SalePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/agregar"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleAddPage />
               </ProtectedRoute>
             }
           />
