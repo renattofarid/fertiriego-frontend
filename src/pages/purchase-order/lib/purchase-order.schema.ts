@@ -21,10 +21,6 @@ export const purchaseOrderSchemaCreate = z.object({
   supplier_id: requiredStringId("Debe seleccionar un proveedor"),
   warehouse_id: requiredStringId("Debe seleccionar un almacén"),
   apply_igv: z.boolean().optional(),
-  order_number: z
-    .string()
-    .min(1, { message: "El número de orden es requerido" })
-    .max(50, { message: "El número de orden no puede exceder 50 caracteres" }),
   issue_date: z
     .string()
     .min(1, { message: "La fecha de emisión es requerida" })

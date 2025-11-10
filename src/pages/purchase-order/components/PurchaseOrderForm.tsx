@@ -10,7 +10,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -58,6 +57,8 @@ interface DetailRow {
   quantity_requested: string;
   unit_price_estimated: string;
   subtotal: number;
+  // Cuando está en modo update, el backend ya calculó el subtotal real
+  subtotal_estimated?: number;
 }
 
 export const PurchaseOrderForm = ({
@@ -78,10 +79,16 @@ export const PurchaseOrderForm = ({
           product_name: d.product_name,
           quantity_requested: d.quantity_requested.toString(),
           unit_price_estimated: d.unit_price_estimated,
-          subtotal: truncDecimal(
-            d.quantity_requested * parseFloat(d.unit_price_estimated),
-            6
-          ),
+          // En modo update: usar el subtotal calculado por el backend si existe
+          subtotal: d.subtotal_estimated
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            : truncDecimal(
+                d.quantity_requested * parseFloat(d.unit_price_estimated),
+                6
+              ),
+          subtotal_estimated: d.subtotal_estimated
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            : undefined,
         }))
       : []
   );
@@ -104,6 +111,12 @@ export const PurchaseOrderForm = ({
     },
     mode: "onChange",
   });
+
+  // Tasa IGV referencial
+  const IGV_RATE = 0.18;
+
+  // Vigilar el switch de aplicar IGV para mostrar referencia en UI (no modifica payload)
+  const applyIgv = form.watch("apply_igv");
 
   const handleAddDetail = async (data: any) => {
     const product = products.find((p) => p.id.toString() === data.product_id);
@@ -153,10 +166,18 @@ export const PurchaseOrderForm = ({
     await form.trigger();
   };
 
+  // Calcular total desde los detalles actuales
   const calculateTotal = () => {
     const sum = details.reduce((sum, detail) => sum + detail.subtotal, 0);
     return truncDecimal(sum, 6);
   };
+
+  // Calcular total desde los detalles actuales
+  const subtotalBase = calculateTotal();
+
+  // Calcular IGV y total con IGV (siempre desde subtotales en modo create)
+  const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 6);
+  const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 6);
 
   const handleFormSubmit = (data: any) => {
     if (isSubmitting) return; // Prevenir múltiples envíos
@@ -234,24 +255,6 @@ export const PurchaseOrderForm = ({
                 disabled={mode === "update"}
               />
 
-              <FormField
-                control={form.control}
-                name="order_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Orden</FormLabel>
-                    <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: OC-2025-001"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <DatePickerFormField
                 control={form.control}
                 name="issue_date"
@@ -275,6 +278,17 @@ export const PurchaseOrderForm = ({
                 label="Aplicar IGV"
                 text="¿Aplicar IGV a esta orden de compra?"
               />
+
+              {mode === "update" && purchaseOrder?.total_estimated && (
+                <div className="bg-sidebar p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-sm">Total Estimado:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      S/. {formatDecimalTrunc(parseFloat(purchaseOrder.total_estimated), 6)}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="md:col-span-2">
                 <FormField
@@ -347,7 +361,11 @@ export const PurchaseOrderForm = ({
                             {detail.quantity_requested}
                           </TableCell>
                           <TableCell className="text-right">
-                            S/. {formatDecimalTrunc(parseFloat(detail.unit_price_estimated), 6)}
+                            S/.{" "}
+                            {formatDecimalTrunc(
+                              parseFloat(detail.unit_price_estimated),
+                              6
+                            )}
                           </TableCell>
                           <TableCell className="text-right font-bold">
                             S/. {formatDecimalTrunc(detail.subtotal, 6)}
@@ -376,13 +394,43 @@ export const PurchaseOrderForm = ({
                       ))}
                       <TableRow>
                         <TableCell colSpan={3} className="text-right font-bold">
-                          TOTAL:
+                          SUBTOTAL:
                         </TableCell>
-                          <TableCell className="text-right font-bold text-lg text-green-600">
-                          S/. {formatDecimalTrunc(calculateTotal(), 6)}
+                        <TableCell className="text-right font-bold text-lg text-green-600">
+                          S/. {formatDecimalTrunc(subtotalBase, 6)}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
+
+                      {applyIgv && (
+                        <>
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-right font-bold"
+                            >
+                              IGV (18%) estimado:
+                            </TableCell>
+                            <TableCell className="text-right font-bold">
+                              S/. {formatDecimalTrunc(igvAmount, 6)}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-right font-bold"
+                            >
+                              TOTAL (con IGV) estimado:
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-lg text-green-600">
+                              S/. {formatDecimalTrunc(totalWithIgv, 6)}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        </>
+                      )}
                     </TableBody>
                   </Table>
                 </div>
