@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,7 +72,8 @@ export function PurchaseOrderDetailForm({
   const calculateSubtotal = () => {
     const quantity = parseFloat(formData.quantity_requested) || 0;
     const price = parseFloat(formData.unit_price_estimated) || 0;
-    return quantity * price;
+    const subtotal = quantity * price;
+    return truncDecimal(subtotal, 6);
   };
 
   const handleSubmit = () => {
@@ -151,9 +153,9 @@ export function PurchaseOrderDetailForm({
                 <FormControl>
                   <Input
                     type="number"
-                    step="0.01"
+                    step="0.000001"
                     variant="primary"
-                    placeholder="0.00"
+                    placeholder="0.000000"
                     {...field}
                   />
                 </FormControl>
@@ -167,7 +169,7 @@ export function PurchaseOrderDetailForm({
           <div className="flex justify-between items-center">
             <span className="font-semibold">Subtotal:</span>
             <span className="text-lg font-bold text-green-600">
-              S/. {calculateSubtotal().toFixed(2)}
+              S/. {formatDecimalTrunc(calculateSubtotal(), 6)}
             </span>
           </div>
         </div>

@@ -25,6 +25,7 @@ import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState } from "react";
+import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -77,7 +78,10 @@ export const PurchaseOrderForm = ({
           product_name: d.product_name,
           quantity_requested: d.quantity_requested.toString(),
           unit_price_estimated: d.unit_price_estimated,
-          subtotal: d.quantity_requested * parseFloat(d.unit_price_estimated),
+          subtotal: truncDecimal(
+            d.quantity_requested * parseFloat(d.unit_price_estimated),
+            6
+          ),
         }))
       : []
   );
@@ -150,7 +154,8 @@ export const PurchaseOrderForm = ({
   };
 
   const calculateTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    const sum = details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    return truncDecimal(sum, 6);
   };
 
   const handleFormSubmit = (data: any) => {
@@ -160,18 +165,18 @@ export const PurchaseOrderForm = ({
     const transformedDetails = details.map((d) => {
       const qty = Number(d.quantity_requested);
       const price = Number(d.unit_price_estimated);
-      const subtotal = Number((qty * price).toFixed(2));
+      const subtotal = truncDecimal(qty * price, 6);
       return {
         product_id: Number(d.product_id),
         quantity_requested: qty,
-        unit_price_estimated: price,
+        unit_price_estimated: truncDecimal(price, 6),
         subtotal_estimated: subtotal,
       };
     });
 
-    const totalEstimated = transformedDetails.reduce(
-      (s, it) => s + it.subtotal_estimated,
-      0
+    const totalEstimated = truncDecimal(
+      transformedDetails.reduce((s, it) => s + it.subtotal_estimated, 0),
+      6
     );
 
     onSubmit({
@@ -182,7 +187,7 @@ export const PurchaseOrderForm = ({
       expected_date: data.expected_date,
       observations: data.observations,
       apply_igv: !!data.apply_igv,
-      total_estimated: Number(totalEstimated.toFixed(2)),
+      total_estimated: totalEstimated,
       details: transformedDetails,
     });
   };
@@ -342,11 +347,10 @@ export const PurchaseOrderForm = ({
                             {detail.quantity_requested}
                           </TableCell>
                           <TableCell className="text-right">
-                            S/.{" "}
-                            {parseFloat(detail.unit_price_estimated).toFixed(2)}
+                            S/. {formatDecimalTrunc(parseFloat(detail.unit_price_estimated), 6)}
                           </TableCell>
                           <TableCell className="text-right font-bold">
-                            S/. {detail.subtotal.toFixed(2)}
+                            S/. {formatDecimalTrunc(detail.subtotal, 6)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -374,8 +378,8 @@ export const PurchaseOrderForm = ({
                         <TableCell colSpan={3} className="text-right font-bold">
                           TOTAL:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
-                          S/. {calculateTotal().toFixed(2)}
+                          <TableCell className="text-right font-bold text-lg text-green-600">
+                          S/. {formatDecimalTrunc(calculateTotal(), 6)}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
