@@ -93,7 +93,6 @@ export const PurchaseForm = ({
 
   const IGV_RATE = 0.18;
 
-  
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -350,13 +349,17 @@ export const PurchaseForm = ({
   };
 
   const calculateSubtotalTotal = () => {
-    const sum = details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+    const sum = details.reduce(
+      (sum, detail) => sum + (detail.subtotal || 0),
+      0
+    );
     return truncDecimal(sum, 6);
   };
 
   const calculateTaxTotal = () => {
     const sum = details.reduce(
-      (sum, detail) => sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
+      (sum, detail) =>
+        sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
       0
     );
     return truncDecimal(sum, 6);
@@ -463,7 +466,10 @@ export const PurchaseForm = ({
   };
 
   const calculateInstallmentsTotal = () => {
-    const sum = installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
+    const sum = installments.reduce(
+      (sum, inst) => sum + parseFloat(inst.amount),
+      0
+    );
     return truncDecimal(sum, 6);
   };
 
@@ -485,7 +491,9 @@ export const PurchaseForm = ({
     // Validar que las cuotas coincidan con el total si hay cuotas
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
-        `El total de cuotas (${formatNumber(calculateInstallmentsTotal())}) debe ser igual al total de la compra (${formatNumber(
+        `El total de cuotas (${formatNumber(
+          calculateInstallmentsTotal()
+        )}) debe ser igual al total de la compra (${formatNumber(
           calculateDetailsTotal()
         )})`
       );
@@ -544,7 +552,7 @@ export const PurchaseForm = ({
                     { value: "", label: "Ninguna - Llenar manualmente" },
                     ...purchaseOrders.map((po) => ({
                       value: po.id.toString(),
-                      label: `${po.correlativo} - ${po.order_number} (${po.supplier_fullname})`,
+                      label: `${po.correlativo} (${po.supplier_fullname})`,
                     })),
                   ]}
                 />
@@ -726,19 +734,19 @@ export const PurchaseForm = ({
                   </label>
 
                   <div>
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddDetail}
-                    disabled={
-                      !currentDetail.product_id ||
-                      !currentDetail.quantity ||
-                      !currentDetail.unit_price
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={handleAddDetail}
+                      disabled={
+                        !currentDetail.product_id ||
+                        !currentDetail.quantity ||
+                        !currentDetail.unit_price
+                      }
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -962,7 +970,10 @@ export const PurchaseForm = ({
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(calculateInstallmentsTotal(), 6)}
+                            {formatDecimalTrunc(
+                              calculateInstallmentsTotal(),
+                              6
+                            )}
                           </TableCell>
                           <TableCell></TableCell>
                         </TableRow>

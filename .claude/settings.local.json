@@ -9,7 +9,8 @@
       "Bash(find:*)",
       "Bash(npm run build:*)",
       "Bash(mkdir:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
