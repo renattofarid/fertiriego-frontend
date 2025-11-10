@@ -37,6 +37,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";
+import { FormSwitch } from "@/components/FormSwitch";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -95,14 +96,13 @@ export const PurchaseOrderForm = ({
     defaultValues: {
       ...defaultValues,
       details: details.length > 0 ? details : [],
+      apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
     },
     mode: "onChange",
   });
 
   const handleAddDetail = async (data: any) => {
-    const product = products.find(
-      (p) => p.id.toString() === data.product_id
-    );
+    const product = products.find((p) => p.id.toString() === data.product_id);
 
     const newDetail: DetailRow = {
       product_id: data.product_id,
@@ -156,9 +156,34 @@ export const PurchaseOrderForm = ({
   const handleFormSubmit = (data: any) => {
     if (isSubmitting) return; // Prevenir múltiples envíos
 
+    // Transformar detalles a los tipos que espera el backend y calcular subtotales y total
+    const transformedDetails = details.map((d) => {
+      const qty = Number(d.quantity_requested);
+      const price = Number(d.unit_price_estimated);
+      const subtotal = Number((qty * price).toFixed(2));
+      return {
+        product_id: Number(d.product_id),
+        quantity_requested: qty,
+        unit_price_estimated: price,
+        subtotal_estimated: subtotal,
+      };
+    });
+
+    const totalEstimated = transformedDetails.reduce(
+      (s, it) => s + it.subtotal_estimated,
+      0
+    );
+
     onSubmit({
-      ...data,
-      details,
+      supplier_id: Number(data.supplier_id),
+      warehouse_id: Number(data.warehouse_id),
+      order_number: data.order_number,
+      issue_date: data.issue_date,
+      expected_date: data.expected_date,
+      observations: data.observations,
+      apply_igv: !!data.apply_igv,
+      total_estimated: Number(totalEstimated.toFixed(2)),
+      details: transformedDetails,
     });
   };
 
@@ -239,6 +264,13 @@ export const PurchaseOrderForm = ({
                 dateFormat="dd/MM/yyyy"
               />
 
+              <FormSwitch
+                control={form.control}
+                name="apply_igv"
+                label="Aplicar IGV"
+                text="¿Aplicar IGV a esta orden de compra?"
+              />
+
               <div className="md:col-span-2">
                 <FormField
                   control={form.control}
@@ -251,6 +283,8 @@ export const PurchaseOrderForm = ({
                           placeholder="Ingrese observaciones adicionales"
                           className="resize-none"
                           {...field}
+                          // Coerce null to empty string so the native textarea value type is satisfied
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />

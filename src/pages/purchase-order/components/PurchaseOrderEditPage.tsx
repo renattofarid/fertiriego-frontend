@@ -75,6 +75,8 @@ export default function PurchaseOrderEditPage() {
     expected_date: data.expected_date,
     observations: data.observations,
     details: [],
+    // Coerce apply_igv to boolean in case backend sends 0/1 or similar
+    apply_igv: Boolean((data as any).apply_igv ?? false),
   });
 
   const handleSubmit = async (data: Partial<PurchaseOrderSchema>) => {

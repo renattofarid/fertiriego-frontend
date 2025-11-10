@@ -42,6 +42,7 @@ export default function PurchaseOrderAddPage() {
     expected_date: "",
     observations: "",
     details: [],
+    apply_igv: false,
   });
 
   const handleSubmit = async (data: PurchaseOrderSchema) => {

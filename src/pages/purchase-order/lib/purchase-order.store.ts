@@ -84,11 +84,22 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
         issue_date: data.issue_date,
         expected_date: data.expected_date,
         observations: data.observations || "",
-        details: data.details.map((detail) => ({
-          product_id: Number(detail.product_id),
-          quantity_requested: Number(detail.quantity_requested),
-          unit_price_estimated: Number(detail.unit_price_estimated),
-        })),
+        // Coerce apply_igv to boolean (handle 0/1 or "0"/"1")
+        apply_igv: !!(data as any).apply_igv,
+        details: data.details.map((detail) => {
+          const qty = Number(detail.quantity_requested);
+          const price = Number(detail.unit_price_estimated);
+          const subtotal = Number((qty * price).toFixed(2));
+          return {
+            product_id: Number(detail.product_id),
+            quantity_requested: qty,
+            unit_price_estimated: price,
+            subtotal_estimated: subtotal,
+          };
+        }),
+        total_estimated: data.details
+          .map((d) => Number(d.quantity_requested) * Number(d.unit_price_estimated))
+          .reduce((a, b) => a + b, 0),
       };
       await storePurchaseOrder(request);
     } catch (err) {
@@ -113,6 +124,10 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       if (data.expected_date) request.expected_date = data.expected_date;
       if (data.observations !== undefined)
         request.observations = data.observations;
+      // If apply_igv is provided in update payload, coerce to boolean
+      if ((data as any).apply_igv !== undefined) {
+        request.apply_igv = !!(data as any).apply_igv;
+      }
 
       await updatePurchaseOrder(id, request);
     } catch (err) {

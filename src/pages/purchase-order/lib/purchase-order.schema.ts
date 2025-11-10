@@ -20,6 +20,7 @@ export const purchaseOrderDetailSchema = z.object({
 export const purchaseOrderSchemaCreate = z.object({
   supplier_id: requiredStringId("Debe seleccionar un proveedor"),
   warehouse_id: requiredStringId("Debe seleccionar un almacén"),
+  apply_igv: z.boolean().optional(),
   order_number: z
     .string()
     .min(1, { message: "El número de orden es requerido" })
@@ -39,8 +40,8 @@ export const purchaseOrderSchemaCreate = z.object({
   observations: z
     .string()
     .max(500, { message: "Las observaciones no pueden exceder 500 caracteres" })
-    .optional()
-    .or(z.literal("")),
+    .nullable()
+    .optional(),
   details: z
     .array(purchaseOrderDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),
