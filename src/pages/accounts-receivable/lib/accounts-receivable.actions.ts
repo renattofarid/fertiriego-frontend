@@ -3,9 +3,7 @@ import type {
   SaleInstallmentResource,
   SalePaymentResource,
 } from "@/pages/sale/lib/sale.interface";
-import type {
-  CreateSalePaymentRequest,
-} from "@/pages/sale/lib/sale.interface";
+import type { CreateSalePaymentRequest } from "@/pages/sale/lib/sale.interface";
 import { ACCOUNTS_RECEIVABLE_ENDPOINT } from "./accounts-receivable.interface";
 
 // ============================================

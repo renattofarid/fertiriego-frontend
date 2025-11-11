@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Wallet } from "lucide-react";
+import { Calendar, Wallet, Eye, Edit } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 
 export const formatCurrency = (amount: number) => {
@@ -36,7 +36,8 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
 };
 
 export const getAccountsReceivableColumns = (
-  onOpenPayment: (installment: SaleInstallmentResource) => void
+  onOpenPayment: (installment: SaleInstallmentResource) => void,
+  onOpenQuickView: (installment: SaleInstallmentResource) => void
 ): ColumnDef<SaleInstallmentResource>[] => [
   {
     accessorKey: "sale_correlativo",
@@ -108,15 +109,27 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isPending = parseFloat(row.original.pending_amount) > 0;
       return (
-        <div className="text-center">
+        <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onOpenPayment(row.original)}
+            onClick={() => onOpenQuickView(row.original)}
+            title="Vista rápida de pagos"
           >
-            <Wallet className="h-4 w-4 mr-2" />
-            {isPending ? "Pagar" : "Ver Pagos"}
+            <Eye className="h-4 w-4 mr-1" />
+            Ver
           </Button>
+          {isPending && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => onOpenPayment(row.original)}
+              title="Gestionar pagos"
+            >
+              <Wallet className="h-4 w-4 mr-1" />
+              Gestionar
+            </Button>
+          )}
         </div>
       );
     },

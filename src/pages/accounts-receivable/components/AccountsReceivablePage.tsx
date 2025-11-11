@@ -14,6 +14,7 @@ import { DataTable } from "@/components/DataTable";
 import { getAllInstallments } from "../lib/accounts-receivable.actions";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 import InstallmentPaymentManagementSheet from "./InstallmentPaymentManagementSheet";
+import InstallmentPaymentsSheet from "@/pages/sale/components/InstallmentPaymentsSheet";
 import AccountsReceivableOptions from "./AccountsReceivableOptions";
 import { getAccountsReceivableColumns } from "./AccountsReceivableColumns";
 
@@ -29,6 +30,7 @@ export default function AccountsReceivablePage() {
   const [selectedInstallment, setSelectedInstallment] =
     useState<SaleInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
+  const [openQuickViewSheet, setOpenQuickViewSheet] = useState(false);
 
   useEffect(() => {
     fetchInstallments();
@@ -112,6 +114,11 @@ export default function AccountsReceivablePage() {
     setOpenPaymentSheet(true);
   };
 
+  const handleOpenQuickView = (installment: SaleInstallmentResource) => {
+    setSelectedInstallment(installment);
+    setOpenQuickViewSheet(true);
+  };
+
   const handlePaymentSuccess = () => {
     fetchInstallments();
     setOpenPaymentSheet(false);
@@ -119,8 +126,8 @@ export default function AccountsReceivablePage() {
   };
 
   const columns = useMemo(
-    () => getAccountsReceivableColumns(handleOpenPayment),
-    [handleOpenPayment]
+    () => getAccountsReceivableColumns(handleOpenPayment, handleOpenQuickView),
+    []
   );
 
   return (
@@ -227,6 +234,17 @@ export default function AccountsReceivablePage() {
       <DataTable columns={columns} data={filteredInstallments} isLoading={isLoading}>
         <AccountsReceivableOptions search={search} setSearch={setSearch} />
       </DataTable>
+
+      {/* Quick View Sheet */}
+      <InstallmentPaymentsSheet
+        open={openQuickViewSheet}
+        onClose={() => {
+          setOpenQuickViewSheet(false);
+          setSelectedInstallment(null);
+        }}
+        installment={selectedInstallment}
+        currency="S/."
+      />
 
       {/* Payment Management Sheet */}
       <InstallmentPaymentManagementSheet

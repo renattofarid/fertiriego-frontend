@@ -5,6 +5,9 @@ import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Wallet, Plus, Trash2, Calendar, Receipt } from "lucide-react";
+import { Wallet, Trash2, Calendar, Receipt, DollarSign } from "lucide-react";
 import type {
   SaleInstallmentResource,
   SalePaymentResource,
@@ -24,7 +27,7 @@ import {
   getInstallmentPayments,
   deleteInstallmentPayment,
 } from "../lib/accounts-receivable.actions";
-import InstallmentPaymentDialog from "@/pages/sale/components/InstallmentPaymentDialog";
+import { createSalePayment } from "@/pages/sale/lib/sale.actions";
 import { errorToast, successToast } from "@/lib/core.function";
 
 interface InstallmentPaymentManagementSheetProps {
@@ -42,10 +45,22 @@ export default function InstallmentPaymentManagementSheet({
 }: InstallmentPaymentManagementSheetProps) {
   const [payments, setPayments] = useState<SalePaymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [formData, setFormData] = useState({
+    payment_date: new Date().toISOString().split("T")[0],
+    amount_cash: "",
+    amount_card: "",
+    amount_yape: "",
+    amount_plin: "",
+    amount_deposit: "",
+    amount_transfer: "",
+    amount_other: "",
+    observation: "",
+  });
 
   const currency = "S/."; // Puedes hacerlo dinámico si es necesario
 
@@ -84,18 +99,90 @@ export default function InstallmentPaymentManagementSheet({
       setOpenDeleteDialog(false);
       setPaymentToDelete(null);
     } catch (error: any) {
-      errorToast(
-        error?.response?.data?.message || "Error al eliminar el pago"
-      );
+      errorToast(error?.response?.data?.message || "Error al eliminar el pago");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handlePaymentSuccess = () => {
-    fetchPayments();
-    onSuccess();
-    setOpenPaymentDialog(false);
+  const handleInputChange = (field: string, value: string | number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const calculateTotal = () => {
+    return (
+      parseFloat(formData.amount_cash || "0") +
+      parseFloat(formData.amount_card || "0") +
+      parseFloat(formData.amount_yape || "0") +
+      parseFloat(formData.amount_plin || "0") +
+      parseFloat(formData.amount_deposit || "0") +
+      parseFloat(formData.amount_transfer || "0") +
+      parseFloat(formData.amount_other || "0")
+    );
+  };
+
+  const handleSubmitPayment = async () => {
+    if (!installment) return;
+
+    const total = calculateTotal();
+    const pendingAmount = parseFloat(installment.pending_amount);
+
+    if (total === 0) {
+      errorToast("Debe ingresar al menos un monto de pago");
+      return;
+    }
+
+    if (total > pendingAmount) {
+      errorToast(
+        `El monto total (${currency} ${total.toFixed(
+          2
+        )}) excede el monto pendiente (${currency} ${pendingAmount.toFixed(2)})`
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await createSalePayment(installment.id, {
+        payment_date: formData.payment_date,
+        amount_cash: parseFloat(formData.amount_cash || "0"),
+        amount_card: parseFloat(formData.amount_card || "0"),
+        amount_yape: parseFloat(formData.amount_yape || "0"),
+        amount_plin: parseFloat(formData.amount_plin || "0"),
+        amount_deposit: parseFloat(formData.amount_deposit || "0"),
+        amount_transfer: parseFloat(formData.amount_transfer || "0"),
+        amount_other: parseFloat(formData.amount_other || "0"),
+        observation: formData.observation,
+      });
+
+      successToast("Pago registrado correctamente");
+
+      // Reset form
+      setFormData({
+        payment_date: new Date().toISOString().split("T")[0],
+        amount_cash: "",
+        amount_card: "",
+        amount_yape: "",
+        amount_plin: "",
+        amount_deposit: "",
+        amount_transfer: "",
+        amount_other: "",
+        observation: "",
+      });
+
+      fetchPayments();
+      onSuccess();
+    } catch (error: any) {
+      errorToast(
+        error?.response?.data?.message || "Error al registrar el pago"
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -128,7 +215,6 @@ export default function InstallmentPaymentManagementSheet({
         open={open}
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
-        description={`Venta ${installment.sale_correlativo} - Gestión de pagos`}
         icon={<Wallet className="h-5 w-5" />}
         className="overflow-y-auto w-full sm:max-w-3xl"
       >
@@ -201,15 +287,246 @@ export default function InstallmentPaymentManagementSheet({
             </CardContent>
           </Card>
 
-          {/* Add Payment Button */}
+          {/* Payment Form */}
           {isPending && (
-            <Button
-              className="w-full"
-              onClick={() => setOpenPaymentDialog(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Registrar Pago
-            </Button>
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                  Registrar Nuevo Pago
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Installment Info */}
+                <div className="p-3 bg-muted/50 rounded-lg space-y-2 border">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Monto de la Cuota
+                    </span>
+                    <span className="font-semibold">
+                      {currency} {parseFloat(installment.amount).toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">
+                      Monto Pendiente
+                    </span>
+                    <span className="font-semibold text-orange-600">
+                      {currency}{" "}
+                      {parseFloat(installment.pending_amount).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Payment Date */}
+                <div>
+                  <Label htmlFor="payment_date" className="text-sm">
+                    Fecha de Pago
+                  </Label>
+                  <Input
+                    id="payment_date"
+                    type="date"
+                    value={formData.payment_date}
+                    onChange={(e) =>
+                      handleInputChange("payment_date", e.target.value)
+                    }
+                  />
+                </div>
+
+                {/* Payment Methods */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-semibold">
+                    Métodos de Pago
+                  </Label>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="amount_cash" className="text-xs">
+                        💵 Efectivo
+                      </Label>
+                      <Input
+                        id="amount_cash"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_cash}
+                        onChange={(e) =>
+                          handleInputChange("amount_cash", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="amount_card" className="text-xs">
+                        💳 Tarjeta
+                      </Label>
+                      <Input
+                        id="amount_card"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_card}
+                        onChange={(e) =>
+                          handleInputChange("amount_card", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="amount_yape" className="text-xs">
+                        📱 Yape
+                      </Label>
+                      <Input
+                        id="amount_yape"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_yape}
+                        onChange={(e) =>
+                          handleInputChange("amount_yape", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="amount_plin" className="text-xs">
+                        📱 Plin
+                      </Label>
+                      <Input
+                        id="amount_plin"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_plin}
+                        onChange={(e) =>
+                          handleInputChange("amount_plin", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="amount_deposit" className="text-xs">
+                        🏦 Depósito
+                      </Label>
+                      <Input
+                        id="amount_deposit"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_deposit}
+                        onChange={(e) =>
+                          handleInputChange("amount_deposit", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="amount_transfer" className="text-xs">
+                        🔄 Transferencia
+                      </Label>
+                      <Input
+                        id="amount_transfer"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_transfer}
+                        onChange={(e) =>
+                          handleInputChange("amount_transfer", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+
+                    <div className="col-span-2">
+                      <Label htmlFor="amount_other" className="text-xs">
+                        💰 Otro
+                      </Label>
+                      <Input
+                        id="amount_other"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.amount_other}
+                        onChange={(e) =>
+                          handleInputChange("amount_other", e.target.value)
+                        }
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total */}
+                <div className="p-3 bg-muted/50 rounded-lg border">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-sm">Total a Pagar</span>
+                    <span
+                      className={`text-lg font-bold ${
+                        calculateTotal() >
+                        parseFloat(installment.pending_amount)
+                          ? "text-red-600"
+                          : calculateTotal() > 0
+                          ? "text-green-600"
+                          : "text-muted-foreground"
+                      }`}
+                    >
+                      {currency} {calculateTotal().toFixed(2)}
+                    </span>
+                  </div>
+                  {calculateTotal() >
+                    parseFloat(installment.pending_amount) && (
+                    <p className="text-xs text-red-600 mt-2">
+                      El total excede el monto pendiente
+                    </p>
+                  )}
+                  {calculateTotal() > 0 &&
+                    calculateTotal() <=
+                      parseFloat(installment.pending_amount) && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Pendiente después del pago: {currency}{" "}
+                        {(
+                          parseFloat(installment.pending_amount) -
+                          calculateTotal()
+                        ).toFixed(2)}
+                      </p>
+                    )}
+                </div>
+
+                {/* Observation */}
+                <div>
+                  <Label htmlFor="observation" className="text-sm">
+                    Observación (Opcional)
+                  </Label>
+                  <Textarea
+                    id="observation"
+                    value={formData.observation}
+                    onChange={(e) =>
+                      handleInputChange("observation", e.target.value)
+                    }
+                    placeholder="Ingrese una observación"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Submit Button */}
+                <Button
+                  className="w-full"
+                  onClick={handleSubmitPayment}
+                  disabled={
+                    isSubmitting ||
+                    calculateTotal() === 0 ||
+                    calculateTotal() > parseFloat(installment.pending_amount)
+                  }
+                >
+                  {isSubmitting ? "Registrando..." : "Registrar Pago"}
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
           {/* Payments List */}
@@ -232,9 +549,9 @@ export default function InstallmentPaymentManagementSheet({
                     No hay pagos registrados para esta cuota
                   </p>
                 </div>
-              ) : (
+              ) : payments && payments.length > 0 ? (
                 <div className="space-y-4">
-                  {payments.map((payment) => (
+                  {payments?.map((payment) => (
                     <Card
                       key={payment.id}
                       className="bg-muted/30 hover:bg-muted/50 transition-colors"
@@ -316,7 +633,8 @@ export default function InstallmentPaymentManagementSheet({
                               <div className="flex justify-between">
                                 <span>🔄 Transferencia</span>
                                 <span className="font-medium">
-                                  {currency} {payment.amount_transfer.toFixed(2)}
+                                  {currency}{" "}
+                                  {payment.amount_transfer.toFixed(2)}
                                 </span>
                               </div>
                             )}
@@ -347,20 +665,18 @@ export default function InstallmentPaymentManagementSheet({
                     </Card>
                   ))}
                 </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    No hay pagos registrados para esta cuota.
+                  </p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
       </GeneralSheet>
-
-      {/* Payment Dialog */}
-      <InstallmentPaymentDialog
-        open={openPaymentDialog}
-        onClose={() => setOpenPaymentDialog(false)}
-        installment={installment}
-        currency={currency}
-        onSuccess={handlePaymentSuccess}
-      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>

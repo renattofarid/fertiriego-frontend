@@ -74,12 +74,17 @@ export const updateSale = async (
   id: number,
   data: UpdateSaleRequest
 ): Promise<{ message: string }> => {
-  const response = await api.put<{ message: string }>(`${SALE_ENDPOINT}/${id}`, data);
+  const response = await api.put<{ message: string }>(
+    `${SALE_ENDPOINT}/${id}`,
+    data
+  );
   return response.data;
 };
 
 export const deleteSale = async (id: number): Promise<{ message: string }> => {
-  const response = await api.delete<{ message: string }>(`${SALE_ENDPOINT}/${id}`);
+  const response = await api.delete<{ message: string }>(
+    `${SALE_ENDPOINT}/${id}`
+  );
   return response.data;
 };
 
@@ -97,18 +102,24 @@ export const getSaleDetails = async (
   saleId: number,
   params?: GetSaleDetailsParams
 ): Promise<SaleDetailResponse> => {
-  const response = await api.get<SaleDetailResponse>(`${SALE_ENDPOINT}/${saleId}/details`, {
-    params,
-  });
+  const response = await api.get<SaleDetailResponse>(
+    `${SALE_ENDPOINT}/${saleId}/details`,
+    {
+      params,
+    }
+  );
   return response.data;
 };
 
 export const getAllSaleDetails = async (
   saleId: number
 ): Promise<SaleDetailResource[]> => {
-  const response = await api.get<SaleDetailResource[]>(`${SALE_ENDPOINT}/${saleId}/details`, {
-    params: { all: true },
-  });
+  const response = await api.get<SaleDetailResource[]>(
+    `${SALE_ENDPOINT}/${saleId}/details`,
+    {
+      params: { all: true },
+    }
+  );
   return response.data;
 };
 
@@ -250,11 +261,11 @@ export const getSalePayments = async (
 export const getAllSalePayments = async (
   installmentId: number
 ): Promise<SalePaymentResource[]> => {
-  const response = await api.get<SalePaymentResource[]>(
+  const response = await api.get<any>(
     `${SALE_PAYMENT_ENDPOINT}/${installmentId}/payments`,
     { params: { all: true } }
   );
-  return response.data;
+  return response.data.data;
 };
 
 export const getSalePaymentById = async (

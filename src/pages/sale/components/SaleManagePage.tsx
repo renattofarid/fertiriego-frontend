@@ -17,7 +17,6 @@ import {
   User,
   Warehouse,
   Calendar,
-  Clock,
 } from "lucide-react";
 import type { SaleInstallmentResource } from "../lib/sale.interface";
 import InstallmentPaymentDialog from "./InstallmentPaymentDialog";
@@ -173,7 +172,9 @@ export default function SaleManagePage() {
                 </p>
                 <p
                   className={`text-2xl font-bold truncate ${
-                    sale.current_amount === 0 ? "text-primary" : "text-destructive"
+                    sale.current_amount === 0
+                      ? "text-primary"
+                      : "text-destructive"
                   }`}
                 >
                   {currency} {sale.current_amount.toFixed(2)}
@@ -188,7 +189,9 @@ export default function SaleManagePage() {
               >
                 <CreditCard
                   className={`h-5 w-5 ${
-                    sale.current_amount === 0 ? "text-primary" : "text-destructive"
+                    sale.current_amount === 0
+                      ? "text-primary"
+                      : "text-destructive"
                   }`}
                 />
               </div>
@@ -365,11 +368,15 @@ export default function SaleManagePage() {
                               </p>
                               <p
                                 className={`font-semibold ${
-                                  isPending ? "text-destructive" : "text-primary"
+                                  isPending
+                                    ? "text-destructive"
+                                    : "text-primary"
                                 }`}
                               >
                                 {currency}{" "}
-                                {parseFloat(installment.pending_amount).toFixed(2)}
+                                {parseFloat(installment.pending_amount).toFixed(
+                                  2
+                                )}
                               </p>
                             </div>
                           </div>
