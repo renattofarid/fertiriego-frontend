@@ -35,27 +35,59 @@ export interface SaleInstallmentResource {
 
 export interface SaleResource {
   id: number;
-  correlativo: string;
   customer_id: number;
-  customer_fullname: string;
   warehouse_id: number;
-  warehouse_name: string;
   user_id: number;
+  customer_fullname: string;
+  customer_document: string | null;
+  warehouse_name: string;
   user_name: string;
   document_type: string;
   serie: string;
   numero: string;
+  full_document_number: string;
   issue_date: string;
   payment_type: string;
-  total_amount: string;
-  current_amount: string;
+  amount_cash: number;
+  amount_card: number;
+  amount_yape: number;
+  amount_plin: number;
+  amount_deposit: number;
+  amount_transfer: number;
+  amount_other: number;
+  total_paid: number;
+  total_amount: number;
+  current_amount: number;
   currency: string;
   status: string;
-  observations: string;
-  details: SaleDetailResource[];
-  installments: SaleInstallmentResource[];
+  observations: string | null;
+  customer: {
+    id: number;
+    document_type: string | null;
+    document_number: string | null;
+    first_name: string | null;
+    father_surname: string;
+    mother_surname: string;
+    business_name: string;
+    full_name: string;
+  };
+  warehouse: {
+    id: number;
+    name: string;
+    address: string;
+  };
+  user: {
+    id: number;
+    name: string;
+    email: string | null;
+  };
+  details?: SaleDetailResource[];
+  installments?: SaleInstallmentResource[];
   created_at: string;
+  updated_at: string;
 }
+
+
 
 export interface SaleResourceById {
   data: SaleResource;

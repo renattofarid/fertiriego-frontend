@@ -40,33 +40,26 @@ export const getSaleColumns = ({
   onQuickPay,
 }: SaleColumnsProps): ColumnDef<SaleResource>[] => [
   {
-    accessorKey: "correlativo",
-    header: "Correlativo",
+    accessorKey: "id",
+    header: "ID",
     cell: ({ row }) => (
       <Badge variant="outline" className="font-mono">
-        {row.original.correlativo}
+        #{row.original.id}
       </Badge>
     ),
   },
   {
-    accessorKey: "document_type",
-    header: "Tipo Doc.",
+    accessorKey: "full_document_number",
+    header: "Documento",
     cell: ({ row }) => (
-      <span className="font-medium">{row.original.document_type}</span>
-    ),
-  },
-  {
-    accessorKey: "serie",
-    header: "Serie",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.serie}</span>
-    ),
-  },
-  {
-    accessorKey: "numero",
-    header: "Número",
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.numero}</span>
+      <div className="flex flex-col">
+        <span className="font-medium text-xs text-muted-foreground">
+          {row.original.document_type}
+        </span>
+        <span className="font-mono font-semibold">
+          {row.original.full_document_number}
+        </span>
+      </div>
     ),
   },
   {
@@ -127,7 +120,7 @@ export const getSaleColumns = ({
           : "€";
       return (
         <span className="font-semibold">
-          {currency} {parseFloat(row.original.total_amount).toFixed(2)}
+          {currency} {row.original.total_amount.toFixed(2)}
         </span>
       );
     },
@@ -142,7 +135,7 @@ export const getSaleColumns = ({
           : row.original.currency === "USD"
           ? "$"
           : "€";
-      const currentAmount = parseFloat(row.original.current_amount);
+      const currentAmount = row.original.current_amount;
       const isPaid = currentAmount === 0;
 
       return (
