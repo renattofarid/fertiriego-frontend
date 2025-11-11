@@ -61,6 +61,7 @@ import {
 } from "./pages/purchase-shipping-guide/components";
 import { SaleRoute } from "./pages/sale/lib/sale.interface";
 import { SalePage, SaleAddPage } from "./pages/sale/components";
+import SaleManagePage from "./pages/sale/components/SaleManagePage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -478,6 +479,15 @@ export default function App() {
             element={
               <ProtectedRoute path={SaleRoute}>
                 <SaleAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/gestionar/:id"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleManagePage />
               </ProtectedRoute>
             }
           />

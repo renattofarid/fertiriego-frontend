@@ -183,12 +183,23 @@ export const getSaleColumns = ({
     accessorKey: "installments",
     header: "Cuotas",
     cell: ({ row }) => {
+      // Si es al contado, ya está pagado y no hay cuotas
+      const isContado = row.original.payment_type === "CONTADO";
+
+      if (isContado) {
+        return (
+          <Badge variant="outline" className="text-green-600">
+            Pagado
+          </Badge>
+        );
+      }
+
       const hasPendingPayments = row.original.installments?.some(
         (inst) => parseFloat(inst.pending_amount) > 0
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
-      const totalAmount = parseFloat(row.original.total_amount);
+      const totalAmount = row.original.total_amount;
       const sumOfInstallments =
         row.original.installments?.reduce(
           (sum, inst) => sum + parseFloat(inst.amount),

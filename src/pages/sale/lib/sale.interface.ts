@@ -87,8 +87,6 @@ export interface SaleResource {
   updated_at: string;
 }
 
-
-
 export interface SaleResourceById {
   data: SaleResource;
 }
