@@ -15,7 +15,12 @@ import {
   type GetSalesParams,
 } from "./sale.actions";
 import type { SaleSchema, SaleUpdateSchema } from "./sale.schema";
-import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  SUCCESS_MESSAGE,
+  errorToast,
+  successToast,
+} from "@/lib/core.function";
 import { SALE } from "./sale.interface";
 
 const { MODEL } = SALE;
@@ -112,16 +117,22 @@ export const useSaleStore = create<SaleStore>((set) => ({
         payment_type: data.payment_type,
         currency: data.currency,
         observations: data.observations || "",
+        amount_cash: data.amount_cash || "0",
+        amount_card: data.amount_card || "0",
+        amount_yape: data.amount_yape || "0",
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
           quantity: Number(detail.quantity),
           unit_price: Number(detail.unit_price),
         })),
-        installments: data.installments.map((installment) => ({
-          installment_number: Number(installment.installment_number),
-          due_days: Number(installment.due_days),
-          amount: Number(installment.amount),
-        })),
+        installments:
+          data.installments.length > 0
+            ? data.installments.map((installment) => ({
+                installment_number: Number(installment.installment_number),
+                due_days: Number(installment.due_days),
+                amount: Number(installment.amount),
+              }))
+            : undefined,
       };
 
       await storeSale(request);
@@ -145,7 +156,9 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.issue_date && { issue_date: data.issue_date }),
         ...(data.payment_type && { payment_type: data.payment_type }),
         ...(data.currency && { currency: data.currency }),
-        ...(data.observations !== undefined && { observations: data.observations }),
+        ...(data.observations !== undefined && {
+          observations: data.observations,
+        }),
       };
 
       await updateSale(id, request);

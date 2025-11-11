@@ -20,6 +20,7 @@ import {
 } from "../lib/sale.schema";
 import { Loader, Plus, Trash2, Edit } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -63,6 +64,7 @@ interface DetailRow {
   quantity: string;
   unit_price: string;
   subtotal: number;
+  igv: number;
   total: number;
 }
 
@@ -93,6 +95,7 @@ export const SaleForm = ({
     quantity: "",
     unit_price: "",
     subtotal: 0,
+    igv: 0,
     total: 0,
   });
 
@@ -216,6 +219,17 @@ export const SaleForm = ({
     const today = new Date();
     const formattedDate = format(today, "yyyy-MM-dd");
     form.setValue("issue_date", formattedDate);
+
+    // Inicializar montos de pago a 0
+    if (!form.getValues("amount_cash")) {
+      form.setValue("amount_cash", "0");
+    }
+    if (!form.getValues("amount_card")) {
+      form.setValue("amount_card", "0");
+    }
+    if (!form.getValues("amount_yape")) {
+      form.setValue("amount_yape", "0");
+    }
   }, [form]);
 
   // Funciones para detalles
@@ -234,14 +248,16 @@ export const SaleForm = ({
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
 
-    // En ventas no hay tax por detalle, solo subtotal y total
+    // Calcular subtotal, IGV (18%) y total
     const subtotal = truncDecimal(quantity * unitPrice, 6);
-    const total = subtotal; // Sin IGV en detalles de venta
+    const igv = truncDecimal(subtotal * 0.18, 6); // IGV 18%
+    const total = truncDecimal(subtotal + igv, 6);
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: product?.name,
       subtotal,
+      igv,
       total,
     };
 
@@ -263,6 +279,7 @@ export const SaleForm = ({
       quantity: "",
       unit_price: "",
       subtotal: 0,
+      igv: 0,
       total: 0,
     };
     setCurrentDetail(emptyDetail);
@@ -286,6 +303,16 @@ export const SaleForm = ({
     const updatedDetails = details.filter((_, i) => i !== index);
     setDetails(updatedDetails);
     form.setValue("details", updatedDetails);
+  };
+
+  const calculateDetailsSubtotal = () => {
+    const sum = details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+    return truncDecimal(sum, 6);
+  };
+
+  const calculateDetailsIGV = () => {
+    const sum = details.reduce((sum, detail) => sum + (detail.igv || 0), 0);
+    return truncDecimal(sum, 6);
   };
 
   const calculateDetailsTotal = () => {
@@ -375,7 +402,35 @@ export const SaleForm = ({
     return Math.abs(saleTotal - installmentsTotal) < 0.000001;
   };
 
+  // Funciones para montos de pago
+  const calculatePaymentTotal = () => {
+    const cash = parseFloat(form.watch("amount_cash") || "0");
+    const card = parseFloat(form.watch("amount_card") || "0");
+    const yape = parseFloat(form.watch("amount_yape") || "0");
+    const sum = cash + card + yape;
+    return truncDecimal(sum, 6);
+  };
+
+  const paymentAmountsMatchTotal = () => {
+    if (selectedPaymentType !== "CONTADO") return true;
+    const saleTotal = calculateDetailsTotal();
+    const paymentTotal = calculatePaymentTotal();
+    return Math.abs(saleTotal - paymentTotal) < 0.000001;
+  };
+
   const handleFormSubmit = (data: any) => {
+    // Validar que si es al contado, los montos de pago deben coincidir con el total
+    if (selectedPaymentType === "CONTADO" && !paymentAmountsMatchTotal()) {
+      errorToast(
+        `El total pagado (${formatNumber(
+          calculatePaymentTotal()
+        )}) debe ser igual al total de la venta (${formatNumber(
+          calculateDetailsTotal()
+        )})`
+      );
+      return;
+    }
+
     // Validar que si es a crédito, debe tener cuotas
     if (selectedPaymentType === "CREDITO" && installments.length === 0) {
       errorToast("Para pagos a crédito, debe agregar al menos una cuota");
@@ -395,7 +450,7 @@ export const SaleForm = ({
     }
 
     // Preparar cuotas según el tipo de pago
-    let validInstallments;
+    let validInstallments: { installment_number: number; due_days: string; amount: string; }[];
 
     if (selectedPaymentType === "CONTADO") {
       // Para pagos al contado, las cuotas van vacías
@@ -508,6 +563,14 @@ export const SaleForm = ({
                 )}
               />
 
+              <DatePickerFormField
+                control={form.control}
+                name="issue_date"
+                label="Fecha de Emisión"
+                placeholder="Seleccione fecha"
+                dateFormat="dd/MM/yyyy"
+              />
+
               <FormSelect
                 control={form.control}
                 name="payment_type"
@@ -552,6 +615,103 @@ export const SaleForm = ({
             </div>
           </CardContent>
         </Card>
+
+        {/* Métodos de Pago - Solo mostrar si es al contado */}
+        {mode === "create" && selectedPaymentType === "CONTADO" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Métodos de Pago (Obligatorio)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="amount_cash"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto en Efectivo</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          variant="primary"
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_card"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto con Tarjeta</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          variant="primary"
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_yape"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto Yape</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          variant="primary"
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Mostrar total de pagos vs total de venta */}
+              {details.length > 0 && (
+                <div className="mt-4 p-4 bg-sidebar rounded-lg space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total de la Venta:</span>
+                    <span className="text-lg font-bold text-green-600">
+                      {formatNumber(calculateDetailsTotal())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold">Total Pagado:</span>
+                    <span className="text-lg font-bold text-blue-600">
+                      {formatNumber(calculatePaymentTotal())}
+                    </span>
+                  </div>
+                  {!paymentAmountsMatchTotal() && (
+                    <div className="p-3 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded">
+                      <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                        ⚠️ El total pagado debe ser igual al total de la venta
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Detalles */}
         {mode === "create" && (
@@ -638,6 +798,8 @@ export const SaleForm = ({
                         <TableHead>Producto</TableHead>
                         <TableHead className="text-right">Cantidad</TableHead>
                         <TableHead className="text-right">P. Unit.</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead className="text-right">IGV (18%)</TableHead>
                         <TableHead className="text-right">Total</TableHead>
                         <TableHead className="text-center">Acciones</TableHead>
                       </TableRow>
@@ -651,6 +813,12 @@ export const SaleForm = ({
                           </TableCell>
                           <TableCell className="text-right">
                             {formatNumber(parseFloat(detail.unit_price))}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatNumber(detail.subtotal)}
+                          </TableCell>
+                          <TableCell className="text-right text-orange-600">
+                            {formatNumber(detail.igv)}
                           </TableCell>
                           <TableCell className="text-right font-bold text-green-600">
                             {formatNumber(detail.total)}
@@ -679,7 +847,13 @@ export const SaleForm = ({
                       ))}
                       <TableRow>
                         <TableCell colSpan={3} className="text-right font-bold">
-                          TOTAL:
+                          TOTALES:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-lg">
+                          {formatNumber(calculateDetailsSubtotal())}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-lg text-orange-600">
+                          {formatNumber(calculateDetailsIGV())}
                         </TableCell>
                         <TableCell className="text-right font-bold text-lg text-green-600">
                           {formatNumber(calculateDetailsTotal())}
@@ -871,6 +1045,9 @@ export const SaleForm = ({
               isSubmitting ||
               !form.formState.isValid ||
               (mode === "create" && details.length === 0) ||
+              (mode === "create" &&
+                selectedPaymentType === "CONTADO" &&
+                !paymentAmountsMatchTotal()) ||
               (mode === "create" &&
                 selectedPaymentType === "CREDITO" &&
                 installments.length === 0) ||

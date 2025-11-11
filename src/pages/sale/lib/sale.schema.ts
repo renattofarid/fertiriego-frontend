@@ -62,7 +62,25 @@ export const saleSchemaCreate = z.object({
     }),
   payment_type: z.string().min(1, { message: "Debe seleccionar un tipo de pago" }),
   currency: z.string().min(1, { message: "Debe seleccionar una moneda" }),
-  observations: z.string().max(500).optional().default(""),
+  observations: z.string().max(500).optional(),
+  amount_cash: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto en efectivo debe ser un número válido",
+    })
+    .default("0"),
+  amount_card: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto con tarjeta debe ser un número válido",
+    })
+    .default("0"),
+  amount_yape: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto Yape debe ser un número válido",
+    })
+    .default("0"),
   details: z
     .array(saleDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),

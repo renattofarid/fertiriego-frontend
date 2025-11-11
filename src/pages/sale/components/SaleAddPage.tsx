@@ -34,7 +34,7 @@ export const SaleAddPage = () => {
     numero: "",
     issue_date: "",
     payment_type: "",
-    currency: "PEN",
+    currency: "",
     observations: "",
     details: [],
     installments: [],

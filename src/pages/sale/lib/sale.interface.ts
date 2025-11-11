@@ -112,8 +112,11 @@ export interface CreateSaleRequest {
   payment_type: string;
   currency: string;
   observations: string;
+  amount_cash: string;
+  amount_card: string;
+  amount_yape: string;
   details: CreateSaleDetailRequest[];
-  installments: CreateSaleInstallmentRequest[];
+  installments?: CreateSaleInstallmentRequest[];
 }
 
 export interface UpdateSaleRequest {
