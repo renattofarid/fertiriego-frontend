@@ -6,11 +6,23 @@ import { useSaleById } from "../lib/sale.hook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Plus, Eye } from "lucide-react";
+import {
+  ArrowLeft,
+  Plus,
+  Eye,
+  Receipt,
+  Wallet,
+  CreditCard,
+  FileText,
+  User,
+  Warehouse,
+  Calendar,
+  Clock,
+} from "lucide-react";
 import type { SaleInstallmentResource } from "../lib/sale.interface";
 import InstallmentPaymentDialog from "./InstallmentPaymentDialog";
 import InstallmentPaymentsSheet from "./InstallmentPaymentsSheet";
+import FormWrapper from "@/components/FormWrapper";
 
 export default function SaleManagePage() {
   const { id } = useParams<{ id: string }>();
@@ -52,26 +64,30 @@ export default function SaleManagePage() {
 
   if (isFinding) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p>Cargando...</p>
-      </div>
+      <FormWrapper>
+        <div className="flex items-center justify-center h-64">
+          <p>Cargando...</p>
+        </div>
+      </FormWrapper>
     );
   }
 
   if (!sale) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p>No se encontró la venta</p>
-      </div>
+      <FormWrapper>
+        <div className="flex items-center justify-center h-64">
+          <p>No se encontró la venta</p>
+        </div>
+      </FormWrapper>
     );
   }
 
   const isContado = sale.payment_type === "CONTADO";
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <FormWrapper>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -81,7 +97,7 @@ export default function SaleManagePage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Gestionar Venta</h1>
+            <h1 className="text-2xl font-bold">Gestionar Venta #{sale.id}</h1>
             <p className="text-sm text-muted-foreground">
               {sale.full_document_number} - {sale.customer_fullname}
             </p>
@@ -95,79 +111,174 @@ export default function SaleManagePage() {
               ? "secondary"
               : "destructive"
           }
-          className="text-lg px-4 py-2"
+          className="text-sm px-3 py-1"
         >
           {sale.status}
         </Badge>
       </div>
 
-      {/* Sale Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Resumen de la Venta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm text-muted-foreground">Total</p>
-              <p className="text-2xl font-bold">
-                {currency} {sale.total_amount.toFixed(2)}
-              </p>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Total Card */}
+        <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground font-medium mb-1">
+                  Total
+                </p>
+                <p className="text-2xl font-bold text-muted-foreground truncate">
+                  {currency} {sale.total_amount.toFixed(2)}
+                </p>
+              </div>
+              <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
+                <Receipt className="h-5 w-5 text-muted-foreground" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Pagado</p>
-              <p className="text-2xl font-bold text-green-600">
-                {currency} {sale.total_paid.toFixed(2)}
-              </p>
+          </CardContent>
+        </Card>
+
+        {/* Pagado Card */}
+        <Card className="border-none bg-primary/5 hover:bg-primary/10 transition-colors !p-0">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground font-medium mb-1">
+                  Pagado
+                </p>
+                <p className="text-2xl font-bold text-primary truncate">
+                  {currency} {sale.total_paid.toFixed(2)}
+                </p>
+              </div>
+              <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
-              <p
-                className={`text-2xl font-bold ${
+          </CardContent>
+        </Card>
+
+        {/* Pendiente Card */}
+        <Card
+          className={`border-none transition-colors !p-0 ${
+            sale.current_amount === 0
+              ? "bg-primary/5 hover:bg-primary/10"
+              : "bg-destructive/5 hover:bg-destructive/10"
+          }`}
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground font-medium mb-1">
+                  Pendiente
+                </p>
+                <p
+                  className={`text-2xl font-bold truncate ${
+                    sale.current_amount === 0 ? "text-primary" : "text-destructive"
+                  }`}
+                >
+                  {currency} {sale.current_amount.toFixed(2)}
+                </p>
+              </div>
+              <div
+                className={`p-2.5 rounded-lg shrink-0 ${
                   sale.current_amount === 0
-                    ? "text-green-600"
-                    : "text-orange-600"
+                    ? "bg-primary/10"
+                    : "bg-destructive/10"
                 }`}
               >
-                {currency} {sale.current_amount.toFixed(2)}
-              </p>
+                <CreditCard
+                  className={`h-5 w-5 ${
+                    sale.current_amount === 0 ? "text-primary" : "text-destructive"
+                  }`}
+                />
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+      </div>
 
-          <Separator className="my-4" />
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground">Tipo de Pago</p>
+      {/* Información del Documento */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Información del Documento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Tipo de Documento</p>
+              <p className="font-semibold">{sale.document_type}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Número</p>
+              <p className="font-mono font-bold">{sale.full_document_number}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Fecha de Emisión
+              </p>
+              <p className="font-medium">{formatDate(sale.issue_date)}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Tipo de Pago</p>
               <Badge
                 variant={
                   sale.payment_type === "CONTADO" ? "default" : "secondary"
                 }
               >
-                {sale.payment_type}
+                {sale.payment_type === "CONTADO" ? "CONTADO" : "CRÉDITO"}
               </Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Fecha de Emisión</p>
-              <p className="font-medium">{formatDate(sale.issue_date)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Almacén</p>
-              <p className="font-medium">{sale.warehouse_name}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Installments Section */}
+      {/* Cliente y Almacén */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Nombre Completo</p>
+              <p className="font-semibold">{sale.customer_fullname}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Warehouse className="h-5 w-5" />
+              Almacén
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Nombre</p>
+              <p className="font-semibold">{sale.warehouse_name}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Cuotas Section */}
       {isContado ? (
         <Card>
           <CardContent className="py-8">
             <div className="text-center">
-              <p className="text-lg font-medium text-green-600">
-                Venta al contado - Ya pagada
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
+                <Wallet className="h-6 w-6 text-primary" />
+              </div>
+              <p className="text-lg font-semibold mb-1">Venta al Contado</p>
+              <p className="text-sm text-muted-foreground">
                 Esta venta fue realizada al contado y no tiene cuotas pendientes
               </p>
             </div>
@@ -176,8 +287,11 @@ export default function SaleManagePage() {
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Cuotas de Pago</span>
+            <CardTitle className="text-base flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Cuotas de Pago
+              </span>
               <Badge variant="outline">
                 {sale.installments?.length || 0} cuota(s)
               </Badge>
@@ -191,7 +305,7 @@ export default function SaleManagePage() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {sale.installments.map((installment) => {
                   const isPending = parseFloat(installment.pending_amount) > 0;
                   const isOverdue =
@@ -202,16 +316,18 @@ export default function SaleManagePage() {
                   return (
                     <div
                       key={installment.id}
-                      className={`p-4 border rounded-lg ${
-                        isOverdue ? "border-red-300 bg-red-50" : ""
+                      className={`p-4 rounded-lg border transition-colors ${
+                        isOverdue
+                          ? "border-destructive/30 bg-destructive/5"
+                          : "bg-muted/30 hover:bg-muted/50"
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold">
+                      <div className="flex items-start justify-between gap-4 flex-wrap">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Badge variant="outline" className="font-semibold">
                               Cuota {installment.installment_number}
-                            </h3>
+                            </Badge>
                             <Badge
                               variant={
                                 installment.status === "PAGADO"
@@ -224,40 +340,41 @@ export default function SaleManagePage() {
                               {installment.status}
                             </Badge>
                           </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                             <div>
-                              <p className="text-muted-foreground">
-                                Fecha de Vencimiento
+                              <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                Vencimiento
                               </p>
                               <p className="font-medium">
                                 {formatDate(installment.due_date)}
                               </p>
                             </div>
                             <div>
-                              <p className="text-muted-foreground">Monto</p>
-                              <p className="font-medium">
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Monto
+                              </p>
+                              <p className="font-semibold">
                                 {currency}{" "}
                                 {parseFloat(installment.amount).toFixed(2)}
                               </p>
                             </div>
                             <div>
-                              <p className="text-muted-foreground">Pendiente</p>
+                              <p className="text-xs text-muted-foreground mb-1">
+                                Pendiente
+                              </p>
                               <p
-                                className={`font-medium ${
-                                  isPending
-                                    ? "text-orange-600"
-                                    : "text-green-600"
+                                className={`font-semibold ${
+                                  isPending ? "text-destructive" : "text-primary"
                                 }`}
                               >
                                 {currency}{" "}
-                                {parseFloat(installment.pending_amount).toFixed(
-                                  2
-                                )}
+                                {parseFloat(installment.pending_amount).toFixed(2)}
                               </p>
                             </div>
                           </div>
                         </div>
-                        <div className="flex gap-2 ml-4">
+                        <div className="flex gap-2 shrink-0">
                           <Button
                             variant="outline"
                             size="sm"
@@ -273,7 +390,7 @@ export default function SaleManagePage() {
                               onClick={() => handleOpenPayment(installment)}
                             >
                               <Plus className="h-4 w-4 mr-2" />
-                              Registrar Pago
+                              Pagar
                             </Button>
                           )}
                         </div>
@@ -309,6 +426,6 @@ export default function SaleManagePage() {
         installment={selectedInstallment}
         currency={currency}
       />
-    </div>
+    </FormWrapper>
   );
 }

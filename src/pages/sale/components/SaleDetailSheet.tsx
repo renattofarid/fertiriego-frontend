@@ -62,68 +62,83 @@ export default function SaleDetailSheet({
       <div className="space-y-4 p-4">
         {/* Header con totales destacados */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">
+          {/* Total Card - Primary */}
+          <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">
                     Total
                   </p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold text-muted-foreground truncate">
                     {currency} {sale.total_amount.toFixed(2)}
                   </p>
                 </div>
-                <Receipt className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
+                  <Receipt className="h-5 w-5 text-muted-foreground" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">
+          {/* Pagado Card - Secondary */}
+          <Card className="border-none bg-primary/5 hover:bg-primary/10 transition-colors !p-0">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">
                     Pagado
                   </p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <p className="text-2xl font-bold text-primary truncate">
                     {currency} {sale.total_paid.toFixed(2)}
                   </p>
                 </div>
-                <Wallet className="h-8 w-8 text-green-600 dark:text-green-400" />
+                <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
+                  <Wallet className="h-5 w-5 text-primary" />
+                </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Pendiente Card - Destructive or Success */}
           <Card
-            className={`bg-gradient-to-br ${
+            className={`border-none transition-colors !p-0 ${
               sale.current_amount === 0
-                ? "from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800"
-                : "from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800"
+                ? "bg-primary/5 hover:bg-primary/10"
+                : "bg-destructive/5 hover:bg-destructive/10"
             }`}
           >
-            <CardContent className="pt-0">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground font-medium">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground font-medium mb-1">
                     Pendiente
                   </p>
                   <p
-                    className={`text-2xl font-bold ${
+                    className={`text-2xl font-bold truncate ${
                       sale.current_amount === 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-orange-600 dark:text-orange-400"
+                        ? "text-primary"
+                        : "text-destructive"
                     }`}
                   >
                     {currency} {sale.current_amount.toFixed(2)}
                   </p>
                 </div>
-                <CreditCard
-                  className={`h-8 w-8 ${
+                <div
+                  className={`p-2.5 rounded-lg shrink-0 ${
                     sale.current_amount === 0
-                      ? "text-green-600 dark:text-green-400"
-                      : "text-orange-600 dark:text-orange-400"
+                      ? "bg-primary/10"
+                      : "bg-destructive/10"
                   }`}
-                />
+                >
+                  <CreditCard
+                    className={`h-5 w-5 ${
+                      sale.current_amount === 0
+                        ? "text-primary"
+                        : "text-destructive"
+                    }`}
+                  />
+                </div>
               </div>
             </CardContent>
           </Card>

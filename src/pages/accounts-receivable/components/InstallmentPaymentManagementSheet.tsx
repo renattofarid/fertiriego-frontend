@@ -61,10 +61,12 @@ export default function InstallmentPaymentManagementSheet({
     setIsLoading(true);
     try {
       const data = await getInstallmentPayments(installment.id);
-      setPayments(data);
+      // Asegurarnos de que data sea un array
+      setPayments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching payments:", error);
       errorToast("Error al cargar los pagos");
+      setPayments([]);
     } finally {
       setIsLoading(false);
     }
@@ -126,6 +128,7 @@ export default function InstallmentPaymentManagementSheet({
         open={open}
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
+        description={`Venta ${installment.sale_correlativo} - Gestión de pagos`}
         icon={<Wallet className="h-5 w-5" />}
         className="overflow-y-auto w-full sm:max-w-3xl"
       >
