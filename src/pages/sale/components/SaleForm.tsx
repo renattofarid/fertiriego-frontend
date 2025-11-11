@@ -26,7 +26,7 @@ import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interfac
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useState, useEffect } from "react";
-import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -232,6 +232,11 @@ export const SaleForm = ({
     }
   }, [form]);
 
+  // Función de redondeo a 6 decimales
+  const roundTo6Decimals = (value: number): number => {
+    return Math.round(value * 1000000) / 1000000;
+  };
+
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
@@ -248,10 +253,10 @@ export const SaleForm = ({
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
 
-    // Calcular subtotal, IGV (18%) y total
-    const subtotal = truncDecimal(quantity * unitPrice, 6);
-    const igv = truncDecimal(subtotal * 0.18, 6); // IGV 18%
-    const total = truncDecimal(subtotal + igv, 6);
+    // Calcular subtotal, IGV (18%) y total con redondeo a 6 decimales
+    const subtotal = roundTo6Decimals(quantity * unitPrice);
+    const igv = roundTo6Decimals(subtotal * 0.18); // IGV 18%
+    const total = roundTo6Decimals(subtotal + igv);
 
     const newDetail: DetailRow = {
       ...currentDetail,
@@ -307,17 +312,17 @@ export const SaleForm = ({
 
   const calculateDetailsSubtotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
-    return truncDecimal(sum, 6);
+    return roundTo6Decimals(sum);
   };
 
   const calculateDetailsIGV = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.igv || 0), 0);
-    return truncDecimal(sum, 6);
+    return roundTo6Decimals(sum);
   };
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return truncDecimal(sum, 6);
+    return roundTo6Decimals(sum);
   };
 
   // Funciones para cuotas
@@ -392,7 +397,7 @@ export const SaleForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0
     );
-    return truncDecimal(sum, 6);
+    return roundTo6Decimals(sum);
   };
 
   const installmentsMatchTotal = () => {
@@ -408,7 +413,7 @@ export const SaleForm = ({
     const card = parseFloat(form.watch("amount_card") || "0");
     const yape = parseFloat(form.watch("amount_yape") || "0");
     const sum = cash + card + yape;
-    return truncDecimal(sum, 6);
+    return roundTo6Decimals(sum);
   };
 
   const paymentAmountsMatchTotal = () => {

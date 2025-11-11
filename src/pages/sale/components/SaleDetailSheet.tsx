@@ -1,7 +1,18 @@
 import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ShoppingBag } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ShoppingBag,
+  FileText,
+  User,
+  Warehouse,
+  Calendar,
+  CreditCard,
+  Wallet,
+  Package,
+  Receipt,
+  Clock,
+} from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
 
 interface SaleDetailSheetProps {
@@ -44,299 +55,366 @@ export default function SaleDetailSheet({
     <GeneralSheet
       open={open}
       onClose={onClose}
-      title={`Detalle de Venta #${sale.id}`}
+      title={`Venta #${sale.id}`}
       icon={<ShoppingBag className="h-5 w-5" />}
-      className="overflow-y-auto p-2 !gap-0 w-full sm:max-w-2xl"
+      className="overflow-y-auto p-2 !gap-0 w-full sm:max-w-3xl"
     >
-      <div className="space-y-6 p-4">
-        {/* Documento */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            DOCUMENTO
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Tipo</p>
-              <p className="font-medium">{sale.document_type}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Número</p>
-              <p className="font-mono font-semibold">
-                {sale.full_document_number}
-              </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Fecha Emisión</p>
-              <p className="font-medium">{formatDate(sale.issue_date)}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Estado</p>
-              <Badge
-                variant={
-                  sale.status === "PAGADA"
-                    ? "default"
-                    : sale.status === "REGISTRADO"
-                    ? "secondary"
-                    : "destructive"
-                }
-              >
-                {sale.status}
-              </Badge>
-            </div>
-          </div>
+      <div className="space-y-4 p-4">
+        {/* Header con totales destacados */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Total</p>
+                  <p className="text-2xl font-bold">
+                    {currency} {sale.total_amount.toFixed(2)}
+                  </p>
+                </div>
+                <Receipt className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Pagado</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    {currency} {sale.total_paid.toFixed(2)}
+                  </p>
+                </div>
+                <Wallet className="h-8 w-8 text-green-600 dark:text-green-400" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card
+            className={`bg-gradient-to-br ${
+              sale.current_amount === 0
+                ? "from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800"
+                : "from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800"
+            }`}
+          >
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-muted-foreground font-medium">Pendiente</p>
+                  <p
+                    className={`text-2xl font-bold ${
+                      sale.current_amount === 0
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-orange-600 dark:text-orange-400"
+                    }`}
+                  >
+                    {currency} {sale.current_amount.toFixed(2)}
+                  </p>
+                </div>
+                <CreditCard
+                  className={`h-8 w-8 ${
+                    sale.current_amount === 0
+                      ? "text-green-600 dark:text-green-400"
+                      : "text-orange-600 dark:text-orange-400"
+                  }`}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <Separator />
+        {/* Información del Documento */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Información del Documento
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Tipo de Documento</p>
+                <p className="font-semibold">{sale.document_type}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Número</p>
+                <p className="font-mono font-bold text-lg">
+                  {sale.full_document_number}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Fecha de Emisión
+                </p>
+                <p className="font-medium">{formatDate(sale.issue_date)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Estado</p>
+                <Badge
+                  variant={
+                    sale.status === "PAGADA"
+                      ? "default"
+                      : sale.status === "REGISTRADO"
+                      ? "secondary"
+                      : "destructive"
+                  }
+                  className="text-sm"
+                >
+                  {sale.status}
+                </Badge>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Tipo de Pago</p>
+                <Badge
+                  variant={
+                    sale.payment_type === "CONTADO" ? "default" : "secondary"
+                  }
+                  className="text-sm"
+                >
+                  {sale.payment_type === "CONTADO" ? "💵 CONTADO" : "📅 CRÉDITO"}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Cliente */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            CLIENTE
-          </h3>
-          <div className="space-y-2">
-            <div>
-              <p className="text-xs text-muted-foreground">Nombre</p>
-              <p className="font-medium">{sale.customer.full_name}</p>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Cliente
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Nombre Completo</p>
+              <p className="font-semibold text-lg">{sale.customer.full_name}</p>
             </div>
             {sale.customer.document_number && (
-              <div>
+              <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Documento</p>
                 <p className="font-medium">
                   {sale.customer.document_type} {sale.customer.document_number}
                 </p>
               </div>
             )}
-          </div>
-        </div>
-
-        <Separator />
+          </CardContent>
+        </Card>
 
         {/* Almacén y Usuario */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            ALMACÉN Y USUARIO
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Almacén</p>
-              <p className="font-medium">{sale.warehouse.name}</p>
-              <p className="text-xs text-muted-foreground">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Warehouse className="h-5 w-5" />
+                Almacén
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <p className="font-semibold">{sale.warehouse.name}</p>
+              <p className="text-sm text-muted-foreground">
                 {sale.warehouse.address}
               </p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Usuario</p>
-              <p className="font-medium">{sale.user.name}</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Usuario Responsable
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+              <p className="font-semibold">{sale.user.name}</p>
               {sale.user.email && (
-                <p className="text-xs text-muted-foreground">
-                  {sale.user.email}
-                </p>
+                <p className="text-sm text-muted-foreground">{sale.user.email}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Desglose de Pago */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Wallet className="h-5 w-5" />
+              Desglose de Pago
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {sale.amount_cash > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">💵 Efectivo</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_cash.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_card > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">💳 Tarjeta</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_card.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_yape > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">📱 Yape</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_yape.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_plin > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">📱 Plin</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_plin.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_deposit > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">🏦 Depósito</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_deposit.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_transfer > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">🔄 Transferencia</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_transfer.toFixed(2)}
+                  </span>
+                </div>
+              )}
+              {sale.amount_other > 0 && (
+                <div className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                  <span className="text-sm font-medium">💰 Otro</span>
+                  <span className="font-semibold">
+                    {currency} {sale.amount_other.toFixed(2)}
+                  </span>
+                </div>
               )}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <Separator />
-
-        {/* Tipo de Pago */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            TIPO DE PAGO
-          </h3>
-          <div className="space-y-2">
-            <Badge
-              variant={
-                sale.payment_type === "CONTADO" ? "default" : "secondary"
-              }
-            >
-              {sale.payment_type}
-            </Badge>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Montos */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            DESGLOSE DE PAGO
-          </h3>
-          <div className="space-y-2">
-            {sale.amount_cash > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Efectivo</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_cash.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_card > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Tarjeta</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_card.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_yape > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Yape</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_yape.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_plin > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Plin</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_plin.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_deposit > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Depósito</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_deposit.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_transfer > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Transferencia</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_transfer.toFixed(2)}
-                </span>
-              </div>
-            )}
-            {sale.amount_other > 0 && (
-              <div className="flex justify-between">
-                <span className="text-sm">Otro</span>
-                <span className="font-semibold">
-                  {currency} {sale.amount_other.toFixed(2)}
-                </span>
-              </div>
-            )}
-            <Separator className="my-2" />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total Pagado</span>
-              <span className="text-green-600">
-                {currency} {sale.total_paid.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Totales */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-            TOTALES
-          </h3>
-          <div className="space-y-2">
-            <div className="flex justify-between text-lg">
-              <span className="font-semibold">Total</span>
-              <span className="font-bold">
-                {currency} {sale.total_amount.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between text-lg">
-              <span className="font-semibold">Saldo Pendiente</span>
-              <span
-                className={`font-bold ${
-                  sale.current_amount === 0
-                    ? "text-green-600"
-                    : "text-orange-600"
-                }`}
-              >
-                {currency} {sale.current_amount.toFixed(2)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Observaciones */}
-        {sale.observations && (
-          <>
-            <Separator />
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                OBSERVACIONES
-              </h3>
-              <p className="text-sm">{sale.observations}</p>
-            </div>
-          </>
-        )}
-
-        <Separator />
-
-        {/* Detalles de productos */}
+        {/* Productos */}
         {sale.details && sale.details.length > 0 && (
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-              PRODUCTOS ({sale.details.length})
-            </h3>
-            <div className="space-y-2">
-              {sale.details.map((detail) => (
-                <div
-                  key={detail.id}
-                  className="p-3 border rounded-md space-y-1"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <p className="font-medium">{detail.product_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        Cantidad: {parseFloat(detail.quantity).toFixed(2)} x{" "}
-                        {currency} {parseFloat(detail.unit_price).toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        {currency} {parseFloat(detail.total).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        IGV: {currency} {parseFloat(detail.tax).toFixed(2)}
-                      </p>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Productos ({sale.details.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {sale.details.map((detail, index) => (
+                  <div
+                    key={detail.id}
+                    className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start gap-2">
+                          <Badge variant="outline" className="text-xs shrink-0">
+                            #{index + 1}
+                          </Badge>
+                          <p className="font-semibold text-sm leading-tight">
+                            {detail.product_name}
+                          </p>
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Cantidad:</span>
+                            <span className="ml-1 font-medium">
+                              {parseFloat(detail.quantity).toFixed(2)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">P. Unit:</span>
+                            <span className="ml-1 font-medium">
+                              {currency} {parseFloat(detail.unit_price).toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-bold text-lg">
+                          {currency} {parseFloat(detail.total).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          IGV: {currency} {parseFloat(detail.tax).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
         {/* Cuotas */}
         {sale.installments && sale.installments.length > 0 && (
-          <>
-            <Separator />
-            <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                CUOTAS ({sale.installments.length})
-              </h3>
-              <div className="space-y-2">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Cuotas de Pago ({sale.installments.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
                 {sale.installments.map((installment) => (
                   <div
                     key={installment.id}
-                    className="p-3 border rounded-md space-y-1"
+                    className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-start gap-3">
                       <div className="flex-1">
-                        <p className="font-medium">
-                          Cuota {installment.installment_number}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Vence: {formatDate(installment.due_date)} (
-                          {installment.due_days} días)
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline" className="font-semibold">
+                            Cuota {installment.installment_number}
+                          </Badge>
+                          <Badge
+                            variant={
+                              installment.status === "PAGADO"
+                                ? "default"
+                                : installment.status === "PENDIENTE"
+                                ? "secondary"
+                                : "destructive"
+                            }
+                          >
+                            {installment.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            Vence: {formatDate(installment.due_date)} (
+                            {installment.due_days} días)
+                          </span>
+                        </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">
+                        <p className="font-bold text-lg">
                           {currency} {parseFloat(installment.amount).toFixed(2)}
                         </p>
                         <p
-                          className={`text-xs font-medium ${
+                          className={`text-sm font-medium ${
                             parseFloat(installment.pending_amount) === 0
                               ? "text-green-600"
                               : "text-orange-600"
@@ -345,34 +423,47 @@ export default function SaleDetailSheet({
                           Pendiente: {currency}{" "}
                           {parseFloat(installment.pending_amount).toFixed(2)}
                         </p>
-                        <Badge
-                          variant={
-                            installment.status === "PAGADO"
-                              ? "default"
-                              : installment.status === "PENDIENTE"
-                              ? "secondary"
-                              : "destructive"
-                          }
-                          className="mt-1"
-                        >
-                          {installment.status}
-                        </Badge>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
-          </>
+            </CardContent>
+          </Card>
         )}
 
-        <Separator />
+        {/* Observaciones */}
+        {sale.observations && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Observaciones
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {sale.observations}
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Metadata */}
-        <div className="text-xs text-muted-foreground space-y-1">
-          <p>Creado: {formatDateTime(sale.created_at)}</p>
-          <p>Actualizado: {formatDateTime(sale.updated_at)}</p>
-        </div>
+        {/* Footer con metadata */}
+        <Card className="bg-muted/30">
+          <CardContent className="pt-4">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>Creado: {formatDateTime(sale.created_at)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                <span>Actualizado: {formatDateTime(sale.updated_at)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </GeneralSheet>
   );
