@@ -63,10 +63,12 @@ export default function SaleDetailSheet({
         {/* Header con totales destacados */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Total</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Total
+                  </p>
                   <p className="text-2xl font-bold">
                     {currency} {sale.total_amount.toFixed(2)}
                   </p>
@@ -77,10 +79,12 @@ export default function SaleDetailSheet({
           </Card>
 
           <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 border-green-200 dark:border-green-800">
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Pagado</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Pagado
+                  </p>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {currency} {sale.total_paid.toFixed(2)}
                   </p>
@@ -97,10 +101,12 @@ export default function SaleDetailSheet({
                 : "from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800"
             }`}
           >
-            <CardContent className="pt-6">
+            <CardContent className="pt-0">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground font-medium">Pendiente</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Pendiente
+                  </p>
                   <p
                     className={`text-2xl font-bold ${
                       sale.current_amount === 0
@@ -124,7 +130,7 @@ export default function SaleDetailSheet({
         </div>
 
         {/* Información del Documento */}
-        <Card>
+        <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <FileText className="h-5 w-5" />
@@ -134,7 +140,9 @@ export default function SaleDetailSheet({
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Tipo de Documento</p>
+                <p className="text-xs text-muted-foreground">
+                  Tipo de Documento
+                </p>
                 <p className="font-semibold">{sale.document_type}</p>
               </div>
               <div className="space-y-1">
@@ -176,7 +184,9 @@ export default function SaleDetailSheet({
                   }
                   className="text-sm"
                 >
-                  {sale.payment_type === "CONTADO" ? "💵 CONTADO" : "📅 CRÉDITO"}
+                  {sale.payment_type === "CONTADO"
+                    ? "💵 CONTADO"
+                    : "📅 CRÉDITO"}
                 </Badge>
               </div>
             </div>
@@ -184,7 +194,7 @@ export default function SaleDetailSheet({
         </Card>
 
         {/* Cliente */}
-        <Card>
+        <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -209,7 +219,7 @@ export default function SaleDetailSheet({
 
         {/* Almacén y Usuario */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
+          <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Warehouse className="h-5 w-5" />
@@ -224,7 +234,7 @@ export default function SaleDetailSheet({
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -234,14 +244,16 @@ export default function SaleDetailSheet({
             <CardContent className="space-y-1">
               <p className="font-semibold">{sale.user.name}</p>
               {sale.user.email && (
-                <p className="text-sm text-muted-foreground">{sale.user.email}</p>
+                <p className="text-sm text-muted-foreground">
+                  {sale.user.email}
+                </p>
               )}
             </CardContent>
           </Card>
         </div>
 
         {/* Desglose de Pago */}
-        <Card>
+        <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Wallet className="h-5 w-5" />
@@ -312,7 +324,7 @@ export default function SaleDetailSheet({
 
         {/* Productos */}
         {sale.details && sale.details.length > 0 && (
-          <Card>
+          <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Package className="h-5 w-5" />
@@ -338,15 +350,20 @@ export default function SaleDetailSheet({
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                           <div>
-                            <span className="text-muted-foreground">Cantidad:</span>
+                            <span className="text-muted-foreground">
+                              Cantidad:
+                            </span>
                             <span className="ml-1 font-medium">
                               {parseFloat(detail.quantity).toFixed(2)}
                             </span>
                           </div>
                           <div>
-                            <span className="text-muted-foreground">P. Unit:</span>
+                            <span className="text-muted-foreground">
+                              P. Unit:
+                            </span>
                             <span className="ml-1 font-medium">
-                              {currency} {parseFloat(detail.unit_price).toFixed(2)}
+                              {currency}{" "}
+                              {parseFloat(detail.unit_price).toFixed(2)}
                             </span>
                           </div>
                         </div>
@@ -369,7 +386,7 @@ export default function SaleDetailSheet({
 
         {/* Cuotas */}
         {sale.installments && sale.installments.length > 0 && (
-          <Card>
+          <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <CreditCard className="h-5 w-5" />
@@ -434,7 +451,7 @@ export default function SaleDetailSheet({
 
         {/* Observaciones */}
         {sale.observations && (
-          <Card>
+          <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <FileText className="h-5 w-5" />

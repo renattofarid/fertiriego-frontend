@@ -62,6 +62,8 @@ import {
 import { SaleRoute } from "./pages/sale/lib/sale.interface";
 import { SalePage, SaleAddPage } from "./pages/sale/components";
 import SaleManagePage from "./pages/sale/components/SaleManagePage";
+import { AccountsReceivableRoute } from "./pages/accounts-receivable/lib/accounts-receivable.interface";
+import { AccountsReceivablePage } from "./pages/accounts-receivable/components";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -488,6 +490,15 @@ export default function App() {
             element={
               <ProtectedRoute path={SaleRoute}>
                 <SaleManagePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={AccountsReceivableRoute}
+            element={
+              <ProtectedRoute path={AccountsReceivableRoute}>
+                <AccountsReceivablePage />
               </ProtectedRoute>
             }
           />

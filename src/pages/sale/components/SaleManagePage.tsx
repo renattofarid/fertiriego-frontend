@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSaleById } from "../lib/sale.hook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -250,9 +250,9 @@ export default function SaleManagePage() {
                                 }`}
                               >
                                 {currency}{" "}
-                                {parseFloat(
-                                  installment.pending_amount
-                                ).toFixed(2)}
+                                {parseFloat(installment.pending_amount).toFixed(
+                                  2
+                                )}
                               </p>
                             </div>
                           </div>

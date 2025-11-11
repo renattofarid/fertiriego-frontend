@@ -133,7 +133,9 @@ export const SaleForm = ({
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
 
   // Watchers para cuotas
-  const selectedInstallmentNumber = installmentTempForm.watch("temp_installment_number");
+  const selectedInstallmentNumber = installmentTempForm.watch(
+    "temp_installment_number"
+  );
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
   const selectedAmount = installmentTempForm.watch("temp_amount");
 
@@ -311,7 +313,10 @@ export const SaleForm = ({
   };
 
   const calculateDetailsSubtotal = () => {
-    const sum = details.reduce((sum, detail) => sum + (detail.subtotal || 0), 0);
+    const sum = details.reduce(
+      (sum, detail) => sum + (detail.subtotal || 0),
+      0
+    );
     return roundTo6Decimals(sum);
   };
 
@@ -327,7 +332,11 @@ export const SaleForm = ({
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
-    if (!currentInstallment.installment_number || !currentInstallment.due_days || !currentInstallment.amount) {
+    if (
+      !currentInstallment.installment_number ||
+      !currentInstallment.due_days ||
+      !currentInstallment.amount
+    ) {
       return;
     }
 
@@ -380,7 +389,10 @@ export const SaleForm = ({
   const handleEditInstallment = (index: number) => {
     const inst = installments[index];
     setCurrentInstallment(inst);
-    installmentTempForm.setValue("temp_installment_number", inst.installment_number);
+    installmentTempForm.setValue(
+      "temp_installment_number",
+      inst.installment_number
+    );
     installmentTempForm.setValue("temp_due_days", inst.due_days);
     installmentTempForm.setValue("temp_amount", inst.amount);
     setEditingInstallmentIndex(index);
@@ -455,7 +467,11 @@ export const SaleForm = ({
     }
 
     // Preparar cuotas según el tipo de pago
-    let validInstallments: { installment_number: number; due_days: string; amount: string; }[];
+    let validInstallments: {
+      installment_number: number;
+      due_days: string;
+      amount: string;
+    }[];
 
     if (selectedPaymentType === "CONTADO") {
       // Para pagos al contado, las cuotas van vacías
@@ -463,7 +479,9 @@ export const SaleForm = ({
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
       validInstallments = installments
-        .filter((inst) => inst.installment_number && inst.due_days && inst.amount)
+        .filter(
+          (inst) => inst.installment_number && inst.due_days && inst.amount
+        )
         .map((inst) => ({
           installment_number: parseInt(inst.installment_number),
           due_days: inst.due_days,
@@ -955,7 +973,9 @@ export const SaleForm = ({
                     className="w-full"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    {editingInstallmentIndex !== null ? "Actualizar" : "Agregar"}
+                    {editingInstallmentIndex !== null
+                      ? "Actualizar"
+                      : "Agregar"}
                   </Button>
                 </div>
               </div>
@@ -971,13 +991,17 @@ export const SaleForm = ({
                             Días Vencimiento
                           </TableHead>
                           <TableHead className="text-right">Monto</TableHead>
-                          <TableHead className="text-center">Acciones</TableHead>
+                          <TableHead className="text-center">
+                            Acciones
+                          </TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {installments.map((inst, index) => (
                           <TableRow key={index}>
-                            <TableCell>Cuota {inst.installment_number}</TableCell>
+                            <TableCell>
+                              Cuota {inst.installment_number}
+                            </TableCell>
                             <TableCell className="text-right">
                               {inst.due_days} días
                             </TableCell>
@@ -1007,11 +1031,17 @@ export const SaleForm = ({
                           </TableRow>
                         ))}
                         <TableRow>
-                          <TableCell colSpan={2} className="text-right font-bold">
+                          <TableCell
+                            colSpan={2}
+                            className="text-right font-bold"
+                          >
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(calculateInstallmentsTotal(), 6)}
+                            {formatDecimalTrunc(
+                              calculateInstallmentsTotal(),
+                              6
+                            )}
                           </TableCell>
                           <TableCell></TableCell>
                         </TableRow>
@@ -1021,8 +1051,10 @@ export const SaleForm = ({
                   {!installmentsMatchTotal() && (
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                        ⚠️ El total de cuotas ({formatNumber(calculateInstallmentsTotal())}) debe
-                        ser igual al total de la venta ({formatNumber(calculateDetailsTotal())})
+                        ⚠️ El total de cuotas (
+                        {formatNumber(calculateInstallmentsTotal())}) debe ser
+                        igual al total de la venta (
+                        {formatNumber(calculateDetailsTotal())})
                       </p>
                     </div>
                   )}

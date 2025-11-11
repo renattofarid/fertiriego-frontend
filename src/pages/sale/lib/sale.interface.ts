@@ -317,7 +317,7 @@ export const SaleEditRoute = "/ventas/actualizar/:id";
 export const DOCUMENT_TYPES = [
   { value: "FACTURA", label: "Factura" },
   { value: "BOLETA", label: "Boleta" },
-  { value: "GUIA", label: "Guía de Remisión" },
+  // { value: "GUIA", label: "Guía de Remisión" },
 ] as const;
 
 export const PAYMENT_TYPES = [

@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag } from "lucide-react";
+import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag, DollarSign } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +30,7 @@ import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interf
 import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SaleRoute } from "@/pages/sale/lib/sale.interface";
+import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -227,6 +228,11 @@ const data = {
           title: "Ventas",
           url: SaleRoute,
           icon: ShoppingBag,
+        },
+        {
+          title: "Cuentas por Cobrar",
+          url: AccountsReceivableRoute,
+          icon: DollarSign,
         },
       ],
     },

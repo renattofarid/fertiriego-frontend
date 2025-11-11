@@ -51,7 +51,9 @@ export type SaleInstallmentSchema = z.infer<typeof saleInstallmentSchema>;
 export const saleSchemaCreate = z.object({
   customer_id: requiredStringId("Debe seleccionar un cliente"),
   warehouse_id: requiredStringId("Debe seleccionar un almacén"),
-  document_type: z.string().min(1, { message: "Debe seleccionar un tipo de documento" }),
+  document_type: z
+    .string()
+    .min(1, { message: "Debe seleccionar un tipo de documento" }),
   serie: z.string().min(1, { message: "La serie es requerida" }).max(10),
   numero: z.string().min(1, { message: "El número es requerido" }).max(20),
   issue_date: z
@@ -60,7 +62,9 @@ export const saleSchemaCreate = z.object({
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "La fecha de emisión no es válida",
     }),
-  payment_type: z.string().min(1, { message: "Debe seleccionar un tipo de pago" }),
+  payment_type: z
+    .string()
+    .min(1, { message: "Debe seleccionar un tipo de pago" }),
   currency: z.string().min(1, { message: "Debe seleccionar una moneda" }),
   observations: z.string().max(500).optional(),
   amount_cash: z
@@ -148,13 +152,17 @@ export const saleInstallmentSchemaCreate = z.object({
     }),
 });
 
-export type SaleInstallmentCreateSchema = z.infer<typeof saleInstallmentSchemaCreate>;
+export type SaleInstallmentCreateSchema = z.infer<
+  typeof saleInstallmentSchemaCreate
+>;
 
 export const saleInstallmentSchemaUpdate = saleInstallmentSchemaCreate
   .omit({ sale_id: true })
   .partial();
 
-export type SaleInstallmentUpdateSchema = z.infer<typeof saleInstallmentSchemaUpdate>;
+export type SaleInstallmentUpdateSchema = z.infer<
+  typeof saleInstallmentSchemaUpdate
+>;
 
 // ===== PAYMENT SCHEMAS =====
 
@@ -207,7 +215,6 @@ export const salePaymentSchemaCreate = z.object({
       message: "El monto de otro método debe ser un número válido",
     })
     .default("0"),
-  observation: z.string().max(500).optional().default(""),
 });
 
 export type SalePaymentCreateSchema = z.infer<typeof salePaymentSchemaCreate>;
