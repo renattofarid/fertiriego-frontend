@@ -1,5 +1,4 @@
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import SearchInput from "@/components/SearchInput";
 
 interface AccountsReceivableOptionsProps {
   search: string;
@@ -11,14 +10,12 @@ export default function AccountsReceivableOptions({
   setSearch,
 }: AccountsReceivableOptionsProps) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 py-4">
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por correlativo de venta, cuota o número..."
+        <SearchInput
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
+          onChange={setSearch}
+          placeholder="Buscar cuenta por cobrar..."
         />
       </div>
     </div>

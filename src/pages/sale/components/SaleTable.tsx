@@ -21,7 +21,9 @@ export default function SaleTable({
         columns={columns}
         data={data}
         isLoading={isLoading}
-        initialColumnVisibility={{}}
+        initialColumnVisibility={{
+          id: false,
+        }}
       >
         {children}
       </DataTable>
