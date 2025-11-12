@@ -31,6 +31,7 @@ import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SaleRoute } from "@/pages/sale/lib/sale.interface";
 import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
+import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -131,6 +132,12 @@ const {
   MODEL: { name: PurchaseShippingGuideTitle },
 } = PURCHASE_SHIPPING_GUIDE;
 
+const {
+  ICON_REACT: WarehouseProductIcon,
+  ROUTE: WarehouseProductRoute,
+  MODEL: { plural: WarehouseProductTitle },
+} = WAREHOUSE_PRODUCT;
+
 const data = {
   navMain: [
     {
@@ -157,6 +164,11 @@ const data = {
           title: WarehouseTitle,
           url: WarehouseRoute,
           icon: WarehouseIcon,
+        },
+        {
+          title: WarehouseProductTitle,
+          url: WarehouseProductRoute,
+          icon: WarehouseProductIcon,
         },
         {
           title: BoxTitle,

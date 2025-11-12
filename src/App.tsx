@@ -69,6 +69,8 @@ import { SalePage, SaleAddPage, SaleEditPage } from "./pages/sale/components";
 import SaleManagePage from "./pages/sale/components/SaleManagePage";
 import { AccountsReceivableRoute } from "./pages/accounts-receivable/lib/accounts-receivable.interface";
 import { AccountsReceivablePage } from "./pages/accounts-receivable/components";
+import { WAREHOUSE_PRODUCT } from "./pages/warehouse-product/lib/warehouse-product.interface";
+import WarehouseProductPage from "./pages/warehouse-product/components/WarehouseProductPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -86,6 +88,7 @@ const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
+const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -513,6 +516,15 @@ export default function App() {
             element={
               <ProtectedRoute path={AccountsReceivableRoute}>
                 <AccountsReceivablePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={WarehouseProductRoute}
+            element={
+              <ProtectedRoute path={WarehouseProductRoute}>
+                <WarehouseProductPage />
               </ProtectedRoute>
             }
           />
