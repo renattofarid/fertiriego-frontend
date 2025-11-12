@@ -254,6 +254,9 @@ export const SaleForm = ({
         setInstallments(initialInstallments);
         form.setValue("installments", initialInstallments);
       }
+
+      // Disparar validación después de setear valores en modo edición
+      form.trigger();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
