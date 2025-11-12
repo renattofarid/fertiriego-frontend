@@ -41,9 +41,10 @@ export const SaleEditPage = () => {
   useEffect(() => {
     if (sale) {
       // Verificar si alguna cuota tiene pagos registrados
-      const hasPayments = sale.installments?.some(
-        (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
-      ) ?? false;
+      const hasPayments =
+        sale.installments?.some(
+          (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
+        ) ?? false;
 
       if (hasPayments) {
         errorToast(
@@ -54,9 +55,7 @@ export const SaleEditPage = () => {
     }
   }, [sale, navigate]);
 
-  const mapSaleToForm = (
-    data: SaleResource
-  ): Partial<SaleUpdateSchema> => ({
+  const mapSaleToForm = (data: SaleResource): Partial<SaleUpdateSchema> => ({
     customer_id: data.customer_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
     document_type: data.document_type,
@@ -66,16 +65,18 @@ export const SaleEditPage = () => {
     payment_type: data.payment_type,
     currency: data.currency,
     observations: data.observations || "",
-    details: data.details?.map((detail) => ({
-      product_id: detail.product_id.toString(),
-      quantity: detail.quantity,
-      unit_price: detail.unit_price,
-    })) ?? [],
-    installments: data.installments?.map((inst) => ({
-      installment_number: inst.installment_number.toString(),
-      due_days: inst.due_days.toString(),
-      amount: inst.amount,
-    })) ?? [],
+    details:
+      data.details?.map((detail) => ({
+        product_id: detail.product_id.toString(),
+        quantity: detail.quantity.toString(),
+        unit_price: detail.unit_price.toString(),
+      })) ?? [],
+    installments:
+      data.installments?.map((inst) => ({
+        installment_number: inst.installment_number.toString(),
+        due_days: inst.due_days.toString(),
+        amount: inst.amount.toString(),
+      })) ?? [],
   });
 
   const handleSubmit = async (data: Partial<SaleUpdateSchema>) => {
@@ -87,7 +88,9 @@ export const SaleEditPage = () => {
       // El toast de éxito se muestra en el store
       navigate("/ventas");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al actualizar la venta");
+      errorToast(
+        error.response?.data?.message || "Error al actualizar la venta"
+      );
     } finally {
       setIsSubmitting(false);
     }

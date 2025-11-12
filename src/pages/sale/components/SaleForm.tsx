@@ -25,7 +25,7 @@ import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
@@ -244,11 +244,13 @@ export const SaleForm = ({
 
       // Inicializar cuotas
       if (defaultValues.installments && defaultValues.installments.length > 0) {
-        const initialInstallments = defaultValues.installments.map((inst: any) => ({
-          installment_number: inst.installment_number,
-          due_days: inst.due_days,
-          amount: inst.amount,
-        }));
+        const initialInstallments = defaultValues.installments.map(
+          (inst: any) => ({
+            installment_number: inst.installment_number,
+            due_days: inst.due_days,
+            amount: inst.amount,
+          })
+        );
         setInstallments(initialInstallments);
         form.setValue("installments", initialInstallments);
       }
@@ -781,161 +783,161 @@ export const SaleForm = ({
 
         {/* Detalles */}
         <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la Venta</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <div className="md:col-span-2">
-                  <Form {...detailTempForm}>
-                    <FormSelect
-                      control={detailTempForm.control}
-                      name="temp_product_id"
-                      label="Producto"
-                      placeholder="Seleccione"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                      }))}
-                    />
-                  </Form>
-                </div>
-
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          variant="primary"
-                          placeholder="0"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_unit_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Precio Unit.</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.000001"
-                          variant="primary"
-                          placeholder="0.000000"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div className="md:col-span-4 flex items-center justify-end">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddDetail}
-                    disabled={
-                      !currentDetail.product_id ||
-                      !currentDetail.quantity ||
-                      !currentDetail.unit_price
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
-                </div>
+          <CardHeader>
+            <CardTitle>Detalles de la Venta</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
+              <div className="md:col-span-2">
+                <Form {...detailTempForm}>
+                  <FormSelect
+                    control={detailTempForm.control}
+                    name="temp_product_id"
+                    label="Producto"
+                    placeholder="Seleccione"
+                    options={products.map((product) => ({
+                      value: product.id.toString(),
+                      label: product.name,
+                    }))}
+                  />
+                </Form>
               </div>
 
-              {details.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">P. Unit.</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                        <TableHead className="text-right">IGV (18%)</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-center">Acciones</TableHead>
+              <FormField
+                control={detailTempForm.control}
+                name="temp_quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cantidad</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        variant="primary"
+                        placeholder="0"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={detailTempForm.control}
+                name="temp_unit_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Precio Unit.</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        variant="primary"
+                        placeholder="0.000000"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <div className="md:col-span-4 flex items-center justify-end">
+                <Button
+                  type="button"
+                  variant="default"
+                  onClick={handleAddDetail}
+                  disabled={
+                    !currentDetail.product_id ||
+                    !currentDetail.quantity ||
+                    !currentDetail.unit_price
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+                </Button>
+              </div>
+            </div>
+
+            {details.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">P. Unit.</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                      <TableHead className="text-right">IGV (18%)</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {details.map((detail, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{detail.product_name}</TableCell>
+                        <TableCell className="text-right">
+                          {detail.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(parseFloat(detail.unit_price))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(detail.subtotal)}
+                        </TableCell>
+                        <TableCell className="text-right text-orange-600">
+                          {formatNumber(detail.igv)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-primary">
+                          {formatNumber(detail.total)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditDetail(index)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveDetail(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {details.map((detail, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{detail.product_name}</TableCell>
-                          <TableCell className="text-right">
-                            {detail.quantity}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(parseFloat(detail.unit_price))}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(detail.subtotal)}
-                          </TableCell>
-                          <TableCell className="text-right text-orange-600">
-                            {formatNumber(detail.igv)}
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-primary">
-                            {formatNumber(detail.total)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditDetail(index)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveDetail(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={3} className="text-right font-bold">
-                          TOTALES:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg">
-                          {formatNumber(calculateDetailsSubtotal())}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-orange-600">
-                          {formatNumber(calculateDetailsIGV())}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-primary">
-                          {formatNumber(calculateDetailsTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay detalles agregados
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-bold">
+                        TOTALES:
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg">
+                        {formatNumber(calculateDetailsSubtotal())}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg text-orange-600">
+                        {formatNumber(calculateDetailsIGV())}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg text-primary">
+                        {formatNumber(calculateDetailsTotal())}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Badge variant="outline" className="text-lg p-3">
+                  No hay detalles agregados
+                </Badge>
+              </div>
+            )}
+          </CardContent>
         </Card>
 
         {/* Cuotas - Solo mostrar si es a crédito */}
@@ -1110,6 +1112,12 @@ export const SaleForm = ({
             </CardContent>
           </Card>
         )}
+
+        {/* <pre>
+          <code>{JSON.stringify(form.getValues(), null, 2)}</code>
+          <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+        </pre>
+        <Button onClick={() => form.trigger()}>Button</Button> */}
 
         {/* Botones */}
         <div className="flex gap-4 w-full justify-end">
