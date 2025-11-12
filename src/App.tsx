@@ -51,13 +51,18 @@ import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPa
 import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
-import { PurchasePage, PurchaseAddPage, PurchaseEditPage, PurchaseDetailViewPage } from "./pages/purchase/components";
+import {
+  PurchasePage,
+  PurchaseAddPage,
+  PurchaseEditPage,
+  PurchaseDetailViewPage,
+} from "./pages/purchase/components";
 import { PurchaseShippingGuideRoute } from "./pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import {
   PurchaseShippingGuidePage,
   PurchaseShippingGuideAddPage,
   PurchaseShippingGuideEditPage,
-  PurchaseShippingGuideDetailViewPage
+  PurchaseShippingGuideDetailViewPage,
 } from "./pages/purchase-shipping-guide/components";
 import { SaleRoute } from "./pages/sale/lib/sale.interface";
 import { SalePage, SaleAddPage } from "./pages/sale/components";

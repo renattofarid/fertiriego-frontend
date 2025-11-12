@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Wallet, Trash2, Calendar, Receipt, DollarSign } from "lucide-react";
+import { Wallet, Trash2, Calendar } from "lucide-react";
 import type {
   SaleInstallmentResource,
   SalePaymentResource,
@@ -29,6 +39,23 @@ import {
 } from "../lib/accounts-receivable.actions";
 import { createSalePayment } from "@/pages/sale/lib/sale.actions";
 import { errorToast, successToast } from "@/lib/core.function";
+import { dateStringSchema } from "@/lib/core.schema";
+import { format } from "date-fns";
+import { useState } from "react";
+
+const paymentFormSchema = z.object({
+  payment_date: dateStringSchema("Fecha de Pago"),
+  amount_cash: z.string().optional(),
+  amount_card: z.string().optional(),
+  amount_yape: z.string().optional(),
+  amount_plin: z.string().optional(),
+  amount_deposit: z.string().optional(),
+  amount_transfer: z.string().optional(),
+  amount_other: z.string().optional(),
+  observation: z.string().optional(),
+});
+
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 interface InstallmentPaymentManagementSheetProps {
   open: boolean;
@@ -48,27 +75,43 @@ export default function InstallmentPaymentManagementSheet({
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState({
-    payment_date: new Date().toISOString().split("T")[0],
-    amount_cash: "",
-    amount_card: "",
-    amount_yape: "",
-    amount_plin: "",
-    amount_deposit: "",
-    amount_transfer: "",
-    amount_other: "",
-    observation: "",
+  const form = useForm<PaymentFormValues>({
+    resolver: zodResolver(paymentFormSchema),
+    defaultValues: {
+      payment_date: format(new Date(), "yyyy-MM-dd"),
+      amount_cash: "",
+      amount_card: "",
+      amount_yape: "",
+      amount_plin: "",
+      amount_deposit: "",
+      amount_transfer: "",
+      amount_other: "",
+      observation: "",
+    },
   });
 
-  const currency = "S/."; // Puedes hacerlo dinámico si es necesario
+  const { watch, reset } = form;
+  const formValues = watch();
+
+  const currency = "S/.";
 
   useEffect(() => {
     if (open && installment) {
       fetchPayments();
+      reset({
+        payment_date: format(new Date(), "yyyy-MM-dd"),
+        amount_cash: "",
+        amount_card: "",
+        amount_yape: "",
+        amount_plin: "",
+        amount_deposit: "",
+        amount_transfer: "",
+        amount_other: "",
+        observation: "",
+      });
     }
-  }, [open, installment]);
+  }, [open, installment, reset]);
 
   const fetchPayments = async () => {
     if (!installment) return;
@@ -76,7 +119,6 @@ export default function InstallmentPaymentManagementSheet({
     setIsLoading(true);
     try {
       const data = await getInstallmentPayments(installment.id);
-      // Asegurarnos de que data sea un array
       setPayments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching payments:", error);
@@ -105,26 +147,19 @@ export default function InstallmentPaymentManagementSheet({
     }
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const calculateTotal = () => {
     return (
-      parseFloat(formData.amount_cash || "0") +
-      parseFloat(formData.amount_card || "0") +
-      parseFloat(formData.amount_yape || "0") +
-      parseFloat(formData.amount_plin || "0") +
-      parseFloat(formData.amount_deposit || "0") +
-      parseFloat(formData.amount_transfer || "0") +
-      parseFloat(formData.amount_other || "0")
+      parseFloat(formValues.amount_cash || "0") +
+      parseFloat(formValues.amount_card || "0") +
+      parseFloat(formValues.amount_yape || "0") +
+      parseFloat(formValues.amount_plin || "0") +
+      parseFloat(formValues.amount_deposit || "0") +
+      parseFloat(formValues.amount_transfer || "0") +
+      parseFloat(formValues.amount_other || "0")
     );
   };
 
-  const handleSubmitPayment = async () => {
+  const onSubmit = async (data: PaymentFormValues) => {
     if (!installment) return;
 
     const total = calculateTotal();
@@ -144,44 +179,27 @@ export default function InstallmentPaymentManagementSheet({
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
       await createSalePayment(installment.id, {
-        payment_date: formData.payment_date,
-        amount_cash: parseFloat(formData.amount_cash || "0"),
-        amount_card: parseFloat(formData.amount_card || "0"),
-        amount_yape: parseFloat(formData.amount_yape || "0"),
-        amount_plin: parseFloat(formData.amount_plin || "0"),
-        amount_deposit: parseFloat(formData.amount_deposit || "0"),
-        amount_transfer: parseFloat(formData.amount_transfer || "0"),
-        amount_other: parseFloat(formData.amount_other || "0"),
-        observation: formData.observation,
+        payment_date: data.payment_date ?? format(new Date(), "yyyy-MM-dd"),
+        amount_cash: parseFloat(data.amount_cash || "0"),
+        amount_card: parseFloat(data.amount_card || "0"),
+        amount_yape: parseFloat(data.amount_yape || "0"),
+        amount_plin: parseFloat(data.amount_plin || "0"),
+        amount_deposit: parseFloat(data.amount_deposit || "0"),
+        amount_transfer: parseFloat(data.amount_transfer || "0"),
+        amount_other: parseFloat(data.amount_other || "0"),
+        observation: data.observation || "",
       });
 
       successToast("Pago registrado correctamente");
-
-      // Reset form
-      setFormData({
-        payment_date: new Date().toISOString().split("T")[0],
-        amount_cash: "",
-        amount_card: "",
-        amount_yape: "",
-        amount_plin: "",
-        amount_deposit: "",
-        amount_transfer: "",
-        amount_other: "",
-        observation: "",
-      });
-
-      fetchPayments();
+      reset();
+      await fetchPayments();
       onSuccess();
     } catch (error: any) {
       errorToast(
         error?.response?.data?.message || "Error al registrar el pago"
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -208,6 +226,9 @@ export default function InstallmentPaymentManagementSheet({
   if (!installment) return null;
 
   const isPending = parseFloat(installment.pending_amount) > 0;
+  const total = calculateTotal();
+  const pendingAmount = parseFloat(installment.pending_amount);
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <>
@@ -216,465 +237,303 @@ export default function InstallmentPaymentManagementSheet({
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
         icon={<Wallet className="h-5 w-5" />}
-        className="overflow-y-auto w-full sm:max-w-3xl"
+        className="overflow-y-auto w-full sm:max-w-3xl p-4"
       >
-        <div className="space-y-4 p-4">
-          {/* Summary Card */}
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border-blue-200 dark:border-blue-800">
-            <CardContent className="pt-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-muted-foreground font-medium">
-                      Venta
-                    </p>
-                    <p className="text-lg font-bold">
-                      {installment.sale_correlativo}
-                    </p>
-                  </div>
-                  <Badge
-                    variant={
-                      installment.status === "PAGADO"
-                        ? "default"
-                        : installment.status === "VENCIDO"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                    className="text-sm"
-                  >
-                    {installment.status}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Monto Total</p>
-                    <p className="text-lg font-bold">
-                      {currency} {parseFloat(installment.amount).toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Pagado</p>
-                    <p className="text-lg font-bold text-green-600">
-                      {currency}{" "}
-                      {(
-                        parseFloat(installment.amount) -
-                        parseFloat(installment.pending_amount)
-                      ).toFixed(2)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Pendiente</p>
-                    <p
-                      className={`text-lg font-bold ${
-                        isPending ? "text-orange-600" : "text-green-600"
-                      }`}
-                    >
-                      {currency}{" "}
-                      {parseFloat(installment.pending_amount).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 pt-2 text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4" />
-                  <span>
-                    Vence: {formatDate(installment.due_date)} (
-                    {installment.due_days} días)
-                  </span>
-                </div>
+        <div className="space-y-6">
+          {/* Installment Summary */}
+          <div className="p-4 bg-muted rounded-lg space-y-2">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <p className="text-xs text-muted-foreground">Venta</p>
+                <p className="font-semibold">{installment.sale_correlativo}</p>
               </div>
-            </CardContent>
-          </Card>
+              <Badge
+                variant={
+                  installment.status === "PAGADO"
+                    ? "default"
+                    : installment.status === "VENCIDO"
+                    ? "destructive"
+                    : "secondary"
+                }
+              >
+                {installment.status}
+              </Badge>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-3 gap-4 pt-2">
+              <div>
+                <span className="text-sm text-muted-foreground">
+                  Monto Total
+                </span>
+                <p className="font-semibold">
+                  {currency} {parseFloat(installment.amount).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">Pagado</span>
+                <p className="font-semibold text-green-600">
+                  {currency}{" "}
+                  {(
+                    parseFloat(installment.amount) -
+                    parseFloat(installment.pending_amount)
+                  ).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">Pendiente</span>
+                <p
+                  className={`font-semibold ${
+                    isPending ? "text-orange-600" : "text-green-600"
+                  }`}
+                >
+                  {currency} {parseFloat(installment.pending_amount).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>
+                Vence: {formatDate(installment.due_date)} (
+                {installment.due_days} días)
+              </span>
+            </div>
+          </div>
 
           {/* Payment Form */}
           {isPending && (
-            <Card className="border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  Registrar Nuevo Pago
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Installment Info */}
-                <div className="p-3 bg-muted/50 rounded-lg space-y-2 border">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Monto de la Cuota
-                    </span>
-                    <span className="font-semibold">
-                      {currency} {parseFloat(installment.amount).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Monto Pendiente
-                    </span>
-                    <span className="font-semibold text-orange-600">
-                      {currency}{" "}
-                      {parseFloat(installment.pending_amount).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+                Registrar Nuevo Pago
+              </h3>
 
-                {/* Payment Date */}
-                <div>
-                  <Label htmlFor="payment_date" className="text-sm">
-                    Fecha de Pago
-                  </Label>
-                  <Input
-                    id="payment_date"
-                    type="date"
-                    value={formData.payment_date}
-                    onChange={(e) =>
-                      handleInputChange("payment_date", e.target.value)
-                    }
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-4 p-4 border rounded-lg bg-muted/30"
+                >
+                  {/* Payment Date */}
+                  <DatePickerFormField
+                    control={form.control}
+                    name="payment_date"
+                    label="Fecha de Pago"
+                    placeholder="Selecciona la fecha de pago"
+                    disabledRange={{
+                      after: new Date(),
+                    }}
                   />
-                </div>
 
-                {/* Payment Methods */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold">
-                    Métodos de Pago
-                  </Label>
+                  <Separator />
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="amount_cash" className="text-xs">
-                        💵 Efectivo
-                      </Label>
-                      <Input
-                        id="amount_cash"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_cash}
-                        onChange={(e) =>
-                          handleInputChange("amount_cash", e.target.value)
-                        }
-                        placeholder="0.00"
+                  {/* Payment Methods */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold">Métodos de Pago</p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="amount_cash"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Efectivo</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="amount_card" className="text-xs">
-                        💳 Tarjeta
-                      </Label>
-                      <Input
-                        id="amount_card"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_card}
-                        onChange={(e) =>
-                          handleInputChange("amount_card", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_card"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Tarjeta</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="amount_yape" className="text-xs">
-                        📱 Yape
-                      </Label>
-                      <Input
-                        id="amount_yape"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_yape}
-                        onChange={(e) =>
-                          handleInputChange("amount_yape", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_yape"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Yape</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="amount_plin" className="text-xs">
-                        📱 Plin
-                      </Label>
-                      <Input
-                        id="amount_plin"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_plin}
-                        onChange={(e) =>
-                          handleInputChange("amount_plin", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_plin"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Plin</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="amount_deposit" className="text-xs">
-                        🏦 Depósito
-                      </Label>
-                      <Input
-                        id="amount_deposit"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_deposit}
-                        onChange={(e) =>
-                          handleInputChange("amount_deposit", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_deposit"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Depósito</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div>
-                      <Label htmlFor="amount_transfer" className="text-xs">
-                        🔄 Transferencia
-                      </Label>
-                      <Input
-                        id="amount_transfer"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_transfer}
-                        onChange={(e) =>
-                          handleInputChange("amount_transfer", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_transfer"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">
+                              Transferencia
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
-                    </div>
 
-                    <div className="col-span-2">
-                      <Label htmlFor="amount_other" className="text-xs">
-                        💰 Otro
-                      </Label>
-                      <Input
-                        id="amount_other"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={formData.amount_other}
-                        onChange={(e) =>
-                          handleInputChange("amount_other", e.target.value)
-                        }
-                        placeholder="0.00"
+                      <FormField
+                        control={form.control}
+                        name="amount_other"
+                        render={({ field }) => (
+                          <FormItem className="col-span-2">
+                            <FormLabel className="text-sm">Otro</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                {...field}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Total */}
-                <div className="p-3 bg-muted/50 rounded-lg border">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-sm">Total a Pagar</span>
-                    <span
-                      className={`text-lg font-bold ${
-                        calculateTotal() >
-                        parseFloat(installment.pending_amount)
-                          ? "text-red-600"
-                          : calculateTotal() > 0
-                          ? "text-green-600"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {currency} {calculateTotal().toFixed(2)}
-                    </span>
-                  </div>
-                  {calculateTotal() >
-                    parseFloat(installment.pending_amount) && (
-                    <p className="text-xs text-red-600 mt-2">
-                      El total excede el monto pendiente
-                    </p>
-                  )}
-                  {calculateTotal() > 0 &&
-                    calculateTotal() <=
-                      parseFloat(installment.pending_amount) && (
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Pendiente después del pago: {currency}{" "}
-                        {(
-                          parseFloat(installment.pending_amount) -
-                          calculateTotal()
-                        ).toFixed(2)}
+                  {/* Total */}
+                  <div className="p-3 bg-muted rounded-lg">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-sm">
+                        Total a Pagar
+                      </span>
+                      <span
+                        className={`text-lg font-bold ${
+                          total > pendingAmount
+                            ? "text-red-600"
+                            : total > 0
+                            ? "text-green-600"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {currency} {total.toFixed(2)}
+                      </span>
+                    </div>
+                    {total > pendingAmount && (
+                      <p className="text-xs text-red-600 mt-2">
+                        El total excede el monto pendiente
                       </p>
                     )}
-                </div>
+                    {total > 0 && total <= pendingAmount && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Pendiente después del pago: {currency}{" "}
+                        {(pendingAmount - total).toFixed(2)}
+                      </p>
+                    )}
+                  </div>
 
-                {/* Observation */}
-                <div>
-                  <Label htmlFor="observation" className="text-sm">
-                    Observación (Opcional)
-                  </Label>
-                  <Textarea
-                    id="observation"
-                    value={formData.observation}
-                    onChange={(e) =>
-                      handleInputChange("observation", e.target.value)
-                    }
-                    placeholder="Ingrese una observación"
-                    rows={2}
+                  {/* Observation */}
+                  <FormField
+                    control={form.control}
+                    name="observation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Observación</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Ingrese una observación (opcional)"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                {/* Submit Button */}
-                <Button
-                  className="w-full"
-                  onClick={handleSubmitPayment}
-                  disabled={
-                    isSubmitting ||
-                    calculateTotal() === 0 ||
-                    calculateTotal() > parseFloat(installment.pending_amount)
-                  }
-                >
-                  {isSubmitting ? "Registrando..." : "Registrar Pago"}
-                </Button>
-              </CardContent>
-            </Card>
+                  {/* Submit Button */}
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={
+                      isSubmitting || total === 0 || total > pendingAmount
+                    }
+                  >
+                    {isSubmitting ? "Registrando..." : "Registrar Pago"}
+                  </Button>
+                </form>
+              </Form>
+            </div>
           )}
-
-          {/* Payments List */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
-                Historial de Pagos ({payments.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Cargando pagos...</p>
-                </div>
-              ) : payments.length === 0 ? (
-                <div className="text-center py-8">
-                  <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No hay pagos registrados para esta cuota
-                  </p>
-                </div>
-              ) : payments && payments.length > 0 ? (
-                <div className="space-y-4">
-                  {payments?.map((payment) => (
-                    <Card
-                      key={payment.id}
-                      className="bg-muted/30 hover:bg-muted/50 transition-colors"
-                    >
-                      <CardContent className="pt-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <p className="font-semibold">
-                              Pago #{payment.correlativo}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDate(payment.payment_date)}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <p className="text-lg font-bold text-green-600">
-                              {currency} {payment.total_paid.toFixed(2)}
-                            </p>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setPaymentToDelete(payment.id);
-                                setOpenDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Payment Breakdown */}
-                        <div className="space-y-2 pt-3 border-t">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase">
-                            Desglose del Pago
-                          </p>
-                          <div className="grid grid-cols-2 gap-2 text-sm">
-                            {payment.amount_cash > 0 && (
-                              <div className="flex justify-between">
-                                <span>💵 Efectivo</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_cash.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_card > 0 && (
-                              <div className="flex justify-between">
-                                <span>💳 Tarjeta</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_card.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_yape > 0 && (
-                              <div className="flex justify-between">
-                                <span>📱 Yape</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_yape.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_plin > 0 && (
-                              <div className="flex justify-between">
-                                <span>📱 Plin</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_plin.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_deposit > 0 && (
-                              <div className="flex justify-between">
-                                <span>🏦 Depósito</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_deposit.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_transfer > 0 && (
-                              <div className="flex justify-between">
-                                <span>🔄 Transferencia</span>
-                                <span className="font-medium">
-                                  {currency}{" "}
-                                  {payment.amount_transfer.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                            {payment.amount_other > 0 && (
-                              <div className="flex justify-between">
-                                <span>💰 Otro</span>
-                                <span className="font-medium">
-                                  {currency} {payment.amount_other.toFixed(2)}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {payment.observation && (
-                            <div className="pt-2 border-t">
-                              <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
-                                Observación
-                              </p>
-                              <p className="text-sm">{payment.observation}</p>
-                            </div>
-                          )}
-
-                          <div className="pt-2 text-xs text-muted-foreground">
-                            Registrado: {formatDateTime(payment.created_at)}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    No hay pagos registrados para esta cuota.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </GeneralSheet>
 

@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Wallet, Eye, Edit } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
+import { parse } from "date-fns";
 
 export const formatCurrency = (amount: number) => {
   return `S/. ${amount.toFixed(2)}`;
@@ -39,18 +40,18 @@ export const getAccountsReceivableColumns = (
   onOpenPayment: (installment: SaleInstallmentResource) => void,
   onOpenQuickView: (installment: SaleInstallmentResource) => void
 ): ColumnDef<SaleInstallmentResource>[] => [
-  {
-    accessorKey: "sale_correlativo",
-    header: "Venta",
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="font-semibold">{row.original.sale_correlativo}</span>
-        <span className="text-xs text-muted-foreground">
-          {row.original.correlativo}
-        </span>
-      </div>
-    ),
-  },
+  // {
+  //   accessorKey: "sale_correlativo",
+  //   header: "Venta",
+  //   cell: ({ row }) => (
+  //     <div className="flex flex-col">
+  //       <span className="font-semibold">{row.original.sale_correlativo}</span>
+  //       <span className="text-xs text-muted-foreground">
+  //         {row.original.correlativo}
+  //       </span>
+  //     </div>
+  //   ),
+  // },
   {
     accessorKey: "installment_number",
     header: "Cuota",
@@ -67,7 +68,27 @@ export const getAccountsReceivableColumns = (
         <div className="flex flex-col">
           <span className="text-sm">{formatDate(row.original.due_date)}</span>
           <span className="text-xs text-muted-foreground">
-            {row.original.due_days} días
+            {(() => {
+              const daysUntilDue = Math.ceil(
+                (parse(
+                  row.original.due_date,
+                  "yyyy-MM-dd",
+                  new Date()
+                ).getTime() -
+                  new Date().getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
+
+              if (row.original.status === "PAGADA") {
+                return "Pagado";
+              } else if (daysUntilDue > 0) {
+                return `${daysUntilDue} días para vencer`;
+              } else if (daysUntilDue === 0) {
+                return "Vence hoy";
+              } else {
+                return `${Math.abs(daysUntilDue)} días vencido`;
+              }
+            })()}
           </span>
         </div>
       </div>

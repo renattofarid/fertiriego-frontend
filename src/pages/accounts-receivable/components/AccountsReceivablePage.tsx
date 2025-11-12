@@ -83,7 +83,7 @@ export default function AccountsReceivablePage() {
         totalPending += pendingAmount;
         totalInstallments++;
 
-        if (dueDate < today && inst.status === "VENCIDO") {
+        if (dueDate > today) {
           totalOverdue += pendingAmount;
         } else if (dueDate <= soonDate && dueDate >= today) {
           totalToExpireSoon += pendingAmount;
