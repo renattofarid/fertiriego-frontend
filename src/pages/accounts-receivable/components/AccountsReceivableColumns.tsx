@@ -22,11 +22,7 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
   const pendingAmount = parseFloat(installment.pending_amount);
 
   if (pendingAmount === 0 || installment.status === "PAGADO") {
-    return (
-      <Badge variant="default" className="text-primary">
-        PAGADO
-      </Badge>
-    );
+    return <Badge variant="default">PAGADO</Badge>;
   }
 
   if (installment.status === "VENCIDO") {

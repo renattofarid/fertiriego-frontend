@@ -9,18 +9,20 @@ import {
 import {
   ShoppingCart,
   Package,
-  CreditCard,
   TrendingUp,
+  ShoppingBag,
   DollarSign,
-  AlertCircle,
-  CheckCircle,
 } from "lucide-react";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import {
+  Area,
+  AreaChart,
   BarChart,
   Bar,
   XAxis,
@@ -30,134 +32,246 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePurchase } from "@/pages/purchase/lib/purchase.hook";
+import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
-import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+
+// Tipos
+interface MonthData {
+  date: string;
+  compras: number;
+  ventas: number;
+}
+
+interface TopProduct {
+  name: string;
+  quantity: number;
+  revenue: number;
+}
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  subtitle: string;
+  icon: React.ElementType;
+  variant: "primary" | "destructive" | "secondary" | "accent";
+}
+
+// Componente StatCard sin bordes
+function StatCard({ title, value, subtitle, icon: Icon, variant }: StatCardProps) {
+  const variantStyles = {
+    primary: "bg-primary/10",
+    destructive: "bg-destructive/10",
+    secondary: "bg-secondary/10",
+    accent: "bg-accent/10",
+  };
+
+  const textStyles = {
+    primary: "text-primary",
+    destructive: "text-destructive",
+    secondary: "text-secondary",
+    accent: "text-accent",
+  };
+
+  return (
+    <div className={cn("rounded-xl p-5 shadow-sm", variantStyles[variant])}>
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className={cn("text-2xl md:text-3xl font-bold", textStyles[variant])}>
+            {value}
+          </p>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
+        </div>
+        <Icon className={cn("h-10 w-10 opacity-60", textStyles[variant])} />
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   const { data: purchases, isLoading: purchasesLoading } = usePurchase();
+  const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: products, isLoading: productsLoading } = useAllProducts();
+
+  const [timeRange, setTimeRange] = useState("90d");
 
   // Estados para las estadísticas
   const [stats, setStats] = useState({
     totalPurchases: 0,
     totalPurchaseAmount: 0,
-    pendingAmount: 0,
+    purchasePendingAmount: 0,
+    totalSales: 0,
+    totalSaleAmount: 0,
+    salePendingAmount: 0,
     totalProducts: 0,
-    paidPurchases: 0,
-    pendingPurchases: 0,
+    balance: 0,
   });
 
-  const [purchasesByMonth, setPurchasesByMonth] = useState<any[]>([]);
-  const [purchasesByStatus, setPurchasesByStatus] = useState<any[]>([]);
-  const [purchasesByPaymentType, setPurchasesByPaymentType] = useState<any[]>(
-    []
-  );
+  const [allTransactionsByDate, setAllTransactionsByDate] = useState<MonthData[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<MonthData[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [salesByPaymentType, setSalesByPaymentType] = useState<any[]>([]);
 
+  // Calcular datos cuando cambian purchases, sales o products
   useEffect(() => {
-    if (purchases) {
-      // Calcular estadísticas
-      const totalAmount = purchases.reduce(
+    if (purchases && sales && products) {
+      // Calcular estadísticas de compras
+      const totalPurchaseAmount = purchases.reduce(
         (sum, p) => sum + parseFloat(p.total_amount),
         0
       );
-      const pendingAmount = purchases.reduce(
+      const purchasePendingAmount = purchases.reduce(
         (sum, p) => sum + parseFloat(p.current_amount),
         0
       );
-      const paidCount = purchases.filter((p) => p.status === "PAGADA").length;
-      const pendingCount = purchases.filter(
-        (p) => p.status === "REGISTRADO" || p.status === "PENDIENTE"
-      ).length;
+
+      // Calcular estadísticas de ventas
+      const totalSaleAmount = sales.reduce(
+        (sum, s) => sum + parseFloat(s.total_amount.toString()),
+        0
+      );
+      const salePendingAmount = sales.reduce(
+        (sum, s) => sum + parseFloat(s.current_amount.toString()),
+        0
+      );
+
+      const balance = totalSaleAmount - totalPurchaseAmount;
 
       setStats({
         totalPurchases: purchases.length,
-        totalPurchaseAmount: totalAmount,
-        pendingAmount: pendingAmount,
+        totalPurchaseAmount,
+        purchasePendingAmount,
+        totalSales: sales.length,
+        totalSaleAmount,
+        salePendingAmount,
         totalProducts: products?.length || 0,
-        paidPurchases: paidCount,
-        pendingPurchases: pendingCount,
+        balance,
       });
 
-      // Agrupar compras por mes
-      const monthGroups: Record<string, number> = {};
+      // Agrupar transacciones por fecha (diarias para el chart)
+      const dateGroups: Record<string, { purchases: number; sales: number }> = {};
+
       purchases.forEach((purchase) => {
-        const date = new Date(purchase.issue_date);
-        const monthYear = `${date.toLocaleDateString("es-ES", {
-          month: "short",
-        })} ${date.getFullYear()}`;
-        monthGroups[monthYear] =
-          (monthGroups[monthYear] || 0) + parseFloat(purchase.total_amount);
+        const date = purchase.issue_date;
+        if (!dateGroups[date]) {
+          dateGroups[date] = { purchases: 0, sales: 0 };
+        }
+        dateGroups[date].purchases += parseFloat(purchase.total_amount);
       });
 
-      const monthData = Object.entries(monthGroups)
-        .map(([month, total]) => ({ month, total: Number(total.toFixed(2)) }))
-        .slice(-6); // Últimos 6 meses
-
-      setPurchasesByMonth(monthData);
-
-      // Agrupar por estado
-      const statusGroups: Record<string, number> = {};
-      purchases.forEach((purchase) => {
-        statusGroups[purchase.status] =
-          (statusGroups[purchase.status] || 0) + 1;
+      sales.forEach((sale) => {
+        const date = sale.issue_date;
+        if (!dateGroups[date]) {
+          dateGroups[date] = { purchases: 0, sales: 0 };
+        }
+        dateGroups[date].sales += parseFloat(sale.total_amount.toString());
       });
 
-      const statusData = Object.entries(statusGroups).map(
-        ([status, count]) => ({
-          name: status,
-          value: count,
-        })
-      );
+      const dateData = Object.entries(dateGroups)
+        .map(([date, data]) => ({
+          date,
+          compras: Number(data.purchases.toFixed(2)),
+          ventas: Number(data.sales.toFixed(2)),
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      setPurchasesByStatus(statusData);
+      setAllTransactionsByDate(dateData);
 
-      // Agrupar por tipo de pago
-      const paymentGroups: Record<string, number> = {};
-      purchases.forEach((purchase) => {
-        paymentGroups[purchase.payment_type] =
-          (paymentGroups[purchase.payment_type] || 0) + 1;
+      // Top 5 productos más vendidos
+      const productSales: Record<string, { quantity: number; revenue: number; name: string }> = {};
+
+      sales.forEach((sale) => {
+        if (sale.details && Array.isArray(sale.details)) {
+          sale.details.forEach((detail: any) => {
+            const productId = detail.product_id.toString();
+            const product = products.find((p) => p.id.toString() === productId);
+
+            if (product) {
+              if (!productSales[productId]) {
+                productSales[productId] = {
+                  name: product.name,
+                  quantity: 0,
+                  revenue: 0,
+                };
+              }
+              productSales[productId].quantity += parseFloat(detail.quantity);
+              productSales[productId].revenue += parseFloat(detail.quantity) * parseFloat(detail.unit_price);
+            }
+          });
+        }
       });
 
-      const paymentData = Object.entries(paymentGroups).map(
+      const topProductsData = Object.values(productSales)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 5);
+
+      setTopProducts(topProductsData);
+
+      // Agrupar por tipo de pago - Ventas
+      const salePaymentGroups: Record<string, number> = {};
+      sales.forEach((sale) => {
+        salePaymentGroups[sale.payment_type] =
+          (salePaymentGroups[sale.payment_type] || 0) + 1;
+      });
+
+      const salePaymentData = Object.entries(salePaymentGroups).map(
         ([type, count]) => ({
-          name: type,
+          name: type === "CONTADO" ? "Contado" : "Crédito",
           value: count,
         })
       );
 
-      setPurchasesByPaymentType(paymentData);
+      setSalesByPaymentType(salePaymentData);
     }
-  }, [purchases, products]);
+  }, [purchases, sales, products]);
+
+  // Filtrar datos según el rango de tiempo seleccionado
+  useEffect(() => {
+    if (allTransactionsByDate.length > 0) {
+      const now = new Date();
+      let daysToSubtract = 90;
+
+      if (timeRange === "30d") {
+        daysToSubtract = 30;
+      } else if (timeRange === "7d") {
+        daysToSubtract = 7;
+      }
+
+      const startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - daysToSubtract);
+
+      const filtered = allTransactionsByDate.filter((item) => {
+        const itemDate = new Date(item.date);
+        return itemDate >= startDate;
+      });
+
+      setFilteredTransactions(filtered);
+    }
+  }, [allTransactionsByDate, timeRange]);
 
   const chartConfig = {
-    total: {
-      label: "Total",
-      color: "var(--chart-1)",
+    compras: {
+      label: "Compras",
+      color: "hsl(var(--destructive))",
     },
-    REGISTRADO: {
-      label: "Registrado",
-      color: "var(--chart-2)",
-    },
-    PAGADA: {
-      label: "Pagada",
-      color: "var(--chart-1)",
-    },
-    PENDIENTE: {
-      label: "Pendiente",
-      color: "var(--chart-3)",
-    },
-    CONTADO: {
-      label: "Contado",
-      color: "var(--chart-1)",
-    },
-    CREDITO: {
-      label: "Crédito",
-      color: "var(--chart-2)",
+    ventas: {
+      label: "Ventas",
+      color: "hsl(var(--primary))",
     },
   };
 
-  if (purchasesLoading || productsLoading) {
+  const pieColors = ["hsl(var(--primary))", "hsl(var(--secondary))"];
+
+  if (purchasesLoading || salesLoading || productsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <p className="text-muted-foreground">Cargando dashboard...</p>
@@ -166,326 +280,356 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-4 p-4 md:space-y-6 md:p-6">
+    <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          Dashboard
+        </h1>
         <p className="text-sm md:text-base text-muted-foreground">
           Vista general de tu sistema de gestión
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Compras</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold">{stats.totalPurchases}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.paidPurchases} pagadas, {stats.pendingPurchases} pendientes
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monto Total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold break-words">
-              S/. {stats.totalPurchaseAmount.toFixed(2)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              En compras realizadas
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Saldo Pendiente
+      {/* Gráfico Principal - AreaChart Interactivo */}
+      <Card className="border-none shadow-md">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 space-y-0 border-b pb-4">
+          <div className="grid flex-1 gap-1">
+            <CardTitle className="text-base md:text-lg">
+              Compras vs Ventas
             </CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold text-orange-600 break-words">
-              S/. {stats.pendingAmount.toFixed(2)}
+            <CardDescription className="text-xs md:text-sm">
+              Comparación de montos en el período seleccionado
+            </CardDescription>
+          </div>
+          <Select value={timeRange} onValueChange={setTimeRange}>
+            <SelectTrigger
+              className="w-[160px] rounded-lg"
+              aria-label="Seleccionar período"
+            >
+              <SelectValue placeholder="Últimos 3 meses" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="90d" className="rounded-lg">
+                Últimos 3 meses
+              </SelectItem>
+              <SelectItem value="30d" className="rounded-lg">
+                Últimos 30 días
+              </SelectItem>
+              <SelectItem value="7d" className="rounded-lg">
+                Últimos 7 días
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardHeader>
+        <CardContent className="px-2 sm:px-4 md:px-6 pt-4">
+          {filteredTransactions.length > 0 ? (
+            <ChartContainer
+              config={chartConfig}
+              className="aspect-auto h-[280px] sm:h-[320px] w-full"
+            >
+              <AreaChart
+                data={filteredTransactions}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="hsl(var(--primary))"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="hsl(var(--primary))"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillCompras" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="hsl(var(--destructive))"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="hsl(var(--destructive))"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} className="stroke-muted" />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  minTickGap={32}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return date.toLocaleDateString("es-ES", {
+                      month: "short",
+                      day: "numeric",
+                    });
+                  }}
+                />
+                <YAxis tick={{ fontSize: 11 }} tickLine={false} width={50} />
+                <ChartTooltip
+                  cursor={false}
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(value) => {
+                        return new Date(value).toLocaleDateString("es-ES", {
+                          month: "long",
+                          day: "numeric",
+                          year: "numeric",
+                        });
+                      }}
+                      indicator="dot"
+                    />
+                  }
+                />
+                <Area
+                  dataKey="ventas"
+                  type="monotone"
+                  fill="url(#fillVentas)"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  stackId="a"
+                />
+                <Area
+                  dataKey="compras"
+                  type="monotone"
+                  fill="url(#fillCompras)"
+                  stroke="hsl(var(--destructive))"
+                  strokeWidth={2}
+                  stackId="a"
+                />
+                <ChartLegend content={<ChartLegendContent />} />
+              </AreaChart>
+            </ChartContainer>
+          ) : (
+            <div className="h-[280px] sm:h-[320px] flex items-center justify-center text-muted-foreground text-sm">
+              No hay datos disponibles para el período seleccionado
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Por pagar</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* KPI Cards - Sin bordes */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Total Ventas"
+          value={`S/. ${stats.totalSaleAmount.toFixed(2)}`}
+          subtitle={`${stats.totalSales} transacciones`}
+          icon={ShoppingBag}
+          variant="primary"
+        />
+        <StatCard
+          title="Total Compras"
+          value={`S/. ${stats.totalPurchaseAmount.toFixed(2)}`}
+          subtitle={`${stats.totalPurchases} transacciones`}
+          icon={ShoppingCart}
+          variant="destructive"
+        />
+        <StatCard
+          title="Balance General"
+          value={`S/. ${stats.balance.toFixed(2)}`}
+          subtitle={stats.balance >= 0 ? "Positivo" : "Negativo"}
+          icon={DollarSign}
+          variant={stats.balance >= 0 ? "primary" : "destructive"}
+        />
+        <StatCard
+          title="Productos"
+          value={stats.totalProducts}
+          subtitle="En el catálogo"
+          icon={Package}
+          variant="secondary"
+        />
+      </div>
+
+      {/* Charts Secundarios */}
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+        {/* Top 5 Productos */}
+        <Card className="border-none shadow-md">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">
+              Top 5 Productos Más Vendidos
+            </CardTitle>
+            <CardDescription className="text-xs md:text-sm">
+              Por cantidad vendida
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 md:px-6">
+            {topProducts.length > 0 ? (
+              <ChartContainer
+                config={{
+                  quantity: {
+                    label: "Cantidad",
+                    color: "hsl(var(--primary))",
+                  },
+                }}
+                className="h-[280px] w-full"
+              >
+                <BarChart
+                  data={topProducts}
+                  layout="vertical"
+                  margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis type="number" tick={{ fontSize: 10 }} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    tick={{ fontSize: 10 }}
+                    width={100}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value, _name, props) => [
+                          `${value} unidades - S/. ${props.payload.revenue.toFixed(2)}`,
+                          "Cantidad",
+                        ]}
+                      />
+                    }
+                  />
+                  <Bar
+                    dataKey="quantity"
+                    fill="hsl(var(--primary))"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ChartContainer>
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
+                No hay datos de productos vendidos
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Productos</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+        {/* Métodos de Pago */}
+        <Card className="border-none shadow-md">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base md:text-lg">
+              Distribución de Métodos de Pago
+            </CardTitle>
+            <CardDescription className="text-xs md:text-sm">
+              Ventas por tipo de pago
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-xl md:text-2xl font-bold">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground mt-1">En el catálogo</p>
+          <CardContent className="px-4 md:px-6">
+            {salesByPaymentType.length > 0 ? (
+              <ChartContainer
+                config={{
+                  contado: {
+                    label: "Contado",
+                    color: "hsl(var(--primary))",
+                  },
+                  credito: {
+                    label: "Crédito",
+                    color: "hsl(var(--secondary))",
+                  },
+                }}
+                className="h-[280px] w-full"
+              >
+                <PieChart>
+                  <Pie
+                    data={salesByPaymentType}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={5}
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {salesByPaymentType.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={pieColors[index % pieColors.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </PieChart>
+              </ChartContainer>
+            ) : (
+              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
+                No hay datos de métodos de pago
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Charts Grid */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Compras por Mes */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Compras por Mes</CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Monto total de compras en los últimos 6 meses
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-0 sm:px-2 md:px-6">
-            {purchasesByMonth.length > 0 ? (
-              <div className="w-full overflow-x-auto">
-                <ChartContainer config={chartConfig} className="h-[280px] sm:h-[300px] w-full min-w-[300px]">
-                  <BarChart
-                    data={purchasesByMonth}
-                    margin={{ top: 5, right: 10, left: 0, bottom: 40 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-muted"
-                    />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
-                      interval={0}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 10 }}
-                      tickLine={false}
-                      width={40}
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar
-                      dataKey="total"
-                      fill="var(--chart-1)"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ChartContainer>
-              </div>
-            ) : (
-              <div className="h-[280px] sm:h-[300px] flex items-center justify-center text-muted-foreground text-sm">
-                No hay datos disponibles
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Estado de Compras */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Estado de Compras</CardTitle>
-            <CardDescription className="text-xs md:text-sm">Distribución por estado</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 md:px-6">
-            {purchasesByStatus.length > 0 ? (
-              <div className="space-y-4">
-                <div className="w-full flex justify-center">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[200px] sm:h-[220px] md:h-[240px] w-full max-w-[280px] sm:max-w-full"
-                  >
-                    <PieChart>
-                      <Pie
-                        data={purchasesByStatus}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={40}
-                        outerRadius={65}
-                        paddingAngle={5}
-                        dataKey="value"
-                        nameKey="name"
-                      >
-                        {purchasesByStatus.map((entry) => (
-                          <Cell
-                            key={`cell-${entry.name}`}
-                            fill={
-                              chartConfig[entry.name as keyof typeof chartConfig]
-                                ?.color || "var(--chart-1)"
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ChartContainer>
-                </div>
-                <div className="flex justify-center gap-2 md:gap-4 flex-wrap px-2">
-                  {purchasesByStatus.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-1 md:gap-2">
-                      <div
-                        className="h-3 w-3 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor:
-                            chartConfig[entry.name as keyof typeof chartConfig]
-                              ?.color || "var(--chart-1)",
-                        }}
-                      />
-                      <span className="text-xs md:text-sm whitespace-nowrap">
-                        {chartConfig[entry.name as keyof typeof chartConfig]
-                          ?.label || entry.name}
-                        : {entry.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="h-[200px] sm:h-[220px] md:h-[240px] flex items-center justify-center text-muted-foreground text-sm">
-                No hay datos disponibles
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Tipo de Pago */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Tipo de Pago</CardTitle>
-            <CardDescription className="text-xs md:text-sm">Distribución por método de pago</CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 md:px-6">
-            {purchasesByPaymentType.length > 0 ? (
-              <div className="space-y-4">
-                <div className="w-full flex justify-center">
-                  <ChartContainer
-                    config={chartConfig}
-                    className="h-[200px] sm:h-[220px] md:h-[240px] w-full max-w-[280px] sm:max-w-full"
-                  >
-                    <PieChart>
-                      <Pie
-                        data={purchasesByPaymentType}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={65}
-                        dataKey="value"
-                        nameKey="name"
-                      >
-                        {purchasesByPaymentType.map((entry) => (
-                          <Cell
-                            key={`cell-${entry.name}`}
-                            fill={
-                              chartConfig[entry.name as keyof typeof chartConfig]
-                                ?.color || "var(--chart-2)"
-                            }
-                          />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<ChartTooltipContent />} />
-                    </PieChart>
-                  </ChartContainer>
-                </div>
-                <div className="flex justify-center gap-2 md:gap-4 flex-wrap px-2">
-                  {purchasesByPaymentType.map((entry) => (
-                    <div key={entry.name} className="flex items-center gap-1 md:gap-2">
-                      <div
-                        className="h-3 w-3 rounded-full flex-shrink-0"
-                        style={{
-                          backgroundColor:
-                            chartConfig[entry.name as keyof typeof chartConfig]
-                              ?.color || "var(--chart-2)",
-                        }}
-                      />
-                      <span className="text-xs md:text-sm whitespace-nowrap">
-                        {chartConfig[entry.name as keyof typeof chartConfig]
-                          ?.label || entry.name}
-                        : {entry.value}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="h-[200px] sm:h-[220px] md:h-[240px] flex items-center justify-center text-muted-foreground text-sm">
-                No hay datos disponibles
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Resumen de Pagos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">Resumen Financiero</CardTitle>
-            <CardDescription className="text-xs md:text-sm">Estado de pagos y saldos</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-2 md:p-3 bg-green-50 dark:bg-green-950 rounded-lg gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
-                  <span className="font-medium text-sm md:text-base">Pagado</span>
-                </div>
-                <span className="text-sm md:text-lg font-bold text-primary whitespace-nowrap">
-                  S/.{" "}
-                  {(stats.totalPurchaseAmount - stats.pendingAmount).toFixed(2)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2 md:p-3 bg-orange-50 dark:bg-orange-950 rounded-lg gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-orange-600 flex-shrink-0" />
-                  <span className="font-medium text-sm md:text-base">Pendiente</span>
-                </div>
-                <span className="text-sm md:text-lg font-bold text-orange-600 whitespace-nowrap">
-                  S/. {stats.pendingAmount.toFixed(2)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between p-2 md:p-3 bg-blue-50 dark:bg-blue-950 rounded-lg gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-blue-600 flex-shrink-0" />
-                  <span className="font-medium text-sm md:text-base">Progreso de Pago</span>
-                </div>
-                <span className="text-sm md:text-lg font-bold text-blue-600 whitespace-nowrap">
-                  {stats.totalPurchaseAmount > 0
-                    ? (
-                        ((stats.totalPurchaseAmount - stats.pendingAmount) /
-                          stats.totalPurchaseAmount) *
-                        100
-                      ).toFixed(1)
-                    : 0}
-                  %
-                </span>
-              </div>
+      {/* Resumen Financiero Compacto */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Cuentas por Cobrar */}
+        <div className="rounded-xl bg-primary/5 p-5 border border-primary/20">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <TrendingUp className="h-5 w-5 text-primary" />
             </div>
-
-            <div className="pt-4 border-t">
-              <div className="flex justify-between items-center mb-2 gap-2">
-                <span className="text-xs md:text-sm text-muted-foreground">
-                  Total Compras
-                </span>
-                <Badge variant="outline" className="text-xs">{stats.totalPurchases}</Badge>
-              </div>
-              <div className="flex justify-between items-center mb-2 gap-2">
-                <span className="text-xs md:text-sm text-muted-foreground">
-                  Compras Pagadas
-                </span>
-                <Badge variant="default" className="text-xs">{stats.paidPurchases}</Badge>
-              </div>
-              <div className="flex justify-between items-center gap-2">
-                <span className="text-xs md:text-sm text-muted-foreground">
-                  Compras Pendientes
-                </span>
-                <Badge variant="secondary" className="text-xs">{stats.pendingPurchases}</Badge>
-              </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Cuentas por Cobrar
+              </p>
+              <p className="text-xl font-bold text-primary">
+                S/. {stats.salePendingAmount.toFixed(2)}
+              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Ventas a crédito pendientes de pago
+          </p>
+        </div>
+
+        {/* Cuentas por Pagar */}
+        <div className="rounded-xl bg-destructive/5 p-5 border border-destructive/20">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg bg-destructive/10">
+              <TrendingUp className="h-5 w-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Cuentas por Pagar
+              </p>
+              <p className="text-xl font-bold text-destructive">
+                S/. {stats.purchasePendingAmount.toFixed(2)}
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Compras a crédito pendientes de pago
+          </p>
+        </div>
+
+        {/* Margen Neto */}
+        <div className="rounded-xl bg-accent/5 p-5 border border-accent/20">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 rounded-lg bg-accent/10">
+              <DollarSign className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                Margen Bruto
+              </p>
+              <p className="text-xl font-bold text-accent">
+                {stats.totalSaleAmount > 0
+                  ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1)
+                  : 0}
+                %
+              </p>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Porcentaje de ganancia sobre ventas
+          </p>
+        </div>
       </div>
     </div>
   );
