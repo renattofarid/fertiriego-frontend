@@ -13,13 +13,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Edit,
   MoreVertical,
   Trash2,
   Eye,
   Settings,
   Wallet,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
@@ -277,6 +277,13 @@ export const getSaleColumns = ({
     cell: ({ row }) => {
       const isPaid = row.original.status === "PAGADA";
 
+      // Verificar si alguna cuota tiene pagos registrados
+      // (si pending_amount es menor que amount, significa que tiene pagos)
+      const hasPayments =
+        row.original.installments?.some(
+          (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
+        ) ?? false;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -294,19 +301,16 @@ export const getSaleColumns = ({
               Gestionar
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => !isPaid && onEdit(row.original)}
-              disabled={isPaid}
-              className={isPaid ? "opacity-50 cursor-not-allowed" : ""}
+              onClick={() => !hasPayments && onEdit(row.original)}
+              disabled={hasPayments}
             >
-              <Edit className="mr-2 h-4 w-4" />
-              Editar {isPaid && "(Pagada)"}
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar {hasPayments && "(Tiene pagos)"}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => !isPaid && onDelete(row.original.id)}
-              disabled={isPaid}
-              className={
-                isPaid ? "opacity-50 cursor-not-allowed" : "text-red-600"
-              }
+              disabled={isPaid || hasPayments}
+              className="text-destructive"
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Eliminar {isPaid && "(Pagada)"}

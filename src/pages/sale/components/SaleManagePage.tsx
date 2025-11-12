@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   Plus,
   Eye,
   Receipt,
@@ -22,6 +21,9 @@ import type { SaleInstallmentResource } from "../lib/sale.interface";
 import InstallmentPaymentDialog from "./InstallmentPaymentDialog";
 import InstallmentPaymentsSheet from "./InstallmentPaymentsSheet";
 import FormWrapper from "@/components/FormWrapper";
+import TitleComponent from "@/components/TitleComponent";
+import { BackButton } from "@/components/BackButton";
+import FormSkeleton from "@/components/FormSkeleton";
 
 export default function SaleManagePage() {
   const { id } = useParams<{ id: string }>();
@@ -62,13 +64,7 @@ export default function SaleManagePage() {
   };
 
   if (isFinding) {
-    return (
-      <FormWrapper>
-        <div className="flex items-center justify-center h-64">
-          <p>Cargando...</p>
-        </div>
-      </FormWrapper>
-    );
+    return <FormSkeleton />;
   }
 
   if (!sale) {
@@ -88,19 +84,12 @@ export default function SaleManagePage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/ventas")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Gestionar Venta #{sale.id}</h1>
-            <p className="text-sm text-muted-foreground">
-              {sale.full_document_number} - {sale.customer_fullname}
-            </p>
-          </div>
+          <BackButton onClick={() => navigate("/ventas")} />
+          <TitleComponent
+            title={`Gestionar Venta #${sale.id}`}
+            subtitle={`${sale.full_document_number} - ${sale.customer_fullname}`}
+            icon={"CreditCard"}
+          />
         </div>
         <Badge
           variant={
@@ -108,9 +97,11 @@ export default function SaleManagePage() {
               ? "default"
               : sale.status === "REGISTRADO"
               ? "secondary"
+              : sale.status === "PARCIAL"
+              ? "outline"
               : "destructive"
           }
-          className="text-sm px-3 py-1"
+          className="text-sm px-3"
         >
           {sale.status}
         </Badge>
@@ -146,7 +137,10 @@ export default function SaleManagePage() {
                   Pagado
                 </p>
                 <p className="text-2xl font-bold text-primary truncate">
-                  {currency} {sale.total_paid.toFixed(2)}
+                  {currency}{" "}
+                  {sale.total_paid > 0
+                    ? sale.total_paid.toFixed(2)
+                    : (sale.total_amount - sale.current_amount).toFixed(2)}
                 </p>
               </div>
               <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
@@ -333,10 +327,12 @@ export default function SaleManagePage() {
                             </Badge>
                             <Badge
                               variant={
-                                installment.status === "PAGADO"
+                                installment.status === "PAGADA"
                                   ? "default"
-                                  : installment.status === "PENDIENTE"
+                                  : installment.status === "REGISTRADO"
                                   ? "secondary"
+                                  : installment.status === "PARCIAL"
+                                  ? "outline"
                                   : "destructive"
                               }
                             >

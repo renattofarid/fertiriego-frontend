@@ -65,7 +65,7 @@ import {
   PurchaseShippingGuideDetailViewPage,
 } from "./pages/purchase-shipping-guide/components";
 import { SaleRoute } from "./pages/sale/lib/sale.interface";
-import { SalePage, SaleAddPage } from "./pages/sale/components";
+import { SalePage, SaleAddPage, SaleEditPage } from "./pages/sale/components";
 import SaleManagePage from "./pages/sale/components/SaleManagePage";
 import { AccountsReceivableRoute } from "./pages/accounts-receivable/lib/accounts-receivable.interface";
 import { AccountsReceivablePage } from "./pages/accounts-receivable/components";
@@ -486,6 +486,15 @@ export default function App() {
             element={
               <ProtectedRoute path={SaleRoute}>
                 <SaleAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/actualizar/:id"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleEditPage />
               </ProtectedRoute>
             }
           />

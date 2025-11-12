@@ -5,3 +5,4 @@ export { default as SaleOptions } from "./SaleOptions";
 export { default as SaleModal } from "./SaleModal";
 export { SaleForm } from "./SaleForm";
 export { SaleAddPage } from "./SaleAddPage";
+export { SaleEditPage } from "./SaleEditPage";
