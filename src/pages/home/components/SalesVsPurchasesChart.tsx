@@ -14,6 +14,7 @@ import {
   ChartLegendContent,
 } from "@/components/ui/chart";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { formatCurrency, formatNumber } from "@/lib/formatCurrency";
 import {
   Select,
   SelectContent,
@@ -116,24 +117,24 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-ventas)"
+                    stopColor="var(--primary)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-ventas)"
+                    stopColor="var(--primary)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
                 <linearGradient id="fillCompras" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--color-compras)"
+                    stopColor="var(--muted-foreground)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--color-compras)"
+                    stopColor="var(--muted-foreground)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
@@ -157,7 +158,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
-                tickFormatter={(value) => `S/. ${value}`}
+                tickFormatter={(value) => formatNumber(Number(value), 0)}
               />
               <ChartTooltip
                 cursor={false}
@@ -172,6 +173,11 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                       });
                     }}
                     indicator="dot"
+                    formatter={(val) => (
+                      <span className="text-foreground font-mono font-medium tabular-nums">
+                        {formatCurrency(Number(val), { currencySymbol: "S/.", decimals: 2 })}
+                      </span>
+                    )}
                   />
                 }
               />
@@ -179,14 +185,14 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 dataKey="ventas"
                 type="natural"
                 fill="url(#fillVentas)"
-                stroke="var(--color-ventas)"
+                stroke="var(--primary)"
                 strokeWidth={2}
               />
               <Area
                 dataKey="compras"
                 type="natural"
                 fill="url(#fillCompras)"
-                stroke="var(--color-compras)"
+                stroke="var(--muted-foreground)"
                 strokeWidth={2}
               />
               <ChartLegend content={<ChartLegendContent />} />
