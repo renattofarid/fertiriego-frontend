@@ -42,11 +42,13 @@ export const WarehouseProductForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? warehouseProductSchemaCreate : warehouseProductSchemaUpdate
+      mode === "create"
+        ? warehouseProductSchemaCreate
+        : warehouseProductSchemaUpdate
     ),
     defaultValues: {
-      warehouse_id: 0,
-      product_id: 0,
+      warehouse_id: "",
+      product_id: "",
       stock: 0,
       min_stock: null,
       max_stock: null,

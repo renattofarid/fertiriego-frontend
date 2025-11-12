@@ -33,7 +33,7 @@ export default function SearchInput({
   }, [value]);
 
   return (
-    <InputGroup>
+    <InputGroup className="w-full md:w-64">
       <InputGroupInput
         className="w-full md:w-64 h-9 text-sm md:text-sm"
         placeholder={placeholder}

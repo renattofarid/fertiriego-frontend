@@ -1,20 +1,9 @@
+import { requiredStringId } from "@/lib/core.schema";
 import { z } from "zod";
 
 export const warehouseProductSchemaCreate = z.object({
-  warehouse_id: z
-    .number({
-      error: "El almacén es requerido",
-    })
-    .min(1, {
-      message: "Debe seleccionar un almacén",
-    }),
-  product_id: z
-    .number({
-      error: "El producto es requerido",
-    })
-    .min(1, {
-      message: "Debe seleccionar un producto",
-    }),
+  warehouse_id: requiredStringId("El almacén es requerido"),
+  product_id: requiredStringId("El producto es requerido"),
   stock: z
     .number({
       error: "El stock es requerido",
@@ -47,6 +36,9 @@ export const warehouseProductSchemaCreate = z.object({
     .optional(),
 });
 
-export const warehouseProductSchemaUpdate = warehouseProductSchemaCreate.partial();
+export const warehouseProductSchemaUpdate =
+  warehouseProductSchemaCreate.partial();
 
-export type WarehouseProductSchema = z.infer<typeof warehouseProductSchemaCreate>;
+export type WarehouseProductSchema = z.infer<
+  typeof warehouseProductSchemaCreate
+>;

@@ -7,8 +7,14 @@ import {
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import { WAREHOUSE_PRODUCT, type WarehouseProductResource } from "../lib/warehouse-product.interface";
-import { useWarehouseProduct, useWarehouseProductById } from "../lib/warehouse-product.hook";
+import {
+  WAREHOUSE_PRODUCT,
+  type WarehouseProductResource,
+} from "../lib/warehouse-product.interface";
+import {
+  useWarehouseProduct,
+  useWarehouseProductById,
+} from "../lib/warehouse-product.hook";
 import { useWarehouseProductStore } from "../lib/warehouse-product.store";
 import { WarehouseProductForm } from "./WarehouseProductForm";
 
@@ -18,6 +24,7 @@ interface Props {
   title: string;
   mode: "create" | "update";
   onClose: () => void;
+  preselectedProductId?: number;
 }
 
 const { MODEL, EMPTY } = WAREHOUSE_PRODUCT;
@@ -28,6 +35,7 @@ export default function WarehouseProductModal({
   title,
   mode,
   onClose,
+  preselectedProductId,
 }: Props) {
   const { refetch } = useWarehouseProduct();
 
@@ -46,8 +54,9 @@ export default function WarehouseProductModal({
   const mapWarehouseProductToForm = (
     data: WarehouseProductResource
   ): Partial<WarehouseProductSchema> => ({
-    warehouse_id: data?.warehouse_id || 0,
-    product_id: data?.product_id || 0,
+    warehouse_id: data?.warehouse_id.toString() || "",
+    product_id:
+      preselectedProductId?.toString() || data?.product_id.toString() || "",
     stock: data?.stock || 0,
     min_stock: data?.min_stock,
     max_stock: data?.max_stock,

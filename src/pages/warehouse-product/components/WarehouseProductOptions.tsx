@@ -1,10 +1,9 @@
 "use client";
 
 import SearchInput from "@/components/SearchInput";
-import { FormSelect } from "@/components/FormSelect";
-import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
-import { useForm } from "react-hook-form";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import type { ProductResource } from "@/pages/product/lib/product.interface";
 
 export default function WarehouseProductOptions({
   search,
@@ -13,6 +12,8 @@ export default function WarehouseProductOptions({
   setWarehouseId,
   productId,
   setProductId,
+  warehouses,
+  products,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -20,12 +21,9 @@ export default function WarehouseProductOptions({
   setWarehouseId: (value: string) => void;
   productId: string;
   setProductId: (value: string) => void;
+  warehouses: WarehouseResource[];
+  products: ProductResource[];
 }) {
-  const { data: warehouses, isLoading: loadingWarehouses } = useAllWarehouses();
-  const { data: products, isLoading: loadingProducts } = useAllProducts();
-
-  const form = useForm();
-
   const warehouseOptions = [
     { value: "", label: "Todos los almacenes" },
     ...(warehouses?.map((warehouse) => ({
@@ -50,29 +48,19 @@ export default function WarehouseProductOptions({
         placeholder="Buscar producto o almacén"
       />
 
-      <div className="min-w-[200px]">
-        <FormSelect
-          name="warehouse_filter"
-          placeholder="Filtrar por almacén"
-          options={warehouseOptions}
-          control={form.control}
-          disabled={loadingWarehouses}
-          value={warehouseId}
-          onChange={(value) => setWarehouseId(value)}
-        />
-      </div>
+      <SearchableSelect
+        options={warehouseOptions}
+        value={warehouseId}
+        onChange={setWarehouseId}
+        placeholder="Todos los almacenes"
+      />
 
-      <div className="min-w-[200px]">
-        <FormSelect
-          name="product_filter"
-          placeholder="Filtrar por producto"
-          options={productOptions}
-          control={form.control}
-          disabled={loadingProducts}
-          value={productId}
-          onChange={(value) => setProductId(value)}
-        />
-      </div>
+      <SearchableSelect
+        options={productOptions}
+        value={productId}
+        onChange={setProductId}
+        placeholder="Todos los productos"
+      />
     </div>
   );
 }

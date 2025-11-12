@@ -17,6 +17,9 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { WAREHOUSE_PRODUCT } from "../lib/warehouse-product.interface";
 import WarehouseProductModal from "./WarehouseProductModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useAllProducts } from "@/pages/product/lib/product.hook";
+import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
+import FormSkeleton from "@/components/FormSkeleton";
 
 const { MODEL, ICON } = WAREHOUSE_PRODUCT;
 
@@ -29,6 +32,10 @@ export default function WarehouseProductPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { data, meta, isLoading, refetch } = useWarehouseProduct();
+
+  const { data: warehouses = [], isLoading: loadingWarehouses } =
+    useAllWarehouses();
+  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
 
   useEffect(() => {
     const params: Record<string, any> = { page, search, per_page };
@@ -49,6 +56,10 @@ export default function WarehouseProductPage() {
       setDeleteId(null);
     }
   };
+
+  if (loadingWarehouses || loadingProducts || !warehouses || !products) {
+    return <FormSkeleton />;
+  }
 
   return (
     <div className="space-y-4">
@@ -76,6 +87,8 @@ export default function WarehouseProductPage() {
           setWarehouseId={setWarehouseId}
           productId={productId}
           setProductId={setProductId}
+          warehouses={warehouses}
+          products={products}
         />
       </WarehouseProductTable>
 

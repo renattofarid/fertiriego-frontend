@@ -12,10 +12,12 @@ export const ProductColumns = ({
   onEdit,
   onDelete,
   onView,
+  onAssignStock,
 }: {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onView: (id: number) => void;
+  onAssignStock?: (id: number) => void;
 }): ColumnDef<ProductResource>[] => [
   {
     accessorKey: "name",
@@ -126,6 +128,11 @@ export const ProductColumns = ({
             <DropdownMenuItem onClick={() => onEdit(id)}>
               Editar
             </DropdownMenuItem>
+            {onAssignStock && (
+              <DropdownMenuItem onClick={() => onAssignStock(id)}>
+                Asignar a Almacén
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onSelect={() => onDelete(id)}>
               Eliminar
             </DropdownMenuItem>
