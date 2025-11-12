@@ -42,8 +42,13 @@ export default function PurchaseOrderEditPage() {
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
-  const { updatePurchaseOrder, fetchPurchaseOrder, purchaseOrder, isFinding, isSubmitting } =
-    usePurchaseOrderStore();
+  const {
+    updatePurchaseOrder,
+    fetchPurchaseOrder,
+    purchaseOrder,
+    isFinding,
+    isSubmitting,
+  } = usePurchaseOrderStore();
 
   const { fetchDetails, details } = usePurchaseOrderDetailStore();
 
@@ -70,11 +75,12 @@ export default function PurchaseOrderEditPage() {
   ): Partial<PurchaseOrderSchema> => ({
     supplier_id: data.supplier_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
-    order_number: data.order_number,
     issue_date: data.issue_date,
     expected_date: data.expected_date,
     observations: data.observations,
     details: [],
+    // Coerce apply_igv to boolean in case backend sends 0/1 or similar
+    apply_igv: Boolean((data as any).apply_igv ?? false),
   });
 
   const handleSubmit = async (data: Partial<PurchaseOrderSchema>) => {
@@ -190,6 +196,8 @@ export default function PurchaseOrderEditPage() {
               details={details || []}
               onEdit={handleEditDetail}
               onRefresh={() => id && fetchDetails(Number(id))}
+              totalEstimated={purchaseOrder?.total_estimated}
+              applyIgv={Boolean((purchaseOrder as any)?.apply_igv ?? false)}
             />
           </CardContent>
         </Card>

@@ -13,6 +13,7 @@ import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
 import { Plus, Trash2, Edit, DollarSign } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
+import { formatCurrency } from "@/lib/formatCurrency";
 import type {
   CreateProductPriceRequest,
   UpdateProductPriceRequest,
@@ -157,9 +158,7 @@ export function ProductPriceManager({
 
   const formatPrice = (price: string, currency: string) => {
     const numPrice = parseFloat(price);
-    return `${currency} ${numPrice.toLocaleString("es-PE", {
-      minimumFractionDigits: 2,
-    })}`;
+    return formatCurrency(numPrice, { currencySymbol: currency, decimals: 2 });
   };
 
   const getCategoryColor = (category: string) => {

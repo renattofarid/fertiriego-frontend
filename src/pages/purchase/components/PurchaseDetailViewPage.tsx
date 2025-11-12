@@ -27,12 +27,14 @@ export const PurchaseDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("details");
-  const [selectedInstallment, setSelectedInstallment] = useState<PurchaseInstallmentResource | null>(null);
+  const [selectedInstallment, setSelectedInstallment] =
+    useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
 
   const { purchase, fetchPurchase, isFinding } = usePurchaseStore();
   const { details, fetchDetails } = usePurchaseDetailStore();
-  const { installments, fetchInstallments, updateInstallment } = usePurchaseInstallmentStore();
+  const { installments, fetchInstallments, updateInstallment } =
+    usePurchaseInstallmentStore();
 
   useEffect(() => {
     if (!id) {
@@ -50,12 +52,17 @@ export const PurchaseDetailViewPage = () => {
     }
   };
 
-  const handleViewInstallmentPayments = (installment: PurchaseInstallmentResource) => {
+  const handleViewInstallmentPayments = (
+    installment: PurchaseInstallmentResource
+  ) => {
     setSelectedInstallment(installment);
     setIsPaymentSheetOpen(true);
   };
 
-  const handleSyncInstallment = async (installmentId: number, newAmount: number) => {
+  const handleSyncInstallment = async (
+    installmentId: number,
+    newAmount: number
+  ) => {
     if (!purchase) return;
 
     try {
@@ -65,15 +72,21 @@ export const PurchaseDetailViewPage = () => {
       successToast("Cuota sincronizada exitosamente");
       fetchInstallments(Number(id));
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al sincronizar la cuota");
+      errorToast(
+        error.response?.data?.message || "Error al sincronizar la cuota"
+      );
     }
   };
 
   const shouldShowSyncButton = (installment: PurchaseInstallmentResource) => {
     if (!purchase) return false;
     const isCash = purchase.payment_type === "CONTADO";
-    const hasNoPayments = parseFloat(installment.pending_amount) === parseFloat(installment.amount);
-    const hasDifference = Math.abs(parseFloat(installment.amount) - parseFloat(purchase.total_amount)) > 0.01;
+    const hasNoPayments =
+      parseFloat(installment.pending_amount) === parseFloat(installment.amount);
+    const hasDifference =
+      Math.abs(
+        parseFloat(installment.amount) - parseFloat(purchase.total_amount)
+      ) > 0.01;
     return isCash && hasNoPayments && hasDifference;
   };
 
@@ -129,7 +142,9 @@ export const PurchaseDetailViewPage = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
-                <span className="text-sm text-muted-foreground">Correlativo</span>
+                <span className="text-sm text-muted-foreground">
+                  Correlativo
+                </span>
                 <p className="font-semibold text-lg">{purchase.correlativo}</p>
               </div>
               <div>
@@ -138,22 +153,32 @@ export const PurchaseDetailViewPage = () => {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Almacén</span>
-                <p className="font-semibold">{purchase.warehouse_name || "N/A"}</p>
+                <p className="font-semibold">
+                  {purchase.warehouse_name || "N/A"}
+                </p>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Usuario</span>
                 <p className="font-semibold">{purchase.user_name}</p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Tipo de Documento</span>
+                <span className="text-sm text-muted-foreground">
+                  Tipo de Documento
+                </span>
                 <p className="font-semibold">{purchase.document_type}</p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Número de Documento</span>
-                <p className="font-semibold font-mono">{purchase.document_number}</p>
+                <span className="text-sm text-muted-foreground">
+                  Número de Documento
+                </span>
+                <p className="font-semibold font-mono">
+                  {purchase.document_number}
+                </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Fecha de Emisión</span>
+                <span className="text-sm text-muted-foreground">
+                  Fecha de Emisión
+                </span>
                 <p className="font-semibold">
                   {new Date(purchase.issue_date).toLocaleDateString("es-ES", {
                     day: "2-digit",
@@ -163,27 +188,53 @@ export const PurchaseDetailViewPage = () => {
                 </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Tipo de Pago</span>
+                <span className="text-sm text-muted-foreground">
+                  Tipo de Pago
+                </span>
                 <div className="mt-1">
-                  <Badge variant={purchase.payment_type === "CONTADO" ? "default" : "secondary"}>
+                  <Badge
+                    variant={
+                      purchase.payment_type === "CONTADO"
+                        ? "default"
+                        : "secondary"
+                    }
+                  >
                     {purchase.payment_type}
                   </Badge>
                 </div>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Moneda</span>
-                <p className="font-semibold">{purchase.currency === "PEN" ? "Soles (S/.)" : "Dólares ($)"}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Total</span>
-                <p className="font-bold text-2xl text-green-600">
-                  {purchase.currency === "PEN" ? "S/." : "$"} {parseFloat(purchase.total_amount).toFixed(2)}
+                <p className="font-semibold">
+                  {purchase.currency === "PEN"
+                    ? "Soles (S/.)"
+                    : purchase.currency === "USD"
+                    ? "Dólares ($)"
+                    : "Euros (€)"}
                 </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Saldo Pendiente</span>
+                <span className="text-sm text-muted-foreground">Total</span>
+                <p className="font-bold text-2xl text-primary">
+                  {purchase.currency === "PEN"
+                    ? "S/."
+                    : purchase.currency === "USD"
+                    ? "$"
+                    : "€"}
+                  {parseFloat(purchase.total_amount).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm text-muted-foreground">
+                  Saldo Pendiente
+                </span>
                 <p className="font-bold text-2xl text-orange-600">
-                  {purchase.currency === "PEN" ? "S/." : "$"} {parseFloat(purchase.current_amount).toFixed(2)}
+                  {purchase.currency === "PEN"
+                    ? "S/."
+                    : purchase.currency === "USD"
+                    ? "$"
+                    : "€"}
+                  {parseFloat(purchase.current_amount).toFixed(2)}
                 </p>
               </div>
               <div>
@@ -194,8 +245,8 @@ export const PurchaseDetailViewPage = () => {
                       purchase.status === "PAGADA"
                         ? "default"
                         : purchase.status === "CANCELADO"
-                          ? "destructive"
-                          : "secondary"
+                        ? "destructive"
+                        : "secondary"
                     }
                   >
                     {purchase.status}
@@ -206,8 +257,12 @@ export const PurchaseDetailViewPage = () => {
 
             {purchase.observations && (
               <div className="mt-6">
-                <span className="text-sm text-muted-foreground">Observaciones</span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">{purchase.observations}</p>
+                <span className="text-sm text-muted-foreground">
+                  Observaciones
+                </span>
+                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                  {purchase.observations}
+                </p>
               </div>
             )}
           </CardContent>
@@ -220,7 +275,10 @@ export const PurchaseDetailViewPage = () => {
               <PackageOpen className="h-4 w-4" />
               Detalles ({details?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="installments" className="flex items-center gap-2">
+            <TabsTrigger
+              value="installments"
+              className="flex items-center gap-2"
+            >
               <CreditCard className="h-4 w-4" />
               Cuotas ({installments?.length || 0})
             </TabsTrigger>
@@ -257,41 +315,56 @@ export const PurchaseDetailViewPage = () => {
               <CardContent>
                 <div className="space-y-4">
                   {/* Advertencia de desincronización */}
-                  {purchase && purchase.payment_type === "CONTADO" && installments && installments.length > 0 && (() => {
-                    const totalAmount = parseFloat(purchase.total_amount);
-                    const installmentAmount = parseFloat(installments[0]?.amount || "0");
-                    const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
-                    const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
-
-                    if (hasNoPayments && hasDifference) {
-                      return (
-                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no coincide con el total de la compra ({totalAmount.toFixed(2)}).
-                            Debe sincronizar la cuota usando el botón "Sincronizar"
-                          </p>
-                        </div>
+                  {purchase &&
+                    purchase.payment_type === "CONTADO" &&
+                    installments &&
+                    installments.length > 0 &&
+                    (() => {
+                      const totalAmount = parseFloat(purchase.total_amount);
+                      const installmentAmount = parseFloat(
+                        installments[0]?.amount || "0"
                       );
-                    }
-                    return null;
-                  })()}
+                      const hasNoPayments =
+                        parseFloat(installments[0]?.pending_amount || "0") ===
+                        installmentAmount;
+                      const hasDifference =
+                        Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                      if (hasNoPayments && hasDifference) {
+                        return (
+                          <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                            <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                              ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
+                              coincide con el total de la compra (
+                              {totalAmount.toFixed(2)}). Debe sincronizar la
+                              cuota usando el botón "Sincronizar"
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
 
                   {installments && installments.length > 0 ? (
                     installments.map((installment) => (
-                      <Card key={installment.id} className="border-l-4 border-l-primary">
+                      <Card
+                        key={installment.id}
+                        className="border-l-4 border-l-primary"
+                      >
                         <CardHeader>
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-4">
                               <CardTitle className="text-base">
-                                Cuota #{installment.installment_number} - {installment.correlativo}
+                                Cuota #{installment.installment_number} -{" "}
+                                {installment.correlativo}
                               </CardTitle>
                               <Badge
                                 variant={
                                   installment.status === "PAGADO"
                                     ? "default"
                                     : installment.status === "VENCIDO"
-                                      ? "destructive"
-                                      : "secondary"
+                                    ? "destructive"
+                                    : "secondary"
                                 }
                               >
                                 {installment.status}
@@ -305,7 +378,14 @@ export const PurchaseDetailViewPage = () => {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={() => handleSyncInstallment(installment.id, parseFloat(purchase?.total_amount || "0"))}
+                                        onClick={() =>
+                                          handleSyncInstallment(
+                                            installment.id,
+                                            parseFloat(
+                                              purchase?.total_amount || "0"
+                                            )
+                                          )
+                                        }
                                         className="text-blue-600 hover:text-blue-700"
                                       >
                                         <RefreshCw className="h-4 w-4 mr-2" />
@@ -313,7 +393,10 @@ export const PurchaseDetailViewPage = () => {
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>Sincronizar con total de compra ({purchase?.total_amount})</p>
+                                      <p>
+                                        Sincronizar con total de compra (
+                                        {purchase?.total_amount})
+                                      </p>
                                     </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
@@ -321,7 +404,9 @@ export const PurchaseDetailViewPage = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleViewInstallmentPayments(installment)}
+                                onClick={() =>
+                                  handleViewInstallmentPayments(installment)
+                                }
                               >
                                 <Wallet className="h-4 w-4 mr-2" />
                                 Ver Pagos
@@ -332,25 +417,39 @@ export const PurchaseDetailViewPage = () => {
                         <CardContent>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
-                              <span className="text-muted-foreground">Fecha Vencimiento:</span>
+                              <span className="text-muted-foreground">
+                                Fecha Vencimiento:
+                              </span>
                               <p className="font-semibold">
-                                {new Date(installment.due_date).toLocaleDateString("es-ES")}
+                                {new Date(
+                                  installment.due_date
+                                ).toLocaleDateString("es-ES")}
                               </p>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Días:</span>
-                              <p className="font-semibold">{installment.due_days} días</p>
+                              <span className="text-muted-foreground">
+                                Días:
+                              </span>
+                              <p className="font-semibold">
+                                {installment.due_days} días
+                              </p>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Monto:</span>
+                              <span className="text-muted-foreground">
+                                Monto:
+                              </span>
                               <p className="font-semibold text-lg">
                                 {parseFloat(installment.amount).toFixed(2)}
                               </p>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Saldo:</span>
+                              <span className="text-muted-foreground">
+                                Saldo:
+                              </span>
                               <p className="font-semibold text-lg text-orange-600">
-                                {parseFloat(installment.pending_amount).toFixed(2)}
+                                {parseFloat(installment.pending_amount).toFixed(
+                                  2
+                                )}
                               </p>
                             </div>
                           </div>
@@ -379,23 +478,38 @@ export const PurchaseDetailViewPage = () => {
                   <div className="flex justify-between items-center p-4 bg-sidebar rounded-lg">
                     <span className="font-semibold">Total de la Compra:</span>
                     <span className="text-2xl font-bold">
-                      {purchase.currency === "PEN" ? "S/." : "$"}{" "}
+                      {purchase.currency === "PEN"
+                        ? "S/."
+                        : purchase.currency === "USD"
+                        ? "$"
+                        : "€"}{" "}
                       {parseFloat(purchase.total_amount).toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
                     <span className="font-semibold">Total Pagado:</span>
-                    <span className="text-2xl font-bold text-green-600">
-                      {purchase.currency === "PEN" ? "S/." : "$"}{" "}
-                      {(parseFloat(purchase.total_amount) - parseFloat(purchase.current_amount)).toFixed(2)}
+                    <span className="text-2xl font-bold text-primary">
+                      {purchase.currency === "PEN"
+                        ? "S/."
+                        : purchase.currency === "USD"
+                        ? "$"
+                        : "€"}{" "}
+                      {(
+                        parseFloat(purchase.total_amount) -
+                        parseFloat(purchase.current_amount)
+                      ).toFixed(2)}
                     </span>
                   </div>
 
                   <div className="flex justify-between items-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
                     <span className="font-semibold">Saldo Pendiente:</span>
                     <span className="text-2xl font-bold text-orange-600">
-                      {purchase.currency === "PEN" ? "S/." : "$"}{" "}
+                      {purchase.currency === "PEN"
+                        ? "S/."
+                        : purchase.currency === "USD"
+                        ? "$"
+                        : "€"}{" "}
                       {parseFloat(purchase.current_amount).toFixed(2)}
                     </span>
                   </div>
@@ -405,8 +519,12 @@ export const PurchaseDetailViewPage = () => {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <PackageOpen className="h-8 w-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">Productos</p>
-                          <p className="text-3xl font-bold">{details?.length || 0}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Productos
+                          </p>
+                          <p className="text-3xl font-bold">
+                            {details?.length || 0}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>
@@ -415,8 +533,12 @@ export const PurchaseDetailViewPage = () => {
                       <CardContent className="pt-6">
                         <div className="text-center">
                           <CreditCard className="h-8 w-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">Cuotas</p>
-                          <p className="text-3xl font-bold">{installments?.length || 0}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Cuotas
+                          </p>
+                          <p className="text-3xl font-bold">
+                            {installments?.length || 0}
+                          </p>
                         </div>
                       </CardContent>
                     </Card>

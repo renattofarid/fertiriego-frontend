@@ -26,6 +26,8 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { useState, useEffect } from "react";
+import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -87,6 +89,10 @@ export const PurchaseForm = ({
 }: PurchaseFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
+  const [includeIgv, setIncludeIgv] = useState<boolean>(false);
+
+  const IGV_RATE = 0.18;
+
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -233,16 +239,17 @@ export const PurchaseForm = ({
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const unitPrice = parseFloat(detail.unit_price_estimated);
-        const subtotal = quantity * unitPrice;
-        const tax = subtotal * 0.18; // 18% de impuesto
-        const total = subtotal + tax;
+        // calcular con truncación a 6 decimales
+        const subtotal = truncDecimal(quantity * unitPrice, 6);
+        const tax = truncDecimal(subtotal * IGV_RATE, 6);
+        const total = truncDecimal(subtotal + tax, 6);
 
         return {
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
           unit_price: detail.unit_price_estimated,
-          tax: tax.toFixed(2),
+          tax: formatDecimalTrunc(tax, 6),
           subtotal,
           total,
         };
@@ -268,14 +275,25 @@ export const PurchaseForm = ({
     );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    const subtotal = quantity * unitPrice;
-    const tax = subtotal * 0.18; // Calcular impuesto automáticamente (18%)
-    const total = subtotal + tax;
+    let subtotal = truncDecimal(quantity * unitPrice, 6);
+    let tax = 0;
+    let total = 0;
+
+    if (includeIgv) {
+      // unitPrice incluye IGV: descomponer (truncando resultados)
+      const totalIncl = truncDecimal(quantity * unitPrice, 6);
+      subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+      tax = truncDecimal(totalIncl - subtotal, 6);
+      total = totalIncl;
+    } else {
+      tax = truncDecimal(subtotal * IGV_RATE, 6); // Calcular impuesto automáticamente (18%)
+      total = truncDecimal(subtotal + tax, 6);
+    }
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: product?.name,
-      tax: tax.toFixed(2),
+      tax: formatDecimalTrunc(tax, 6),
       subtotal,
       total,
     };
@@ -326,8 +344,61 @@ export const PurchaseForm = ({
   };
 
   const calculateDetailsTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
+    const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
+    return truncDecimal(sum, 6);
   };
+
+  const calculateSubtotalTotal = () => {
+    const sum = details.reduce(
+      (sum, detail) => sum + (detail.subtotal || 0),
+      0
+    );
+    return truncDecimal(sum, 6);
+  };
+
+  const calculateTaxTotal = () => {
+    const sum = details.reduce(
+      (sum, detail) =>
+        sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
+      0
+    );
+    return truncDecimal(sum, 6);
+  };
+
+  // Recalcular detalles cuando cambie el modo de interpretación de precios (incluye IGV o no)
+  useEffect(() => {
+    if (!details || details.length === 0) return;
+
+    const recalculated = details.map((d) => {
+      const q = parseFloat(d.quantity || "0");
+      const up = parseFloat(d.unit_price || "0");
+      let subtotal = 0;
+      let tax = 0;
+      let total = 0;
+
+      if (includeIgv) {
+        const totalIncl = truncDecimal(q * up, 6);
+        subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+        tax = truncDecimal(totalIncl - subtotal, 6);
+        total = totalIncl;
+      } else {
+        subtotal = truncDecimal(q * up, 6);
+        tax = truncDecimal(subtotal * IGV_RATE, 6);
+        total = truncDecimal(subtotal + tax, 6);
+      }
+
+      return {
+        ...d,
+        subtotal,
+        total,
+        tax: formatDecimalTrunc(tax, 6),
+      };
+    });
+
+    setDetails(recalculated);
+    form.setValue("details", recalculated);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [includeIgv]);
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
@@ -349,8 +420,9 @@ export const PurchaseForm = ({
     // Validar que no exceda el total de la compra
     if (currentInstallmentsTotal + newAmount > purchaseTotal) {
       errorToast(
-        `El total de cuotas no puede exceder el total de la compra (${purchaseTotal.toFixed(
-          2
+        `El total de cuotas no puede exceder el total de la compra (${formatDecimalTrunc(
+          purchaseTotal,
+          6
         )})`
       );
       return;
@@ -374,6 +446,8 @@ export const PurchaseForm = ({
       due_days: "",
       amount: "",
     });
+    installmentTempForm.setValue("temp_due_days", "");
+    installmentTempForm.setValue("temp_amount", "");
   };
 
   const handleEditInstallment = (index: number) => {
@@ -392,7 +466,11 @@ export const PurchaseForm = ({
   };
 
   const calculateInstallmentsTotal = () => {
-    return installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
+    const sum = installments.reduce(
+      (sum, inst) => sum + parseFloat(inst.amount),
+      0
+    );
+    return truncDecimal(sum, 6);
   };
 
   // Validar si las cuotas coinciden con el total (si hay cuotas)
@@ -400,7 +478,7 @@ export const PurchaseForm = ({
     if (installments.length === 0) return true; // Si no hay cuotas, está ok
     const purchaseTotal = calculateDetailsTotal();
     const installmentsTotal = calculateInstallmentsTotal();
-    return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia de 0.01 por redondeos
+    return Math.abs(purchaseTotal - installmentsTotal) < 0.000001; // Tolerancia acorde a 6 decimales
   };
 
   const handleFormSubmit = (data: any) => {
@@ -413,10 +491,10 @@ export const PurchaseForm = ({
     // Validar que las cuotas coincidan con el total si hay cuotas
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
-        `El total de cuotas (${calculateInstallmentsTotal().toFixed(
-          2
-        )}) debe ser igual al total de la compra (${calculateDetailsTotal().toFixed(
-          2
+        `El total de cuotas (${formatNumber(
+          calculateInstallmentsTotal()
+        )}) debe ser igual al total de la compra (${formatNumber(
+          calculateDetailsTotal()
         )})`
       );
       return;
@@ -428,15 +506,17 @@ export const PurchaseForm = ({
     if (selectedPaymentType === "CONTADO") {
       // Para pagos al contado, crear automáticamente una cuota con el total
       const totalAmount = calculateDetailsTotal();
-      validInstallments = [{
-        due_days: "1",
-        amount: totalAmount.toFixed(2),
-      }];
+      validInstallments = [
+        {
+          due_days: "1",
+          amount: formatDecimalTrunc(totalAmount, 6),
+        },
+      ];
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
       validInstallments = installments
-        .filter(inst => inst.due_days && inst.amount)
-        .map(inst => ({
+        .filter((inst) => inst.due_days && inst.amount)
+        .map((inst) => ({
           due_days: inst.due_days,
           amount: inst.amount,
         }));
@@ -472,7 +552,7 @@ export const PurchaseForm = ({
                     { value: "", label: "Ninguna - Llenar manualmente" },
                     ...purchaseOrders.map((po) => ({
                       value: po.id.toString(),
-                      label: `${po.correlativo} - ${po.order_number} (${po.supplier_fullname})`,
+                      label: `${po.correlativo} (${po.supplier_fullname})`,
                     })),
                   ]}
                 />
@@ -632,9 +712,9 @@ export const PurchaseForm = ({
                       <FormControl>
                         <Input
                           type="number"
-                          step="0.01"
+                          step="0.000001"
                           variant="primary"
-                          placeholder="0.00"
+                          placeholder="0.000000"
                           {...field}
                         />
                       </FormControl>
@@ -642,20 +722,32 @@ export const PurchaseForm = ({
                   )}
                 />
 
-                <div className="md:col-span-4 flex justify-end">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddDetail}
-                    disabled={
-                      !currentDetail.product_id ||
-                      !currentDetail.quantity ||
-                      !currentDetail.unit_price
-                    }
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
-                  </Button>
+                <div className="md:col-span-4 flex items-center justify-between">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={includeIgv}
+                      onChange={(e) => setIncludeIgv(e.target.checked)}
+                      className="accent-primary"
+                    />
+                    <span className="text-sm">Incluir IGV (18%)</span>
+                  </label>
+
+                  <div>
+                    <Button
+                      type="button"
+                      variant="default"
+                      onClick={handleAddDetail}
+                      disabled={
+                        !currentDetail.product_id ||
+                        !currentDetail.quantity ||
+                        !currentDetail.unit_price
+                      }
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -681,16 +773,18 @@ export const PurchaseForm = ({
                             {detail.quantity}
                           </TableCell>
                           <TableCell className="text-right">
-                            {parseFloat(detail.unit_price).toFixed(2)}
+                            {isNaN(parseFloat(detail.unit_price))
+                              ? detail.unit_price
+                              : formatNumber(parseFloat(detail.unit_price))}
                           </TableCell>
                           <TableCell className="text-right">
-                            {detail.subtotal.toFixed(2)}
+                            {formatNumber(detail.subtotal)}
                           </TableCell>
                           <TableCell className="text-right">
-                            {parseFloat(detail.tax).toFixed(2)}
+                            {formatNumber(parseFloat(detail.tax || "0"))}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-green-600">
-                            {detail.total.toFixed(2)}
+                          <TableCell className="text-right font-bold text-primary">
+                            {formatNumber(detail.total)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -715,11 +809,31 @@ export const PurchaseForm = ({
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={5} className="text-right font-bold">
+                        <TableCell colSpan={4} className="text-right font-bold">
+                          SUBTOTAL:
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatNumber(calculateSubtotalTotal())}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right font-bold">
+                          IGV (18%):
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatNumber(calculateTaxTotal())}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-right font-bold">
                           TOTAL:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
-                          {calculateDetailsTotal().toFixed(2)}
+                        <TableCell className="text-right font-bold text-lg text-primary">
+                          {formatNumber(calculateDetailsTotal())}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
@@ -824,7 +938,7 @@ export const PurchaseForm = ({
                               {inst.due_days} días
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              {parseFloat(inst.amount).toFixed(2)}
+                              {formatDecimalTrunc(parseFloat(inst.amount), 6)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex justify-center gap-2">
@@ -856,7 +970,10 @@ export const PurchaseForm = ({
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {calculateInstallmentsTotal().toFixed(2)}
+                            {formatDecimalTrunc(
+                              calculateInstallmentsTotal(),
+                              6
+                            )}
                           </TableCell>
                           <TableCell></TableCell>
                         </TableRow>
@@ -868,9 +985,9 @@ export const PurchaseForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {calculateInstallmentsTotal().toFixed(2)}) debe ser
+                        {formatNumber(calculateInstallmentsTotal())}) debe ser
                         igual al total de la compra (
-                        {calculateDetailsTotal().toFixed(2)})
+                        {formatNumber(calculateDetailsTotal())})
                       </p>
                     </div>
                   )}

@@ -186,7 +186,7 @@ export function InstallmentPaymentsSheet({
               </div>
               <div>
                 <span className="text-muted-foreground">Total Pagado:</span>
-                <p className="font-bold text-green-600 text-lg">
+                <p className="font-bold text-primary text-lg">
                   {totalPaid.toFixed(2)}
                 </p>
               </div>

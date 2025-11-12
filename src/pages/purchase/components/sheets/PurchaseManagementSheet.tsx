@@ -232,7 +232,7 @@ export function PurchaseManagementSheet({
               </div>
               <div>
                 <span className="text-muted-foreground">Total:</span>
-                <p className="font-bold text-green-600 text-lg">
+                <p className="font-bold text-primary text-lg">
                   {currentPurchase.currency === "PEN" ? "S/." : "$"}{" "}
                   {parseFloat(currentPurchase.total_amount).toFixed(2)}
                 </p>

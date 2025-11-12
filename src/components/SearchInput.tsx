@@ -1,5 +1,10 @@
-import { Input } from "@/components/ui/input";
 import { useEffect, useRef, useState } from "react";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { SearchIcon } from "lucide-react";
 
 export default function SearchInput({
   value,
@@ -28,12 +33,16 @@ export default function SearchInput({
   }, [value]);
 
   return (
-    <Input
-      className="w-full md:w-64 h-9 text-sm md:text-sm"
-      variant="default"
-      placeholder={placeholder}
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
-    />
+    <InputGroup className="w-full md:w-64">
+      <InputGroupInput
+        className="w-full md:w-64 h-9 text-sm md:text-sm"
+        placeholder={placeholder}
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+      />
+      <InputGroupAddon>
+        <SearchIcon />
+      </InputGroupAddon>
+    </InputGroup>
   );
 }

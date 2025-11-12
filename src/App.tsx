@@ -51,14 +51,26 @@ import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPa
 import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
-import { PurchasePage, PurchaseAddPage, PurchaseEditPage, PurchaseDetailViewPage } from "./pages/purchase/components";
+import {
+  PurchasePage,
+  PurchaseAddPage,
+  PurchaseEditPage,
+  PurchaseDetailViewPage,
+} from "./pages/purchase/components";
 import { PurchaseShippingGuideRoute } from "./pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import {
   PurchaseShippingGuidePage,
   PurchaseShippingGuideAddPage,
   PurchaseShippingGuideEditPage,
-  PurchaseShippingGuideDetailViewPage
+  PurchaseShippingGuideDetailViewPage,
 } from "./pages/purchase-shipping-guide/components";
+import { SaleRoute } from "./pages/sale/lib/sale.interface";
+import { SalePage, SaleAddPage, SaleEditPage } from "./pages/sale/components";
+import SaleManagePage from "./pages/sale/components/SaleManagePage";
+import { AccountsReceivableRoute } from "./pages/accounts-receivable/lib/accounts-receivable.interface";
+import { AccountsReceivablePage } from "./pages/accounts-receivable/components";
+import { WAREHOUSE_PRODUCT } from "./pages/warehouse-product/lib/warehouse-product.interface";
+import WarehouseProductPage from "./pages/warehouse-product/components/WarehouseProductPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -76,6 +88,7 @@ const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
+const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -458,6 +471,60 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseShippingGuideRoute}>
                 <PurchaseShippingGuideDetailViewPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={SaleRoute}
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SalePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/agregar"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/actualizar/:id"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ventas/gestionar/:id"
+            element={
+              <ProtectedRoute path={SaleRoute}>
+                <SaleManagePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={AccountsReceivableRoute}
+            element={
+              <ProtectedRoute path={AccountsReceivableRoute}>
+                <AccountsReceivablePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={WarehouseProductRoute}
+            element={
+              <ProtectedRoute path={WarehouseProductRoute}>
+                <WarehouseProductPage />
               </ProtectedRoute>
             }
           />

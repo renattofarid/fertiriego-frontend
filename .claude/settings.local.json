@@ -9,7 +9,9 @@
       "Bash(find:*)",
       "Bash(npm run build:*)",
       "Bash(mkdir:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(dir:*)",
+      "Bash(ls -la \"e:\\front\\fertiriego-frontend\\src\"\" 2>/dev/null || echo \"Intentando directorio alternativo \")"
     ],
     "deny": [],
     "ask": []

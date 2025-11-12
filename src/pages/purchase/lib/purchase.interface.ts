@@ -305,6 +305,7 @@ export const PAYMENT_TYPES = [
 export const CURRENCIES = [
   { value: "PEN", label: "S/. Soles" },
   { value: "USD", label: "$ Dólares" },
+  { value: "EUR", label: "€ Euros" },
 ] as const;
 
 export const PURCHASE_STATUSES = [

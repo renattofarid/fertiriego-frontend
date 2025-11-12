@@ -37,11 +37,11 @@ export default function PurchaseOrderAddPage() {
   const getDefaultValues = (): Partial<PurchaseOrderSchema> => ({
     supplier_id: "",
     warehouse_id: "",
-    order_number: "",
     issue_date: "",
     expected_date: "",
     observations: "",
     details: [],
+    apply_igv: false,
   });
 
   const handleSubmit = async (data: PurchaseOrderSchema) => {

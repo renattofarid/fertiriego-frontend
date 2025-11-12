@@ -14,17 +14,22 @@ import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store"
 import { successToast, errorToast } from "@/lib/core.function";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 
 interface PurchaseOrderDetailTableProps {
   details: PurchaseOrderDetailResource[];
   onEdit: (detailId: number) => void;
   onRefresh: () => void;
+  totalEstimated?: string;
+  applyIgv?: boolean;
 }
 
 export function PurchaseOrderDetailTable({
   details,
   onEdit,
   onRefresh,
+  totalEstimated,
+  applyIgv = false,
 }: PurchaseOrderDetailTableProps) {
   const { deleteDetail } = usePurchaseOrderDetailStore();
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -45,12 +50,30 @@ export function PurchaseOrderDetailTable({
     }
   };
 
-  const calculateTotal = () => {
-    return details.reduce(
-      (sum, detail) => sum + parseFloat(detail.subtotal_estimated),
-      0
+  // Calcular subtotal desde los detalles
+  const calculateSubtotal = () => {
+    return truncDecimal(
+      details.reduce(
+        (sum, detail) => sum + parseFloat(detail.subtotal_estimated),
+        0
+      ),
+      6
     );
   };
+
+  const subtotalBase = calculateSubtotal();
+
+  // Si hay total_estimated del backend, usarlo; sino calcular con IGV si aplica
+  const IGV_RATE = 0.18;
+  const totalWithIgv = totalEstimated
+    ? truncDecimal(parseFloat(totalEstimated), 6)
+    : applyIgv
+    ? truncDecimal(subtotalBase * (1 + IGV_RATE), 6)
+    : subtotalBase;
+
+  const igvAmount = applyIgv
+    ? truncDecimal(totalWithIgv - truncDecimal(totalWithIgv / (1 + IGV_RATE), 6), 6)
+    : 0;
 
   if (!details || details.length === 0) {
     return (
@@ -92,7 +115,7 @@ export function PurchaseOrderDetailTable({
                 <TableCell className="text-right">
                   S/. {parseFloat(detail.unit_price_estimated).toFixed(2)}
                 </TableCell>
-                <TableCell className="text-right font-bold text-green-600">
+                <TableCell className="text-right font-bold text-primary">
                   S/. {parseFloat(detail.subtotal_estimated).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
@@ -115,15 +138,39 @@ export function PurchaseOrderDetailTable({
                 </TableCell>
               </TableRow>
             ))}
-            <TableRow className="bg-sidebar">
+            <TableRow>
               <TableCell colSpan={4} className="text-right font-bold">
-                TOTAL:
+                SUBTOTAL:
               </TableCell>
-              <TableCell className="text-right font-bold text-lg text-green-600">
-                S/. {calculateTotal().toFixed(2)}
+              <TableCell className="text-right font-bold text-lg text-primary">
+                S/. {formatDecimalTrunc(subtotalBase, 6)}
               </TableCell>
               <TableCell></TableCell>
             </TableRow>
+
+            {applyIgv && (
+              <>
+                <TableRow>
+                  <TableCell colSpan={4} className="text-right font-bold">
+                    IGV (18%):
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    S/. {formatDecimalTrunc(igvAmount, 6)}
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+
+                <TableRow className="bg-sidebar">
+                  <TableCell colSpan={4} className="text-right font-bold">
+                    TOTAL (con IGV):
+                  </TableCell>
+                  <TableCell className="text-right font-bold text-lg text-primary">
+                    S/. {formatDecimalTrunc(totalWithIgv, 6)}
+                  </TableCell>
+                  <TableCell></TableCell>
+                </TableRow>
+              </>
+            )}
           </TableBody>
         </Table>
       </div>

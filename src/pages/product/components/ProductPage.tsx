@@ -19,6 +19,7 @@ import { ProductColumns } from "./ProductColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { PRODUCT } from "../lib/product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import WarehouseProductModal from "@/pages/warehouse-product/components/WarehouseProductModal";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -31,6 +32,7 @@ export default function ProductPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [assignStockProductId, setAssignStockProductId] = useState<number | null>(null);
 
   const { data, meta, isLoading, refetch } = useProduct();
   const { data: categories } = useAllCategories();
@@ -108,6 +110,7 @@ export default function ProductPage() {
           onEdit: handleEditProduct,
           onDelete: setDeleteId,
           onView: handleViewProduct,
+          onAssignStock: setAssignStockProductId,
         })}
         data={data || []}
       >
@@ -141,6 +144,16 @@ export default function ProductPage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {assignStockProductId !== null && (
+        <WarehouseProductModal
+          open={true}
+          onClose={() => setAssignStockProductId(null)}
+          title="Asignar Producto a Almacén"
+          mode="create"
+          preselectedProductId={assignStockProductId}
         />
       )}
     </div>

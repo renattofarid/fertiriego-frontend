@@ -218,7 +218,7 @@ export function PurchasePaymentForm({
         <div className="bg-sidebar p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="font-bold text-lg">Total a Pagar:</span>
-            <span className="text-2xl font-bold text-green-600">
+            <span className="text-2xl font-bold text-primary">
               {calculateTotal().toFixed(2)}
             </span>
           </div>

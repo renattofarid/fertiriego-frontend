@@ -243,7 +243,7 @@ export function PersonRoleAssignment({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-primary" />
                             <div>
                               <h4 className="font-medium">
                                 {getRoleName(roleAssignment.role_id)}

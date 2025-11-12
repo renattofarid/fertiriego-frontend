@@ -10,7 +10,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,6 +24,8 @@ import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState } from "react";
+import { truncDecimal } from "@/lib/utils";
+import { formatCurrency } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -37,6 +38,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";
+import { FormSwitch } from "@/components/FormSwitch";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -56,6 +58,8 @@ interface DetailRow {
   quantity_requested: string;
   unit_price_estimated: string;
   subtotal: number;
+  // Cuando está en modo update, el backend ya calculó el subtotal real
+  subtotal_estimated?: number;
 }
 
 export const PurchaseOrderForm = ({
@@ -76,7 +80,16 @@ export const PurchaseOrderForm = ({
           product_name: d.product_name,
           quantity_requested: d.quantity_requested.toString(),
           unit_price_estimated: d.unit_price_estimated,
-          subtotal: d.quantity_requested * parseFloat(d.unit_price_estimated),
+          // En modo update: usar el subtotal calculado por el backend si existe
+          subtotal: d.subtotal_estimated
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            : truncDecimal(
+                d.quantity_requested * parseFloat(d.unit_price_estimated),
+                6
+              ),
+          subtotal_estimated: d.subtotal_estimated
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            : undefined,
         }))
       : []
   );
@@ -95,14 +108,19 @@ export const PurchaseOrderForm = ({
     defaultValues: {
       ...defaultValues,
       details: details.length > 0 ? details : [],
+      apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
     },
     mode: "onChange",
   });
 
+  // Tasa IGV referencial
+  const IGV_RATE = 0.18;
+
+  // Vigilar el switch de aplicar IGV para mostrar referencia en UI (no modifica payload)
+  const applyIgv = form.watch("apply_igv");
+
   const handleAddDetail = async (data: any) => {
-    const product = products.find(
-      (p) => p.id.toString() === data.product_id
-    );
+    const product = products.find((p) => p.id.toString() === data.product_id);
 
     const newDetail: DetailRow = {
       product_id: data.product_id,
@@ -149,16 +167,50 @@ export const PurchaseOrderForm = ({
     await form.trigger();
   };
 
+  // Calcular total desde los detalles actuales
   const calculateTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    const sum = details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    return truncDecimal(sum, 6);
   };
+
+  // Calcular total desde los detalles actuales
+  const subtotalBase = calculateTotal();
+
+  // Calcular IGV y total con IGV (siempre desde subtotales en modo create)
+  const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 6);
+  const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 6);
 
   const handleFormSubmit = (data: any) => {
     if (isSubmitting) return; // Prevenir múltiples envíos
 
+    // Transformar detalles a los tipos que espera el backend y calcular subtotales y total
+    const transformedDetails = details.map((d) => {
+      const qty = Number(d.quantity_requested);
+      const price = Number(d.unit_price_estimated);
+      const subtotal = truncDecimal(qty * price, 6);
+      return {
+        product_id: Number(d.product_id),
+        quantity_requested: qty,
+        unit_price_estimated: truncDecimal(price, 6),
+        subtotal_estimated: subtotal,
+      };
+    });
+
+    const totalEstimated = truncDecimal(
+      transformedDetails.reduce((s, it) => s + it.subtotal_estimated, 0),
+      6
+    );
+
     onSubmit({
-      ...data,
-      details,
+      supplier_id: Number(data.supplier_id),
+      warehouse_id: Number(data.warehouse_id),
+      order_number: data.order_number,
+      issue_date: data.issue_date,
+      expected_date: data.expected_date,
+      observations: data.observations,
+      apply_igv: !!data.apply_igv,
+      total_estimated: totalEstimated,
+      details: transformedDetails,
     });
   };
 
@@ -204,24 +256,6 @@ export const PurchaseOrderForm = ({
                 disabled={mode === "update"}
               />
 
-              <FormField
-                control={form.control}
-                name="order_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Orden</FormLabel>
-                    <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: OC-2025-001"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <DatePickerFormField
                 control={form.control}
                 name="issue_date"
@@ -239,6 +273,24 @@ export const PurchaseOrderForm = ({
                 dateFormat="dd/MM/yyyy"
               />
 
+              <FormSwitch
+                control={form.control}
+                name="apply_igv"
+                label="Aplicar IGV"
+                text="¿Aplicar IGV a esta orden de compra?"
+              />
+
+              {mode === "update" && purchaseOrder?.total_estimated && (
+                <div className="bg-sidebar p-4 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="font-semibold text-sm">Total Estimado:</span>
+                    <span className="text-lg font-bold text-primary">
+                      {formatCurrency(parseFloat(purchaseOrder.total_estimated), { currencySymbol: "S/.", decimals: 6 })}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div className="md:col-span-2">
                 <FormField
                   control={form.control}
@@ -251,6 +303,8 @@ export const PurchaseOrderForm = ({
                           placeholder="Ingrese observaciones adicionales"
                           className="resize-none"
                           {...field}
+                          // Coerce null to empty string so the native textarea value type is satisfied
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -308,11 +362,10 @@ export const PurchaseOrderForm = ({
                             {detail.quantity_requested}
                           </TableCell>
                           <TableCell className="text-right">
-                            S/.{" "}
-                            {parseFloat(detail.unit_price_estimated).toFixed(2)}
+                              {formatCurrency(parseFloat(detail.unit_price_estimated), { currencySymbol: "S/.", decimals: 6 })}
                           </TableCell>
                           <TableCell className="text-right font-bold">
-                            S/. {detail.subtotal.toFixed(2)}
+                            {formatCurrency(detail.subtotal, { currencySymbol: "S/.", decimals: 6 })}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -337,14 +390,44 @@ export const PurchaseOrderForm = ({
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={3} className="text-right font-bold">
-                          TOTAL:
+                          <TableCell colSpan={3} className="text-right font-bold">
+                          SUBTOTAL:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
-                          S/. {calculateTotal().toFixed(2)}
+                        <TableCell className="text-right font-bold text-lg text-primary">
+                          {formatCurrency(subtotalBase, { currencySymbol: "S/.", decimals: 6 })}
                         </TableCell>
                         <TableCell></TableCell>
                       </TableRow>
+
+                      {applyIgv && (
+                        <>
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-right font-bold"
+                            >
+                              IGV (18%) estimado:
+                            </TableCell>
+                            <TableCell className="text-right font-bold">
+                              {formatCurrency(igvAmount, { currencySymbol: "S/.", decimals: 6 })}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+
+                          <TableRow>
+                            <TableCell
+                              colSpan={3}
+                              className="text-right font-bold"
+                            >
+                              TOTAL (con IGV) estimado:
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-lg text-primary">
+                              {formatCurrency(totalWithIgv, { currencySymbol: "S/.", decimals: 6 })}
+                            </TableCell>
+                            <TableCell></TableCell>
+                          </TableRow>
+                        </>
+                      )}
                     </TableBody>
                   </Table>
                 </div>

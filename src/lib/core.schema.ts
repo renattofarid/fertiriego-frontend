@@ -44,3 +44,12 @@ export const onlyLettersSchema = (field: string) =>
     })
     .optional()
     .or(z.literal("")); // si quieres permitir vacío explícito
+
+export const dateStringSchema = (field: string) =>
+  z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: `${field} no es una fecha válida`,
+    })
+    .optional()
+    .or(z.literal(""));

@@ -37,7 +37,7 @@ export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
   EMPTY: {
     supplier_id: "",
     warehouse_id: "",
-    order_number: "",
+    apply_igv: false,
     issue_date: "",
     expected_date: "",
     observations: "",
@@ -79,10 +79,11 @@ export interface PurchaseOrderResourceById {
 export interface CreatePurchaseOrderRequest {
   supplier_id: number;
   warehouse_id: number;
-  order_number: string;
   issue_date: string;
   expected_date: string;
-  observations: string;
+  observations: string | null;
+  apply_igv?: boolean;
+  total_estimated?: number;
   details: CreatePurchaseOrderDetailRequest[];
 }
 
@@ -92,7 +93,7 @@ export interface UpdatePurchaseOrderRequest {
   order_number?: string;
   issue_date?: string;
   expected_date?: string;
-  observations?: string;
+  observations?: string | null;
 }
 
 export interface GetPurchaseOrdersProps {
@@ -127,6 +128,7 @@ export interface CreatePurchaseOrderDetailRequest {
   product_id: number;
   quantity_requested: number;
   unit_price_estimated: number;
+  subtotal_estimated?: number;
 }
 
 export interface CreatePurchaseOrderDetailRequestFull {
