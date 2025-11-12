@@ -23,7 +23,7 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
 
   if (pendingAmount === 0 || installment.status === "PAGADO") {
     return (
-      <Badge variant="default" className="bg-green-600">
+      <Badge variant="default" className="text-primary">
         PAGADO
       </Badge>
     );

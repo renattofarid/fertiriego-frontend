@@ -448,7 +448,7 @@ export default function SaleDetailSheet({
                         <p
                           className={`text-sm font-medium ${
                             parseFloat(installment.pending_amount) === 0
-                              ? "text-green-600"
+                              ? "text-primary"
                               : "text-orange-600"
                           }`}
                         >

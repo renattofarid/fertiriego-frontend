@@ -427,10 +427,10 @@ export default function HomePage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between p-2 md:p-3 bg-green-50 dark:bg-green-950 rounded-lg gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-green-600 flex-shrink-0" />
+                  <CheckCircle className="h-4 w-4 md:h-5 md:w-5 text-primary flex-shrink-0" />
                   <span className="font-medium text-sm md:text-base">Pagado</span>
                 </div>
-                <span className="text-sm md:text-lg font-bold text-green-600 whitespace-nowrap">
+                <span className="text-sm md:text-lg font-bold text-primary whitespace-nowrap">
                   S/.{" "}
                   {(stats.totalPurchaseAmount - stats.pendingAmount).toFixed(2)}
                 </span>

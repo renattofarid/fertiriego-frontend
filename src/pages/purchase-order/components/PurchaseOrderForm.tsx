@@ -284,7 +284,7 @@ export const PurchaseOrderForm = ({
                 <div className="bg-sidebar p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-sm">Total Estimado:</span>
-                    <span className="text-lg font-bold text-green-600">
+                    <span className="text-lg font-bold text-primary">
                       {formatCurrency(parseFloat(purchaseOrder.total_estimated), { currencySymbol: "S/.", decimals: 6 })}
                     </span>
                   </div>
@@ -393,7 +393,7 @@ export const PurchaseOrderForm = ({
                           <TableCell colSpan={3} className="text-right font-bold">
                           SUBTOTAL:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
+                        <TableCell className="text-right font-bold text-lg text-primary">
                           {formatCurrency(subtotalBase, { currencySymbol: "S/.", decimals: 6 })}
                         </TableCell>
                         <TableCell></TableCell>
@@ -421,7 +421,7 @@ export const PurchaseOrderForm = ({
                             >
                               TOTAL (con IGV) estimado:
                             </TableCell>
-                            <TableCell className="text-right font-bold text-lg text-green-600">
+                            <TableCell className="text-right font-bold text-lg text-primary">
                               {formatCurrency(totalWithIgv, { currencySymbol: "S/.", decimals: 6 })}
                             </TableCell>
                             <TableCell></TableCell>

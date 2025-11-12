@@ -337,7 +337,7 @@ export default function InstallmentPaymentDialog({
               <span className="font-semibold">Total a Pagar</span>
               <span
                 className={`text-xl font-bold ${
-                  total > pendingAmount ? "text-red-600" : "text-green-600"
+                  total > pendingAmount ? "text-red-600" : "text-primary"
                 }`}
               >
                 {currency} {total.toFixed(2)}

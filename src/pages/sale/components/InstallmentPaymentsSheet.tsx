@@ -95,7 +95,7 @@ export default function InstallmentPaymentsSheet({
             <span
               className={`font-semibold ${
                 parseFloat(installment.pending_amount) === 0
-                  ? "text-green-600"
+                  ? "text-primary"
                   : "text-orange-600"
               }`}
             >
@@ -157,7 +157,7 @@ export default function InstallmentPaymentsSheet({
                         {formatDate(payment.payment_date)}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-green-600">
+                    <p className="text-lg font-bold text-primary">
                       {currency} {payment.total_paid.toFixed(2)}
                     </p>
                   </div>

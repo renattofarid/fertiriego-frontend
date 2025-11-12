@@ -783,7 +783,7 @@ export const PurchaseForm = ({
                           <TableCell className="text-right">
                             {formatNumber(parseFloat(detail.tax || "0"))}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-green-600">
+                          <TableCell className="text-right font-bold text-primary">
                             {formatNumber(detail.total)}
                           </TableCell>
                           <TableCell className="text-center">
@@ -832,7 +832,7 @@ export const PurchaseForm = ({
                         <TableCell colSpan={4} className="text-right font-bold">
                           TOTAL:
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
+                        <TableCell className="text-right font-bold text-lg text-primary">
                           {formatNumber(calculateDetailsTotal())}
                         </TableCell>
                         <TableCell></TableCell>

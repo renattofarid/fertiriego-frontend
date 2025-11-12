@@ -115,7 +115,7 @@ export function PurchaseOrderDetailTable({
                 <TableCell className="text-right">
                   S/. {parseFloat(detail.unit_price_estimated).toFixed(2)}
                 </TableCell>
-                <TableCell className="text-right font-bold text-green-600">
+                <TableCell className="text-right font-bold text-primary">
                   S/. {parseFloat(detail.subtotal_estimated).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
@@ -142,7 +142,7 @@ export function PurchaseOrderDetailTable({
               <TableCell colSpan={4} className="text-right font-bold">
                 SUBTOTAL:
               </TableCell>
-              <TableCell className="text-right font-bold text-lg text-green-600">
+              <TableCell className="text-right font-bold text-lg text-primary">
                 S/. {formatDecimalTrunc(subtotalBase, 6)}
               </TableCell>
               <TableCell></TableCell>
@@ -164,7 +164,7 @@ export function PurchaseOrderDetailTable({
                   <TableCell colSpan={4} className="text-right font-bold">
                     TOTAL (con IGV):
                   </TableCell>
-                  <TableCell className="text-right font-bold text-lg text-green-600">
+                  <TableCell className="text-right font-bold text-lg text-primary">
                     S/. {formatDecimalTrunc(totalWithIgv, 6)}
                   </TableCell>
                   <TableCell></TableCell>

@@ -235,7 +235,7 @@ export default function InstallmentPaymentManagementSheet({
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Pagado</span>
-                <p className="font-semibold text-green-600">
+                <p className="font-semibold text-primary">
                   {currency}{" "}
                   {(
                     parseFloat(installment.amount) -
@@ -247,7 +247,7 @@ export default function InstallmentPaymentManagementSheet({
                 <span className="text-sm text-muted-foreground">Pendiente</span>
                 <p
                   className={`font-semibold ${
-                    isPending ? "text-orange-600" : "text-green-600"
+                    isPending ? "text-orange-600" : "text-primary"
                   }`}
                 >
                   {currency} {parseFloat(installment.pending_amount).toFixed(2)}
@@ -444,7 +444,7 @@ export default function InstallmentPaymentManagementSheet({
                           total > pendingAmount
                             ? "text-red-600"
                             : total > 0
-                            ? "text-green-600"
+                            ? "text-primary"
                             : "text-muted-foreground"
                         }`}
                       >

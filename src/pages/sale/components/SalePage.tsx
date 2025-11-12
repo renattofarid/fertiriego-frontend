@@ -8,11 +8,18 @@ import SaleOptions from "./SaleOptions";
 import { getSaleColumns } from "./SaleColumns";
 import { useSaleStore } from "../lib/sales.store";
 import { useNavigate } from "react-router-dom";
-import { SALE, type SaleResource } from "../lib/sale.interface";
+import {
+  SALE,
+  type SaleResource,
+  type SaleInstallmentResource,
+} from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
 import { findSaleById } from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
+import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
+import { errorToast } from "@/lib/core.function";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function SalePage() {
   const navigate = useNavigate();
@@ -21,6 +28,9 @@ export default function SalePage() {
   const [saleToDelete, setSaleToDelete] = useState<number | null>(null);
   const [openDetailSheet, setOpenDetailSheet] = useState(false);
   const [selectedSale, setSelectedSale] = useState<SaleResource | null>(null);
+  const [selectedInstallment, setSelectedInstallment] =
+    useState<SaleInstallmentResource | null>(null);
+  const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
 
   const {
     data: sales,
@@ -56,7 +66,40 @@ export default function SalePage() {
   };
 
   const handleQuickPay = (sale: SaleResource) => {
-    navigate(`/ventas/gestionar/${sale.id}`);
+    // Validar que la suma de cuotas sea igual al total de la venta
+    const totalAmount = sale.total_amount;
+    const sumOfInstallments =
+      sale.installments?.reduce(
+        (sum, inst) => sum + parseFloat(inst.amount),
+        0
+      ) || 0;
+
+    if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
+      errorToast(
+        `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(
+          2
+        )}) no coincide con el total de la venta (${totalAmount.toFixed(
+          2
+        )}). Por favor, sincronice las cuotas.`
+      );
+      return;
+    }
+
+    // Tomar la primera cuota pendiente si existe
+    const pendingInstallment = sale.installments?.find(
+      (inst) => parseFloat(inst.pending_amount) > 0
+    );
+
+    if (pendingInstallment) {
+      setSelectedInstallment(pendingInstallment);
+      setOpenPaymentSheet(true);
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    refetch();
+    setOpenPaymentSheet(false);
+    setSelectedInstallment(null);
   };
 
   const confirmDelete = async () => {
@@ -83,7 +126,7 @@ export default function SalePage() {
   });
 
   return (
-    <div className="flex flex-col gap-4">
+    <PageWrapper>
       <div className="flex items-center justify-between">
         <TitleComponent
           title={MODEL.name}
@@ -111,6 +154,16 @@ export default function SalePage() {
           setSelectedSale(null);
         }}
       />
-    </div>
+
+      <InstallmentPaymentManagementSheet
+        open={openPaymentSheet}
+        onClose={() => {
+          setOpenPaymentSheet(false);
+          setSelectedInstallment(null);
+        }}
+        installment={selectedInstallment}
+        onSuccess={handlePaymentSuccess}
+      />
+    </PageWrapper>
   );
 }

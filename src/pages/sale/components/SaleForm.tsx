@@ -713,7 +713,7 @@ export const SaleForm = ({
                 <div className="mt-4 p-4 bg-sidebar rounded-lg space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total de la Venta:</span>
-                    <span className="text-lg font-bold text-green-600">
+                    <span className="text-lg font-bold text-primary">
                       {formatNumber(calculateDetailsTotal())}
                     </span>
                   </div>
@@ -843,7 +843,7 @@ export const SaleForm = ({
                           <TableCell className="text-right text-orange-600">
                             {formatNumber(detail.igv)}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-green-600">
+                          <TableCell className="text-right font-bold text-primary">
                             {formatNumber(detail.total)}
                           </TableCell>
                           <TableCell className="text-center">
@@ -878,7 +878,7 @@ export const SaleForm = ({
                         <TableCell className="text-right font-bold text-lg text-orange-600">
                           {formatNumber(calculateDetailsIGV())}
                         </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-green-600">
+                        <TableCell className="text-right font-bold text-lg text-primary">
                           {formatNumber(calculateDetailsTotal())}
                         </TableCell>
                         <TableCell></TableCell>

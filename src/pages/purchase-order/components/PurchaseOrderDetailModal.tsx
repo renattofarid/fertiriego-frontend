@@ -217,7 +217,7 @@ export function PurchaseOrderDetailModal({
           <div className="bg-sidebar p-4 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="font-semibold">Subtotal:</span>
-              <span className="text-lg font-bold text-green-600">
+              <span className="text-lg font-bold text-primary">
                 S/. {calculateSubtotal().toFixed(2)}
               </span>
             </div>

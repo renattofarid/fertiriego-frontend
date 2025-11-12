@@ -109,7 +109,7 @@ export function PurchasePaymentTable({
                 <TableCell className="text-right">
                   {parseFloat(payment.amount_transfer.toString()) > 0 ? parseFloat(payment.amount_transfer.toString()).toFixed(2) : "-"}
                 </TableCell>
-                <TableCell className="text-right font-bold text-green-600">
+                <TableCell className="text-right font-bold text-primary">
                   {parseFloat(payment.total_paid.toString()).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
@@ -128,7 +128,7 @@ export function PurchasePaymentTable({
               <TableCell colSpan={8} className="text-right font-bold">
                 TOTAL PAGADO:
               </TableCell>
-              <TableCell className="text-right font-bold text-lg text-green-600">
+              <TableCell className="text-right font-bold text-lg text-primary">
                 {calculateTotal().toFixed(2)}
               </TableCell>
               <TableCell></TableCell>

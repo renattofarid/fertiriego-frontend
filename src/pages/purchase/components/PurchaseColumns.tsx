@@ -141,7 +141,7 @@ export const getPurchaseColumns = ({
       return (
         <span
           className={`font-semibold ${
-            isPaid ? "text-green-600" : "text-orange-600"
+            isPaid ? "text-primary" : "text-orange-600"
           }`}
         >
           {currency} {currentAmount.toFixed(2)}
@@ -241,7 +241,7 @@ export const getPurchaseColumns = ({
                   >
                     <Wallet
                       className={`h-4 w-4 ${
-                        isValid ? "text-green-600" : "text-gray-400"
+                        isValid ? "text-primary" : "text-gray-400"
                       }`}
                     />
                   </Button>

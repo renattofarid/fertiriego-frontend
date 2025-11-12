@@ -215,7 +215,7 @@ export const PurchaseDetailViewPage = () => {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Total</span>
-                <p className="font-bold text-2xl text-green-600">
+                <p className="font-bold text-2xl text-primary">
                   {purchase.currency === "PEN"
                     ? "S/."
                     : purchase.currency === "USD"
@@ -489,7 +489,7 @@ export const PurchaseDetailViewPage = () => {
 
                   <div className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
                     <span className="font-semibold">Total Pagado:</span>
-                    <span className="text-2xl font-bold text-green-600">
+                    <span className="text-2xl font-bold text-primary">
                       {purchase.currency === "PEN"
                         ? "S/."
                         : purchase.currency === "USD"

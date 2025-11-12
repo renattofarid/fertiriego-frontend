@@ -253,7 +253,7 @@ export function PurchaseDetailModal({
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Total:</span>
-                <span className="text-lg font-bold text-green-600">
+                <span className="text-lg font-bold text-primary">
                   {calculateTotal().toFixed(2)}
                 </span>
               </div>

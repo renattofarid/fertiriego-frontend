@@ -101,7 +101,7 @@ export function PurchaseDetailTable({
                 <TableCell className="text-right">
                   {parseFloat(detail.tax).toFixed(2)}
                 </TableCell>
-                <TableCell className="text-right font-bold text-green-600">
+                <TableCell className="text-right font-bold text-primary">
                   {parseFloat(detail.total).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-center">
@@ -173,7 +173,7 @@ export function PurchaseDetailTable({
               <TableCell colSpan={6} className="text-right font-bold">
                 TOTAL:
               </TableCell>
-              <TableCell className="text-right font-bold text-lg text-green-600">
+              <TableCell className="text-right font-bold text-lg text-primary">
                 {calculateTotal().toFixed(2)}
               </TableCell>
               <TableCell></TableCell>
