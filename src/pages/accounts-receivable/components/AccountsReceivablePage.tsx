@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { DollarSign, AlertTriangle, Clock, Receipt } from "lucide-react";
 import TitleComponent from "@/components/TitleComponent";
-import FormWrapper from "@/components/FormWrapper";
 import { DataTable } from "@/components/DataTable";
 import { getAllInstallments } from "../lib/accounts-receivable.actions";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";

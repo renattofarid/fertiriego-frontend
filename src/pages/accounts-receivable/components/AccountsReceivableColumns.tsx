@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Wallet, Eye, Edit } from "lucide-react";
+import { Calendar, Wallet, Eye } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 import { parse } from "date-fns";
 

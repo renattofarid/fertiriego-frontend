@@ -28,15 +28,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Wallet, Trash2, Calendar } from "lucide-react";
-import type {
-  SaleInstallmentResource,
-  SalePaymentResource,
-} from "@/pages/sale/lib/sale.interface";
-import {
-  getInstallmentPayments,
-  deleteInstallmentPayment,
-} from "../lib/accounts-receivable.actions";
+import { Wallet, Calendar } from "lucide-react";
+import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
+import { deleteInstallmentPayment } from "../lib/accounts-receivable.actions";
 import { createSalePayment } from "@/pages/sale/lib/sale.actions";
 import { errorToast, successToast } from "@/lib/core.function";
 import { dateStringSchema } from "@/lib/core.schema";
@@ -70,8 +64,6 @@ export default function InstallmentPaymentManagementSheet({
   installment,
   onSuccess,
 }: InstallmentPaymentManagementSheetProps) {
-  const [payments, setPayments] = useState<SalePaymentResource[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -98,7 +90,6 @@ export default function InstallmentPaymentManagementSheet({
 
   useEffect(() => {
     if (open && installment) {
-      fetchPayments();
       reset({
         payment_date: format(new Date(), "yyyy-MM-dd"),
         amount_cash: "",
@@ -113,22 +104,6 @@ export default function InstallmentPaymentManagementSheet({
     }
   }, [open, installment, reset]);
 
-  const fetchPayments = async () => {
-    if (!installment) return;
-
-    setIsLoading(true);
-    try {
-      const data = await getInstallmentPayments(installment.id);
-      setPayments(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Error fetching payments:", error);
-      errorToast("Error al cargar los pagos");
-      setPayments([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleDeletePayment = async () => {
     if (!installment || !paymentToDelete) return;
 
@@ -136,7 +111,6 @@ export default function InstallmentPaymentManagementSheet({
     try {
       await deleteInstallmentPayment(installment.id, paymentToDelete);
       successToast("Pago eliminado correctamente");
-      await fetchPayments();
       onSuccess();
       setOpenDeleteDialog(false);
       setPaymentToDelete(null);
@@ -194,7 +168,6 @@ export default function InstallmentPaymentManagementSheet({
 
       successToast("Pago registrado correctamente");
       reset();
-      await fetchPayments();
       onSuccess();
     } catch (error: any) {
       errorToast(
@@ -209,17 +182,6 @@ export default function InstallmentPaymentManagementSheet({
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
