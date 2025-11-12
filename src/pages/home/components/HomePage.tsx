@@ -17,12 +17,8 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart";
 import {
-  Area,
-  AreaChart,
   BarChart,
   Bar,
   XAxis,
@@ -32,17 +28,11 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { usePurchase } from "@/pages/purchase/lib/purchase.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { cn } from "@/lib/utils";
+import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
 
 // Tipos
 interface MonthData {
@@ -66,7 +56,13 @@ interface StatCardProps {
 }
 
 // Componente StatCard sin bordes
-function StatCard({ title, value, subtitle, icon: Icon, variant }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  subtitle,
+  icon: Icon,
+  variant,
+}: StatCardProps) {
   const variantStyles = {
     primary: "bg-primary/10",
     destructive: "bg-destructive/10",
@@ -86,7 +82,12 @@ function StatCard({ title, value, subtitle, icon: Icon, variant }: StatCardProps
       <div className="flex items-start justify-between">
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className={cn("text-2xl md:text-3xl font-bold", textStyles[variant])}>
+          <p
+            className={cn(
+              "text-2xl md:text-3xl font-bold",
+              textStyles[variant]
+            )}
+          >
             {value}
           </p>
           <p className="text-xs text-muted-foreground">{subtitle}</p>
@@ -102,8 +103,6 @@ export default function HomePage() {
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
-  const [timeRange, setTimeRange] = useState("90d");
-
   // Estados para las estadísticas
   const [stats, setStats] = useState({
     totalPurchases: 0,
@@ -116,8 +115,9 @@ export default function HomePage() {
     balance: 0,
   });
 
-  const [allTransactionsByDate, setAllTransactionsByDate] = useState<MonthData[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<MonthData[]>([]);
+  const [allTransactionsByDate, setAllTransactionsByDate] = useState<
+    MonthData[]
+  >([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [salesByPaymentType, setSalesByPaymentType] = useState<any[]>([]);
 
@@ -158,7 +158,8 @@ export default function HomePage() {
       });
 
       // Agrupar transacciones por fecha (diarias para el chart)
-      const dateGroups: Record<string, { purchases: number; sales: number }> = {};
+      const dateGroups: Record<string, { purchases: number; sales: number }> =
+        {};
 
       purchases.forEach((purchase) => {
         const date = purchase.issue_date;
@@ -182,12 +183,17 @@ export default function HomePage() {
           compras: Number(data.purchases.toFixed(2)),
           ventas: Number(data.sales.toFixed(2)),
         }))
-        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        .sort(
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
 
       setAllTransactionsByDate(dateData);
 
       // Top 5 productos más vendidos
-      const productSales: Record<string, { quantity: number; revenue: number; name: string }> = {};
+      const productSales: Record<
+        string,
+        { quantity: number; revenue: number; name: string }
+      > = {};
 
       sales.forEach((sale) => {
         if (sale.details && Array.isArray(sale.details)) {
@@ -204,7 +210,8 @@ export default function HomePage() {
                 };
               }
               productSales[productId].quantity += parseFloat(detail.quantity);
-              productSales[productId].revenue += parseFloat(detail.quantity) * parseFloat(detail.unit_price);
+              productSales[productId].revenue +=
+                parseFloat(detail.quantity) * parseFloat(detail.unit_price);
             }
           });
         }
@@ -234,43 +241,7 @@ export default function HomePage() {
     }
   }, [purchases, sales, products]);
 
-  // Filtrar datos según el rango de tiempo seleccionado
-  useEffect(() => {
-    if (allTransactionsByDate.length > 0) {
-      const now = new Date();
-      let daysToSubtract = 90;
-
-      if (timeRange === "30d") {
-        daysToSubtract = 30;
-      } else if (timeRange === "7d") {
-        daysToSubtract = 7;
-      }
-
-      const startDate = new Date(now);
-      startDate.setDate(startDate.getDate() - daysToSubtract);
-
-      const filtered = allTransactionsByDate.filter((item) => {
-        const itemDate = new Date(item.date);
-        return itemDate >= startDate;
-      });
-
-      setFilteredTransactions(filtered);
-    }
-  }, [allTransactionsByDate, timeRange]);
-
-  const chartConfig = {
-    compras: {
-      label: "Compras",
-      color: "hsl(var(--destructive))",
-    },
-    ventas: {
-      label: "Ventas",
-      color: "hsl(var(--primary))",
-    },
-  };
-
-  const pieColors = ["hsl(var(--primary))", "hsl(var(--secondary))"];
-
+  const pieColors = ["var(--primary)", "var(--secondary)"];
   if (purchasesLoading || salesLoading || productsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -292,130 +263,7 @@ export default function HomePage() {
       </div>
 
       {/* Gráfico Principal - AreaChart Interactivo */}
-      <Card className="border-none shadow-md">
-        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 space-y-0 border-b pb-4">
-          <div className="grid flex-1 gap-1">
-            <CardTitle className="text-base md:text-lg">
-              Compras vs Ventas
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Comparación de montos en el período seleccionado
-            </CardDescription>
-          </div>
-          <Select value={timeRange} onValueChange={setTimeRange}>
-            <SelectTrigger
-              className="w-[160px] rounded-lg"
-              aria-label="Seleccionar período"
-            >
-              <SelectValue placeholder="Últimos 3 meses" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Últimos 3 meses
-              </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Últimos 30 días
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Últimos 7 días
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardHeader>
-        <CardContent className="px-2 sm:px-4 md:px-6 pt-4">
-          {filteredTransactions.length > 0 ? (
-            <ChartContainer
-              config={chartConfig}
-              className="aspect-auto h-[280px] sm:h-[320px] w-full"
-            >
-              <AreaChart
-                data={filteredTransactions}
-                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-              >
-                <defs>
-                  <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="hsl(var(--primary))"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillCompras" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="hsl(var(--destructive))"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="hsl(var(--destructive))"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} className="stroke-muted" />
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tick={{ fontSize: 11 }}
-                  tickFormatter={(value) => {
-                    const date = new Date(value);
-                    return date.toLocaleDateString("es-ES", {
-                      month: "short",
-                      day: "numeric",
-                    });
-                  }}
-                />
-                <YAxis tick={{ fontSize: 11 }} tickLine={false} width={50} />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) => {
-                        return new Date(value).toLocaleDateString("es-ES", {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        });
-                      }}
-                      indicator="dot"
-                    />
-                  }
-                />
-                <Area
-                  dataKey="ventas"
-                  type="monotone"
-                  fill="url(#fillVentas)"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  stackId="a"
-                />
-                <Area
-                  dataKey="compras"
-                  type="monotone"
-                  fill="url(#fillCompras)"
-                  stroke="hsl(var(--destructive))"
-                  strokeWidth={2}
-                  stackId="a"
-                />
-                <ChartLegend content={<ChartLegendContent />} />
-              </AreaChart>
-            </ChartContainer>
-          ) : (
-            <div className="h-[280px] sm:h-[320px] flex items-center justify-center text-muted-foreground text-sm">
-              No hay datos disponibles para el período seleccionado
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <SalesVsPurchasesChart data={allTransactionsByDate} />
 
       {/* KPI Cards - Sin bordes */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -467,7 +315,7 @@ export default function HomePage() {
                 config={{
                   quantity: {
                     label: "Cantidad",
-                    color: "hsl(var(--primary))",
+                    color: "var(--primary)",
                   },
                 }}
                 className="h-[280px] w-full"
@@ -477,7 +325,10 @@ export default function HomePage() {
                   layout="vertical"
                   margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
                   <XAxis type="number" tick={{ fontSize: 10 }} />
                   <YAxis
                     dataKey="name"
@@ -489,7 +340,9 @@ export default function HomePage() {
                     content={
                       <ChartTooltipContent
                         formatter={(value, _name, props) => [
-                          `${value} unidades - S/. ${props.payload.revenue.toFixed(2)}`,
+                          `${value} unidades - S/. ${props.payload.revenue.toFixed(
+                            2
+                          )}`,
                           "Cantidad",
                         ]}
                       />
@@ -497,7 +350,7 @@ export default function HomePage() {
                   />
                   <Bar
                     dataKey="quantity"
-                    fill="hsl(var(--primary))"
+                    fill="var(--primary)"
                     radius={[0, 4, 4, 0]}
                   />
                 </BarChart>
@@ -526,11 +379,11 @@ export default function HomePage() {
                 config={{
                   contado: {
                     label: "Contado",
-                    color: "hsl(var(--primary))",
+                    color: "var(--primary)",
                   },
                   credito: {
                     label: "Crédito",
-                    color: "hsl(var(--secondary))",
+                    color: "var(--secondary)",
                   },
                 }}
                 className="h-[280px] w-full"
