@@ -422,7 +422,7 @@ export default function HomePage() {
       {/* Resumen Financiero Compacto */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         {/* Cuentas por Cobrar */}
-        <div className="rounded-xl bg-primary/5 p-5 border border-primary/20">
+        <div className="rounded-xl bg-primary/5 p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-primary/10">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -442,7 +442,7 @@ export default function HomePage() {
         </div>
 
         {/* Cuentas por Pagar */}
-        <div className="rounded-xl bg-destructive/5 p-5 border border-destructive/20">
+        <div className="rounded-xl bg-destructive/5 p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2 rounded-lg bg-destructive/10">
               <TrendingUp className="h-5 w-5 text-destructive" />
@@ -462,16 +462,16 @@ export default function HomePage() {
         </div>
 
         {/* Margen Neto */}
-        <div className="rounded-xl bg-accent/5 p-5 border border-accent/20">
+        <div className="rounded-xl bg-muted-foreground/5 p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-accent/10">
-              <DollarSign className="h-5 w-5 text-accent" />
+            <div className="p-2 rounded-lg bg-muted-foreground/10">
+              <DollarSign className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Margen Bruto
               </p>
-              <p className="text-xl font-bold text-accent">
+              <p className="text-xl font-bold text-muted-foreground">
                 {stats.totalSaleAmount > 0
                   ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1)
                   : 0}

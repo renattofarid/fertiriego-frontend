@@ -175,7 +175,10 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                     indicator="dot"
                     formatter={(val) => (
                       <span className="text-foreground font-mono font-medium tabular-nums">
-                        {formatCurrency(Number(val), { currencySymbol: "S/.", decimals: 2 })}
+                        {formatCurrency(Number(val), {
+                          currencySymbol: "S/.",
+                          decimals: 2,
+                        })}
                       </span>
                     )}
                   />
@@ -183,17 +186,19 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
               />
               <Area
                 dataKey="ventas"
-                type="natural"
+                type="monotone"
                 fill="url(#fillVentas)"
                 stroke="var(--primary)"
                 strokeWidth={2}
+                dot={false}
               />
               <Area
                 dataKey="compras"
-                type="natural"
+                type="monotone"
                 fill="url(#fillCompras)"
                 stroke="var(--muted-foreground)"
                 strokeWidth={2}
+                dot={false}
               />
               <ChartLegend content={<ChartLegendContent />} />
             </AreaChart>
