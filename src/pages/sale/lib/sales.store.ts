@@ -159,6 +159,20 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.observations !== undefined && {
           observations: data.observations,
         }),
+        ...(data.details && data.details.length > 0 && {
+          details: data.details.map((detail) => ({
+            product_id: Number(detail.product_id),
+            quantity: Number(detail.quantity),
+            unit_price: Number(detail.unit_price),
+          })),
+        }),
+        ...(data.installments && data.installments.length > 0 && {
+          installments: data.installments.map((installment) => ({
+            installment_number: Number(installment.installment_number),
+            due_days: Number(installment.due_days),
+            amount: Number(installment.amount),
+          })),
+        }),
       };
 
       await updateSale(id, request);

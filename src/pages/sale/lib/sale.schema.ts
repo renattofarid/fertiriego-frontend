@@ -95,9 +95,7 @@ export type SaleSchema = z.infer<typeof saleSchemaCreate>;
 
 // ===== UPDATE SCHEMA =====
 
-export const saleSchemaUpdate = saleSchemaCreate
-  .omit({ details: true, installments: true })
-  .partial();
+export const saleSchemaUpdate = saleSchemaCreate.partial();
 
 export type SaleUpdateSchema = z.infer<typeof saleSchemaUpdate>;
 

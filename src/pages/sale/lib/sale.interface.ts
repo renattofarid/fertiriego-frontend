@@ -159,6 +159,16 @@ export interface UpdateSaleRequest {
   payment_type?: string;
   currency?: string;
   observations?: string;
+  details?: {
+    product_id: number;
+    quantity: number;
+    unit_price: number;
+  }[];
+  installments?: {
+    installment_number: number;
+    due_days: number;
+    amount: number;
+  }[];
 }
 
 // ===== DETAIL MANAGEMENT =====

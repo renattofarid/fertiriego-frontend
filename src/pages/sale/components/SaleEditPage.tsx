@@ -65,7 +65,17 @@ export const SaleEditPage = () => {
     issue_date: data.issue_date,
     payment_type: data.payment_type,
     currency: data.currency,
-    observations: data.observations,
+    observations: data.observations || "",
+    details: data.details?.map((detail) => ({
+      product_id: detail.product_id.toString(),
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+    })) ?? [],
+    installments: data.installments?.map((inst) => ({
+      installment_number: inst.installment_number.toString(),
+      due_days: inst.due_days.toString(),
+      amount: inst.amount,
+    })) ?? [],
   });
 
   const handleSubmit = async (data: Partial<SaleUpdateSchema>) => {

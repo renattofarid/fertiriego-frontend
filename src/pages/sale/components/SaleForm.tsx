@@ -213,6 +213,49 @@ export const SaleForm = ({
     mode: "onChange",
   });
 
+  // Inicializar detalles y cuotas desde defaultValues (para modo edición)
+  useEffect(() => {
+    if (mode === "update" && defaultValues) {
+      // Inicializar detalles
+      if (defaultValues.details && defaultValues.details.length > 0) {
+        const initialDetails = defaultValues.details.map((detail: any) => {
+          const product = products.find(
+            (p) => p.id.toString() === detail.product_id
+          );
+          const quantity = parseFloat(detail.quantity);
+          const unitPrice = parseFloat(detail.unit_price);
+          const subtotal = roundTo6Decimals(quantity * unitPrice);
+          const igv = roundTo6Decimals(subtotal * 0.18);
+          const total = roundTo6Decimals(subtotal + igv);
+
+          return {
+            product_id: detail.product_id,
+            product_name: product?.name,
+            quantity: detail.quantity,
+            unit_price: detail.unit_price,
+            subtotal,
+            igv,
+            total,
+          };
+        });
+        setDetails(initialDetails);
+        form.setValue("details", initialDetails);
+      }
+
+      // Inicializar cuotas
+      if (defaultValues.installments && defaultValues.installments.length > 0) {
+        const initialInstallments = defaultValues.installments.map((inst: any) => ({
+          installment_number: inst.installment_number,
+          due_days: inst.due_days,
+          amount: inst.amount,
+        }));
+        setInstallments(initialInstallments);
+        form.setValue("installments", initialInstallments);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
 
@@ -737,8 +780,7 @@ export const SaleForm = ({
         )}
 
         {/* Detalles */}
-        {mode === "create" && (
-          <Card>
+        <Card>
             <CardHeader>
               <CardTitle>Detalles de la Venta</CardTitle>
             </CardHeader>
@@ -894,11 +936,10 @@ export const SaleForm = ({
                 </div>
               )}
             </CardContent>
-          </Card>
-        )}
+        </Card>
 
         {/* Cuotas - Solo mostrar si es a crédito */}
-        {mode === "create" && selectedPaymentType === "CREDITO" && (
+        {selectedPaymentType === "CREDITO" && (
           <Card>
             <CardHeader>
               <CardTitle>Cuotas (Obligatorio)</CardTitle>
