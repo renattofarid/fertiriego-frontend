@@ -2,12 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  DollarSign,
-  AlertTriangle,
-  Clock,
-  Receipt,
-} from "lucide-react";
+import { DollarSign, AlertTriangle, Clock, Receipt } from "lucide-react";
 import TitleComponent from "@/components/TitleComponent";
 import FormWrapper from "@/components/FormWrapper";
 import { DataTable } from "@/components/DataTable";
@@ -17,6 +12,7 @@ import InstallmentPaymentManagementSheet from "./InstallmentPaymentManagementShe
 import InstallmentPaymentsSheet from "@/pages/sale/components/InstallmentPaymentsSheet";
 import AccountsReceivableOptions from "./AccountsReceivableOptions";
 import { getAccountsReceivableColumns } from "./AccountsReceivableColumns";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function AccountsReceivablePage() {
   const [installments, setInstallments] = useState<SaleInstallmentResource[]>(
@@ -131,7 +127,7 @@ export default function AccountsReceivablePage() {
   );
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       {/* Header */}
       <TitleComponent
         title="Cuentas por Cobrar"
@@ -231,7 +227,11 @@ export default function AccountsReceivablePage() {
       </div>
 
       {/* Table */}
-      <DataTable columns={columns} data={filteredInstallments} isLoading={isLoading}>
+      <DataTable
+        columns={columns}
+        data={filteredInstallments}
+        isLoading={isLoading}
+      >
         <AccountsReceivableOptions search={search} setSearch={setSearch} />
       </DataTable>
 
@@ -256,6 +256,6 @@ export default function AccountsReceivablePage() {
         installment={selectedInstallment}
         onSuccess={handlePaymentSuccess}
       />
-    </FormWrapper>
+    </PageWrapper>
   );
 }

@@ -151,7 +151,7 @@ export default function InstallmentPaymentsSheet({
                   <div className="flex items-start justify-between mb-3">
                     <div>
                       <p className="font-semibold">
-                        Pago #{payment.correlativo}
+                        Pago #{String(payment.id).padStart(8, "0")}
                       </p>
                       <p className="text-sm text-muted-foreground">
                         {formatDate(payment.payment_date)}

@@ -201,7 +201,7 @@ export default function SaleManagePage() {
       </div>
 
       {/* Información del Documento */}
-      <Card>
+      <Card className="!gap-0">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <FileText className="h-5 w-5" />
@@ -241,7 +241,7 @@ export default function SaleManagePage() {
 
       {/* Cliente y Almacén */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
+        <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <User className="h-5 w-5" />
@@ -256,7 +256,7 @@ export default function SaleManagePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Warehouse className="h-5 w-5" />
@@ -274,7 +274,7 @@ export default function SaleManagePage() {
 
       {/* Cuotas Section */}
       {isContado ? (
-        <Card>
+        <Card className="!gap-0">
           <CardContent className="py-8">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-3">
@@ -288,7 +288,7 @@ export default function SaleManagePage() {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="!gap-0">
           <CardHeader>
             <CardTitle className="text-base flex items-center justify-between">
               <span className="flex items-center gap-2">

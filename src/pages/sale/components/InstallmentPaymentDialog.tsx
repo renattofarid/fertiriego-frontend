@@ -1,20 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleInstallmentResource } from "../lib/sale.interface";
 import { createSalePayment } from "../lib/sale.actions";
 import { errorToast, successToast } from "@/lib/core.function";
+import { Wallet } from "lucide-react";
+import { dateStringSchema } from "@/lib/core.schema";
+import { format } from "date-fns";
+
+const paymentFormSchema = z.object({
+  payment_date: dateStringSchema("Fecha de Pago"),
+  amount_cash: z.string().optional(),
+  amount_card: z.string().optional(),
+  amount_yape: z.string().optional(),
+  amount_plin: z.string().optional(),
+  amount_deposit: z.string().optional(),
+  amount_transfer: z.string().optional(),
+  amount_other: z.string().optional(),
+  observation: z.string().optional(),
+});
+
+type PaymentFormValues = z.infer<typeof paymentFormSchema>;
 
 interface InstallmentPaymentDialogProps {
   open: boolean;
@@ -31,40 +53,54 @@ export default function InstallmentPaymentDialog({
   currency,
   onSuccess,
 }: InstallmentPaymentDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [formData, setFormData] = useState({
-    payment_date: new Date().toISOString().split("T")[0],
-    amount_cash: "",
-    amount_card: "",
-    amount_yape: "",
-    amount_plin: "",
-    amount_deposit: "",
-    amount_transfer: "",
-    amount_other: "",
-    observation: "",
+  const form = useForm<PaymentFormValues>({
+    resolver: zodResolver(paymentFormSchema),
+    defaultValues: {
+      payment_date: format(new Date(), "yyyy-MM-dd"),
+      amount_cash: "",
+      amount_card: "",
+      amount_yape: "",
+      amount_plin: "",
+      amount_deposit: "",
+      amount_transfer: "",
+      amount_other: "",
+      observation: "",
+    },
   });
 
-  const handleInputChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const { watch, reset } = form;
+  const formValues = watch();
+
+  // Reset form when installment changes
+  useEffect(() => {
+    if (open) {
+      reset({
+        payment_date: format(new Date(), "yyyy-MM-dd"),
+        amount_cash: "",
+        amount_card: "",
+        amount_yape: "",
+        amount_plin: "",
+        amount_deposit: "",
+        amount_transfer: "",
+        amount_other: "",
+        observation: "",
+      });
+    }
+  }, [open, reset]);
 
   const calculateTotal = () => {
     return (
-      parseFloat(formData.amount_cash || "0") +
-      parseFloat(formData.amount_card || "0") +
-      parseFloat(formData.amount_yape || "0") +
-      parseFloat(formData.amount_plin || "0") +
-      parseFloat(formData.amount_deposit || "0") +
-      parseFloat(formData.amount_transfer || "0") +
-      parseFloat(formData.amount_other || "0")
+      parseFloat(formValues.amount_cash || "0") +
+      parseFloat(formValues.amount_card || "0") +
+      parseFloat(formValues.amount_yape || "0") +
+      parseFloat(formValues.amount_plin || "0") +
+      parseFloat(formValues.amount_deposit || "0") +
+      parseFloat(formValues.amount_transfer || "0") +
+      parseFloat(formValues.amount_other || "0")
     );
   };
 
-  const handleSubmit = async () => {
+  const onSubmit = async (data: PaymentFormValues) => {
     if (!installment) return;
 
     const total = calculateTotal();
@@ -72,7 +108,6 @@ export default function InstallmentPaymentDialog({
 
     if (total === 0) {
       errorToast("Debe ingresar al menos un monto de pago");
-
       return;
     }
 
@@ -85,43 +120,27 @@ export default function InstallmentPaymentDialog({
       return;
     }
 
-    setIsSubmitting(true);
-
     try {
       await createSalePayment(installment.id, {
-        payment_date: formData.payment_date,
-        amount_cash: parseFloat(formData.amount_cash || "0"),
-        amount_card: parseFloat(formData.amount_card || "0"),
-        amount_yape: parseFloat(formData.amount_yape || "0"),
-        amount_plin: parseFloat(formData.amount_plin || "0"),
-        amount_deposit: parseFloat(formData.amount_deposit || "0"),
-        amount_transfer: parseFloat(formData.amount_transfer || "0"),
-        amount_other: parseFloat(formData.amount_other || "0"),
-        observation: formData.observation,
+        payment_date: data.payment_date ?? format(new Date(), "yyyy-MM-dd"),
+        amount_cash: parseFloat(data.amount_cash || "0"),
+        amount_card: parseFloat(data.amount_card || "0"),
+        amount_yape: parseFloat(data.amount_yape || "0"),
+        amount_plin: parseFloat(data.amount_plin || "0"),
+        amount_deposit: parseFloat(data.amount_deposit || "0"),
+        amount_transfer: parseFloat(data.amount_transfer || "0"),
+        amount_other: parseFloat(data.amount_other || "0"),
+        observation: data.observation || "",
       });
 
       successToast("Pago registrado correctamente");
-
-      // Reset form
-      setFormData({
-        payment_date: new Date().toISOString().split("T")[0],
-        amount_cash: "",
-        amount_card: "",
-        amount_yape: "",
-        amount_plin: "",
-        amount_deposit: "",
-        amount_transfer: "",
-        amount_other: "",
-        observation: "",
-      });
-
+      reset();
       onSuccess();
+      onClose();
     } catch (error: any) {
       errorToast(
-        error?.response?.data?.message || "Error al registrar el pago: "
+        error?.response?.data?.message || "Error al registrar el pago"
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -129,17 +148,18 @@ export default function InstallmentPaymentDialog({
 
   const total = calculateTotal();
   const pendingAmount = parseFloat(installment.pending_amount);
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            Registrar Pago - Cuota {installment.installment_number}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-4">
+    <GeneralSheet
+      open={open}
+      onClose={onClose}
+      title={`Registrar Pago - Cuota ${installment.installment_number}`}
+      className="w-full sm:max-w-2xl overflow-y-auto p-4"
+      icon={<Wallet className="w-5 h-5" />}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {/* Installment Info */}
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <div className="flex justify-between">
@@ -161,141 +181,153 @@ export default function InstallmentPaymentDialog({
           </div>
 
           {/* Payment Date */}
-          <div>
-            <Label htmlFor="payment_date">Fecha de Pago</Label>
-            <Input
-              id="payment_date"
-              type="date"
-              value={formData.payment_date}
-              onChange={(e) =>
-                handleInputChange("payment_date", e.target.value)
-              }
-            />
-          </div>
+          <DatePickerFormField
+            control={form.control}
+            name="payment_date"
+            label="Fecha de Pago"
+            placeholder="Selecciona la fecha de pago"
+            disabledRange={{
+              after: new Date(),
+            }}
+          />
 
           {/* Payment Methods */}
           <div className="space-y-3">
             <Label>Métodos de Pago</Label>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="amount_cash" className="text-sm">
-                  Efectivo
-                </Label>
-                <Input
-                  id="amount_cash"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_cash}
-                  onChange={(e) =>
-                    handleInputChange("amount_cash", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_cash"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Efectivo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="amount_card" className="text-sm">
-                  Tarjeta
-                </Label>
-                <Input
-                  id="amount_card"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_card}
-                  onChange={(e) =>
-                    handleInputChange("amount_card", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_card"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Tarjeta</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="amount_yape" className="text-sm">
-                  Yape
-                </Label>
-                <Input
-                  id="amount_yape"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_yape}
-                  onChange={(e) =>
-                    handleInputChange("amount_yape", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_yape"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Yape</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="amount_plin" className="text-sm">
-                  Plin
-                </Label>
-                <Input
-                  id="amount_plin"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_plin}
-                  onChange={(e) =>
-                    handleInputChange("amount_plin", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_plin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Plin</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="amount_deposit" className="text-sm">
-                  Depósito
-                </Label>
-                <Input
-                  id="amount_deposit"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_deposit}
-                  onChange={(e) =>
-                    handleInputChange("amount_deposit", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_deposit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Depósito</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div>
-                <Label htmlFor="amount_transfer" className="text-sm">
-                  Transferencia
-                </Label>
-                <Input
-                  id="amount_transfer"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_transfer}
-                  onChange={(e) =>
-                    handleInputChange("amount_transfer", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_transfer"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Transferencia</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
 
-              <div className="col-span-2">
-                <Label htmlFor="amount_other" className="text-sm">
-                  Otro
-                </Label>
-                <Input
-                  id="amount_other"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.amount_other}
-                  onChange={(e) =>
-                    handleInputChange("amount_other", e.target.value)
-                  }
-                  placeholder="0.00"
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_other"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormLabel className="text-sm">Otro</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
           </div>
 
@@ -325,30 +357,42 @@ export default function InstallmentPaymentDialog({
           </div>
 
           {/* Observation */}
-          <div>
-            <Label htmlFor="observation">Observación</Label>
-            <Textarea
-              id="observation"
-              value={formData.observation}
-              onChange={(e) => handleInputChange("observation", e.target.value)}
-              placeholder="Ingrese una observación (opcional)"
-              rows={3}
-            />
-          </div>
-        </div>
+          <FormField
+            control={form.control}
+            name="observation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Observación</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Ingrese una observación (opcional)"
+                    rows={3}
+                    {...field}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || total === 0 || total > pendingAmount}
-          >
-            {isSubmitting ? "Registrando..." : "Registrar Pago"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting || total === 0 || total > pendingAmount}
+            >
+              {isSubmitting ? "Registrando..." : "Registrar Pago"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </GeneralSheet>
   );
 }

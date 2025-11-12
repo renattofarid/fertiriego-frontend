@@ -234,11 +234,13 @@ export interface UpdateSaleInstallmentRequest {
 
 export interface SalePaymentResource {
   id: number;
-  correlativo: string;
   sale_installment_id: number;
-  sale_correlativo: string;
   user_id: number;
+  user: User;
   payment_date: string;
+  reference_number?: string;
+  bank_number?: string;
+  route?: string;
   amount_cash: number;
   amount_card: number;
   amount_yape: number;
@@ -247,8 +249,14 @@ export interface SalePaymentResource {
   amount_transfer: number;
   amount_other: number;
   total_paid: number;
-  observation: string;
+  payment_methods_used: Record<string, number>;
+  observation?: string;
   created_at: string;
+}
+
+interface User {
+  id: number;
+  name: string;
 }
 
 export interface SalePaymentResponse {
