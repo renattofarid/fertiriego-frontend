@@ -35,21 +35,17 @@ export const WarehouseProductColumns = ({
       const minStock = row.original.min_stock;
       const maxStock = row.original.max_stock;
 
-      let variant: "default" | "destructive" | "warning" | "success" = "default";
+      let variant: "default" | "destructive" | "outline" = "default";
 
       if (minStock !== null && stock < minStock) {
         variant = "destructive";
       } else if (maxStock !== null && stock > maxStock) {
-        variant = "warning";
+        variant = "outline";
       } else if (minStock !== null && stock >= minStock) {
-        variant = "success";
+        variant = "default";
       }
 
-      return (
-        <Badge variant={variant}>
-          {formatNumber(stock, 0)}
-        </Badge>
-      );
+      return <Badge variant={variant}>{formatNumber(stock, 0)}</Badge>;
     },
   },
   {

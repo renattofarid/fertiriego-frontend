@@ -80,7 +80,6 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       const request: CreatePurchaseOrderRequest = {
         supplier_id: Number(data.supplier_id),
         warehouse_id: Number(data.warehouse_id),
-        order_number: data.order_number,
         issue_date: data.issue_date,
         expected_date: data.expected_date,
         observations: data.observations || "",
@@ -98,7 +97,9 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
           };
         }),
         total_estimated: data.details
-          .map((d) => Number(d.quantity_requested) * Number(d.unit_price_estimated))
+          .map(
+            (d) => Number(d.quantity_requested) * Number(d.unit_price_estimated)
+          )
           .reduce((a, b) => a + b, 0),
       };
       await storePurchaseOrder(request);
@@ -119,7 +120,6 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       const request: any = {};
       if (data.supplier_id) request.supplier_id = Number(data.supplier_id);
       if (data.warehouse_id) request.warehouse_id = Number(data.warehouse_id);
-      if (data.order_number) request.order_number = data.order_number;
       if (data.issue_date) request.issue_date = data.issue_date;
       if (data.expected_date) request.expected_date = data.expected_date;
       if (data.observations !== undefined)

@@ -38,7 +38,6 @@ export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
     supplier_id: "",
     warehouse_id: "",
     apply_igv: false,
-    order_number: "",
     issue_date: "",
     expected_date: "",
     observations: "",
@@ -80,7 +79,6 @@ export interface PurchaseOrderResourceById {
 export interface CreatePurchaseOrderRequest {
   supplier_id: number;
   warehouse_id: number;
-  order_number: string;
   issue_date: string;
   expected_date: string;
   observations: string | null;
