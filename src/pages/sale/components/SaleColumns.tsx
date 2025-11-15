@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
+import { parse } from "date-fns";
 
 interface SaleColumnsProps {
   onEdit: (sale: SaleResource) => void;
@@ -83,7 +84,8 @@ export const getSaleColumns = ({
     accessorKey: "issue_date",
     header: "Fecha Emisión",
     cell: ({ row }) => {
-      const date = new Date(row.original.issue_date);
+      // const date = new Date(row.original.issue_date);
+      const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
       return (
         <span>
           {date.toLocaleDateString("es-ES", {
@@ -117,7 +119,9 @@ export const getSaleColumns = ({
           ? "S/."
           : row.original.currency === "USD"
           ? "$"
-          : "€";
+          : row.original.currency === "EUR"
+          ? "€"
+          : row.original.currency;
       return (
         <span className="font-semibold">
           {currency} {row.original.total_amount.toFixed(2)}

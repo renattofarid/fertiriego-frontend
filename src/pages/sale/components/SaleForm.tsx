@@ -44,7 +44,6 @@ import {
   CURRENCIES,
 } from "../lib/sale.interface";
 import { errorToast } from "@/lib/core.function";
-import { format } from "date-fns";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -266,10 +265,6 @@ export const SaleForm = ({
 
   // Establecer fecha de emisión automáticamente al cargar el formulario
   useEffect(() => {
-    const today = new Date();
-    const formattedDate = format(today, "yyyy-MM-dd");
-    form.setValue("issue_date", formattedDate);
-
     // Inicializar montos de pago a 0
     if (!form.getValues("amount_cash")) {
       form.setValue("amount_cash", "0");

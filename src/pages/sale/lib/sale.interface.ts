@@ -30,6 +30,7 @@ export interface SaleInstallmentResource {
   amount: string;
   pending_amount: string;
   status: string;
+  currency: string;
   created_at: string;
 }
 

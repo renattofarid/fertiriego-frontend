@@ -14,6 +14,7 @@ import type { SaleResource } from "../lib/sale.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
+import { format, parse } from "date-fns";
 
 export const SaleEditPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,7 +62,10 @@ export const SaleEditPage = () => {
     document_type: data.document_type,
     serie: data.serie,
     numero: data.numero,
-    issue_date: data.issue_date,
+    issue_date: format(
+      parse(data.issue_date, "yyyy-MM-dd", new Date()),
+      "yyyy-MM-dd"
+    ),
     payment_type: data.payment_type,
     currency: data.currency,
     observations: data.observations || "",
