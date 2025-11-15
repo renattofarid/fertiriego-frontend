@@ -63,45 +63,57 @@ export default function AccountsReceivablePage() {
     setFilteredInstallments(filtered);
   };
 
-  // Calcular resumen
+  // Calcular resumen agrupado por moneda
   const calculateSummary = () => {
     const today = new Date();
     const soonDate = new Date();
     soonDate.setDate(today.getDate() + 7); // Próximos 7 días
 
-    let totalPending = 0;
-    let totalOverdue = 0;
-    let totalToExpireSoon = 0;
-    let totalInstallments = 0;
+    // Objeto para agrupar por moneda
+    const summaryByCurrency: Record<
+      string,
+      {
+        totalPending: number;
+        totalOverdue: number;
+        totalToExpireSoon: number;
+        totalInstallments: number;
+      }
+    > = {};
 
     installments.forEach((inst) => {
       const pendingAmount = parseFloat(inst.pending_amount);
       const dueDate = new Date(inst.due_date);
+      const currency = inst.currency || "S/";
+
+      // Inicializar moneda si no existe
+      if (!summaryByCurrency[currency]) {
+        summaryByCurrency[currency] = {
+          totalPending: 0,
+          totalOverdue: 0,
+          totalToExpireSoon: 0,
+          totalInstallments: 0,
+        };
+      }
 
       if (pendingAmount > 0) {
-        totalPending += pendingAmount;
-        totalInstallments++;
+        summaryByCurrency[currency].totalPending += pendingAmount;
+        summaryByCurrency[currency].totalInstallments++;
 
-        if (dueDate > today) {
-          totalOverdue += pendingAmount;
+        if (dueDate < today && inst.status === "VENCIDO") {
+          summaryByCurrency[currency].totalOverdue += pendingAmount;
         } else if (dueDate <= soonDate && dueDate >= today) {
-          totalToExpireSoon += pendingAmount;
+          summaryByCurrency[currency].totalToExpireSoon += pendingAmount;
         }
       }
     });
 
-    return {
-      totalPending,
-      totalOverdue,
-      totalToExpireSoon,
-      totalInstallments,
-    };
+    return summaryByCurrency;
   };
 
-  const summary = calculateSummary();
+  const summaryByCurrency = calculateSummary();
 
-  const formatCurrency = (amount: number) => {
-    return `S/. ${amount.toFixed(2)}`;
+  const formatCurrency = (amount: number, currency: string) => {
+    return `${currency} ${amount.toFixed(2)}`;
   };
 
   const handleOpenPayment = (installment: SaleInstallmentResource) => {
@@ -134,95 +146,114 @@ export default function AccountsReceivablePage() {
         icon="DollarSign"
       />
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Total Pendiente */}
-        <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground font-medium mb-1">
-                  Total Pendiente
-                </p>
-                <p className="text-2xl font-bold text-muted-foreground truncate">
-                  {formatCurrency(summary.totalPending)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {summary.totalInstallments} cuota(s)
-                </p>
+      {/* Summary Cards - Agrupado por Moneda */}
+      <div className="space-y-3">
+        {Object.entries(summaryByCurrency).map(([currency, summary]) => (
+          <Card key={currency} className="border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="h-5 w-5 text-primary" />
+                <h3 className="font-semibold text-lg">
+                  Resumen en {currency}
+                </h3>
               </div>
-              <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
-                <DollarSign className="h-5 w-5 text-muted-foreground" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Vencidas */}
-        <Card className="border-none bg-destructive/5 hover:bg-destructive/10 transition-colors !p-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground font-medium mb-1">
-                  Vencidas
-                </p>
-                <p className="text-2xl font-bold text-destructive truncate">
-                  {formatCurrency(summary.totalOverdue)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Requieren atención
-                </p>
-              </div>
-              <div className="bg-destructive/10 p-2.5 rounded-lg shrink-0">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* Total Pendiente */}
+                <div className="p-3 bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors rounded-lg">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">
+                        Total Pendiente
+                      </p>
+                      <p className="text-xl font-bold text-muted-foreground truncate">
+                        {formatCurrency(summary.totalPending, currency)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {summary.totalInstallments} cuota(s)
+                      </p>
+                    </div>
+                    <div className="bg-muted-foreground/10 p-2 rounded-lg shrink-0">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </div>
 
-        {/* Por Vencer */}
-        <Card className="border-none bg-orange-500/5 hover:bg-orange-500/10 transition-colors !p-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground font-medium mb-1">
-                  Por Vencer (7 días)
-                </p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-500 truncate">
-                  {formatCurrency(summary.totalToExpireSoon)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Próximos vencimientos
-                </p>
-              </div>
-              <div className="bg-orange-500/10 p-2.5 rounded-lg shrink-0">
-                <Clock className="h-5 w-5 text-orange-600 dark:text-orange-500" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                {/* Vencidas */}
+                <div className="p-3 bg-destructive/5 hover:bg-destructive/10 transition-colors rounded-lg">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">
+                        Vencidas
+                      </p>
+                      <p className="text-xl font-bold text-destructive truncate">
+                        {formatCurrency(summary.totalOverdue, currency)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Requieren atención
+                      </p>
+                    </div>
+                    <div className="bg-destructive/10 p-2 rounded-lg shrink-0">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    </div>
+                  </div>
+                </div>
 
-        {/* Total Cuotas */}
-        <Card className="border-none bg-primary/5 hover:bg-primary/10 transition-colors !p-0">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-muted-foreground font-medium mb-1">
-                  Total Cuotas
-                </p>
-                <p className="text-2xl font-bold text-primary truncate">
-                  {installments.length}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Registradas en sistema
-                </p>
+                {/* Por Vencer */}
+                <div className="p-3 bg-orange-500/5 hover:bg-orange-500/10 transition-colors rounded-lg">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">
+                        Por Vencer (7 días)
+                      </p>
+                      <p className="text-xl font-bold text-orange-600 dark:text-orange-500 truncate">
+                        {formatCurrency(summary.totalToExpireSoon, currency)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Próximos vencimientos
+                      </p>
+                    </div>
+                    <div className="bg-orange-500/10 p-2 rounded-lg shrink-0">
+                      <Clock className="h-4 w-4 text-orange-600 dark:text-orange-500" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total Cuotas por moneda */}
+                <div className="p-3 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-muted-foreground font-medium mb-1">
+                        Total Cuotas
+                      </p>
+                      <p className="text-xl font-bold text-primary truncate">
+                        {summary.totalInstallments}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        En {currency}
+                      </p>
+                    </div>
+                    <div className="bg-primary/10 p-2 rounded-lg shrink-0">
+                      <Receipt className="h-4 w-4 text-primary" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
-                <Receipt className="h-5 w-5 text-primary" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
+
+        {/* Mensaje si no hay cuotas */}
+        {Object.keys(summaryByCurrency).length === 0 && (
+          <Card className="border-dashed">
+            <CardContent className="p-8 text-center">
+              <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                No hay cuotas pendientes registradas
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Table */}
