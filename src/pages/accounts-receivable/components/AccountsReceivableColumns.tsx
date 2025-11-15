@@ -5,8 +5,20 @@ import { Calendar, Wallet, Eye } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 import { parse } from "date-fns";
 
-export const formatCurrency = (amount: number) => {
-  return `S/. ${amount.toFixed(2)}`;
+export const formatCurrency = (amount: number, currency: string) => {
+  return `${currency} ${amount.toFixed(2)}`;
+};
+
+export const matchCurrency = (currencyCode: string) => {
+  const currency =
+    currencyCode === "PEN"
+      ? "S/."
+      : currencyCode === "USD"
+      ? "$"
+      : currencyCode === "EUR"
+      ? "€"
+      : currencyCode;
+  return currency;
 };
 
 export const formatDate = (dateString: string) => {
@@ -95,7 +107,10 @@ export const getAccountsReceivableColumns = (
     header: "Monto",
     cell: ({ row }) => (
       <div className="text-right font-semibold">
-        {formatCurrency(parseFloat(row.original.amount))}
+        {formatCurrency(
+          parseFloat(row.original.amount),
+          matchCurrency(row.original.currency)
+        )}
       </div>
     ),
   },
@@ -110,7 +125,10 @@ export const getAccountsReceivableColumns = (
             isPending ? "text-destructive" : "text-primary"
           }`}
         >
-          {formatCurrency(parseFloat(row.original.pending_amount))}
+          {formatCurrency(
+            parseFloat(row.original.pending_amount),
+            matchCurrency(row.original.currency)
+          )}
         </div>
       );
     },
