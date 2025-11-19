@@ -1127,7 +1127,6 @@ export const SaleForm = ({
             type="submit"
             disabled={
               isSubmitting ||
-              !form.formState.isValid ||
               (mode === "create" && details.length === 0) ||
               (mode === "create" &&
                 selectedPaymentType === "CONTADO" &&

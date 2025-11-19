@@ -4,6 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-family-poppins: "Poppins", sans-serif;
+  --font-family-sans: "Poppins", sans-serif; /* 👈 Esto hace que sea por defecto */
   --font-display--font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   --font-display--font-variation-settings: "opsz" 32;
   --radius-sm: calc(var(--radius) - 4px);
@@ -141,5 +143,11 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  body {
+    @apply font-family-poppins;
   }
 }

@@ -33,6 +33,7 @@ import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
+import FormSkeleton from "@/components/FormSkeleton";
 
 // Tipos
 interface MonthData {
@@ -245,7 +246,7 @@ export default function HomePage() {
   if (purchasesLoading || salesLoading || productsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Cargando dashboard...</p>
+        <FormSkeleton />
       </div>
     );
   }

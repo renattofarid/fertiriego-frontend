@@ -132,7 +132,7 @@ function ProtectedRoute({
 export default function App() {
   const { token } = useAuthStore();
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <BrowserRouter>
         <Routes>
           {/* Ruta pública */}
