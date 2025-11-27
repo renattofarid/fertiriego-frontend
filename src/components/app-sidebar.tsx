@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag, DollarSign } from "lucide-react";
+import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag, DollarSign, Warehouse, Activity } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -32,6 +32,7 @@ import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/pur
 import { SaleRoute } from "@/pages/sale/lib/sale.interface";
 import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
+import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -138,6 +139,12 @@ const {
   MODEL: { plural: WarehouseProductTitle },
 } = WAREHOUSE_PRODUCT;
 
+const {
+  ICON_REACT: WarehouseDocumentIcon,
+  ROUTE: WarehouseDocumentRoute,
+  MODEL: { plural: WarehouseDocumentTitle },
+} = WAREHOUSE_DOCUMENT;
+
 const data = {
   navMain: [
     {
@@ -169,6 +176,21 @@ const data = {
           title: WarehouseProductTitle,
           url: WarehouseProductRoute,
           icon: WarehouseProductIcon,
+        },
+        {
+          title: WarehouseDocumentTitle,
+          url: WarehouseDocumentRoute,
+          icon: WarehouseDocumentIcon,
+        },
+        {
+          title: "Kardex",
+          url: "/kardex",
+          icon: Activity,
+        },
+        {
+          title: "Inventario Valorizado",
+          url: "/inventario-valorizado",
+          icon: Warehouse,
         },
         {
           title: BoxTitle,
