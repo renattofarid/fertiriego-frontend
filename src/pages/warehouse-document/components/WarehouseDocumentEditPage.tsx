@@ -9,10 +9,10 @@ import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
 import { useWarehouseDocumentById } from "../lib/warehouse-document.hook";
 import { useWarehouseDocumentStore } from "../lib/warehouse-document.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { successToast, errorToast } from "@/lib/core.function";
 import PageSkeleton from "@/components/PageSkeleton";
+import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 
 const { ICON, TITLES } = WAREHOUSE_DOCUMENT;
 
@@ -22,7 +22,7 @@ export default function WarehouseDocumentEditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: warehouses } = useAllWarehouses();
-  const persons = useAllPersons();
+  const persons = useAllWorkers();
   const { data: products } = useAllProducts();
 
   const { data: document, isFinding } = useWarehouseDocumentById(parseInt(id!));

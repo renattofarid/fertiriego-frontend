@@ -18,7 +18,7 @@ import { Form } from "@/components/ui/form";
 
 const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
   {
-    accessorKey: "document_date",
+    accessorKey: "movement_date",
     header: "Fecha",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
@@ -59,7 +59,7 @@ const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
     accessorKey: "document_number",
     header: "Número",
     cell: ({ getValue }) => (
-      <span className="font-semibold">{getValue() as string}</span>
+      <span className="font-semibold font-mono">{getValue() as string}</span>
     ),
   },
   {
@@ -75,10 +75,34 @@ const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
     },
   },
   {
-    accessorKey: "quantity",
-    header: "Cantidad",
+    accessorKey: "quantity_in",
+    header: "Entrada",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return value > 0 ? (
+        <span className="font-semibold text-green-600">{value}</span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
+  },
+  {
+    accessorKey: "quantity_out",
+    header: "Salida",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return value > 0 ? (
+        <span className="font-semibold text-red-600">{value}</span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
+  },
+  {
+    accessorKey: "quantity_balance",
+    header: "Saldo",
     cell: ({ getValue }) => (
-      <span className="font-semibold">{getValue() as number}</span>
+      <span className="font-bold">{getValue() as number}</span>
     ),
   },
   {
@@ -86,27 +110,62 @@ const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
     header: "Costo Unit.",
     cell: ({ getValue }) => {
       const value = getValue() as number;
-      return `S/ ${value.toFixed(2)}`;
+      return `S/ ${Number(value).toFixed(2)}`;
     },
   },
   {
-    accessorKey: "total_cost",
-    header: "Costo Total",
+    accessorKey: "average_cost",
+    header: "Costo Promedio",
     cell: ({ getValue }) => {
       const value = getValue() as number;
-      return `S/ ${value.toFixed(2)}`;
+      return `S/ ${Number(value).toFixed(2)}`;
     },
   },
   {
-    accessorKey: "previous_balance",
-    header: "Saldo Anterior",
-    cell: ({ getValue }) => getValue() as number,
+    accessorKey: "total_cost_in",
+    header: "Total Entrada",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return value > 0 ? (
+        <span className="font-semibold text-green-600">
+          S/ {Number(value).toFixed(2)}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
   },
   {
-    accessorKey: "new_balance",
-    header: "Saldo Nuevo",
+    accessorKey: "total_cost_out",
+    header: "Total Salida",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return value > 0 ? (
+        <span className="font-semibold text-red-600">
+          S/ {Number(value).toFixed(2)}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
+  },
+  {
+    accessorKey: "total_cost_balance",
+    header: "Saldo Total",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return (
+        <span className="font-bold text-primary">
+          S/ {Number(value).toFixed(2)}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "user_name",
+    header: "Usuario",
     cell: ({ getValue }) => (
-      <span className="font-bold">{getValue() as number}</span>
+      <span className="text-sm">{getValue() as string}</span>
     ),
   },
 ];
@@ -123,12 +182,24 @@ export default function WarehouseKardexPage() {
 
   const form = useForm();
 
-  const { data, meta, isLoading, refetch } = useWarehouseKardex();
   const { data: warehouses } = useAllWarehouses();
   const { data: products } = useAllProducts();
 
+  const params = {
+    page,
+    per_page,
+    warehouse_id: selectedWarehouse ? Number(selectedWarehouse) : undefined,
+    product_id: selectedProduct ? Number(selectedProduct) : undefined,
+    document_type: selectedDocumentType || undefined,
+    movement_type: selectedMovementType || undefined,
+    from: fromDate || undefined,
+    to: toDate || undefined,
+  };
+
+  const { data, meta, isLoading, refetch } = useWarehouseKardex(params);
+
   useEffect(() => {
-    refetch();
+    refetch(params);
   }, [
     page,
     per_page,
@@ -138,7 +209,6 @@ export default function WarehouseKardexPage() {
     selectedMovementType,
     fromDate,
     toDate,
-    refetch,
   ]);
 
   return (
@@ -156,7 +226,9 @@ export default function WarehouseKardexPage() {
           columns={kardexColumns}
           data={data || []}
           isLoading={isLoading}
-          initialColumnVisibility={{}}
+          initialColumnVisibility={{
+            user_name: false,
+          }}
         >
           <div className="space-y-4">
             <div className="flex items-center gap-2 flex-wrap">

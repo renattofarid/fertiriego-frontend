@@ -11,15 +11,20 @@ export interface WarehouseKardexResource {
   warehouse_name: string;
   product_id: number;
   product_name: string;
+  movement_date: string;
+  movement_type: MovementType;
   document_type: DocumentType;
   document_number: string;
-  movement_type: MovementType;
-  quantity: number;
+  quantity_in: number;
+  quantity_out: number;
+  quantity_balance: number;
   unit_cost: number;
-  total_cost: number;
-  previous_balance: number;
-  new_balance: number;
-  document_date: string;
+  total_cost_in: number;
+  total_cost_out: number;
+  total_cost_balance: number;
+  average_cost: number;
+  user_id: number;
+  user_name: string;
   created_at: string;
 }
 

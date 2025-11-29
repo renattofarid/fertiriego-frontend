@@ -73,7 +73,10 @@ export default function WarehouseDocumentForm({
   return (
     <FormWrapper>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
+        <form
+          onSubmit={form.handleSubmit(onSubmit as any)}
+          className="space-y-6"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormSelect
               control={form.control}
@@ -118,7 +121,9 @@ export default function WarehouseDocumentForm({
               placeholder="Seleccione una persona"
               options={persons.map((p) => ({
                 value: p.id.toString(),
-                label: `${p.names} ${p.father_surname} ${p.mother_surname}`,
+                label: `${p.names} ${p.father_surname ?? ""} ${
+                  p.mother_surname ?? ""
+                }`.trim(),
               }))}
             />
 
@@ -187,7 +192,9 @@ export default function WarehouseDocumentForm({
                                 step="0.01"
                                 {...field}
                                 onChange={(e) =>
-                                  field.onChange(parseFloat(e.target.value) || 0)
+                                  field.onChange(
+                                    parseFloat(e.target.value) || 0
+                                  )
                                 }
                               />
                             </FormControl>
@@ -208,7 +215,9 @@ export default function WarehouseDocumentForm({
                                 step="0.01"
                                 {...field}
                                 onChange={(e) =>
-                                  field.onChange(parseFloat(e.target.value) || 0)
+                                  field.onChange(
+                                    parseFloat(e.target.value) || 0
+                                  )
                                 }
                               />
                             </FormControl>
@@ -225,7 +234,10 @@ export default function WarehouseDocumentForm({
                             <FormItem>
                               <FormLabel>Observaciones</FormLabel>
                               <FormControl>
-                                <Input placeholder="Observaciones del producto" {...field} />
+                                <Input
+                                  placeholder="Observaciones del producto"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

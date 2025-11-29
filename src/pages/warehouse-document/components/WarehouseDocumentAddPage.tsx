@@ -8,9 +8,9 @@ import { WAREHOUSE_DOCUMENT } from "../lib/warehouse-document.interface";
 import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
 import { storeWarehouseDocument } from "../lib/warehouse-document.actions";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { successToast, errorToast } from "@/lib/core.function";
+import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 
 const { ICON, EMPTY, TITLES } = WAREHOUSE_DOCUMENT;
 
@@ -19,7 +19,7 @@ export default function WarehouseDocumentAddPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: warehouses } = useAllWarehouses();
-  const persons = useAllPersons();
+  const persons = useAllWorkers();
   const { data: products } = useAllProducts();
 
   const handleSubmit = async (data: WarehouseDocumentSchema) => {
@@ -45,9 +45,7 @@ export default function WarehouseDocumentAddPage() {
       navigate("/documentos-almacen");
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al crear el documento";
+        error instanceof Error ? error.message : "Error al crear el documento";
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);

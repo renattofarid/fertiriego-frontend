@@ -33,7 +33,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const { MODEL, ICON } = WAREHOUSE_DOCUMENT;
+const { MODEL, ICON, ROUTE } = WAREHOUSE_DOCUMENT;
 
 export default function WarehouseDocumentPage() {
   const navigate = useNavigate();
@@ -47,11 +47,25 @@ export default function WarehouseDocumentPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [cancelId, setCancelId] = useState<number | null>(null);
 
-  const { data, meta, isLoading, refetch } = useWarehouseDocuments();
+  const { data, meta, isLoading, refetch } = useWarehouseDocuments({
+    page,
+    per_page,
+    search,
+    warehouse_id: selectedWarehouse,
+    type: selectedType,
+    status: selectedStatus,
+  });
   const { data: warehouses } = useAllWarehouses();
 
   useEffect(() => {
-    refetch();
+    refetch({
+      page,
+      per_page,
+      search,
+      warehouse_id: selectedWarehouse,
+      type: selectedType,
+      status: selectedStatus,
+    });
   }, [
     page,
     search,
@@ -112,15 +126,15 @@ export default function WarehouseDocumentPage() {
   };
 
   const handleCreateDocument = () => {
-    navigate("/documentos-almacen/agregar");
+    navigate(`${ROUTE}/agregar`);
   };
 
   const handleEditDocument = (id: number) => {
-    navigate(`/documentos-almacen/actualizar/${id}`);
+    navigate(`${ROUTE}/actualizar/${id}`);
   };
 
   const handleViewDocument = (id: number) => {
-    navigate(`/documentos-almacen/${id}`);
+    navigate(`${ROUTE}/${id}`);
   };
 
   return (
@@ -178,7 +192,10 @@ export default function WarehouseDocumentPage() {
       )}
 
       {confirmId !== null && (
-        <AlertDialog open={true} onOpenChange={(open) => !open && setConfirmId(null)}>
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => !open && setConfirmId(null)}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirmar Documento</AlertDialogTitle>
@@ -198,7 +215,10 @@ export default function WarehouseDocumentPage() {
       )}
 
       {cancelId !== null && (
-        <AlertDialog open={true} onOpenChange={(open) => !open && setCancelId(null)}>
+        <AlertDialog
+          open={true}
+          onOpenChange={(open) => !open && setCancelId(null)}
+        >
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Cancelar Documento</AlertDialogTitle>
@@ -209,7 +229,10 @@ export default function WarehouseDocumentPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>No, mantener</AlertDialogCancel>
-              <AlertDialogAction onClick={handleCancel} className="bg-destructive">
+              <AlertDialogAction
+                onClick={handleCancel}
+                className="bg-destructive"
+              >
                 Sí, cancelar
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -49,14 +49,17 @@ export const WarehouseDocumentColumns = ({
       const type = row.original.document_type;
       const isEntry = type.startsWith("ENTRADA_");
       return (
-        <Badge variant={isEntry ? "default" : "secondary"} className="font-medium">
+        <Badge
+          variant={isEntry ? "default" : "secondary"}
+          className="font-medium"
+        >
           {getDocumentTypeLabel(type)}
         </Badge>
       );
     },
   },
   {
-    accessorKey: "person_name",
+    accessorKey: "person_fullname",
     header: "Responsable",
     cell: ({ getValue }) => getValue() as string,
   },

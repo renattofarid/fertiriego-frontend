@@ -30,3 +30,17 @@ export function useWorkers(params?: Record<string, unknown>) {
     },
   };
 }
+
+export function useAllWorkers(params?: Record<string, unknown>) {
+  const { allPersons, fetchAllPersons } = usePersonStore();
+  useEffect(() => {
+    if (!allPersons) {
+      const workerParams = {
+        ...params,
+        role_names: [WORKER_ROLE_CODE],
+      };
+      fetchAllPersons({ params: workerParams });
+    }
+  }, [allPersons, fetchAllPersons]);
+  return allPersons;
+}

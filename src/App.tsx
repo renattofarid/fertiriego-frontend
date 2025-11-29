@@ -75,6 +75,7 @@ import { WAREHOUSE_DOCUMENT } from "./pages/warehouse-document/lib/warehouse-doc
 import WarehouseDocumentPage from "./pages/warehouse-document/components/WarehouseDocumentPage";
 import WarehouseDocumentAddPage from "./pages/warehouse-document/components/WarehouseDocumentAddPage";
 import WarehouseDocumentEditPage from "./pages/warehouse-document/components/WarehouseDocumentEditPage";
+import WarehouseDocumentDetailPage from "./pages/warehouse-document/components/WarehouseDocumentDetailPage";
 import WarehouseKardexPage from "./pages/warehouse-document/components/WarehouseKardexPage";
 import ValuatedInventoryPage from "./pages/warehouse-document/components/ValuatedInventoryPage";
 
@@ -550,6 +551,14 @@ export default function App() {
             element={
               <ProtectedRoute path={WarehouseDocumentRoute}>
                 <WarehouseDocumentAddPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/documentos-almacen/:id"
+            element={
+              <ProtectedRoute path={WarehouseDocumentRoute}>
+                <WarehouseDocumentDetailPage />
               </ProtectedRoute>
             }
           />

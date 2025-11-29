@@ -17,12 +17,12 @@ export function usePersons(params?: Record<string, unknown>) {
   };
 }
 
-export function useAllPersons() {
+export function useAllPersons(params?: Record<string, unknown>) {
   const { allPersons, fetchAllPersons } = usePersonStore();
 
   useEffect(() => {
     if (!allPersons) {
-      fetchAllPersons({});
+      fetchAllPersons({ params });
     }
   }, [allPersons, fetchAllPersons]);
 
