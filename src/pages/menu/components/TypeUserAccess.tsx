@@ -87,7 +87,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
       })
       .catch((error: any) => {
         errorToast(
-          error.response.data.message ??
+          (error.response.data.message ?? error.response.data.error) ??
             error.response.data.error ??
             "Error al actualizar permisos"
         );

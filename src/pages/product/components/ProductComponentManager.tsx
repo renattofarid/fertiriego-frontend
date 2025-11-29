@@ -94,7 +94,7 @@ export function ProductComponentManager({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : `Error al ${editingComponent ? "actualizar" : "agregar"} el componente`;
       errorToast(errorMessage);
     }
@@ -119,7 +119,7 @@ export function ProductComponentManager({
       onComponentChange?.();
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error al eliminar el componente";
+        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al eliminar el componente";
       errorToast(errorMessage);
     } finally {
       setDeleteComponentId(null);

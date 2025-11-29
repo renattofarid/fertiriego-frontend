@@ -106,7 +106,7 @@ export function ProductPriceManager({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
       errorToast(errorMessage);
     }
@@ -133,7 +133,7 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error al eliminar el precio";
+        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al eliminar el precio";
       errorToast(errorMessage);
     } finally {
       setDeletePriceId(null);

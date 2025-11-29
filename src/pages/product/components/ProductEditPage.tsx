@@ -66,7 +66,7 @@ export default function ProductEditPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : ERROR_MESSAGE(MODEL, "update");
       errorToast(errorMessage);
     } finally {

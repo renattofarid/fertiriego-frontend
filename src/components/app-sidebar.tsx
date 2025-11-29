@@ -33,6 +33,7 @@ import { SaleRoute } from "@/pages/sale/lib/sale.interface";
 import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
+import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
@@ -145,6 +146,12 @@ const {
   MODEL: { plural: WarehouseDocumentTitle },
 } = WAREHOUSE_DOCUMENT;
 
+const {
+  ICON_REACT: BoxShiftIcon,
+  ROUTE: BoxShiftRoute,
+  MODEL: { plural: BoxShiftTitle },
+} = BOX_SHIFT;
+
 const data = {
   navMain: [
     {
@@ -196,6 +203,11 @@ const data = {
           title: BoxTitle,
           url: BoxRoute,
           icon: BoxIcon,
+        },
+        {
+          title: BoxShiftTitle,
+          url: BoxShiftRoute,
+          icon: BoxShiftIcon,
         },
       ],
     },

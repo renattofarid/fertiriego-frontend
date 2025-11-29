@@ -52,7 +52,7 @@ export default function RoleModal({
         })
         .catch((error) => {
           errorToast(
-            error.response.data.message,
+            (error.response.data.message ?? error.response.data.error),
             ERROR_MESSAGE(MODEL, "create")
           );
         });
@@ -66,7 +66,7 @@ export default function RoleModal({
         })
         .catch((error) => {
           errorToast(
-            error.response.data.message,
+            (error.response.data.message ?? error.response.data.error),
             ERROR_MESSAGE(MODEL, "update")
           );
         });

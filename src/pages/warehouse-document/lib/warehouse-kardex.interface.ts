@@ -61,15 +61,28 @@ export interface KardexByProductResponse {
   data: KardexByProductResource;
 }
 
-// Valuated Inventory
+// Valuated Inventory - Uses the same structure as Kardex
 export interface ValuatedInventoryItem {
+  id: number;
   warehouse_id: number;
   warehouse_name: string;
   product_id: number;
   product_name: string;
-  current_stock: number;
+  movement_date: string;
+  movement_type: MovementType;
+  document_type: DocumentType;
+  document_number: string;
+  quantity_in: number;
+  quantity_out: number;
+  quantity_balance: number;
+  unit_cost: number;
+  total_cost_in: number;
+  total_cost_out: number;
+  total_cost_balance: number;
   average_cost: number;
-  total_value: number;
+  user_id: number;
+  user_name: string;
+  created_at: string;
 }
 
 export interface ValuatedInventoryResponse {

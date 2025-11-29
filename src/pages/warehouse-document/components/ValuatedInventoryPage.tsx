@@ -29,7 +29,7 @@ const inventoryColumns: ColumnDef<ValuatedInventoryItem>[] = [
     ),
   },
   {
-    accessorKey: "current_stock",
+    accessorKey: "quantity_balance",
     header: "Stock Actual",
     cell: ({ getValue }) => {
       const stock = getValue() as number;
@@ -43,22 +43,48 @@ const inventoryColumns: ColumnDef<ValuatedInventoryItem>[] = [
     },
   },
   {
+    accessorKey: "unit_cost",
+    header: "Costo Unitario",
+    cell: ({ getValue }) => {
+      const value = getValue() as number;
+      return (
+        <span className="font-medium">S/ {Number(value).toFixed(2)}</span>
+      );
+    },
+  },
+  {
     accessorKey: "average_cost",
     header: "Costo Promedio",
     cell: ({ getValue }) => {
       const value = getValue() as number;
       return (
-        <span className="font-medium">S/ {value.toFixed(2)}</span>
+        <span className="font-medium text-blue-600">S/ {Number(value).toFixed(2)}</span>
       );
     },
   },
   {
-    accessorKey: "total_value",
+    accessorKey: "total_cost_balance",
     header: "Valor Total",
     cell: ({ getValue }) => {
       const value = getValue() as number;
       return (
-        <span className="font-bold text-lg">S/ {value.toFixed(2)}</span>
+        <span className="font-bold text-lg text-primary">S/ {Number(value).toFixed(2)}</span>
+      );
+    },
+  },
+  {
+    accessorKey: "movement_date",
+    header: "Última Actualización",
+    cell: ({ getValue }) => {
+      const date = new Date(getValue() as string);
+      return (
+        <span className="text-sm text-muted-foreground">
+          {date.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
       );
     },
   },
@@ -69,15 +95,23 @@ export default function ValuatedInventoryPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
 
-  const { data, meta, isLoading, refetch } = useValuatedInventory();
   const { data: warehouses } = useAllWarehouses();
 
+  const params = {
+    page,
+    per_page,
+    warehouse_id: selectedWarehouse ? Number(selectedWarehouse) : undefined,
+  };
+
+  const { data, meta, isLoading, refetch } = useValuatedInventory(params);
+
   useEffect(() => {
-    refetch();
-  }, [page, per_page, selectedWarehouse, refetch]);
+    refetch(params);
+  }, [page, per_page, selectedWarehouse]);
 
   // Calculate totals
-  const totalValue = data?.reduce((sum, item) => sum + item.total_value, 0) || 0;
+  const totalValue = data?.reduce((sum, item) => sum + item.total_cost_balance, 0) || 0;
+  const totalStock = data?.reduce((sum, item) => sum + item.quantity_balance, 0) || 0;
   const totalItems = data?.length || 0;
 
   return (
@@ -90,7 +124,7 @@ export default function ValuatedInventoryPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -105,11 +139,22 @@ export default function ValuatedInventoryPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
+              Stock Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{totalStock}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Valor Total del Inventario
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">S/ {totalValue.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-primary">S/ {totalValue.toFixed(2)}</div>
           </CardContent>
         </Card>
 

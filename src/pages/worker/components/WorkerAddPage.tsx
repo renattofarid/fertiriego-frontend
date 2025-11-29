@@ -62,7 +62,7 @@ export default function WorkerAddPage() {
         typeof error.response.data === "object" &&
         error.response.data !== null &&
         "message" in error.response.data
-          ? (error.response.data.message as string)
+          ? ((error.response.data.message ?? error.response.data.error) as string)
           : "Error al crear trabajador";
 
       errorToast(

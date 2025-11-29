@@ -32,7 +32,7 @@ export function ProductTechnicalSheets({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al eliminar la ficha técnica";
       errorToast(errorMessage);
     } finally {

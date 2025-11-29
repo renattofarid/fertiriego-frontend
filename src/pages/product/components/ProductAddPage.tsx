@@ -53,7 +53,7 @@ export default function ProductAddPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate("/productos");
     } catch (error: any) {
-      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "create"));
+      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "create"));
     } finally {
       setIsSubmitting(false);
     }

@@ -55,7 +55,7 @@ export default function WarehouseDocumentEditPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al actualizar el documento";
       errorToast(errorMessage);
     } finally {

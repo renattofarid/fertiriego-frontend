@@ -99,7 +99,7 @@ export function PersonRoleAssignment({
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al actualizar los roles";
       errorToast(errorMessage);
     }

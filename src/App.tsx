@@ -78,6 +78,9 @@ import WarehouseDocumentEditPage from "./pages/warehouse-document/components/War
 import WarehouseDocumentDetailPage from "./pages/warehouse-document/components/WarehouseDocumentDetailPage";
 import WarehouseKardexPage from "./pages/warehouse-document/components/WarehouseKardexPage";
 import ValuatedInventoryPage from "./pages/warehouse-document/components/ValuatedInventoryPage";
+import { BOX_SHIFT } from "./pages/box-shift/lib/box-shift.interface";
+import BoxShiftPage from "./pages/box-shift/components/BoxShiftPage";
+import BoxShiftDetailPage from "./pages/box-shift/components/BoxShiftDetailPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -97,6 +100,7 @@ const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
+const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -586,6 +590,25 @@ export default function App() {
             element={
               <ProtectedRoute path="/inventario-valorizado">
                 <ValuatedInventoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Caja Chica */}
+          <Route
+            path={BoxShiftRoute}
+            element={
+              <ProtectedRoute path={BoxShiftRoute}>
+                <BoxShiftPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/turnos-caja/:id"
+            element={
+              <ProtectedRoute path={BoxShiftRoute}>
+                <BoxShiftDetailPage />
               </ProtectedRoute>
             }
           />

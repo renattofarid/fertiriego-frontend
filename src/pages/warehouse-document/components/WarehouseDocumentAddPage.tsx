@@ -45,7 +45,7 @@ export default function WarehouseDocumentAddPage() {
       navigate("/documentos-almacen");
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error al crear el documento";
+        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al crear el documento";
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);

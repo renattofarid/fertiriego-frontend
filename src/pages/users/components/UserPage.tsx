@@ -43,7 +43,7 @@ export default function UserPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast(error.response.data.message, ERROR_MESSAGE(MODEL, "delete"));
+      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
     } finally {
       setDeleteId(null);
     }

@@ -68,7 +68,7 @@ export default function WarehouseDocumentDetailPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al cargar el documento";
       errorToast(errorMessage);
       navigate(`/${ROUTE}`);
@@ -92,7 +92,7 @@ export default function WarehouseDocumentDetailPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al confirmar el documento";
       errorToast(errorMessage);
     } finally {
@@ -109,7 +109,7 @@ export default function WarehouseDocumentDetailPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al cancelar el documento";
       errorToast(errorMessage);
     } finally {

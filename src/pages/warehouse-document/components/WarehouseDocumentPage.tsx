@@ -84,7 +84,7 @@ export default function WarehouseDocumentPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : ERROR_MESSAGE(MODEL, "delete");
+        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -100,7 +100,7 @@ export default function WarehouseDocumentPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al confirmar el documento";
       errorToast(errorMessage);
     } finally {
@@ -117,7 +117,7 @@ export default function WarehouseDocumentPage() {
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
-          ? error.message
+          ? (error.response.data.message ?? error.response.data.error)
           : "Error al cancelar el documento";
       errorToast(errorMessage);
     } finally {

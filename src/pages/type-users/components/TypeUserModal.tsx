@@ -61,7 +61,7 @@ export default function TypeUserModal({
         })
         .catch((error: any) => {
           errorToast(
-            error.response.data.message ??
+            (error.response.data.message ?? error.response.data.error) ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "create")
           );
@@ -76,7 +76,7 @@ export default function TypeUserModal({
         })
         .catch((error: any) => {
           errorToast(
-            error.response.data.message ??
+            (error.response.data.message ?? error.response.data.error) ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "update")
           );
