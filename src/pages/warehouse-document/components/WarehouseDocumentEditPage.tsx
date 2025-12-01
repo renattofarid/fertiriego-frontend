@@ -54,9 +54,8 @@ export default function WarehouseDocumentEditPage() {
       navigate("/documentos-almacen");
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : "Error al actualizar el documento";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al actualizar el documento";
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);

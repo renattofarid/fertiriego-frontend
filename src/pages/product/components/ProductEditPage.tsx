@@ -65,9 +65,8 @@ export default function ProductEditPage() {
       navigate("/productos");
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : ERROR_MESSAGE(MODEL, "update");
+           (error.response.data.message ?? error.response.data.error) ??
+           ERROR_MESSAGE(MODEL, "update");
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);

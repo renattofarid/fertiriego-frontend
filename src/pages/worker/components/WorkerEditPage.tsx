@@ -82,16 +82,8 @@ export default function WorkerEditPage() {
       navigate("/trabajadores");
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error &&
-        "response" in error &&
-        typeof error.response === "object" &&
-        error.response !== null &&
-        "data" in error.response &&
-        typeof error.response.data === "object" &&
-        error.response.data !== null &&
-        "message" in error.response.data
-          ? ((error.response.data.message ?? error.response.data.error) as string)
-          : "Error al actualizar trabajador";
+          ((error.response.data.message ?? error.response.data.error) as string)
+          ?? "Error al actualizar trabajador";
 
       errorToast(
         errorMessage,

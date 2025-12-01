@@ -42,7 +42,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       successToast("Imagen eliminada exitosamente");
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al eliminar la imagen";
+        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar la imagen";
       errorToast(errorMessage);
     } finally {
       setDeleteImageId(null);

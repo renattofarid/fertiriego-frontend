@@ -105,9 +105,8 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
+           (error.response.data.message ?? error.response.data.error) ??
+           `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
       errorToast(errorMessage);
     }
   };
@@ -133,7 +132,7 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al eliminar el precio";
+        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar el precio";
       errorToast(errorMessage);
     } finally {
       setDeletePriceId(null);

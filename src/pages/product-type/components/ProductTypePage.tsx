@@ -55,7 +55,7 @@ export default function ProductTypePage() {
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? (error.response.data.message ?? error.response.data.error) : ERROR_MESSAGE(MODEL, "delete");
+        (error.response.data.message ?? error.response.data.error) ?? ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);

@@ -31,9 +31,8 @@ export function ProductTechnicalSheets({
       successToast("Ficha técnica eliminada exitosamente");
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : "Error al eliminar la ficha técnica";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al eliminar la ficha técnica";
       errorToast(errorMessage);
     } finally {
       setDeleteSheetValue(null);

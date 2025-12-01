@@ -67,9 +67,8 @@ export default function WarehouseDocumentDetailPage() {
       setDocument(response.data);
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : "Error al cargar el documento";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al cargar el documento";
       errorToast(errorMessage);
       navigate(`/${ROUTE}`);
     } finally {
@@ -91,9 +90,8 @@ export default function WarehouseDocumentDetailPage() {
       await loadDocument();
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : "Error al confirmar el documento";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al confirmar el documento";
       errorToast(errorMessage);
     } finally {
       setConfirmId(null);
@@ -108,9 +106,8 @@ export default function WarehouseDocumentDetailPage() {
       await loadDocument();
     } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? (error.response.data.message ?? error.response.data.error)
-          : "Error al cancelar el documento";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al cancelar el documento";
       errorToast(errorMessage);
     } finally {
       setCancelId(null);
