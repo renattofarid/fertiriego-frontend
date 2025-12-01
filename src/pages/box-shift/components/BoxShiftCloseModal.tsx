@@ -1,7 +1,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useBoxShiftStore } from "../lib/box-shift.store";
-import { boxShiftSchemaClose, type BoxShiftSchemaClose } from "../lib/box-shift.schema";
+import {
+  boxShiftSchemaClose,
+  type BoxShiftSchemaClose,
+} from "../lib/box-shift.schema";
 import { useBoxShiftById } from "../lib/box-shift.hook";
 import {
   Dialog,
@@ -41,7 +44,7 @@ export default function BoxShiftCloseModal({
   const { data: shift, isFinding } = useBoxShiftById(shiftId);
 
   const form = useForm<BoxShiftSchemaClose>({
-    resolver: zodResolver(boxShiftSchemaClose),
+    resolver: zodResolver(boxShiftSchemaClose) as any,
     defaultValues: {
       box_id: 0,
       closed_amount: 0,
@@ -63,7 +66,10 @@ export default function BoxShiftCloseModal({
       form.reset();
       onSuccess();
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error) || "Error al cerrar turno");
+      errorToast(
+        (error.response.data.message ?? error.response.data.error) ||
+          "Error al cerrar turno"
+      );
     }
   };
 
@@ -78,7 +84,9 @@ export default function BoxShiftCloseModal({
         </DialogHeader>
 
         {isFinding ? (
-          <div className="text-center py-4">Cargando información del turno...</div>
+          <div className="text-center py-4">
+            Cargando información del turno...
+          </div>
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -89,15 +97,21 @@ export default function BoxShiftCloseModal({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Total Ingresos:</span>
-                  <span className="text-green-600">+${shift?.total_income.toFixed(2)}</span>
+                  <span className="text-green-600">
+                    +${shift?.total_income.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-medium">Total Egresos:</span>
-                  <span className="text-red-600">-${shift?.total_outcome.toFixed(2)}</span>
+                  <span className="text-red-600">
+                    -${shift?.total_outcome.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between border-t pt-2">
                   <span className="font-bold">Balance Esperado:</span>
-                  <span className="font-bold text-blue-600">${shift?.expected_balance.toFixed(2)}</span>
+                  <span className="font-bold text-blue-600">
+                    ${shift?.expected_balance.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
@@ -113,7 +127,9 @@ export default function BoxShiftCloseModal({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value))
+                        }
                       />
                     </FormControl>
                     <FormMessage />

@@ -7,11 +7,10 @@ import { SelectActions } from "@/components/SelectActions";
 import type { BoxShiftResource } from "../lib/box-shift.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Edit, Trash2, DoorClosed } from "lucide-react";
+import { Eye, Trash2, DoorClosed } from "lucide-react";
 import { formatCurrency } from "@/lib/formatCurrency";
 
 export const BoxShiftColumns = ({
-  onEdit,
   onDelete,
   onView,
   onClose,
@@ -46,7 +45,9 @@ export const BoxShiftColumns = ({
     accessorKey: "started_amount",
     header: "Monto Inicial",
     cell: ({ getValue }) => (
-      <span className="font-medium">{formatCurrency(getValue() as number)}</span>
+      <span className="font-medium">
+        {formatCurrency(getValue() as number)}
+      </span>
     ),
   },
   {
@@ -65,7 +66,10 @@ export const BoxShiftColumns = ({
       const status = row.original.status;
       const isOpen = status === "ABIERTO";
       return (
-        <Badge variant={isOpen ? "default" : "secondary"} className="font-medium">
+        <Badge
+          variant={isOpen ? "default" : "secondary"}
+          className="font-medium"
+        >
           {status}
         </Badge>
       );

@@ -16,12 +16,7 @@ export default function BoxShiftTable({
   children,
 }: BoxShiftTableProps) {
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      isLoading={isLoading}
-      searchPlaceholder="Buscar turnos..."
-    >
+    <DataTable columns={columns} data={data} isLoading={isLoading}>
       {children}
     </DataTable>
   );

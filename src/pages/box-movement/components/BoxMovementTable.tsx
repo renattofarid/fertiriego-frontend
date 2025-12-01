@@ -20,7 +20,6 @@ export default function BoxMovementTable({
       columns={columns}
       data={data}
       isLoading={isLoading}
-      searchPlaceholder="Buscar movimientos..."
     >
       {children}
     </DataTable>

@@ -51,7 +51,9 @@ export default function BoxShiftPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? ERROR_MESSAGE(MODEL, "delete");
+        error.response.data.message ??
+        error.response.data.error ??
+        ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -74,7 +76,7 @@ export default function BoxShiftPage() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <TitleComponent
-          title={MODEL.plural}
+          title={MODEL.name}
           subtitle={MODEL.description}
           icon={ICON}
         />
@@ -96,6 +98,8 @@ export default function BoxShiftPage() {
 
       <DataTablePagination
         page={page}
+        per_page={per_page}
+        setPerPage={setPerPage}
         totalPages={meta?.last_page || 1}
         onPageChange={setPage}
         totalData={meta?.total || 0}
@@ -106,8 +110,6 @@ export default function BoxShiftPage() {
           open={!!deleteId}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
-          title={MODEL.TITLES?.delete?.title}
-          description={MODEL.TITLES?.delete?.subtitle}
         />
       )}
 
