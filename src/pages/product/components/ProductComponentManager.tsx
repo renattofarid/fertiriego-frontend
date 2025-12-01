@@ -91,11 +91,10 @@ export function ProductComponentManager({
       resetForm();
       refetch();
       onComponentChange?.();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : `Error al ${editingComponent ? "actualizar" : "agregar"} el componente`;
+           (error.response.data.message ?? error.response.data.error) ??
+           `Error al ${editingComponent ? "actualizar" : "agregar"} el componente`;
       errorToast(errorMessage);
     }
   };
@@ -117,9 +116,9 @@ export function ProductComponentManager({
       successToast("Componente eliminado exitosamente");
       refetch();
       onComponentChange?.();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error al eliminar el componente";
+        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar el componente";
       errorToast(errorMessage);
     } finally {
       setDeleteComponentId(null);

@@ -19,7 +19,8 @@ export function useProductType(params?: Record<string, unknown>) {
 }
 
 export function useAllProductTypes() {
-  const { allProductTypes, fetchAllProductTypes } = useProductTypeStore();
+  const { allProductTypes, fetchAllProductTypes, isLoadingAll } =
+    useProductTypeStore();
 
   useEffect(() => {
     if (!allProductTypes) {
@@ -29,6 +30,7 @@ export function useAllProductTypes() {
 
   return {
     data: allProductTypes,
+    isLoading: isLoadingAll,
   };
 }
 

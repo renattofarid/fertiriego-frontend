@@ -1,17 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run lint)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run dev:*)",
-      "Bash(npx eslint:*)",
-      "Bash(npx tsc:*)",
-      "Bash(find:*)",
-      "Bash(npm run build:*)",
       "Bash(mkdir:*)",
-      "Bash(git checkout:*)",
-      "Bash(dir:*)",
-      "Bash(ls -la \"e:\\front\\fertiriego-frontend\\src\"\" 2>/dev/null || echo \"Intentando directorio alternativo \")"
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

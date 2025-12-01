@@ -96,11 +96,10 @@ export function PersonRoleAssignment({
       refetchPersonRoleDetails();
       setHasChanges(false);
       onClose();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al actualizar los roles";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al actualizar los roles";
       errorToast(errorMessage);
     }
   };

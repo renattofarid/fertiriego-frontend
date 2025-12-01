@@ -55,7 +55,7 @@ export default function BoxModal({ id, open, title, mode, onClose }: Props) {
         })
         .catch((error: any) => {
           errorToast(
-            error.response.data.message ??
+            (error.response.data.message ?? error.response.data.error) ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "create")
           );

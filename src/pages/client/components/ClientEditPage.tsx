@@ -80,18 +80,10 @@ export default function ClientEditPage() {
         SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "update")
       );
       navigate("/clientes");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error &&
-        "response" in error &&
-        typeof error.response === "object" &&
-        error.response !== null &&
-        "data" in error.response &&
-        typeof error.response.data === "object" &&
-        error.response.data !== null &&
-        "message" in error.response.data
-          ? (error.response.data.message as string)
-          : "Error al actualizar cliente";
+          ((error.response.data.message ?? error.response.data.error) as string)
+          ?? "Error al actualizar cliente";
 
       errorToast(
         errorMessage,

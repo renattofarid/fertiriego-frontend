@@ -52,18 +52,10 @@ export default function SupplierAddPage() {
         SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
       );
       navigate("/proveedores");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error &&
-        "response" in error &&
-        typeof error.response === "object" &&
-        error.response !== null &&
-        "data" in error.response &&
-        typeof error.response.data === "object" &&
-        error.response.data !== null &&
-        "message" in error.response.data
-          ? (error.response.data.message as string)
-          : "Error al crear proveedor";
+          ((error.response.data.message ?? error.response.data.error) as string)
+          ?? "Error al crear proveedor";
 
       errorToast(
         errorMessage,

@@ -71,6 +71,16 @@ import { AccountsReceivableRoute } from "./pages/accounts-receivable/lib/account
 import { AccountsReceivablePage } from "./pages/accounts-receivable/components";
 import { WAREHOUSE_PRODUCT } from "./pages/warehouse-product/lib/warehouse-product.interface";
 import WarehouseProductPage from "./pages/warehouse-product/components/WarehouseProductPage";
+import { WAREHOUSE_DOCUMENT } from "./pages/warehouse-document/lib/warehouse-document.interface";
+import WarehouseDocumentPage from "./pages/warehouse-document/components/WarehouseDocumentPage";
+import WarehouseDocumentAddPage from "./pages/warehouse-document/components/WarehouseDocumentAddPage";
+import WarehouseDocumentEditPage from "./pages/warehouse-document/components/WarehouseDocumentEditPage";
+import WarehouseDocumentDetailPage from "./pages/warehouse-document/components/WarehouseDocumentDetailPage";
+import WarehouseKardexPage from "./pages/warehouse-document/components/WarehouseKardexPage";
+import ValuatedInventoryPage from "./pages/warehouse-document/components/ValuatedInventoryPage";
+import { BOX_SHIFT } from "./pages/box-shift/lib/box-shift.interface";
+import BoxShiftPage from "./pages/box-shift/components/BoxShiftPage";
+import BoxShiftDetailPage from "./pages/box-shift/components/BoxShiftDetailPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -89,6 +99,8 @@ const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
+const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
+const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -525,6 +537,78 @@ export default function App() {
             element={
               <ProtectedRoute path={WarehouseProductRoute}>
                 <WarehouseProductPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={WarehouseDocumentRoute}
+            element={
+              <ProtectedRoute path={WarehouseDocumentRoute}>
+                <WarehouseDocumentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-almacen/agregar"
+            element={
+              <ProtectedRoute path={WarehouseDocumentRoute}>
+                <WarehouseDocumentAddPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/documentos-almacen/:id"
+            element={
+              <ProtectedRoute path={WarehouseDocumentRoute}>
+                <WarehouseDocumentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-almacen/actualizar/:id"
+            element={
+              <ProtectedRoute path={WarehouseDocumentRoute}>
+                <WarehouseDocumentEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/kardex"
+            element={
+              <ProtectedRoute path="/kardex">
+                <WarehouseKardexPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/inventario-valorizado"
+            element={
+              <ProtectedRoute path="/inventario-valorizado">
+                <ValuatedInventoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Caja Chica */}
+          <Route
+            path={BoxShiftRoute}
+            element={
+              <ProtectedRoute path={BoxShiftRoute}>
+                <BoxShiftPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/turnos-caja/:id"
+            element={
+              <ProtectedRoute path={BoxShiftRoute}>
+                <BoxShiftDetailPage />
               </ProtectedRoute>
             }
           />

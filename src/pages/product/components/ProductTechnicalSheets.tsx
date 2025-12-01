@@ -29,11 +29,10 @@ export function ProductTechnicalSheets({
       });
       await fetchProduct(productId);
       successToast("Ficha técnica eliminada exitosamente");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Error al eliminar la ficha técnica";
+           (error.response.data.message ?? error.response.data.error) ??
+           "Error al eliminar la ficha técnica";
       errorToast(errorMessage);
     } finally {
       setDeleteSheetValue(null);

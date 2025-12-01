@@ -40,9 +40,9 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       await deleteProductImageStore(deleteImageId);
       await fetchProduct(productId);
       successToast("Imagen eliminada exitosamente");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error al eliminar la imagen";
+        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar la imagen";
       errorToast(errorMessage);
     } finally {
       setDeleteImageId(null);
@@ -64,7 +64,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       setAltText("");
     } catch (error: any) {
       errorToast(
-        error.response.data.message,
+        (error.response.data.message ?? error.response.data.error),
         ERROR_MESSAGE(
           {
             name: "Imagen de Producto",

@@ -17,10 +17,13 @@ import {
   warehouseProductSchemaUpdate,
   type WarehouseProductSchema,
 } from "../lib/warehouse-product.schema.ts";
-import { Loader } from "lucide-react";
+import { Loader, Plus } from "lucide-react";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { FormSelect } from "@/components/FormSelect";
+import { useState } from "react";
+import ProductModal from "@/pages/product/components/ProductModal";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 
 interface WarehouseProductFormProps {
   defaultValues: Partial<WarehouseProductSchema>;
@@ -37,8 +40,14 @@ export const WarehouseProductForm = ({
   isSubmitting = false,
   mode = "create",
 }: WarehouseProductFormProps) => {
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+
   const { data: warehouses, isLoading: loadingWarehouses } = useAllWarehouses();
-  const { data: products, isLoading: loadingProducts } = useAllProducts();
+  const {
+    data: products,
+    isLoading: loadingProducts,
+    refetch: refetchProducts,
+  } = useAllProducts();
 
   const form = useForm({
     resolver: zodResolver(
@@ -71,6 +80,20 @@ export const WarehouseProductForm = ({
       label: product.name,
     })) || [];
 
+  // Handlers para el modal de producto
+  const handleOpenProductModal = () => {
+    setIsProductModalOpen(true);
+  };
+
+  const handleCloseProductModal = () => {
+    setIsProductModalOpen(false);
+  };
+
+  const handleCloseProduct = () => {
+    setIsProductModalOpen(false);
+    refetchProducts();
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
@@ -87,14 +110,27 @@ export const WarehouseProductForm = ({
           </div>
 
           <div className="col-span-full">
-            <FormSelect
-              name="product_id"
-              label="Producto"
-              placeholder="Seleccione un producto"
-              options={productOptions}
-              control={form.control}
-              disabled={loadingProducts}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelect
+                  name="product_id"
+                  label="Producto"
+                  placeholder="Seleccione un producto"
+                  options={productOptions}
+                  control={form.control}
+                  disabled={loadingProducts}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleOpenProductModal}
+                title="Crear nuevo producto"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <FormField
@@ -182,6 +218,15 @@ export const WarehouseProductForm = ({
           </Button>
         </div>
       </form>
+
+      {/* Modal para crear producto */}
+      <ProductModal
+        open={isProductModalOpen}
+        onClose={handleCloseProduct}
+        onCloseModal={handleCloseProductModal}
+        title={PRODUCT.TITLES.create.title}
+        mode="create"
+      />
     </Form>
   );
 };
