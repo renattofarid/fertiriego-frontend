@@ -82,7 +82,7 @@ export default function WarehouseDocumentPage() {
       await deleteWarehouseDocument(deleteId);
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error ? (error.response.data.message ?? error.response.data.error) : ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
@@ -97,7 +97,7 @@ export default function WarehouseDocumentPage() {
       await confirmWarehouseDocument(confirmId);
       await refetch();
       successToast("Documento confirmado exitosamente");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)
@@ -114,7 +114,7 @@ export default function WarehouseDocumentPage() {
       await cancelWarehouseDocument(cancelId);
       await refetch();
       successToast("Documento cancelado exitosamente");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)

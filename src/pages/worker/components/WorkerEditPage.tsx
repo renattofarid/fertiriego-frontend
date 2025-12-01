@@ -80,7 +80,7 @@ export default function WorkerEditPage() {
         SUCCESS_MESSAGE({ name: "Trabajador", gender: false }, "update")
       );
       navigate("/trabajadores");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

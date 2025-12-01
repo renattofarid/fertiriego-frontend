@@ -96,7 +96,7 @@ export function PersonRoleAssignment({
       refetchPersonRoleDetails();
       setHasChanges(false);
       onClose();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)

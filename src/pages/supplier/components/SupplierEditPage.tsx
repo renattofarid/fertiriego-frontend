@@ -80,7 +80,7 @@ export default function SupplierEditPage() {
         SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "update")
       );
       navigate("/proveedores");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

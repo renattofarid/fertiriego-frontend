@@ -80,7 +80,7 @@ export default function ClientEditPage() {
         SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "update")
       );
       navigate("/clientes");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

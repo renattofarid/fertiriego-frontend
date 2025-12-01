@@ -52,7 +52,7 @@ export default function WorkerAddPage() {
         SUCCESS_MESSAGE({ name: "Trabajador", gender: false }, "create")
       );
       navigate("/trabajadores");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

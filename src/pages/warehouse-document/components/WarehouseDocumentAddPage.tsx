@@ -43,7 +43,7 @@ export default function WarehouseDocumentAddPage() {
       await storeWarehouseDocument(payload);
       successToast("Documento creado exitosamente");
       navigate("/documentos-almacen");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al crear el documento";
       errorToast(errorMessage);

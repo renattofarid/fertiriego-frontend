@@ -63,7 +63,7 @@ export default function ProductEditPage() {
       await updateProduct(Number(id), data);
       successToast(SUCCESS_MESSAGE(MODEL, "update"));
       navigate("/productos");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)

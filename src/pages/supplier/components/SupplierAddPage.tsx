@@ -52,7 +52,7 @@ export default function SupplierAddPage() {
         SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
       );
       navigate("/proveedores");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

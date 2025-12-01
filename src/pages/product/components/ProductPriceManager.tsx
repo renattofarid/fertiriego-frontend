@@ -103,7 +103,7 @@ export function ProductPriceManager({
       resetForm();
       refetch();
       onPriceChange?.();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)
@@ -131,7 +131,7 @@ export function ProductPriceManager({
       successToast("Precio eliminado exitosamente");
       refetch();
       onPriceChange?.();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error ? (error.response.data.message ?? error.response.data.error) : "Error al eliminar el precio";
       errorToast(errorMessage);

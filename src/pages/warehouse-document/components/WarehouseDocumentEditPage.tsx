@@ -52,7 +52,7 @@ export default function WarehouseDocumentEditPage() {
       await updateDocument(parseInt(id), payload);
       successToast("Documento actualizado exitosamente");
       navigate("/documentos-almacen");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)

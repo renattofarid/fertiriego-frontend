@@ -52,7 +52,7 @@ export default function ClientAddPage() {
         SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "create")
       );
       navigate("/clientes");
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error &&
         "response" in error &&

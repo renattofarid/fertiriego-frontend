@@ -65,7 +65,7 @@ export default function WarehouseDocumentDetailPage() {
     try {
       const response = await findWarehouseDocumentById(Number(id));
       setDocument(response.data);
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)
@@ -89,7 +89,7 @@ export default function WarehouseDocumentDetailPage() {
       await confirmWarehouseDocument(confirmId);
       successToast("Documento confirmado exitosamente");
       await loadDocument();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)
@@ -106,7 +106,7 @@ export default function WarehouseDocumentDetailPage() {
       await cancelWarehouseDocument(cancelId);
       successToast("Documento cancelado exitosamente");
       await loadDocument();
-    } catch (error: unknown) {
+    } catch (error: any) {
       const errorMessage =
         error instanceof Error
           ? (error.response.data.message ?? error.response.data.error)
