@@ -11,10 +11,11 @@ import { getDocumentTypeLabel } from "../lib/warehouse-document.constants";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
-import { DOCUMENT_TYPES, MOVEMENT_TYPES } from "../lib/warehouse-document.constants";
-import { DatePickerFormField } from "@/components/DatePickerFormField";
-import { useForm } from "react-hook-form";
-import { Form } from "@/components/ui/form";
+import {
+  DOCUMENT_TYPES,
+  MOVEMENT_TYPES,
+} from "../lib/warehouse-document.constants";
+import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 
 const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
   {
@@ -177,10 +178,10 @@ export default function WarehouseKardexPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [selectedMovementType, setSelectedMovementType] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-
-  const form = useForm();
+  const [fromDate, setFromDate] = useState(new Date());
+  const [toDate, setToDate] = useState(
+    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  );
 
   const { data: warehouses } = useAllWarehouses();
   const { data: products } = useAllProducts();
@@ -275,24 +276,20 @@ export default function WarehouseKardexPage() {
                 onChange={setSelectedMovementType}
                 placeholder="Todos los movimientos"
               />
-            </div>
 
-            <Form {...form}>
-              <div className="flex items-center gap-2">
-                <DatePickerFormField
-                  control={form.control}
-                  name="from_date"
-                  label="Desde"
-                  onChange={(date) => setFromDate(typeof date === 'string' ? date : "")}
-                />
-                <DatePickerFormField
-                  control={form.control}
-                  name="to_date"
-                  label="Hasta"
-                  onChange={(date) => setToDate(typeof date === 'string' ? date : "")}
-                />
-              </div>
-            </Form>
+              <DateRangePickerFilter
+                placeholder="Rango de fechas"
+                className="md:min-w-64 w-full md:w-auto"
+                dateFrom={fromDate ? new Date(fromDate) : undefined}
+                dateTo={toDate ? new Date(toDate) : undefined}
+                onDateChange={(from, to) => {
+                  setFromDate(from ? from : new Date());
+                  setToDate(
+                    to ? to : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                  );
+                }}
+              />
+            </div>
           </div>
         </DataTable>
       </div>
