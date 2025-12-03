@@ -62,29 +62,36 @@ export type DocumentStatus = "BORRADOR" | "CONFIRMADO" | "CANCELADO";
 
 // Warehouse Document Detail
 export interface WarehouseDocumentDetail {
-  id?: number;
+  id: number;
+  warehouse_document_id: number;
   product_id: number;
-  product_name?: string;
+  product_name: string;
   quantity: number;
   unit_cost: number;
-  observations?: string;
+  total_cost: number;
+  observations: string;
 }
 
 // Warehouse Document Resource
 export interface WarehouseDocumentResource {
   id: number;
+  correlativo: string;
   warehouse_id: number;
   warehouse_name: string;
   document_type: DocumentType;
   document_number: string;
+  destination_warehouse_id: null;
+  destination_warehouse_name: null;
   person_id: number;
-  person_name: string;
+  person_fullname: string;
+  user_id: number;
+  user_name: string;
   document_date: string;
-  observations: string;
+  posting_date: null;
   status: DocumentStatus;
+  observations: string;
   details: WarehouseDocumentDetail[];
   created_at: string;
-  updated_at: string;
 }
 
 // API Responses

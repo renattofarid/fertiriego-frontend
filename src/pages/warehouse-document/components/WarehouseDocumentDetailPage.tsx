@@ -67,8 +67,9 @@ export default function WarehouseDocumentDetailPage() {
       setDocument(response.data);
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           "Error al cargar el documento";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al cargar el documento";
       errorToast(errorMessage);
       navigate(`/${ROUTE}`);
     } finally {
@@ -90,8 +91,9 @@ export default function WarehouseDocumentDetailPage() {
       await loadDocument();
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           "Error al confirmar el documento";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al confirmar el documento";
       errorToast(errorMessage);
     } finally {
       setConfirmId(null);
@@ -106,8 +108,9 @@ export default function WarehouseDocumentDetailPage() {
       await loadDocument();
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           "Error al cancelar el documento";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al cancelar el documento";
       errorToast(errorMessage);
     } finally {
       setCancelId(null);
@@ -119,7 +122,7 @@ export default function WarehouseDocumentDetailPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to={`/${ROUTE}`} />
+            <BackButton to={`${ROUTE}`} />
             <TitleComponent title="Detalle del Documento" />
           </div>
         </div>
@@ -132,7 +135,7 @@ export default function WarehouseDocumentDetailPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton to={`/${ROUTE}`} />
+          <BackButton to={`${ROUTE}`} />
           <TitleComponent title="Detalle del Documento" />
         </div>
         <div className="text-center py-8">
@@ -149,7 +152,7 @@ export default function WarehouseDocumentDetailPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <BackButton to={`/${ROUTE}`} />
+            <BackButton to={`${ROUTE}`} />
             <TitleComponent
               title={`Documento ${document.document_number}`}
               subtitle={getDocumentTypeLabel(document.document_type)}
@@ -217,7 +220,7 @@ export default function WarehouseDocumentDetailPage() {
                 <span className="text-sm text-muted-foreground">
                   Responsable
                 </span>
-                <p className="font-semibold">{document.person_name}</p>
+                <p className="font-semibold">{document.person_fullname}</p>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">
@@ -259,20 +262,6 @@ export default function WarehouseDocumentDetailPage() {
                   })}
                 </p>
               </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Última Actualización
-                </span>
-                <p className="font-semibold">
-                  {new Date(document.updated_at).toLocaleDateString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
             </div>
 
             {document.observations && (
@@ -291,8 +280,7 @@ export default function WarehouseDocumentDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Detalles del Documento ({document.details?.length || 0}{" "}
-              productos)
+              Detalles del Documento ({document.details?.length || 0} productos)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -325,8 +313,7 @@ export default function WarehouseDocumentDetailPage() {
                           S/. {Number(detail.unit_cost).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
-                          S/.{" "}
-                          {(detail.quantity * detail.unit_cost).toFixed(2)}
+                          S/. {(detail.quantity * detail.unit_cost).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {detail.observations || "-"}
