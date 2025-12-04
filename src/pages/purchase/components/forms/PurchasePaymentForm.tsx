@@ -122,7 +122,7 @@ export function PurchasePaymentForm({
             <FormItem>
               <FormLabel>Número de Referencia</FormLabel>
               <FormControl>
-                <Input variant="primary" placeholder="Ej: OP-20251009-001" {...field} />
+                <Input  placeholder="Ej: OP-20251009-001" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -136,7 +136,7 @@ export function PurchasePaymentForm({
             <FormItem>
               <FormLabel>Número de Banco/Cuenta</FormLabel>
               <FormControl>
-                <Input variant="primary" placeholder="Ej: 4567891230" {...field} />
+                <Input  placeholder="Ej: 4567891230" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -151,7 +151,7 @@ export function PurchasePaymentForm({
               <FormItem>
                 <FormLabel>Efectivo</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" variant="primary" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01"  placeholder="0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -165,7 +165,7 @@ export function PurchasePaymentForm({
               <FormItem>
                 <FormLabel>Yape</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" variant="primary" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01"  placeholder="0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -179,7 +179,7 @@ export function PurchasePaymentForm({
               <FormItem>
                 <FormLabel>Plin</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" variant="primary" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01"  placeholder="0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -193,7 +193,7 @@ export function PurchasePaymentForm({
               <FormItem>
                 <FormLabel>Depósito</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" variant="primary" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01"  placeholder="0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -207,7 +207,7 @@ export function PurchasePaymentForm({
               <FormItem>
                 <FormLabel>Transferencia</FormLabel>
                 <FormControl>
-                  <Input type="number" step="0.01" variant="primary" placeholder="0.00" {...field} />
+                  <Input type="number" step="0.01"  placeholder="0.00" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

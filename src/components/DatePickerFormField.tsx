@@ -115,7 +115,7 @@ export function DatePickerFormField<T extends FieldValues>({
           <DrawerTrigger asChild>
             <FormControl>
               <Button
-                variant="input"
+                variant="outline"
                 className="w-full justify-between font-normal truncate"
                 disabled={disabled}
               >
@@ -146,7 +146,7 @@ export function DatePickerFormField<T extends FieldValues>({
           <PopoverTrigger asChild>
             <FormControl>
               <Button
-                variant="input"
+                variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal truncate",
                   !parsedDate && "text-muted-foreground"

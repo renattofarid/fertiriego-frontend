@@ -58,7 +58,7 @@ export const BrandForm = ({
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Marca 01"
                     {...field}
                   />
@@ -76,7 +76,7 @@ export const BrandForm = ({
                 <FormLabel>Código</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: M01"
                     className="font-mono uppercase"
                     maxLength={10}

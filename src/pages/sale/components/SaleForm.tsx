@@ -600,11 +600,7 @@ export const SaleForm = ({
                   <FormItem>
                     <FormLabel>Serie</FormLabel>
                     <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: F001"
-                        {...field}
-                      />
+                      <Input placeholder="Ej: F001" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -618,11 +614,7 @@ export const SaleForm = ({
                   <FormItem>
                     <FormLabel>Número</FormLabel>
                     <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: 00000001"
-                        {...field}
-                      />
+                      <Input placeholder="Ej: 00000001" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -700,7 +692,6 @@ export const SaleForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
                           placeholder="0.00"
                           {...field}
                         />
@@ -720,7 +711,6 @@ export const SaleForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
                           placeholder="0.00"
                           {...field}
                         />
@@ -740,7 +730,6 @@ export const SaleForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
                           placeholder="0.00"
                           {...field}
                         />
@@ -808,12 +797,7 @@ export const SaleForm = ({
                   <FormItem>
                     <FormLabel>Cantidad</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        variant="primary"
-                        placeholder="0"
-                        {...field}
-                      />
+                      <Input type="number" placeholder="0" {...field} />
                     </FormControl>
                   </FormItem>
                 )}
@@ -829,7 +813,6 @@ export const SaleForm = ({
                       <Input
                         type="number"
                         step="0.000001"
-                        variant="primary"
                         placeholder="0.000000"
                         {...field}
                       />
@@ -953,12 +936,7 @@ export const SaleForm = ({
                     <FormItem>
                       <FormLabel>Número de Cuota</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          variant="primary"
-                          placeholder="1"
-                          {...field}
-                        />
+                        <Input type="number" placeholder="1" {...field} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -971,12 +949,7 @@ export const SaleForm = ({
                     <FormItem>
                       <FormLabel>Días de Vencimiento</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          variant="primary"
-                          placeholder="30"
-                          {...field}
-                        />
+                        <Input type="number" placeholder="30" {...field} />
                       </FormControl>
                     </FormItem>
                   )}
@@ -992,7 +965,6 @@ export const SaleForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
                           placeholder="0.00"
                           {...field}
                         />

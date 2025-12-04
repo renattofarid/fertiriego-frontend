@@ -84,7 +84,7 @@ export const WarehouseForm = ({
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Almacén Principal"
                     {...field}
                   />
@@ -102,7 +102,7 @@ export const WarehouseForm = ({
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Carretera Central km 12"
                     {...field}
                   />
@@ -120,7 +120,7 @@ export const WarehouseForm = ({
                 <FormLabel>Capacidad</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="number"
                     placeholder="Ej: 5000"
                     {...field}
@@ -140,7 +140,7 @@ export const WarehouseForm = ({
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: 987654322"
                     maxLength={9}
                     {...field}
@@ -159,7 +159,7 @@ export const WarehouseForm = ({
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="email"  
                     placeholder="Ej: almacen.principal@empresa.com"
                     {...field}

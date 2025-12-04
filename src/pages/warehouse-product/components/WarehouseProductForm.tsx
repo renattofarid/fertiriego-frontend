@@ -141,7 +141,7 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="number"
                     placeholder="Ej: 400"
                     {...field}
@@ -161,7 +161,7 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock Mínimo (Opcional)</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="number"
                     placeholder="Ej: 50"
                     {...field}
@@ -185,7 +185,7 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock Máximo (Opcional)</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="number"
                     placeholder="Ej: 1000"
                     {...field}

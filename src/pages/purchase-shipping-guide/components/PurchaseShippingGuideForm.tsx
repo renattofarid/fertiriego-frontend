@@ -528,7 +528,7 @@ export const PurchaseShippingGuideForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
+                          
                           placeholder="0"
                           {...field}
                         />

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { ProductForm } from "./ProductForm";
 import { type ProductSchema } from "../lib/product.schema";
@@ -21,7 +20,7 @@ import { PRODUCT } from "../lib/product.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL } = PRODUCT;
+const { MODEL, ICON } = PRODUCT;
 
 export default function ProductAddPage() {
   const navigate = useNavigate();
@@ -53,7 +52,10 @@ export default function ProductAddPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate("/productos");
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "create"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "create")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -64,8 +66,7 @@ export default function ProductAddPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/productos" />
-            <TitleFormComponent title={MODEL.name} mode="create" />
+            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -77,8 +78,7 @@ export default function ProductAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/productos" />
-          <TitleFormComponent title={MODEL.name} mode="create" />
+          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

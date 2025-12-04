@@ -134,7 +134,7 @@ export function PurchaseOrderDetailForm({
                 <FormControl>
                   <Input
                     type="number"
-                    variant="primary"
+                    
                     placeholder="0"
                     {...field}
                   />
@@ -154,7 +154,7 @@ export function PurchaseOrderDetailForm({
                   <Input
                     type="number"
                     step="0.000001"
-                    variant="primary"
+                    
                     placeholder="0.000000"
                     {...field}
                   />

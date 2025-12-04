@@ -124,7 +124,7 @@ export const ProductForm = ({
                   <FormLabel>Nombre del Producto</FormLabel>
                   <FormControl>
                     <Input
-                      variant="primary"
+                      
                       placeholder="Ej: Televisor Samsung 55 pulgadas"
                       {...field}
                     />

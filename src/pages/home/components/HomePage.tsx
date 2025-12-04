@@ -273,7 +273,7 @@ export default function HomePage() {
           value={`S/. ${stats.totalSaleAmount.toFixed(2)}`}
           subtitle={`${stats.totalSales} transacciones`}
           icon={ShoppingBag}
-          variant="primary"
+          
         />
         <StatCard
           title="Total Compras"

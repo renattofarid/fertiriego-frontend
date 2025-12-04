@@ -194,7 +194,7 @@ export function PurchaseDetailModal({
                   <FormControl>
                     <Input
                       type="number"
-                      variant="primary"
+                      
                       placeholder="0"
                       {...field}
                     />
@@ -214,7 +214,7 @@ export function PurchaseDetailModal({
                     <Input
                       type="number"
                       step="0.01"
-                      variant="primary"
+                      
                       placeholder="0.00"
                       {...field}
                     />
@@ -234,7 +234,7 @@ export function PurchaseDetailModal({
                     <Input
                       type="number"
                       step="0.01"
-                      variant="primary"
+                      
                       placeholder="0.00"
                       {...field}
                     />
