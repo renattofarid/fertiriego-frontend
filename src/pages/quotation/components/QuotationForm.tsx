@@ -12,13 +12,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader, Plus, Trash2 } from "lucide-react";
+import { FileText, Loader, Package, Plus, Trash2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -34,7 +34,6 @@ import {
   QUOTATION_STATUSES,
   type CreateQuotationRequest,
 } from "../lib/quotation.interface";
-import { GroupFormSection } from "@/components/GroupFormSection";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import {
   Card,
@@ -43,6 +42,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 interface QuotationFormProps {
   onSubmit: (data: CreateQuotationRequest) => void;
@@ -206,63 +206,45 @@ export const QuotationForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmitForm)} className="space-y-6">
-        <GroupFormSection title="Información General" icon="FileText">
+      <form
+        onSubmit={form.handleSubmit(handleSubmitForm)}
+        className="space-y-6"
+      >
+        <GroupFormSection title="Información General" icon={FileText}>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
+            <FormSelect
               control={form.control}
               name="customer_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <FormControl>
-                    <FormSelect
-                      {...field}
-                      options={customers.map((c) => ({
-                        value: c.id.toString(),
-                        label: c.business_name || c.full_name,
-                      }))}
-                      placeholder="Seleccionar cliente"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Cliente"
+              options={customers.map((c) => ({
+                value: c.id.toString(),
+                label:
+                  c.business_name ||
+                  c.names +
+                    " " +
+                    c.father_surname +
+                    " " +
+                    (c.mother_surname || ""),
+              }))}
+              placeholder="Seleccionar cliente"
             />
 
-            <FormField
+            <FormSelect
               control={form.control}
               name="warehouse_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Almacén</FormLabel>
-                  <FormControl>
-                    <FormSelect
-                      {...field}
-                      options={warehouses.map((w) => ({
-                        value: w.id.toString(),
-                        label: w.name,
-                      }))}
-                      placeholder="Seleccionar almacén"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Almacén"
+              options={warehouses.map((w) => ({
+                value: w.id.toString(),
+                label: w.name,
+              }))}
+              placeholder="Seleccionar almacén"
             />
 
-            <FormField
+            <DatePickerFormField
               control={form.control}
               name="fecha_emision"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fecha Emisión</FormLabel>
-                  <FormControl>
-                    <DatePickerFormField {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Fecha de Emisión"
+              placeholder="Seleccionar fecha"
             />
 
             <FormField
@@ -293,67 +275,37 @@ export const QuotationForm = ({
               )}
             />
 
-            <FormField
+            <FormSelect
               control={form.control}
               name="payment_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tipo de Pago</FormLabel>
-                  <FormControl>
-                    <FormSelect
-                      {...field}
-                      options={PAYMENT_TYPES.map((type) => ({
-                        value: type.value,
-                        label: type.label,
-                      }))}
-                      placeholder="Seleccionar tipo de pago"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Tipo de Pago"
+              options={PAYMENT_TYPES.map((type) => ({
+                value: type.value,
+                label: type.label,
+              }))}
+              placeholder="Seleccionar tipo de pago"
             />
 
-            <FormField
+            <FormSelect
               control={form.control}
               name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Moneda</FormLabel>
-                  <FormControl>
-                    <FormSelect
-                      {...field}
-                      options={CURRENCIES.map((currency) => ({
-                        value: currency.value,
-                        label: currency.label,
-                      }))}
-                      placeholder="Seleccionar moneda"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Moneda"
+              options={CURRENCIES.map((currency) => ({
+                value: currency.value,
+                label: currency.label,
+              }))}
+              placeholder="Seleccionar moneda"
             />
 
-            <FormField
+            <FormSelect
               control={form.control}
               name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estado</FormLabel>
-                  <FormControl>
-                    <FormSelect
-                      {...field}
-                      options={QUOTATION_STATUSES.map((status) => ({
-                        value: status.value,
-                        label: status.label,
-                      }))}
-                      placeholder="Seleccionar estado"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Estado"
+              options={QUOTATION_STATUSES.map((status) => ({
+                value: status.value,
+                label: status.label,
+              }))}
+              placeholder="Seleccionar estado"
             />
 
             <FormField
@@ -418,15 +370,14 @@ export const QuotationForm = ({
           </div>
         </GroupFormSection>
 
-        <GroupFormSection title="Agregar Producto" icon="Package">
+        <GroupFormSection title="Agregar Producto" icon={Package}>
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div className="md:col-span-2">
               <FormLabel>Producto</FormLabel>
               <FormSelect
-                value={currentDetail.product_id}
-                onChange={(value) =>
-                  setCurrentDetail({ ...currentDetail, product_id: value })
-                }
+                control={form.control}
+                name="product_id"
+                label="Producto"
                 options={products.map((p) => ({
                   value: p.id.toString(),
                   label: p.name,
@@ -442,7 +393,10 @@ export const QuotationForm = ({
                 step="0.01"
                 value={currentDetail.quantity}
                 onChange={(e) =>
-                  setCurrentDetail({ ...currentDetail, quantity: e.target.value })
+                  setCurrentDetail({
+                    ...currentDetail,
+                    quantity: e.target.value,
+                  })
                 }
                 placeholder="0.00"
               />
@@ -546,7 +500,9 @@ export const QuotationForm = ({
                         {parseFloat(detail.purchase_price).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={detail.is_igv ? "default" : "secondary"}>
+                        <Badge
+                          variant={detail.is_igv ? "default" : "secondary"}
+                        >
                           {detail.is_igv ? "Sí" : "No"}
                         </Badge>
                       </TableCell>

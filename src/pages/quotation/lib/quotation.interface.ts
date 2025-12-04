@@ -45,7 +45,7 @@ export interface QuotationResource {
   reference: string;
   account_number: string;
   warehouse_id: number;
-  warehouse: {
+  warehouse?: {
     id: number;
     name: string;
     address: string;
@@ -58,7 +58,7 @@ export interface QuotationResource {
     created_at: string;
   };
   customer_id: number;
-  customer: {
+  customer?: {
     id: number;
     type_document: string;
     type_person: string;
