@@ -15,7 +15,6 @@ import {
 import { WarehouseProductColumns } from "./WarehouseProductColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { WAREHOUSE_PRODUCT } from "../lib/warehouse-product.interface";
-import WarehouseProductModal from "./WarehouseProductModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
@@ -29,7 +28,7 @@ export default function WarehouseProductPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [warehouseId, setWarehouseId] = useState("");
   const [productId, setProductId] = useState("");
-  const [editId, setEditId] = useState<number | null>(null);
+  // const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { data, meta, isLoading, refetch } = useWarehouseProduct();
 
@@ -51,7 +50,10 @@ export default function WarehouseProductPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete")
+      );
     } finally {
       setDeleteId(null);
     }
@@ -75,7 +77,7 @@ export default function WarehouseProductPage() {
       <WarehouseProductTable
         isLoading={isLoading}
         columns={WarehouseProductColumns({
-          onEdit: setEditId,
+          // onEdit: setEditId,
           onDelete: setDeleteId,
         })}
         data={data || []}
@@ -100,16 +102,6 @@ export default function WarehouseProductPage() {
         setPerPage={setPerPage}
         totalData={meta?.total || 0}
       />
-
-      {editId !== null && (
-        <WarehouseProductModal
-          id={editId}
-          open={true}
-          onClose={() => setEditId(null)}
-          title={`Editar ${MODEL.name}`}
-          mode="update"
-        />
-      )}
 
       {deleteId !== null && (
         <SimpleDeleteDialog

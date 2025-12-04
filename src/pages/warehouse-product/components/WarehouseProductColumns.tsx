@@ -9,10 +9,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 
 export const WarehouseProductColumns = ({
-  onEdit,
   onDelete,
 }: {
-  onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }): ColumnDef<WarehouseProductResource>[] => [
   {
@@ -81,9 +79,6 @@ export const WarehouseProductColumns = ({
       return (
         <SelectActions>
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => onDelete(id)}>
               Eliminar
             </DropdownMenuItem>

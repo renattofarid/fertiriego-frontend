@@ -183,90 +183,6 @@ const data = {
       icon: LayoutGrid,
     },
     {
-      title: "Gestión",
-      url: "#",
-      icon: CompanyIcon,
-      items: [
-        {
-          title: CompanyTitle,
-          url: CompanyRoute,
-          icon: CompanyIcon,
-        },
-        {
-          title: BranchTitle,
-          url: BranchRoute,
-          icon: BranchIcon,
-        },
-        {
-          title: WarehouseTitle,
-          url: WarehouseRoute,
-          icon: WarehouseIcon,
-        },
-        {
-          title: WarehouseProductTitle,
-          url: WarehouseProductRoute,
-          icon: WarehouseProductIcon,
-        },
-        {
-          title: WarehouseDocumentTitle,
-          url: WarehouseDocumentRoute,
-          icon: WarehouseDocumentIcon,
-        },
-        {
-          title: "Kardex",
-          url: "/kardex",
-          icon: Activity,
-        },
-        {
-          title: "Inventario Valorizado",
-          url: "/inventario-valorizado",
-          icon: Warehouse,
-        },
-        {
-          title: BoxTitle,
-          url: BoxRoute,
-          icon: BoxIcon,
-        },
-        {
-          title: BoxShiftTitle,
-          url: BoxShiftRoute,
-          icon: BoxShiftIcon,
-        },
-      ],
-    },
-    {
-      title: "Productos",
-      url: "#",
-      icon: Package,
-      items: [
-        {
-          title: CategoryTitle,
-          url: CategoryRoute,
-          icon: CategoryIcon,
-        },
-        {
-          title: ProductTitle,
-          url: ProductRoute,
-          icon: ProductIcon,
-        },
-        {
-          title: ProductTypeTitle,
-          url: ProductTypeRoute,
-          icon: ProductTypeIcon,
-        },
-        {
-          title: BrandTitle,
-          url: BrandRoute,
-          icon: BrandIcon,
-        },
-        {
-          title: UnitTitle,
-          url: UnitRoute,
-          icon: UnitIcon,
-        },
-      ],
-    },
-    {
       title: "Compras",
       url: "#",
       icon: ShoppingCart,
@@ -316,9 +232,41 @@ const data = {
       ],
     },
     {
-      title: "Seguridad",
+      title: "Productos",
       url: "#",
-      icon: ShieldUser,
+      icon: Package,
+      items: [
+        {
+          title: CategoryTitle,
+          url: CategoryRoute,
+          icon: CategoryIcon,
+        },
+        {
+          title: ProductTitle,
+          url: ProductRoute,
+          icon: ProductIcon,
+        },
+        {
+          title: ProductTypeTitle,
+          url: ProductTypeRoute,
+          icon: ProductTypeIcon,
+        },
+        {
+          title: BrandTitle,
+          url: BrandRoute,
+          icon: BrandIcon,
+        },
+        {
+          title: UnitTitle,
+          url: UnitRoute,
+          icon: UnitIcon,
+        },
+      ],
+    },
+    {
+      title: "Personas",
+      url: "#",
+      icon: ClientIcon,
       items: [
         {
           title: ClientTitle,
@@ -335,6 +283,72 @@ const data = {
           url: WorkerRoute,
           icon: WorkerIcon,
         },
+      ],
+    },
+    {
+      title: "Organización",
+      url: "#",
+      icon: CompanyIcon,
+      items: [
+        {
+          title: CompanyTitle,
+          url: CompanyRoute,
+          icon: CompanyIcon,
+        },
+        {
+          title: BranchTitle,
+          url: BranchRoute,
+          icon: BranchIcon,
+        },
+        {
+          title: WarehouseTitle,
+          url: WarehouseRoute,
+          icon: WarehouseIcon,
+        },
+      ],
+    },
+    {
+      title: "Operaciones",
+      url: "#",
+      icon: BoxIcon,
+      items: [
+        {
+          title: WarehouseDocumentTitle,
+          url: WarehouseDocumentRoute,
+          icon: WarehouseDocumentIcon,
+        },
+        {
+          title: "Kardex",
+          url: "/kardex",
+          icon: Activity,
+        },
+        {
+          title: "Inventario Valorizado",
+          url: "/inventario-valorizado",
+          icon: Warehouse,
+        },
+        {
+          title: BoxTitle,
+          url: BoxRoute,
+          icon: BoxIcon,
+        },
+        {
+          title: BoxShiftTitle,
+          url: BoxShiftRoute,
+          icon: BoxShiftIcon,
+        },
+        {
+          title: WarehouseProductTitle,
+          url: WarehouseProductRoute,
+          icon: WarehouseProductIcon,
+        },
+      ],
+    },
+    {
+      title: "Seguridad",
+      url: "#",
+      icon: ShieldUser,
+      items: [
         {
           title: UserTitle,
           url: UserRoute,

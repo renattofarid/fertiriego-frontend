@@ -9,7 +9,7 @@ export const WAREHOUSE_PRODUCT: ModelComplete<WarehouseProductResource> = {
   MODEL: {
     name: NAME,
     description: "Gestión de stock de productos en almacenes.",
-    plural: "Productos de Almacén",
+    plural: "Productos en Almacén",
     gender: true,
   },
   ICON: "Package",

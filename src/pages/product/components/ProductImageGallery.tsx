@@ -9,6 +9,14 @@ import { Upload, Plus, Trash2, Eye } from "lucide-react";
 import { successToast, errorToast, ERROR_MESSAGE } from "@/lib/core.function";
 import { useProductStore } from "../lib/product.store";
 import { prodAssetURL } from "@/lib/config";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface ProductImageGalleryProps {
   productId: number;
@@ -42,7 +50,9 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       successToast("Imagen eliminada exitosamente");
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar la imagen";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al eliminar la imagen";
       errorToast(errorMessage);
     } finally {
       setDeleteImageId(null);
@@ -64,7 +74,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
       setAltText("");
     } catch (error: any) {
       errorToast(
-        (error.response.data.message ?? error.response.data.error),
+        error.response.data.message ?? error.response.data.error,
         ERROR_MESSAGE(
           {
             name: "Imagen de Producto",
@@ -85,7 +95,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
     <div className="space-y-6">
       {/* Header with add button */}
       <div className="flex items-center justify-between">
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           {productImages?.data.length || 0} imagen(es) disponible(s)
         </p>
         <Button
@@ -143,21 +153,28 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 border-2 border-dashed border-muted rounded-xl">
-          <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No hay imágenes</h3>
-          <p className="text-muted-foreground mb-4">
-            Sube la primera imagen de este producto
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => setShowImageUpload(true)}
-            className="gap-2"
-          >
-            <Upload className="h-4 w-4" />
-            Subir primera imagen
-          </Button>
-        </div>
+        <Empty className="border border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Upload />
+            </EmptyMedia>
+            <EmptyTitle>No hay imágenes</EmptyTitle>
+            <EmptyDescription>
+              Sube la primera imagen de este producto
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              variant="outline"
+              size={"sm"}
+              onClick={() => setShowImageUpload(true)}
+              className="gap-2"
+            >
+              <Upload className="h-4 w-4" />
+              Subir primera imagen
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
 
       {/* Upload Modal */}
