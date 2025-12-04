@@ -1,6 +1,15 @@
 "use client";
 
-import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag, DollarSign, Warehouse, Activity } from "lucide-react";
+import {
+  LayoutGrid,
+  ShieldUser,
+  Package,
+  ShoppingCart,
+  ShoppingBag,
+  DollarSign,
+  Warehouse,
+  Activity,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -37,6 +46,8 @@ import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
+import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
+import { ORDER } from "@/pages/order/lib/order.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -151,6 +162,18 @@ const {
   ROUTE: BoxShiftRoute,
   MODEL: { plural: BoxShiftTitle },
 } = BOX_SHIFT;
+
+const {
+  ICON_REACT: QuotationIcon,
+  ROUTE: QuotationRoute,
+  MODEL: { name: QuotationTitle },
+} = QUOTATION;
+
+const {
+  ICON_REACT: OrderIcon,
+  ROUTE: OrderRoute,
+  MODEL: { name: OrderTitle },
+} = ORDER;
 
 const data = {
   navMain: [
@@ -274,6 +297,16 @@ const data = {
           title: "Ventas",
           url: SaleRoute,
           icon: ShoppingBag,
+        },
+        {
+          title: QuotationTitle,
+          url: QuotationRoute,
+          icon: QuotationIcon,
+        },
+        {
+          title: OrderTitle,
+          url: OrderRoute,
+          icon: OrderIcon,
         },
         {
           title: "Cuentas por Cobrar",

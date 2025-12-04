@@ -81,6 +81,18 @@ import ValuatedInventoryPage from "./pages/warehouse-document/components/Valuate
 import { BOX_SHIFT } from "./pages/box-shift/lib/box-shift.interface";
 import BoxShiftPage from "./pages/box-shift/components/BoxShiftPage";
 import BoxShiftDetailPage from "./pages/box-shift/components/BoxShiftDetailPage";
+import { QUOTATION } from "./pages/quotation/lib/quotation.interface";
+import { ORDER } from "./pages/order/lib/order.interface";
+import {
+  QuotationAddPage,
+  QuotationDetailPage,
+  QuotationPage,
+} from "./pages/quotation/components";
+import {
+  OrderAddPage,
+  OrderDetailPage,
+  OrderPage,
+} from "./pages/order/components";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -101,6 +113,8 @@ const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
 const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
+const { ROUTE: QuotationRoute } = QUOTATION;
+const { ROUTE: OrderRoute } = ORDER;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -609,6 +623,62 @@ export default function App() {
             element={
               <ProtectedRoute path={BoxShiftRoute}>
                 <BoxShiftDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Cotizaciones */}
+          <Route
+            path={QuotationRoute}
+            element={
+              <ProtectedRoute path={QuotationRoute}>
+                <QuotationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/cotizaciones/agregar"
+            element={
+              <ProtectedRoute path={QuotationRoute}>
+                <QuotationAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/cotizaciones/:id"
+            element={
+              <ProtectedRoute path={QuotationRoute}>
+                <QuotationDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Pedidos */}
+          <Route
+            path={OrderRoute}
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/pedidos/agregar"
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/pedidos/:id"
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderDetailPage />
               </ProtectedRoute>
             }
           />

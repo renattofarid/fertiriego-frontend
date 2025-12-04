@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
+import TraceabilityTimeline from "@/components/TraceabilityTimeline";
 
 interface SaleDetailSheetProps {
   sale: SaleResource | null;
@@ -480,6 +481,9 @@ export default function SaleDetailSheet({
             </CardContent>
           </Card>
         )}
+
+        {/* Trazabilidad */}
+        <TraceabilityTimeline entityType="sale" entityId={sale.id} />
 
         {/* Footer con metadata */}
         <Card className="bg-muted/30">
