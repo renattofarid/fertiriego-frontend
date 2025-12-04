@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSale } from "../lib/sale.hook";
 import SaleTable from "./SaleTable";
 import SaleActions from "./SaleActions";
@@ -20,10 +20,14 @@ import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
 import { errorToast } from "@/lib/core.function";
 import PageWrapper from "@/components/PageWrapper";
+import DataTablePagination from "@/components/DataTablePagination";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 export default function SalePage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
   const [saleToDelete, setSaleToDelete] = useState<number | null>(null);
   const [openDetailSheet, setOpenDetailSheet] = useState(false);
@@ -34,11 +38,22 @@ export default function SalePage() {
 
   const {
     data: sales,
+    meta,
     isLoading,
     refetch,
   } = useSale({
     search,
+    page,
+    per_page,
   });
+
+  useEffect(() => {
+    refetch({
+      page,
+      per_page,
+      search,
+    });
+  }, [page, per_page, search]);
 
   const { removeSale } = useSaleStore();
 
@@ -69,10 +84,7 @@ export default function SalePage() {
     // Validar que la suma de cuotas sea igual al total de la venta
     const totalAmount = sale.total_amount;
     const sumOfInstallments =
-      sale.installments?.reduce(
-        (sum, inst) => sum + parseFloat(inst.amount),
-        0
-      ) || 0;
+      sale.installments?.reduce((sum, inst) => sum + inst.amount, 0) || 0;
 
     if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
       errorToast(
@@ -87,7 +99,7 @@ export default function SalePage() {
 
     // Tomar la primera cuota pendiente si existe
     const pendingInstallment = sale.installments?.find(
-      (inst) => parseFloat(inst.pending_amount) > 0
+      (inst) => inst.pending_amount > 0
     );
 
     if (pendingInstallment) {
@@ -97,7 +109,11 @@ export default function SalePage() {
   };
 
   const handlePaymentSuccess = () => {
-    refetch();
+    refetch({
+      page,
+      per_page,
+      search,
+    });
     setOpenPaymentSheet(false);
     setSelectedInstallment(null);
   };
@@ -106,7 +122,11 @@ export default function SalePage() {
     if (saleToDelete) {
       try {
         await removeSale(saleToDelete);
-        refetch();
+        refetch({
+          page,
+          per_page,
+          search,
+        });
         setOpenDelete(false);
         setSaleToDelete(null);
       } catch (error) {
@@ -139,6 +159,15 @@ export default function SalePage() {
       <SaleTable columns={columns} data={sales || []} isLoading={isLoading}>
         <SaleOptions search={search} setSearch={setSearch} />
       </SaleTable>
+
+      <DataTablePagination
+        page={page}
+        totalPages={meta?.last_page || 1}
+        onPageChange={setPage}
+        per_page={per_page}
+        setPerPage={setPerPage}
+        totalData={meta?.total || 0}
+      />
 
       <SimpleDeleteDialog
         open={openDelete}

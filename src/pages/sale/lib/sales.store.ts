@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   SaleResource,
-  Meta,
   CreateSaleRequest,
   UpdateSaleRequest,
 } from "./sale.interface";
@@ -22,6 +21,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { SALE } from "./sale.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE;
 
@@ -76,14 +76,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await getSales(params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ sales: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar las ventas", isLoading: false });
@@ -159,20 +152,22 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.observations !== undefined && {
           observations: data.observations,
         }),
-        ...(data.details && data.details.length > 0 && {
-          details: data.details.map((detail) => ({
-            product_id: Number(detail.product_id),
-            quantity: Number(detail.quantity),
-            unit_price: Number(detail.unit_price),
-          })),
-        }),
-        ...(data.installments && data.installments.length > 0 && {
-          installments: data.installments.map((installment) => ({
-            installment_number: Number(installment.installment_number),
-            due_days: Number(installment.due_days),
-            amount: Number(installment.amount),
-          })),
-        }),
+        ...(data.details &&
+          data.details.length > 0 && {
+            details: data.details.map((detail) => ({
+              product_id: Number(detail.product_id),
+              quantity: Number(detail.quantity),
+              unit_price: Number(detail.unit_price),
+            })),
+          }),
+        ...(data.installments &&
+          data.installments.length > 0 && {
+            installments: data.installments.map((installment) => ({
+              installment_number: Number(installment.installment_number),
+              due_days: Number(installment.due_days),
+              amount: Number(installment.amount),
+            })),
+          }),
       };
 
       await updateSale(id, request);

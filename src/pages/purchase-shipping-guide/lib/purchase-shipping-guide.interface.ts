@@ -4,10 +4,12 @@ import type { ModelComplete } from "@/lib/core.interface";
 // ===== CONSTANTS =====
 
 export const PURCHASE_SHIPPING_GUIDE_ENDPOINT = "/purchase-shipping-guides";
-export const PURCHASE_SHIPPING_GUIDE_DETAIL_ENDPOINT = "/purchase-shipping-guide-details";
+export const PURCHASE_SHIPPING_GUIDE_DETAIL_ENDPOINT =
+  "/purchase-shipping-guide-details";
 
 export const PURCHASE_SHIPPING_GUIDE_QUERY_KEY = "purchase-shipping-guides";
-export const PURCHASE_SHIPPING_GUIDE_DETAIL_QUERY_KEY = "purchase-shipping-guide-details";
+export const PURCHASE_SHIPPING_GUIDE_DETAIL_QUERY_KEY =
+  "purchase-shipping-guide-details";
 
 export const PurchaseShippingGuideRoute = "/guias-compra";
 export const PurchaseShippingGuideAddRoute = `${PurchaseShippingGuideRoute}/agregar`;
@@ -142,15 +144,6 @@ export interface PurchaseShippingGuideResponse {
 
 export interface PurchaseShippingGuideResourceById {
   data: PurchaseShippingGuideResource;
-}
-
-export interface Meta {
-  current_page: number;
-  from: number;
-  last_page: number;
-  per_page: number;
-  to: number;
-  total: number;
 }
 
 // ===== MODEL COMPLETE =====

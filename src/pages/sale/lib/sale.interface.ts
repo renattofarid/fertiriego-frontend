@@ -6,32 +6,34 @@
 
 export interface SaleDetailResource {
   id: number;
-  correlativo: string;
   sale_id: number;
-  sale_correlativo: string;
   product_id: number;
-  product_name: string;
-  quantity: string;
-  unit_price: string;
-  subtotal: string;
-  tax: string;
-  total: string;
+  product: Product;
+  quantity: number;
+  unit_price: number;
+  purchase_price: number;
+  subtotal: number;
+  tax: number;
+  total: number;
+  profit: number;
+  profit_margin: number;
   created_at: string;
 }
 
 export interface SaleInstallmentResource {
   id: number;
-  correlativo: string;
   sale_id: number;
-  sale_correlativo: string;
   installment_number: number;
   due_days: number;
   due_date: string;
-  amount: string;
-  pending_amount: string;
+  amount: number;
+  pending_amount: number;
+  total_paid: number;
   status: string;
-  currency: string;
+  is_overdue: boolean;
+  payments: any[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface SaleResource {
@@ -40,8 +42,8 @@ export interface SaleResource {
   warehouse_id: number;
   user_id: number;
   customer_fullname: string;
-  customer_document: string | null;
-  warehouse_name: string;
+  customer_document?: string;
+  warehouse_name?: string;
   user_name: string;
   document_type: string;
   serie: string;
@@ -57,33 +59,18 @@ export interface SaleResource {
   amount_transfer: number;
   amount_other: number;
   total_paid: number;
+  quotation_id?: number;
+  order_id?: number;
   total_amount: number;
   current_amount: number;
   currency: string;
   status: string;
-  observations: string | null;
-  customer: {
-    id: number;
-    document_type: string | null;
-    document_number: string | null;
-    first_name: string | null;
-    father_surname: string;
-    mother_surname: string;
-    business_name: string;
-    full_name: string;
-  };
-  warehouse: {
-    id: number;
-    name: string;
-    address: string;
-  };
-  user: {
-    id: number;
-    name: string;
-    email: string | null;
-  };
-  details?: SaleDetailResource[];
-  installments?: SaleInstallmentResource[];
+  observations?: string;
+  customer: Customer;
+  warehouse: Warehouse;
+  user: User;
+  details: SaleDetailResource[];
+  installments: SaleInstallmentResource[];
   created_at: string;
   updated_at: string;
 }
@@ -95,28 +82,38 @@ export interface SaleResourceById {
 // ===== API RESPONSES =====
 
 export interface SaleResponse {
-  current_page: number;
   data: SaleResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
-export interface Meta {
-  current_page: number;
-  from: number;
-  last_page: number;
-  per_page: number;
-  to: number;
-  total: number;
+interface Product {
+  id: number;
+  name: string;
+  code?: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface Warehouse {
+  id?: number;
+  name?: string;
+  address?: string;
+}
+
+interface Customer {
+  id: number;
+  document_type?: string;
+  document_number?: string;
+  first_name?: string;
+  father_surname?: string;
+  mother_surname?: string;
+  business_name: string;
+  full_name: string;
 }
 
 // ===== CREATE/UPDATE REQUESTS =====
@@ -367,6 +364,7 @@ export const INSTALLMENT_STATUSES = [
 import type { ModelComplete } from "@/lib/core.interface";
 import type { SaleSchema } from "./sale.schema";
 import { ShoppingBag, PackageOpen, CreditCard, Wallet } from "lucide-react";
+import type { Links, Meta } from "@/lib/pagination.interface";
 
 const NAME = "Venta";
 const NAME_DETAIL = "Detalle de Venta";
