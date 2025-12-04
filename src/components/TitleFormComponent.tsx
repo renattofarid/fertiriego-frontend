@@ -1,10 +1,12 @@
 import * as LucideReact from "lucide-react";
+import { BackButton } from "./BackButton";
 
 interface Props {
   title: string;
   mode?: "create" | "edit";
   className?: string;
   icon?: keyof typeof LucideReact;
+  handleBack?: () => void;
 }
 
 export default function TitleFormComponent({
@@ -12,6 +14,7 @@ export default function TitleFormComponent({
   mode,
   className = "",
   icon,
+  handleBack,
 }: Props) {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -19,6 +22,7 @@ export default function TitleFormComponent({
 
   return (
     <div className={`flex items-center gap-4 ${className}`}>
+      <BackButton onClick={handleBack} />
       {IconComponent && (
         <div className="text-white bg-primary rounded-md p-2">
           <IconComponent className="size-5 text-white" />

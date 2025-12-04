@@ -39,11 +39,24 @@ interface ProductStore {
 const createFormData = (data: ProductSchema): FormData => {
   const formData = new FormData();
 
+  // Required fields
+  formData.append("company_id", data.company_id?.toString());
+  formData.append("codigo", data.codigo);
   formData.append("name", data.name);
   formData.append("category_id", data.category_id?.toString());
   formData.append("brand_id", data.brand_id?.toString());
   formData.append("unit_id", data.unit_id?.toString());
   formData.append("product_type_id", data.product_type_id?.toString());
+  formData.append("purchase_price", data.purchase_price);
+  formData.append("sale_price", data.sale_price);
+  formData.append("is_taxed", data.is_taxed ? "1" : "0");
+  formData.append("is_igv", data.is_igv ? "1" : "0");
+  formData.append("supplier_id", data.supplier_id?.toString());
+
+  // Optional fields
+  if (data.comment) {
+    formData.append("comment", data.comment);
+  }
 
   // Append technical sheet files
   if (data.technical_sheet && data.technical_sheet.length > 0) {

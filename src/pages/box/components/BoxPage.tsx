@@ -4,7 +4,7 @@ import TitleComponent from "@/components/TitleComponent";
 import BoxActions from "./BoxActions";
 import BoxTable from "./BoxTable";
 import BoxOptions from "./BoxOptions";
-import { deleteBox } from "../lib/box.actions";
+import { deleteBox, updateBox } from "../lib/box.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -17,6 +17,9 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { BOX } from "../lib/box.interface";
 import BoxModal from "./BoxModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { StatusChangeDialog } from "./StatusChangeDialog";
+import UserBoxAssignmentModal from "@/pages/userboxassignment/components/UserBoxAssignmentModal";
+import BoxAssignmentsSheet from "./BoxAssignmentsSheet";
 
 const { MODEL, ICON } = BOX;
 
@@ -26,11 +29,44 @@ export default function BoxPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [assignBoxId, setAssignBoxId] = useState<number | null>(null);
+  const [viewAssignmentsBoxId, setViewAssignmentsBoxId] = useState<
+    number | null
+  >(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
+  const [statusChangeData, setStatusChangeData] = useState<{
+    id: number;
+    currentStatus: string;
+  } | null>(null);
   const { data, meta, isLoading, refetch } = useBox();
 
   useEffect(() => {
     refetch({ page, search, per_page });
   }, [page, search, per_page]);
+  const handleToggleStatus = (id: number, currentStatus: string) => {
+    setStatusChangeData({ id, currentStatus });
+  };
+
+  const confirmStatusChange = async () => {
+    if (!statusChangeData) return;
+
+    setUpdatingStatusId(statusChangeData.id);
+    try {
+      const newStatus =
+        statusChangeData.currentStatus === "Activo" ? "Inactivo" : "Activo";
+      await updateBox(statusChangeData.id, { status: newStatus });
+      await refetch();
+      successToast(`Estado actualizado a ${newStatus}`);
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message || "Error al actualizar el estado",
+        ERROR_MESSAGE(MODEL, "update")
+      );
+    } finally {
+      setUpdatingStatusId(null);
+      setStatusChangeData(null);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -39,7 +75,10 @@ export default function BoxPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete")
+      );
     } finally {
       setDeleteId(null);
     }
@@ -61,6 +100,10 @@ export default function BoxPage() {
         columns={BoxColumns({
           onEdit: setEditId,
           onDelete: setDeleteId,
+          onAssign: setAssignBoxId,
+          onViewAssignments: setViewAssignmentsBoxId,
+          onToggleStatus: handleToggleStatus,
+          updatingStatusId,
         })}
         data={data || []}
       >
@@ -91,6 +134,40 @@ export default function BoxPage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {assignBoxId !== null && (
+        <UserBoxAssignmentModal
+          open={true}
+          onClose={() => setAssignBoxId(null)}
+          title="Asignar Usuario a Caja"
+          mode="create"
+          preselectedBoxId={assignBoxId}
+          preselectedBoxName={data?.find((box) => box.id === assignBoxId)?.name}
+        />
+      )}
+
+      {viewAssignmentsBoxId !== null && (
+        <BoxAssignmentsSheet
+          open={true}
+          onOpenChange={(open) => !open && setViewAssignmentsBoxId(null)}
+          boxId={viewAssignmentsBoxId}
+          boxName={
+            data?.find((box) => box.id === viewAssignmentsBoxId)?.name || ""
+          }
+        />
+      )}
+
+      {statusChangeData !== null && (
+        <StatusChangeDialog
+          open={true}
+          onOpenChange={(open) => !open && setStatusChangeData(null)}
+          onConfirm={confirmStatusChange}
+          currentStatus={statusChangeData.currentStatus}
+          newStatus={
+            statusChangeData.currentStatus === "Activo" ? "Inactivo" : "Activo"
+          }
         />
       )}
     </div>

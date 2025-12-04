@@ -10,6 +10,8 @@ import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
 import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
+import { useAllCompanies } from "@/pages/company/lib/company.hook";
+import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -31,6 +33,8 @@ export default function ProductEditPage() {
   const { data: brands, isLoading: brandsLoading } = useAllBrands();
   const { data: units, isLoading: unitsLoading } = useAllUnits();
   const { data: productTypes } = useAllProductTypes();
+  const { data: companies, isLoading: companiesLoading } = useAllCompanies();
+  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
 
   const { updateProduct, fetchProduct, product, isFinding } = useProductStore();
 
@@ -39,6 +43,8 @@ export default function ProductEditPage() {
     brandsLoading ||
     unitsLoading ||
     !productTypes ||
+    companiesLoading ||
+    suppliersLoading ||
     isFinding;
 
   useEffect(() => {
@@ -51,11 +57,19 @@ export default function ProductEditPage() {
   }, [id, navigate, fetchProduct]);
 
   const mapProductToForm = (data: ProductResource): Partial<ProductSchema> => ({
+    company_id: (data as any).company_id?.toString() || "",
+    codigo: (data as any).codigo || "",
     name: data.name,
     category_id: data.category_id?.toString(),
     brand_id: data.brand_id?.toString(),
     unit_id: data.unit_id?.toString(),
     product_type_id: data.product_type_id?.toString(),
+    purchase_price: (data as any).purchase_price?.toString() || "",
+    sale_price: (data as any).sale_price?.toString() || "",
+    is_taxed: (data as any).is_taxed || false,
+    is_igv: (data as any).is_igv || false,
+    supplier_id: (data as any).supplier_id?.toString() || "",
+    comment: (data as any).comment || "",
     technical_sheet: [], // Files are handled separately
   });
 
@@ -119,7 +133,11 @@ export default function ProductEditPage() {
         units &&
         units.length > 0 &&
         productTypes &&
-        productTypes.length > 0 && (
+        productTypes.length > 0 &&
+        companies &&
+        companies.length > 0 &&
+        suppliers &&
+        suppliers.length > 0 && (
           <ProductForm
             defaultValues={mapProductToForm(product)}
             onSubmit={handleSubmit}
@@ -129,6 +147,8 @@ export default function ProductEditPage() {
             brands={brands}
             units={units}
             productTypes={productTypes}
+            companies={companies}
+            suppliers={suppliers}
             product={product}
             onCancel={() => navigate("/productos")}
           />
