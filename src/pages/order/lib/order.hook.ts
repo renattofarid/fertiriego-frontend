@@ -1,19 +1,49 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useOrderStore } from "./order.store";
 import type { GetOrdersParams } from "./order.actions";
-import { getOrders, getAllOrders } from "./order.actions";
-import { ORDER_QUERY_KEY } from "./order.interface";
 
-export const useOrder = (params?: GetOrdersParams) => {
-  return useQuery({
-    queryKey: [ORDER_QUERY_KEY, params],
-    queryFn: () => getOrders(params),
-    select: (data) => data.data,
-  });
-};
+export function useOrder(params?: GetOrdersParams) {
+  const { orders, meta, isLoading, error, fetchOrders } = useOrderStore();
 
-export const useAllOrders = () => {
-  return useQuery({
-    queryKey: [ORDER_QUERY_KEY, "all"],
-    queryFn: getAllOrders,
-  });
-};
+  useEffect(() => {
+    if (!orders) fetchOrders(params);
+  }, [orders, fetchOrders]);
+
+  return {
+    data: orders,
+    meta,
+    isLoading,
+    error,
+    refetch: fetchOrders,
+  };
+}
+
+export function useAllOrders() {
+  const { allOrders, isLoadingAll, error, fetchAllOrders } = useOrderStore();
+
+  useEffect(() => {
+    if (!allOrders) fetchAllOrders();
+  }, [allOrders, fetchAllOrders]);
+
+  return {
+    data: allOrders,
+    isLoading: isLoadingAll,
+    error,
+    refetch: fetchAllOrders,
+  };
+}
+
+export function useOrderById(id: number) {
+  const { order, isFinding, error, fetchOrder } = useOrderStore();
+
+  useEffect(() => {
+    fetchOrder(id);
+  }, [id]);
+
+  return {
+    data: order,
+    isFinding,
+    error,
+    refetch: () => fetchOrder(id),
+  };
+}

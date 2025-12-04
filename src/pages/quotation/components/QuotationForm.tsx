@@ -210,7 +210,13 @@ export const QuotationForm = ({
         onSubmit={form.handleSubmit(handleSubmitForm)}
         className="space-y-6"
       >
-        <GroupFormSection title="Información General" icon={FileText}>
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{
+            sm: 1,
+          }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <FormSelect
               control={form.control}
@@ -370,10 +376,15 @@ export const QuotationForm = ({
           </div>
         </GroupFormSection>
 
-        <GroupFormSection title="Agregar Producto" icon={Package}>
+        <GroupFormSection
+          title="Agregar Producto"
+          icon={Package}
+          cols={{
+            sm: 1,
+          }}
+        >
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
             <div className="md:col-span-2">
-              <FormLabel>Producto</FormLabel>
               <FormSelect
                 control={form.control}
                 name="product_id"

@@ -40,7 +40,7 @@ export interface OrderResource {
   currency: string;
   address: string;
   warehouse_id: number;
-  warehouse: {
+  warehouse?: {
     id: number;
     name: string;
     address: string;
@@ -72,7 +72,7 @@ export interface OrderResource {
     quotation_number: string;
   } | null;
   customer_id: number;
-  customer: {
+  customer?: {
     id: number;
     type_document: string;
     type_person: string;

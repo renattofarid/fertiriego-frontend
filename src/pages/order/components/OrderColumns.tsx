@@ -44,15 +44,15 @@ export const getOrderColumns = ({
     header: "Cliente",
     cell: ({ row }) => (
       <div className="max-w-[200px]">
-        {row.original.customer.business_name ||
-          row.original.customer.full_name}
+        {row.original.customer?.business_name ||
+          row.original.customer?.full_name}
       </div>
     ),
   },
   {
     accessorKey: "warehouse_name",
     header: "Almacén",
-    cell: ({ row }) => <span>{row.original.warehouse.name || "N/A"}</span>,
+    cell: ({ row }) => <span>{row.original.warehouse?.name || "N/A"}</span>,
   },
   {
     accessorKey: "order_date",
@@ -105,24 +105,24 @@ export const getOrderColumns = ({
   {
     accessorKey: "currency",
     header: "Moneda",
-    cell: ({ row }) => (
-      <Badge variant="outline">{row.original.currency}</Badge>
-    ),
+    cell: ({ row }) => <Badge variant="outline">{row.original.currency}</Badge>,
   },
   {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => {
-      const getStatusVariant = (status: string) => {
+      const getStatusVariant = (
+        status: string
+      ): "default" | "green" | "destructive" | "secondary" => {
         switch (status) {
           case "Pendiente":
             return "default";
           case "En Proceso":
             return "secondary";
           case "Completado":
-            return "success";
+            return "green";
           case "Entregado":
-            return "success";
+            return "green";
           case "Cancelado":
             return "destructive";
           default:
