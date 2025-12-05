@@ -31,9 +31,9 @@ export interface SaleInstallmentResource {
   total_paid: number;
   status: string;
   is_overdue: boolean;
-  payments: any[];
   created_at: string;
   updated_at: string;
+  currency: string;
 }
 
 export interface SaleResource {

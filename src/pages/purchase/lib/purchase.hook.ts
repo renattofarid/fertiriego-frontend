@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
 import type { GetPurchasesParams } from "./purchase.actions";
-import type { PurchaseResource, Meta } from "./purchase.interface";
+import type { PurchaseResource } from "./purchase.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 // ============================================
 // PURCHASE HOOKS
@@ -11,7 +12,8 @@ import type { PurchaseResource, Meta } from "./purchase.interface";
  * Hook to fetch purchases with pagination and filters
  */
 export const usePurchase = (params?: GetPurchasesParams) => {
-  const { purchases, meta, isLoading, error, fetchPurchases } = usePurchaseStore();
+  const { purchases, meta, isLoading, error, fetchPurchases } =
+    usePurchaseStore();
 
   useEffect(() => {
     fetchPurchases(params);
@@ -34,7 +36,8 @@ export const usePurchase = (params?: GetPurchasesParams) => {
  * Hook to fetch all purchases (no pagination)
  */
 export const useAllPurchases = () => {
-  const { allPurchases, isLoadingAll, error, fetchAllPurchases } = usePurchaseStore();
+  const { allPurchases, isLoadingAll, error, fetchAllPurchases } =
+    usePurchaseStore();
 
   useEffect(() => {
     fetchAllPurchases();
