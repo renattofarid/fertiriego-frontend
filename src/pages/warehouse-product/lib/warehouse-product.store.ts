@@ -14,11 +14,11 @@ interface WarehouseProductStore {
   allWarehouseProducts: WarehouseProductResource[] | null;
   warehouseProducts: WarehouseProductResource[] | null;
   warehouseProduct: WarehouseProductResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllWarehouseProducts: () => Promise<void>;
   fetchWarehouseProducts: (params?: Record<string, any>) => Promise<void>;
@@ -35,15 +35,15 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
     allWarehouseProducts: null,
     warehouseProduct: null,
     warehouseProducts: null,
-    meta: null,
+    meta: undefined,
     isLoadingAll: false,
     isLoading: false,
     isFinding: false,
     isSubmitting: false,
-    error: null,
+    error: undefined,
 
     fetchWarehouseProducts: async (params?: Record<string, any>) => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: undefined});
       try {
         const { data, meta } = await getWarehouseProduct({ params });
         set({ warehouseProducts: data, meta: meta, isLoading: false });
@@ -56,7 +56,7 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
     },
 
     fetchAllWarehouseProducts: async () => {
-      set({ isLoadingAll: true, error: null });
+      set({ isLoadingAll: true, error: undefined});
       try {
         const data = await getAllWarehouseProducts();
         set({ allWarehouseProducts: data, isLoadingAll: false });
@@ -69,7 +69,7 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
     },
 
     fetchWarehouseProduct: async (id: number) => {
-      set({ isFinding: true, error: null });
+      set({ isFinding: true, error: undefined});
       try {
         const { data } = await findWarehouseProductById(id);
         set({ warehouseProduct: data, isFinding: false });
@@ -82,7 +82,7 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
     },
 
     createWarehouseProduct: async (data) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await storeWarehouseProduct(data);
       } catch (err) {
@@ -97,7 +97,7 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
       id: number,
       data: WarehouseProductSchema
     ) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await updateWarehouseProduct(id, data);
       } catch (err) {

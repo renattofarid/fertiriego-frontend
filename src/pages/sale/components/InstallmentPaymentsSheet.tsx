@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CreditCard } from "lucide-react";
 import type {
   SaleInstallmentResource,
   SalePaymentResource,
@@ -74,7 +73,7 @@ export default function InstallmentPaymentsSheet({
       open={open}
       onClose={onClose}
       title={`Pagos de Cuota ${installment.installment_number}`}
-      icon={<CreditCard className="h-5 w-5" />}
+      icon={"CreditCard"}
       className="overflow-y-auto w-full p-4 sm:max-w-2xl"
     >
       <div className="space-y-6">
@@ -85,7 +84,7 @@ export default function InstallmentPaymentsSheet({
               Monto de la Cuota
             </span>
             <span className="font-semibold">
-              {currency} {parseFloat(installment.amount).toFixed(2)}
+              {currency} {installment.amount.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between">
@@ -94,12 +93,12 @@ export default function InstallmentPaymentsSheet({
             </span>
             <span
               className={`font-semibold ${
-                parseFloat(installment.pending_amount) === 0
+                installment.pending_amount === 0
                   ? "text-primary"
                   : "text-orange-600"
               }`}
             >
-              {currency} {parseFloat(installment.pending_amount).toFixed(2)}
+              {currency} {installment.pending_amount.toFixed(2)}
             </span>
           </div>
           <div className="flex justify-between">

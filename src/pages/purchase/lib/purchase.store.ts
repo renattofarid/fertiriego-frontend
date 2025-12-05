@@ -30,12 +30,12 @@ interface PurchaseStore {
   allPurchases: PurchaseResource[] | null;
   purchases: PurchaseResource[] | null;
   purchase: PurchaseResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchAllPurchases: () => Promise<void>;
@@ -55,16 +55,16 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
   allPurchases: null,
   purchases: null,
   purchase: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch all purchases (no pagination)
   fetchAllPurchases: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllPurchases();
       set({ allPurchases: data, isLoadingAll: false });
@@ -76,7 +76,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Fetch purchases with pagination
   fetchPurchases: async (params?: GetPurchasesParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getPurchases(params);
       const meta = response.meta;
@@ -89,7 +89,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Fetch single purchase by ID
   fetchPurchase: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await findPurchaseById(id);
       set({ purchase: response.data, isFinding: false });
@@ -101,7 +101,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Create new purchase
   createPurchase: async (data: PurchaseSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: CreatePurchaseRequest = {
         supplier_id: Number(data.supplier_id),
@@ -138,7 +138,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Update purchase
   updatePurchase: async (id: number, data: Partial<PurchaseUpdateSchema>) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: UpdatePurchaseRequest = {
         ...(data.supplier_id && { supplier_id: Number(data.supplier_id) }),
@@ -171,7 +171,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Delete purchase
   removePurchase: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deletePurchase(id);
       set({ isSubmitting: false });
@@ -185,6 +185,6 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Reset purchase state
   resetPurchase: () => {
-    set({ purchase: null, error: null });
+    set({ purchase: null, error: undefined});
   },
 }));

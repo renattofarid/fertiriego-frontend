@@ -14,11 +14,11 @@ interface BrandStore {
   allBrands: BrandResource[] | null;
   brands: BrandResource[] | null;
   brand: BrandResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllBrands: () => Promise<void>;
   fetchBrands: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useBrandStore = create<BrandStore>((set) => ({
   allBrands: null,
   brand: null,
   brands: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBrands: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBrand({ params });
       set({ brands: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useBrandStore = create<BrandStore>((set) => ({
   },
 
   fetchAllBrands: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllBrands();
       set({ allBrands: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useBrandStore = create<BrandStore>((set) => ({
   },
 
   fetchBrand: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findBrandById(id);
       set({ brand: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useBrandStore = create<BrandStore>((set) => ({
   },
 
   createBrand: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeBrand(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useBrandStore = create<BrandStore>((set) => ({
   },
 
   updateBrand: async (id: number, data: BrandSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateBrand(id, data);
     } catch (err) {

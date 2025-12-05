@@ -143,6 +143,8 @@ export interface CreateSaleRequest {
   amount_cash: string;
   amount_card: string;
   amount_yape: string;
+  quotation_id?: number;
+  order_id?: number;
   details: CreateSaleDetailRequest[];
   installments?: CreateSaleInstallmentRequest[];
 }
@@ -172,19 +174,9 @@ export interface UpdateSaleRequest {
 // ===== DETAIL MANAGEMENT =====
 
 export interface SaleDetailResponse {
-  current_page: number;
   data: SaleDetailResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface SaleDetailResourceById {
@@ -207,19 +199,9 @@ export interface UpdateSaleDetailRequest {
 // ===== INSTALLMENT MANAGEMENT =====
 
 export interface SaleInstallmentResponse {
-  current_page: number;
   data: SaleInstallmentResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface SaleInstallmentResourceById {
@@ -268,19 +250,9 @@ interface User {
 }
 
 export interface SalePaymentResponse {
-  current_page: number;
   data: SalePaymentResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface SalePaymentResourceById {

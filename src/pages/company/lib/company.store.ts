@@ -14,11 +14,11 @@ interface CompanyStore {
   allCompanies: CompanyResource[] | null;
   companies: CompanyResource[] | null;
   company: CompanyResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllCompanies: () => Promise<void>;
   fetchCompanies: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   allCompanies: null,
   company: null,
   companies: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchCompanies: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getCompany({ params });
       set({ companies: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   },
 
   fetchAllCompanies: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllCompanies();
       set({ allCompanies: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   },
 
   fetchCompany: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findCompanyById(id);
       set({ company: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   },
 
   createCompany: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeCompany(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useCompanyStore = create<CompanyStore>((set) => ({
   },
 
   updateCompany: async (id: number, data: CompanySchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateCompany(id, data);
     } catch (err) {

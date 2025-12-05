@@ -18,11 +18,11 @@ interface ProductStore {
   allProducts: ProductResource[] | null;
   products: ProductResource[] | null;
   product: ProductResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllProducts: () => Promise<void>;
   fetchProducts: (params?: Record<string, any>) => Promise<void>;
@@ -72,15 +72,15 @@ export const useProductStore = create<ProductStore>((set) => ({
   allProducts: null,
   product: null,
   products: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchProducts: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getProduct({ params });
       set({ products: data, meta: meta, isLoading: false });
@@ -90,7 +90,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   fetchAllProducts: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllProducts();
       set({ allProducts: data, isLoadingAll: false });
@@ -100,7 +100,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   fetchProduct: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findProductById(id);
       set({ product: data, isFinding: false });
@@ -110,7 +110,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   createProduct: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const formData = createFormData(data);
       await storeProduct(formData);
@@ -123,7 +123,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   updateProduct: async (id: number, data: ProductSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const formData = createFormData(data);
       await updateProduct(id, formData);
@@ -139,7 +139,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     productId: number,
     request: DeleteTechnicalSheetRequest
   ) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deleteTechnicalSheet(productId, request);
     } catch (err) {

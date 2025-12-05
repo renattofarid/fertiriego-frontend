@@ -85,6 +85,8 @@ export const saleSchemaCreate = z.object({
       message: "El monto Yape debe ser un número válido",
     })
     .default("0"),
+  quotation_id: z.string().optional(),
+  order_id: z.string().optional(),
   details: z
     .array(saleDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),

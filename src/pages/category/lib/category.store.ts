@@ -14,11 +14,11 @@ interface CategoryStore {
   allCategories: CategoryResource[] | null;
   categories: CategoryResource[] | null;
   category: CategoryResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllCategories: () => Promise<void>;
   fetchCategories: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   allCategories: null,
   category: null,
   categories: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchCategories: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getCategory({ params });
       set({ categories: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   },
 
   fetchAllCategories: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllCategories();
       set({ allCategories: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   },
 
   fetchCategory: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findCategoryById(id);
       set({ category: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   },
 
   createCategory: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeCategory(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useCategoryStore = create<CategoryStore>((set) => ({
   },
 
   updateCategory: async (id: number, data: CategorySchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateCategory(id, data);
     } catch (err) {

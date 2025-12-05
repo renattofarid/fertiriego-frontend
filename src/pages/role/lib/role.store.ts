@@ -19,11 +19,11 @@ interface RoleStore {
   roles: RoleResource[] | null;
   role: RoleResource | null;
   allRoles: RoleResource[] | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
   fetchRoles: (params: GetRolesProps) => Promise<void>;
   fetchAllRoles: () => Promise<void>;
   fetchRoleById: (id: number) => Promise<void>;
@@ -37,14 +37,14 @@ export const useRoleStore = create<RoleStore>((set) => ({
   roles: null,
   role: null,
   allRoles: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchRoles: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getRoles({ params });
       set({ roles: data, meta: meta, isLoading: false });
@@ -54,7 +54,7 @@ export const useRoleStore = create<RoleStore>((set) => ({
   },
 
   fetchAllRoles: async () => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       const data = await getAllRoles();
       set({ allRoles: data });
@@ -64,7 +64,7 @@ export const useRoleStore = create<RoleStore>((set) => ({
   },
 
   fetchRoleById: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findRoleById(id);
       set({ role: data, isFinding: false });
@@ -74,7 +74,7 @@ export const useRoleStore = create<RoleStore>((set) => ({
   },
 
   createRole: async (data: CreateRoleRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createRole(data);
     } catch (err) {
@@ -86,7 +86,7 @@ export const useRoleStore = create<RoleStore>((set) => ({
   },
 
   updateRole: async (id: number, data: UpdateRoleRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateRole(id, data);
     } catch (err) {
@@ -98,7 +98,7 @@ export const useRoleStore = create<RoleStore>((set) => ({
   },
 
   deleteRole: async (id: number) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deleteRole(id);
     } catch (err) {
@@ -112,8 +112,8 @@ export const useRoleStore = create<RoleStore>((set) => ({
       roles: null,
       role: null,
       allRoles: null,
-      meta: null,
-      error: null,
+      meta: undefined,
+      error: undefined,
     });
   },
 }));

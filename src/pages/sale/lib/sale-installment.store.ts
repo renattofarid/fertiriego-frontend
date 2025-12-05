@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   SaleInstallmentResource,
-  Meta,
   CreateSaleInstallmentRequestFull,
   UpdateSaleInstallmentRequest,
 } from "./sale.interface";
@@ -13,8 +12,14 @@ import {
   deleteSaleInstallment,
   type GetSaleInstallmentsParams,
 } from "./sale.actions";
-import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  SUCCESS_MESSAGE,
+  errorToast,
+  successToast,
+} from "@/lib/core.function";
 import { SALE_INSTALLMENT } from "./sale.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE_INSTALLMENT;
 
@@ -22,17 +27,20 @@ interface SaleInstallmentStore {
   // State
   installments: SaleInstallmentResource[] | null;
   installment: SaleInstallmentResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchInstallments: (params?: GetSaleInstallmentsParams) => Promise<void>;
   fetchInstallment: (id: number) => Promise<void>;
   createInstallment: (data: CreateSaleInstallmentRequestFull) => Promise<void>;
-  updateInstallment: (id: number, data: UpdateSaleInstallmentRequest) => Promise<void>;
+  updateInstallment: (
+    id: number,
+    data: UpdateSaleInstallmentRequest
+  ) => Promise<void>;
   deleteInstallment: (id: number) => Promise<void>;
   resetInstallment: () => void;
 }
@@ -41,25 +49,18 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
   // Initial state
   installments: null,
   installment: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch installments for a sale
   fetchInstallments: async (params?: GetSaleInstallmentsParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getSaleInstallments(params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ installments: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar las cuotas", isLoading: false });
@@ -69,7 +70,7 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
 
   // Fetch single installment by ID
   fetchInstallment: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await getSaleInstallmentById(id);
       set({ installment: response.data, isFinding: false });
@@ -81,7 +82,7 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
 
   // Create new installment
   createInstallment: async (data: CreateSaleInstallmentRequestFull) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createSaleInstallment(data);
       set({ isSubmitting: false });
@@ -95,7 +96,7 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
 
   // Update installment
   updateInstallment: async (id: number, data: UpdateSaleInstallmentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateSaleInstallment(id, data);
       set({ isSubmitting: false });
@@ -109,7 +110,7 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
 
   // Delete installment
   deleteInstallment: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteSaleInstallment(id);
       set({ isSubmitting: false });
@@ -123,6 +124,6 @@ export const useSaleInstallmentStore = create<SaleInstallmentStore>((set) => ({
 
   // Reset installment state
   resetInstallment: () => {
-    set({ installment: null, error: null });
+    set({ installment: null, error: undefined});
   },
 }));

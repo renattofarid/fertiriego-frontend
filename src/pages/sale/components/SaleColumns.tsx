@@ -199,14 +199,14 @@ export const getSaleColumns = ({
       }
 
       const hasPendingPayments = row.original.installments?.some(
-        (inst) => parseFloat(inst.pending_amount) > 0
+        (inst) => inst.pending_amount > 0
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
       const totalAmount = row.original.total_amount;
       const sumOfInstallments =
         row.original.installments?.reduce(
-          (sum, inst) => sum + parseFloat(inst.amount),
+          (sum, inst) => sum + inst.amount,
           0
         ) || 0;
       const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
@@ -285,7 +285,7 @@ export const getSaleColumns = ({
       // (si pending_amount es menor que amount, significa que tiene pagos)
       const hasPayments =
         row.original.installments?.some(
-          (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
+          (inst) => inst.pending_amount < inst.amount
         ) ?? false;
 
       return (

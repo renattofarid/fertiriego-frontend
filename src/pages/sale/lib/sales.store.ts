@@ -30,12 +30,12 @@ interface SaleStore {
   allSales: SaleResource[] | null;
   sales: SaleResource[] | null;
   sale: SaleResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchAllSales: () => Promise<void>;
@@ -52,16 +52,16 @@ export const useSaleStore = create<SaleStore>((set) => ({
   allSales: null,
   sales: null,
   sale: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch all sales (no pagination)
   fetchAllSales: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllSales();
       set({ allSales: data, isLoadingAll: false });
@@ -73,7 +73,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch sales with pagination
   fetchSales: async (params?: GetSalesParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getSales(params);
       const meta = response.meta;
@@ -86,7 +86,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch single sale by ID
   fetchSale: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await findSaleById(id);
       set({ sale: response.data, isFinding: false });
@@ -98,7 +98,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Create new sale
   createSale: async (data: SaleSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: CreateSaleRequest = {
         customer_id: Number(data.customer_id),
@@ -138,7 +138,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Update sale
   updateSale: async (id: number, data: Partial<SaleUpdateSchema>) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: UpdateSaleRequest = {
         ...(data.customer_id && { customer_id: Number(data.customer_id) }),
@@ -182,7 +182,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Delete sale
   removeSale: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteSale(id);
       set({ isSubmitting: false });
@@ -196,6 +196,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Reset sale state
   resetSale: () => {
-    set({ sale: null, error: null });
+    set({ sale: null, error: undefined});
   },
 }));

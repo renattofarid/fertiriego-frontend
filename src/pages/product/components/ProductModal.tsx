@@ -15,6 +15,8 @@ import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
 import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
+import { useAllCompanies } from "@/pages/company/lib/company.hook";
+import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 
 interface Props {
   id?: number;
@@ -54,6 +56,8 @@ export default function ProductModal({
   const { data: units, isLoading: loadingUnits } = useAllUnits();
   const { data: productTypes, isLoading: loadingProductTypes } =
     useAllProductTypes();
+  const { data: companies, isLoading: loadingCompanies } = useAllCompanies();
+  const { data: suppliers, isLoading: loadingSuppliers } = useAllSuppliers();
 
   const mapProductToForm = (
     data: ProductResource | null
@@ -85,7 +89,6 @@ export default function ProductModal({
           errorToast(
             error.response.data.message ??
               error.response.data.error ??
-              error.response.data.error ??
               ERROR_MESSAGE(MODEL, "create")
           );
         });
@@ -101,7 +104,6 @@ export default function ProductModal({
           errorToast(
             error.response.data.message ??
               error.response.data.error ??
-              error.response.data.error ??
               ERROR_MESSAGE(MODEL, "update")
           );
         });
@@ -114,16 +116,18 @@ export default function ProductModal({
     loadingCategories ||
     loadingBrands ||
     loadingUnits ||
-    loadingProductTypes;
+    loadingProductTypes ||
+    loadingCompanies ||
+    loadingSuppliers;
 
   return (
     <GeneralModal
       open={open}
       onClose={onCloseModal}
       title={title}
-      maxWidth="!max-w-(--breakpoint-md)"
+      maxWidth="!max-w-[--breakpoint-md]"
     >
-      {!isLoadingAny && categories && brands && units && productTypes ? (
+      {!isLoadingAny && categories && brands && units && productTypes && companies && suppliers ? (
         <ProductForm
           defaultValues={mapProductToForm(product)}
           onSubmit={handleSubmit}
@@ -134,6 +138,8 @@ export default function ProductModal({
           brands={brands}
           units={units}
           productTypes={productTypes}
+          companies={companies}
+          suppliers={suppliers}
           product={mode === "update" && product ? product : undefined}
         />
       ) : (

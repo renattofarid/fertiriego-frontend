@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   OrderResource,
-  Meta,
   CreateOrderRequest,
   UpdateOrderRequest,
 } from "./order.interface";
@@ -21,6 +20,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { ORDER } from "./order.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = ORDER;
 
@@ -29,12 +29,12 @@ interface OrderStore {
   allOrders: OrderResource[] | null;
   orders: OrderResource[] | null;
   order: OrderResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchAllOrders: () => Promise<void>;
@@ -51,16 +51,16 @@ export const useOrderStore = create<OrderStore>((set) => ({
   allOrders: null,
   orders: null,
   order: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch all orders (no pagination)
   fetchAllOrders: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllOrders();
       set({ allOrders: data, isLoadingAll: false });
@@ -72,17 +72,10 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Fetch orders with pagination
   fetchOrders: async (params?: GetOrdersParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getOrders(params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ orders: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar los pedidos", isLoading: false });
@@ -92,7 +85,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Fetch single order by ID
   fetchOrder: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await findOrderById(id);
       set({ order: response.data, isFinding: false });
@@ -104,7 +97,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Create new order
   createOrder: async (data: CreateOrderRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const response = await storeOrder(data);
       set({ isSubmitting: false });
@@ -119,7 +112,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Update order
   updateOrder: async (id: number, data: UpdateOrderRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateOrder(id, data);
       set({ isSubmitting: false });
@@ -133,7 +126,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Delete order
   removeOrder: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteOrder(id);
       set({ isSubmitting: false });
@@ -147,6 +140,6 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Reset order state
   resetOrder: () => {
-    set({ order: null, error: null });
+    set({ order: null, error: undefined});
   },
 }));

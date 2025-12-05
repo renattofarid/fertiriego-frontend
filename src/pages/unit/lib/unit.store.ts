@@ -13,11 +13,11 @@ interface UnitStore {
   allUnits: UnitResource[] | null;
   units: UnitResource[] | null;
   unit: UnitResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllUnits: () => Promise<void>;
   fetchUnits: (params?: Record<string, any>) => Promise<void>;
@@ -30,15 +30,15 @@ export const useUnitStore = create<UnitStore>((set) => ({
   allUnits: null,
   unit: null,
   units: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchUnits: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getUnits({ params });
       set({ units: data, meta: meta, isLoading: false });
@@ -48,7 +48,7 @@ export const useUnitStore = create<UnitStore>((set) => ({
   },
 
   fetchAllUnits: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const { data } = await getUnits();
       set({ allUnits: data, isLoadingAll: false });
@@ -58,7 +58,7 @@ export const useUnitStore = create<UnitStore>((set) => ({
   },
 
   fetchUnit: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await getUnitById(id);
       set({ unit: data, isFinding: false });
@@ -68,7 +68,7 @@ export const useUnitStore = create<UnitStore>((set) => ({
   },
 
   createUnit: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createUnit(data);
     } catch (err) {
@@ -80,7 +80,7 @@ export const useUnitStore = create<UnitStore>((set) => ({
   },
 
   updateUnit: async (id: number, data: UnitSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateUnit(id, data);
     } catch (err) {

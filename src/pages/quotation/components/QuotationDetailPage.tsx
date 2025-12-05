@@ -234,7 +234,7 @@ export default function QuotationDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {quotation.quotation_details.map((detail, index) => (
+                  {quotation.quotation_details.map((detail) => (
                     <div
                       key={detail.id}
                       className="flex items-start justify-between p-3 bg-muted/30 rounded-lg"
@@ -294,10 +294,7 @@ export default function QuotationDetailPage() {
         )}
 
         {/* Trazabilidad */}
-        <TraceabilityTimeline
-          entityType="quotation"
-          entityId={quotation.id}
-        />
+        <TraceabilityTimeline entityType="quotation" entityId={quotation.id} />
       </div>
     </PageWrapper>
   );

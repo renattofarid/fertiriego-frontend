@@ -11,11 +11,11 @@ import type { BoxMovementResource, CreateBoxMovementProps } from "./box-movement
 interface BoxMovementStore {
   boxMovements: BoxMovementResource[] | null;
   boxMovement: BoxMovementResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   fetchBoxMovements: (params?: Record<string, any>) => Promise<void>;
   fetchBoxMovement: (id: number) => Promise<void>;
@@ -27,14 +27,14 @@ interface BoxMovementStore {
 export const useBoxMovementStore = create<BoxMovementStore>((set) => ({
   boxMovements: null,
   boxMovement: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBoxMovements: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBoxMovements({ params });
       set({ boxMovements: data, meta, isLoading: false });
@@ -44,7 +44,7 @@ export const useBoxMovementStore = create<BoxMovementStore>((set) => ({
   },
 
   fetchBoxMovement: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findBoxMovementById(id);
       set({ boxMovement: data, isFinding: false });
@@ -54,7 +54,7 @@ export const useBoxMovementStore = create<BoxMovementStore>((set) => ({
   },
 
   createBoxMovement: async (data: CreateBoxMovementProps) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const response = await storeBoxMovement(data);
       set({ isSubmitting: false });
@@ -66,7 +66,7 @@ export const useBoxMovementStore = create<BoxMovementStore>((set) => ({
   },
 
   deleteBoxMovement: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteBoxMovement(id);
       set({ isSubmitting: false });

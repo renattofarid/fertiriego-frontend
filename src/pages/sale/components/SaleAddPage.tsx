@@ -9,6 +9,8 @@ import { useSaleStore } from "../lib/sales.store";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
+import { useAllOrders } from "@/pages/order/lib/order.hook";
+import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
@@ -22,10 +24,12 @@ export const SaleAddPage = () => {
   const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
+  const { data: orders, isLoading: ordersLoading } = useAllOrders();
+  const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
   const { createSale } = useSaleStore();
 
-  const isLoading = customersLoading || warehousesLoading || productsLoading;
+  const isLoading = customersLoading || warehousesLoading || productsLoading || ordersLoading || quotationsLoading;
 
   const getDefaultValues = (): Partial<SaleSchema> => ({
     customer_id: "",
@@ -89,6 +93,8 @@ export const SaleAddPage = () => {
             customers={customers}
             warehouses={warehouses}
             products={products}
+            orders={orders || []}
+            quotations={quotations || []}
             onCancel={() => navigate("/ventas")}
           />
         )}

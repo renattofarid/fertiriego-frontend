@@ -15,11 +15,11 @@ import type { Meta } from "@/lib/pagination.interface";
 interface ProductImageStore {
   productImages: ProductImageResource[] | null;
   productImage: ProductImageResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
   fetchProductImages: (params: GetProductImagesProps) => Promise<void>;
   fetchProductImageById: (id: number) => Promise<void>;
   createProductImage: (data: CreateProductImageRequest) => Promise<void>;
@@ -29,17 +29,17 @@ interface ProductImageStore {
 export const useProductImageStore = create<ProductImageStore>((set) => ({
   productImages: null,
   productImage: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchProductImages: async (params: GetProductImagesProps) => {
     const state = useProductImageStore.getState();
     if (state.isLoading) return; // Prevent duplicate calls
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getProductImages(params);
       set({ productImages: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useProductImageStore = create<ProductImageStore>((set) => ({
   },
 
   fetchProductImageById: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await getProductImageById(id);
       set({ productImage: data, isFinding: false });
@@ -59,7 +59,7 @@ export const useProductImageStore = create<ProductImageStore>((set) => ({
   },
 
   createProductImage: async (data: CreateProductImageRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createProductImage(data);
     } catch (err) {
@@ -71,7 +71,7 @@ export const useProductImageStore = create<ProductImageStore>((set) => ({
   },
 
   deleteProductImage: async (id: number) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deleteProductImage(id);
     } catch (err) {

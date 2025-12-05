@@ -114,19 +114,9 @@ export interface UpdatePurchaseRequest {
 // ===== DETAIL MANAGEMENT =====
 
 export interface PurchaseDetailResponse {
-  current_page: number;
   data: PurchaseDetailResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface PurchaseDetailResourceById {
@@ -151,19 +141,9 @@ export interface UpdatePurchaseDetailRequest {
 // ===== INSTALLMENT MANAGEMENT =====
 
 export interface PurchaseInstallmentResponse {
-  current_page: number;
   data: PurchaseInstallmentResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface PurchaseInstallmentResourceById {
@@ -204,19 +184,9 @@ export interface PurchasePaymentResource {
 }
 
 export interface PurchasePaymentResponse {
-  current_page: number;
   data: PurchasePaymentResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 export interface PurchasePaymentResourceById {

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   PurchaseInstallmentResource,
-  Meta,
   CreatePurchaseInstallmentRequestFull,
   UpdatePurchaseInstallmentRequest,
 } from "./purchase.interface";
@@ -14,6 +13,7 @@ import {
 } from "./purchase.actions";
 import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { PURCHASE_INSTALLMENT } from "./purchase.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = PURCHASE_INSTALLMENT;
 
@@ -21,11 +21,11 @@ interface PurchaseInstallmentStore {
   // State
   installments: PurchaseInstallmentResource[] | null;
   installment: PurchaseInstallmentResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchInstallments: (purchaseId: number, params?: GetPurchaseInstallmentsParams) => Promise<void>;
@@ -39,25 +39,18 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
   // Initial state
   installments: null,
   installment: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch installments for a purchase
   fetchInstallments: async (purchaseId: number, params?: GetPurchaseInstallmentsParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getPurchaseInstallments(purchaseId, params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ installments: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar las cuotas", isLoading: false });
@@ -67,7 +60,7 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
 
   // Fetch single installment by ID
   fetchInstallment: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await getPurchaseInstallmentById(id);
       set({ installment: response.data, isFinding: false });
@@ -79,7 +72,7 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
 
   // Create new installment
   createInstallment: async (data: CreatePurchaseInstallmentRequestFull) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createPurchaseInstallment(data);
       set({ isSubmitting: false });
@@ -93,7 +86,7 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
 
   // Update installment
   updateInstallment: async (id: number, data: UpdatePurchaseInstallmentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updatePurchaseInstallment(id, data);
       set({ isSubmitting: false });
@@ -107,6 +100,6 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
 
   // Reset installment state
   resetInstallment: () => {
-    set({ installment: null, error: null });
+    set({ installment: null, error: undefined});
   },
 }));

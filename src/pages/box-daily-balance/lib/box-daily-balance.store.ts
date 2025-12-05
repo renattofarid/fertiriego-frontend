@@ -5,10 +5,10 @@ import type { BoxDailyBalanceResource, CreateBoxDailyBalanceProps } from "./box-
 
 interface BoxDailyBalanceStore {
   balances: BoxDailyBalanceResource[] | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   fetchBalances: (params?: Record<string, any>) => Promise<void>;
   createBalance: (data: CreateBoxDailyBalanceProps) => Promise<BoxDailyBalanceResource>;
@@ -16,13 +16,13 @@ interface BoxDailyBalanceStore {
 
 export const useBoxDailyBalanceStore = create<BoxDailyBalanceStore>((set) => ({
   balances: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBalances: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBoxDailyBalances({ params });
       set({ balances: data, meta, isLoading: false });
@@ -32,7 +32,7 @@ export const useBoxDailyBalanceStore = create<BoxDailyBalanceStore>((set) => ({
   },
 
   createBalance: async (data: CreateBoxDailyBalanceProps) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const response = await createBoxDailyBalance(data);
       set({ isSubmitting: false });

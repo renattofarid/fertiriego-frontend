@@ -9,12 +9,12 @@ import type { UserSchema } from "./User.schema";
 interface UserStore {
   Users: UserResource[] | null;
   User: UserResource | null;
-  meta: Meta | null;
+  meta?: Meta;
 
   isLoading: boolean;
   isFinding: boolean;
 
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchUsers: (params?: Record<string, any>) => Promise<void>;
   fetchUser: (id: number) => Promise<void>;
@@ -26,14 +26,14 @@ interface UserStore {
 export const useUserStore = create<UserStore>((set) => ({
   Users: null,
   User: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchUsers: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getUser({ params });
       set({ Users: data, meta: meta, isLoading: false });
@@ -42,7 +42,7 @@ export const useUserStore = create<UserStore>((set) => ({
     }
   },
   fetchUser: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findUserById(id);
       set({ User: data, isFinding: false });
@@ -52,7 +52,7 @@ export const useUserStore = create<UserStore>((set) => ({
   },
 
   createUser: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeUser(data);
     } catch (err) {
@@ -63,7 +63,7 @@ export const useUserStore = create<UserStore>((set) => ({
     }
   },
   updateUser: async (id: number, data: UserSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateUser(id, data);
     } catch (err) {

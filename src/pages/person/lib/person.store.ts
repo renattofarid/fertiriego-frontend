@@ -28,13 +28,13 @@ interface PersonStore {
   allPersons: PersonResource[] | null;
   personRoles: PersonRoleResource[] | null;
   personRoleDetails: PersonRoleDetailResource[] | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
   isLoadingRoles: boolean;
   isLoadingRoleDetails: boolean;
-  error: string | null;
+  error?: string;
   fetchPersons: ({ params }: GetPersonsProps) => Promise<void>;
   fetchAllPersons: ({ params }: GetPersonsProps) => Promise<void>;
   fetchPersonById: (id: number) => Promise<void>;
@@ -56,16 +56,16 @@ export const usePersonStore = create<PersonStore>((set) => ({
   allPersons: null,
   personRoles: null,
   personRoleDetails: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
   isLoadingRoles: false,
   isLoadingRoleDetails: false,
-  error: null,
+  error: undefined,
 
   fetchPersons: async ({ params }: GetPersonsProps) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getPersons({ params });
       set({ persons: data, meta: meta, isLoading: false });
@@ -75,7 +75,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   fetchAllPersons: async ({ params }: GetPersonsProps) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       const data = await getAllPersons({ params });
       set({ allPersons: data });
@@ -85,7 +85,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   fetchPersonById: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findPersonById(id);
       set({ person: data, isFinding: false });
@@ -95,7 +95,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   createPerson: async (data: CreatePersonRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createPerson(data);
     } catch (err) {
@@ -107,7 +107,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   updatePerson: async (id: number, data: UpdatePersonRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updatePerson(id, data);
     } catch (err) {
@@ -119,7 +119,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   deletePerson: async (id: number) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deletePerson(id, CLIENT_ROLE_ID);
     } catch (err) {
@@ -129,7 +129,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   fetchPersonRoles: async (personId: number) => {
-    set({ isLoadingRoles: true, error: null });
+    set({ isLoadingRoles: true, error: undefined});
     try {
       const { data } = await getPersonRoles(personId);
       set({ personRoles: data, isLoadingRoles: false });
@@ -142,7 +142,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
   },
 
   fetchPersonRoleDetails: async (personId: number) => {
-    set({ isLoadingRoleDetails: true, error: null });
+    set({ isLoadingRoleDetails: true, error: undefined});
     try {
       const data = await getPersonRoleDetails(personId);
       set({ personRoleDetails: data, isLoadingRoleDetails: false });
@@ -158,7 +158,7 @@ export const usePersonStore = create<PersonStore>((set) => ({
     personId: number,
     data: UpdatePersonRolesRequest
   ) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updatePersonRoles(personId, data);
     } catch (err) {
@@ -175,8 +175,8 @@ export const usePersonStore = create<PersonStore>((set) => ({
       person: null,
       allPersons: null,
       personRoles: null,
-      meta: null,
-      error: null,
+      meta: undefined,
+      error: undefined,
     });
   },
 }));

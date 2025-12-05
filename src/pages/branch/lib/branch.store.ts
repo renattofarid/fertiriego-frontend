@@ -14,11 +14,11 @@ interface BranchStore {
   allBranches: BranchResource[] | null;
   branches: BranchResource[] | null;
   branch: BranchResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllBranches: () => Promise<void>;
   fetchBranches: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useBranchStore = create<BranchStore>((set) => ({
   allBranches: null,
   branch: null,
   branches: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBranches: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBranch({ params });
       set({ branches: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   fetchAllBranches: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllBranches();
       set({ allBranches: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   fetchBranch: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findBranchById(id);
       set({ branch: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   createBranch: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeBranch(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   updateBranch: async (id: number, data: BranchSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateBranch(id, data);
     } catch (err) {

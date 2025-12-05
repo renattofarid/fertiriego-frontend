@@ -14,11 +14,11 @@ interface BoxStore {
   allBoxes: BoxResource[] | null;
   boxes: BoxResource[] | null;
   box: BoxResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllBoxes: () => Promise<void>;
   fetchBoxes: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useBoxStore = create<BoxStore>((set) => ({
   allBoxes: null,
   box: null,
   boxes: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBoxes: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBox({ params });
       set({ boxes: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useBoxStore = create<BoxStore>((set) => ({
   },
 
   fetchAllBoxes: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllBoxes();
       set({ allBoxes: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useBoxStore = create<BoxStore>((set) => ({
   },
 
   fetchBox: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findBoxById(id);
       set({ box: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useBoxStore = create<BoxStore>((set) => ({
   },
 
   createBox: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeBox(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useBoxStore = create<BoxStore>((set) => ({
   },
 
   updateBox: async (id: number, data: BoxSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateBox(id, data);
     } catch (err) {

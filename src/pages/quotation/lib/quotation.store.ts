@@ -26,15 +26,15 @@ const { MODEL } = QUOTATION;
 
 interface QuotationStore {
   // State
-  allQuotations: QuotationResource[] | null;
-  quotations: QuotationResource[] | null;
-  quotation: QuotationResource | null;
-  meta: Meta | null;
+  allQuotations?: QuotationResource[];
+  quotations?: QuotationResource[];
+  quotation?: QuotationResource;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchAllQuotations: () => Promise<void>;
@@ -48,19 +48,19 @@ interface QuotationStore {
 
 export const useQuotationStore = create<QuotationStore>((set) => ({
   // Initial state
-  allQuotations: null,
-  quotations: null,
-  quotation: null,
-  meta: null,
+  allQuotations: undefined,
+  quotations: undefined,
+  quotation: undefined,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch all quotations (no pagination)
   fetchAllQuotations: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined });
     try {
       const data = await getAllQuotations();
       set({ allQuotations: data, isLoadingAll: false });
@@ -72,7 +72,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Fetch quotations with pagination
   fetchQuotations: async (params?: GetQuotationsParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined });
     try {
       const response = await getQuotations(params);
       const meta = response.meta;
@@ -85,7 +85,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Fetch single quotation by ID
   fetchQuotation: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined });
     try {
       const response = await findQuotationById(id);
       set({ quotation: response.data, isFinding: false });
@@ -97,7 +97,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Create new quotation
   createQuotation: async (data: CreateQuotationRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined });
     try {
       const response = await storeQuotation(data);
       set({ isSubmitting: false });
@@ -112,7 +112,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Update quotation
   updateQuotation: async (id: number, data: UpdateQuotationRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined });
     try {
       await updateQuotation(id, data);
       set({ isSubmitting: false });
@@ -126,7 +126,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Delete quotation
   removeQuotation: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined });
     try {
       await deleteQuotation(id);
       set({ isSubmitting: false });
@@ -140,6 +140,6 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
 
   // Reset quotation state
   resetQuotation: () => {
-    set({ quotation: null, error: null });
+    set({ quotation: undefined, error: undefined });
   },
 }));

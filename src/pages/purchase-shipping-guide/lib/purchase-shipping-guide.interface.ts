@@ -1,5 +1,6 @@
 import { Truck } from "lucide-react";
 import type { ModelComplete } from "@/lib/core.interface";
+import type { Links, Meta } from "@/lib/pagination.interface";
 
 // ===== CONSTANTS =====
 
@@ -134,12 +135,8 @@ export interface AssignPurchaseRequest {
 
 export interface PurchaseShippingGuideResponse {
   data: PurchaseShippingGuideResource[];
-  current_page: number;
-  from: number;
-  last_page: number;
-  per_page: number;
-  to: number;
-  total: number;
+  meta: Meta;
+  links: Links;
 }
 
 export interface PurchaseShippingGuideResourceById {

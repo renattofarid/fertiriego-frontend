@@ -15,11 +15,11 @@ interface TypeUserStore {
   allTypeUsers: TypeUserResource[] | null;
   typeUsers: TypeUserResource[] | null;
   typeUser: TypeUserResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllTypeUsers: () => Promise<void>;
   fetchTypeUsers: (params?: Record<string, any>) => Promise<void>;
@@ -32,15 +32,15 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
   allTypeUsers: null,
   typeUser: null,
   typeUsers: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchTypeUsers: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getTypeUser({ params });
       set({ typeUsers: data, meta: meta, isLoading: false });
@@ -50,7 +50,7 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
   },
 
   fetchAllTypeUsers: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllTypeUsers();
       set({ allTypeUsers: data, isLoadingAll: false });
@@ -60,7 +60,7 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
   },
 
   fetchTypeUser: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findTypeUserById(id);
       set({ typeUser: data, isFinding: false });
@@ -70,7 +70,7 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
   },
 
   createTypeUser: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeTypeUser(data);
     } catch (err) {
@@ -82,7 +82,7 @@ export const useTypeUserStore = create<TypeUserStore>((set) => ({
   },
 
   updateTypeUser: async (id: number, data: TypeUserSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateTypeUser(id, data);
     } catch (err) {

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   SaleDetailResource,
-  Meta,
   CreateSaleDetailRequestFull,
   UpdateSaleDetailRequest,
 } from "./sale.interface";
@@ -13,8 +12,14 @@ import {
   deleteSaleDetail,
   type GetSaleDetailsParams,
 } from "./sale.actions";
-import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  SUCCESS_MESSAGE,
+  errorToast,
+  successToast,
+} from "@/lib/core.function";
 import { SALE_DETAIL } from "./sale.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE_DETAIL;
 
@@ -22,17 +27,27 @@ interface SaleDetailStore {
   // State
   details: SaleDetailResource[] | null;
   detail: SaleDetailResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
-  fetchDetails: (saleId: number, params?: GetSaleDetailsParams) => Promise<void>;
+  fetchDetails: (
+    saleId: number,
+    params?: GetSaleDetailsParams
+  ) => Promise<void>;
   fetchDetail: (saleId: number, detailId: number) => Promise<void>;
-  createDetail: (saleId: number, data: CreateSaleDetailRequestFull) => Promise<void>;
-  updateDetail: (saleId: number, detailId: number, data: UpdateSaleDetailRequest) => Promise<void>;
+  createDetail: (
+    saleId: number,
+    data: CreateSaleDetailRequestFull
+  ) => Promise<void>;
+  updateDetail: (
+    saleId: number,
+    detailId: number,
+    data: UpdateSaleDetailRequest
+  ) => Promise<void>;
   deleteDetail: (saleId: number, detailId: number) => Promise<void>;
   resetDetail: () => void;
 }
@@ -41,25 +56,18 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
   // Initial state
   details: null,
   detail: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch details for a sale
   fetchDetails: async (saleId: number, params?: GetSaleDetailsParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getSaleDetails(saleId, params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ details: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar los detalles", isLoading: false });
@@ -69,7 +77,7 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
 
   // Fetch single detail by ID
   fetchDetail: async (saleId: number, detailId: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await getSaleDetailById(saleId, detailId);
       set({ detail: response.data, isFinding: false });
@@ -81,7 +89,7 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
 
   // Create new detail
   createDetail: async (saleId: number, data: CreateSaleDetailRequestFull) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createSaleDetail(saleId, data);
       set({ isSubmitting: false });
@@ -94,8 +102,12 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
   },
 
   // Update detail
-  updateDetail: async (saleId: number, detailId: number, data: UpdateSaleDetailRequest) => {
-    set({ isSubmitting: true, error: null });
+  updateDetail: async (
+    saleId: number,
+    detailId: number,
+    data: UpdateSaleDetailRequest
+  ) => {
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateSaleDetail(saleId, detailId, data);
       set({ isSubmitting: false });
@@ -109,7 +121,7 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
 
   // Delete detail
   deleteDetail: async (saleId: number, detailId: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteSaleDetail(saleId, detailId);
       set({ isSubmitting: false });
@@ -123,6 +135,6 @@ export const useSaleDetailStore = create<SaleDetailStore>((set) => ({
 
   // Reset detail state
   resetDetail: () => {
-    set({ detail: null, error: null });
+    set({ detail: null, error: undefined});
   },
 }));

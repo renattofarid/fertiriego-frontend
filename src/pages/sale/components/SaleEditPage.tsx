@@ -43,9 +43,8 @@ export const SaleEditPage = () => {
     if (sale) {
       // Verificar si alguna cuota tiene pagos registrados
       const hasPayments =
-        sale.installments?.some(
-          (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
-        ) ?? false;
+        sale.installments?.some((inst) => inst.pending_amount < inst.amount) ??
+        false;
 
       if (hasPayments) {
         errorToast(
