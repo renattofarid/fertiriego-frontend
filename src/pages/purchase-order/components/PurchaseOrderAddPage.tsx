@@ -2,7 +2,6 @@
 
 import { useNavigate } from "react-router-dom";
 import { useRef } from "react";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
 import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
@@ -20,11 +19,10 @@ import { PURCHASE_ORDER } from "../lib/purchase-order.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL } = PURCHASE_ORDER;
-
 export default function PurchaseOrderAddPage() {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
+  const { MODEL, ICON } = PURCHASE_ORDER;
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
@@ -71,8 +69,7 @@ export default function PurchaseOrderAddPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/ordenes-compra" />
-            <TitleFormComponent title={MODEL.name} mode="create" />
+            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -84,8 +81,7 @@ export default function PurchaseOrderAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/ordenes-compra" />
-          <TitleFormComponent title={MODEL.name} mode="create" />
+          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

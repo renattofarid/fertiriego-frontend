@@ -22,7 +22,7 @@ import {
   Loader,
   Plus,
   Trash2,
-  Edit,
+  Pencil,
   FileText,
   CreditCard,
   ListCheck,
@@ -296,45 +296,49 @@ export const SaleForm = ({
         form.setValue("payment_type", sourceData.payment_type);
 
         // Auto-completar detalles desde cotización
-        const quotationDetails: DetailRow[] = sourceData.quotation_details.map((detail: any) => {
-          const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price);
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
-          const igv = roundTo6Decimals(subtotal * 0.18);
-          const total = roundTo6Decimals(subtotal + igv);
+        const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
+          (detail: any) => {
+            const quantity = parseFloat(detail.quantity);
+            const unitPrice = parseFloat(detail.unit_price);
+            const subtotal = roundTo6Decimals(quantity * unitPrice);
+            const igv = roundTo6Decimals(subtotal * 0.18);
+            const total = roundTo6Decimals(subtotal + igv);
 
-          return {
-            product_id: detail.product_id.toString(),
-            product_name: detail.product?.name,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
-            subtotal,
-            igv,
-            total,
-          };
-        });
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product?.name,
+              quantity: detail.quantity,
+              unit_price: detail.unit_price,
+              subtotal,
+              igv,
+              total,
+            };
+          }
+        );
 
         setDetails(quotationDetails);
         form.setValue("details", quotationDetails);
       } else if (sourceType === "order") {
         // Auto-completar detalles desde orden
-        const orderDetails: DetailRow[] = sourceData.order_details.map((detail: any) => {
-          const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price);
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
-          const igv = roundTo6Decimals(subtotal * 0.18);
-          const total = roundTo6Decimals(subtotal + igv);
+        const orderDetails: DetailRow[] = sourceData.order_details.map(
+          (detail: any) => {
+            const quantity = parseFloat(detail.quantity);
+            const unitPrice = parseFloat(detail.unit_price);
+            const subtotal = roundTo6Decimals(quantity * unitPrice);
+            const igv = roundTo6Decimals(subtotal * 0.18);
+            const total = roundTo6Decimals(subtotal + igv);
 
-          return {
-            product_id: detail.product_id.toString(),
-            product_name: detail.product?.name,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
-            subtotal,
-            igv,
-            total,
-          };
-        });
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product?.name,
+              quantity: detail.quantity,
+              unit_price: detail.unit_price,
+              subtotal,
+              igv,
+              total,
+            };
+          }
+        );
 
         setDetails(orderDetails);
         form.setValue("details", orderDetails);
@@ -842,7 +846,7 @@ export const SaleForm = ({
                             size="sm"
                             onClick={() => handleEditDetail(index)}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
                             type="button"
@@ -1087,7 +1091,7 @@ export const SaleForm = ({
                                 size="sm"
                                 onClick={() => handleEditInstallment(index)}
                               >
-                                <Edit className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 type="button"

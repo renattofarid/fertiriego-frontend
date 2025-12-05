@@ -17,7 +17,7 @@ import {
   purchaseOrderSchemaUpdate,
   type PurchaseOrderSchema,
 } from "../lib/purchase-order.schema";
-import { Loader, Trash2, Edit } from "lucide-react";
+import { Loader, Trash2, Edit, FileText, ListCheck } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
@@ -26,7 +26,6 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState } from "react";
 import { truncDecimal } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -35,10 +34,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";
 import { FormSwitch } from "@/components/FormSwitch";
+import { GroupFormSection } from "@/components/GroupFormSection";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -220,231 +226,252 @@ export const PurchaseOrderForm = ({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-6 w-full"
       >
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.business_name ??
-                    supplier.names +
-                      " " +
-                      supplier.father_surname +
-                      " " +
-                      supplier.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{
+            sm: 1,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormSelect
+              control={form.control}
+              name="supplier_id"
+              label="Proveedor"
+              placeholder="Seleccione un proveedor"
+              options={suppliers.map((supplier) => ({
+                value: supplier.id.toString(),
+                label:
+                  supplier.business_name ??
+                  supplier.names +
+                    " " +
+                    supplier.father_surname +
+                    " " +
+                    supplier.mother_surname,
+              }))}
+              disabled={mode === "update"}
+            />
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+            <FormSelect
+              control={form.control}
+              name="warehouse_id"
+              label="Almacén"
+              placeholder="Seleccione un almacén"
+              options={warehouses.map((warehouse) => ({
+                value: warehouse.id.toString(),
+                label: warehouse.name,
+              }))}
+              disabled={mode === "update"}
+            />
 
-              <DatePickerFormField
-                control={form.control}
-                name="issue_date"
-                label="Fecha de Emisión"
-                disabledRange={{ after: new Date() }}
-                placeholder="Seleccione la fecha de emisión"
-                dateFormat="dd/MM/yyyy"
-              />
+            <DatePickerFormField
+              control={form.control}
+              name="issue_date"
+              label="Fecha de Emisión"
+              disabledRange={{ after: new Date() }}
+              placeholder="Seleccione la fecha de emisión"
+              dateFormat="dd/MM/yyyy"
+            />
 
-              <DatePickerFormField
-                control={form.control}
-                name="expected_date"
-                label="Fecha Esperada"
-                placeholder="Seleccione la fecha esperada"
-                dateFormat="dd/MM/yyyy"
-              />
+            <DatePickerFormField
+              control={form.control}
+              name="expected_date"
+              label="Fecha Esperada"
+              placeholder="Seleccione la fecha esperada"
+              dateFormat="dd/MM/yyyy"
+            />
 
-              <FormSwitch
-                control={form.control}
-                name="apply_igv"
-                label="Aplicar IGV"
-                text="¿Aplicar IGV a esta orden de compra?"
-              />
+            <FormSwitch
+              control={form.control}
+              name="apply_igv"
+              label="Aplicar IGV"
+              text="¿Aplicar IGV a esta orden de compra?"
+            />
 
-              {mode === "update" && purchaseOrder?.total_estimated && (
-                <div className="bg-sidebar p-4 rounded-lg">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold text-sm">Total Estimado:</span>
-                    <span className="text-lg font-bold text-primary">
-                      {formatCurrency(parseFloat(purchaseOrder.total_estimated), { currencySymbol: "S/.", decimals: 6 })}
-                    </span>
-                  </div>
+            {mode === "update" && purchaseOrder?.total_estimated && (
+              <div className="bg-sidebar p-4 rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-sm">Total Estimado:</span>
+                  <span className="text-lg font-bold text-primary">
+                    {formatCurrency(parseFloat(purchaseOrder.total_estimated), {
+                      currencySymbol: "S/.",
+                      decimals: 6,
+                    })}
+                  </span>
                 </div>
-              )}
-
-              <div className="md:col-span-2">
-                <FormField
-                  control={form.control}
-                  name="observations"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observaciones</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ingrese observaciones adicionales"
-                          className="resize-none"
-                          {...field}
-                          // Coerce null to empty string so the native textarea value type is satisfied
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
+            )}
+
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Ingrese observaciones adicionales"
+                        className="resize-none"
+                        {...field}
+                        // Coerce null to empty string so the native textarea value type is satisfied
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          </CardContent>
-        </Card>
-
+          </div>
+        </GroupFormSection>
         {mode === "create" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la Orden</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-sidebar rounded-lg">
-                <PurchaseOrderDetailForm
-                  products={products}
-                  detail={editingIndex !== null ? currentDetail : null}
-                  onSubmit={handleAddDetail}
-                  onCancel={() => {
-                    setCurrentDetail({
-                      product_id: "",
-                      quantity_requested: "",
-                      unit_price_estimated: "",
-                      subtotal: 0,
-                    });
-                    setEditingIndex(null);
-                  }}
-                  isEditing={editingIndex !== null}
-                />
-              </div>
+          <GroupFormSection
+            title="Detalles de la Orden"
+            icon={ListCheck}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="p-4 bg-sidebar rounded-lg">
+              <PurchaseOrderDetailForm
+                products={products}
+                detail={editingIndex !== null ? currentDetail : null}
+                onSubmit={handleAddDetail}
+                onCancel={() => {
+                  setCurrentDetail({
+                    product_id: "",
+                    quantity_requested: "",
+                    unit_price_estimated: "",
+                    subtotal: 0,
+                  });
+                  setEditingIndex(null);
+                }}
+                isEditing={editingIndex !== null}
+              />
+            </div>
 
-              {details.length > 0 && (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">
-                          P. Unitario
-                        </TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                        <TableHead className="text-center">Acciones</TableHead>
+            {details.length > 0 && (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">P. Unitario</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {details.map((detail, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{detail.product_name}</TableCell>
+                        <TableCell className="text-right">
+                          {detail.quantity_requested}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(
+                            parseFloat(detail.unit_price_estimated),
+                            { currencySymbol: "S/.", decimals: 6 }
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatCurrency(detail.subtotal, {
+                            currencySymbol: "S/.",
+                            decimals: 6,
+                          })}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditDetail(index)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveDetail(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {details.map((detail, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{detail.product_name}</TableCell>
-                          <TableCell className="text-right">
-                            {detail.quantity_requested}
-                          </TableCell>
-                          <TableCell className="text-right">
-                              {formatCurrency(parseFloat(detail.unit_price_estimated), { currencySymbol: "S/.", decimals: 6 })}
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-right font-bold">
+                        SUBTOTAL:
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg text-primary">
+                        {formatCurrency(subtotalBase, {
+                          currencySymbol: "S/.",
+                          decimals: 6,
+                        })}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+
+                    {applyIgv && (
+                      <>
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-bold"
+                          >
+                            IGV (18%) estimado:
                           </TableCell>
                           <TableCell className="text-right font-bold">
-                            {formatCurrency(detail.subtotal, { currencySymbol: "S/.", decimals: 6 })}
+                            {formatCurrency(igvAmount, {
+                              currencySymbol: "S/.",
+                              decimals: 6,
+                            })}
                           </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditDetail(index)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveDetail(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                          <TableCell></TableCell>
                         </TableRow>
-                      ))}
-                      <TableRow>
-                          <TableCell colSpan={3} className="text-right font-bold">
-                          SUBTOTAL:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-primary">
-                          {formatCurrency(subtotalBase, { currencySymbol: "S/.", decimals: 6 })}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
 
-                      {applyIgv && (
-                        <>
-                          <TableRow>
-                            <TableCell
-                              colSpan={3}
-                              className="text-right font-bold"
-                            >
-                              IGV (18%) estimado:
-                            </TableCell>
-                            <TableCell className="text-right font-bold">
-                              {formatCurrency(igvAmount, { currencySymbol: "S/.", decimals: 6 })}
-                            </TableCell>
-                            <TableCell></TableCell>
-                          </TableRow>
+                        <TableRow>
+                          <TableCell
+                            colSpan={3}
+                            className="text-right font-bold"
+                          >
+                            TOTAL (con IGV) estimado:
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-lg text-primary">
+                            {formatCurrency(totalWithIgv, {
+                              currencySymbol: "S/.",
+                              decimals: 6,
+                            })}
+                          </TableCell>
+                          <TableCell></TableCell>
+                        </TableRow>
+                      </>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
 
-                          <TableRow>
-                            <TableCell
-                              colSpan={3}
-                              className="text-right font-bold"
-                            >
-                              TOTAL (con IGV) estimado:
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-lg text-primary">
-                              {formatCurrency(totalWithIgv, { currencySymbol: "S/.", decimals: 6 })}
-                            </TableCell>
-                            <TableCell></TableCell>
-                          </TableRow>
-                        </>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {details.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay detalles agregados
-                  </Badge>
-                  <p className="text-sm mt-2">
-                    Agregue productos a la orden de compra
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            {details.length === 0 && (
+              <Empty className="border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <ListCheck />
+                  </EmptyMedia>
+                  <EmptyTitle> No hay detalles agregados</EmptyTitle>
+                  <EmptyDescription>
+                    Agregue productos a la orden de compra utilizando el
+                    formulario de arriba.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </GroupFormSection>
         )}
 
         <div className="flex gap-4 w-full justify-end">

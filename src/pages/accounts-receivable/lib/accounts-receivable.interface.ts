@@ -28,6 +28,20 @@ export const ACCOUNTS_RECEIVABLE: ModelComplete = {
   ROUTE_ADD: `${AccountsReceivableRoute}/agregar`,
   ROUTE_UPDATE: `${AccountsReceivableRoute}/[id]/actualizar`,
   EMPTY: {} as any,
+  TITLES: {
+    create: {
+      title: `Crear ${NAME}`,
+      subtitle: `Formulario para crear una nueva ${NAME.toLowerCase()}`,
+    },
+    update: {
+      title: `Actualizar ${NAME}`,
+      subtitle: `Formulario para actualizar una ${NAME.toLowerCase()}`,
+    },
+    delete: {
+      title: `Eliminar ${NAME}`,
+      subtitle: `Confirmar eliminación de la ${NAME.toLowerCase()}`,
+    },
+  },
 };
 
 // Resumen de cuentas por cobrar

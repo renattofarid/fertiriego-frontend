@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseForm } from "./PurchaseForm";
 import { type PurchaseSchema } from "../lib/purchase.schema";
@@ -15,11 +14,12 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import { PURCHASE } from "../lib/purchase.interface";
 
 export const PurchaseAddPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { ICON } = PURCHASE;
   const { user } = useAuthStore();
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
@@ -68,8 +68,7 @@ export const PurchaseAddPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/compras" />
-            <TitleFormComponent title="Compra" mode="create" />
+            <TitleFormComponent title="Compra" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -81,8 +80,7 @@ export const PurchaseAddPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/compras" />
-          <TitleFormComponent title="Compra" mode="create" />
+          <TitleFormComponent title="Compra" mode="create" icon={ICON} />
         </div>
       </div>
 

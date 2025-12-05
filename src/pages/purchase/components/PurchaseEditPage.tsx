@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseForm } from "./PurchaseForm";
 import { type PurchaseSchema } from "../lib/purchase.schema";
@@ -14,7 +13,7 @@ import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import type { PurchaseResource } from "../lib/purchase.interface";
+import { PURCHASE, type PurchaseResource } from "../lib/purchase.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,25 +29,33 @@ export const PurchaseEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { ICON } = PURCHASE;
   // Modal states
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
   const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
-  const [editingInstallmentId, setEditingInstallmentId] = useState<number | null>(null);
+  const [editingInstallmentId, setEditingInstallmentId] = useState<
+    number | null
+  >(null);
 
   const { user } = useAuthStore();
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } = useAllPurchaseOrders();
+  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
+    useAllPurchaseOrders();
 
-  const { updatePurchase, fetchPurchase, purchase, isFinding } = usePurchaseStore();
+  const { updatePurchase, fetchPurchase, purchase, isFinding } =
+    usePurchaseStore();
   const { fetchDetails, details } = usePurchaseDetailStore();
   const { fetchInstallments, installments } = usePurchaseInstallmentStore();
 
   const isLoading =
-    suppliersLoading || warehousesLoading || productsLoading || purchaseOrdersLoading || isFinding;
+    suppliersLoading ||
+    warehousesLoading ||
+    productsLoading ||
+    purchaseOrdersLoading ||
+    isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -65,7 +72,9 @@ export const PurchaseEditPage = () => {
     }
   }, [id, fetchDetails, fetchInstallments]);
 
-  const mapPurchaseToForm = (data: PurchaseResource): Partial<PurchaseSchema> => ({
+  const mapPurchaseToForm = (
+    data: PurchaseResource
+  ): Partial<PurchaseSchema> => ({
     supplier_id: data.supplier_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
     user_id: data.user_id?.toString(),
@@ -89,7 +98,9 @@ export const PurchaseEditPage = () => {
       // El toast de éxito se muestra en el store
       navigate("/compras");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al actualizar la compra");
+      errorToast(
+        error.response?.data?.message || "Error al actualizar la compra"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -140,8 +151,7 @@ export const PurchaseEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/compras" />
-            <TitleFormComponent title="Compra" mode="edit" />
+            <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -153,8 +163,7 @@ export const PurchaseEditPage = () => {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/compras" />
-          <TitleFormComponent title="Compra" mode="edit" />
+          <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
@@ -167,8 +176,7 @@ export const PurchaseEditPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/compras" />
-          <TitleFormComponent title="Compra" mode="edit" />
+          <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
         </div>
       </div>
 
