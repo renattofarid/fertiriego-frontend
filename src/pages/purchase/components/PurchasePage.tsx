@@ -8,9 +8,17 @@ import { PurchaseOptions } from "./PurchaseOptions";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import DataTablePagination from "@/components/DataTablePagination";
-import type { PurchaseResource, PurchaseInstallmentResource } from "../lib/purchase.interface";
+import type {
+  PurchaseResource,
+  PurchaseInstallmentResource,
+} from "../lib/purchase.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { ERROR_MESSAGE, errorToast, SUCCESS_MESSAGE, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  errorToast,
+  SUCCESS_MESSAGE,
+  successToast,
+} from "@/lib/core.function";
 import { PurchaseManagementSheet } from "./sheets/PurchaseManagementSheet";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
 
@@ -22,12 +30,20 @@ export const PurchasePage = () => {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPaymentType, setSelectedPaymentType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [selectedPurchase, setSelectedPurchase] = useState<PurchaseResource | null>(null);
+  const [selectedPurchase, setSelectedPurchase] =
+    useState<PurchaseResource | null>(null);
   const [isManagementSheetOpen, setIsManagementSheetOpen] = useState(false);
-  const [selectedInstallment, setSelectedInstallment] = useState<PurchaseInstallmentResource | null>(null);
+  const [selectedInstallment, setSelectedInstallment] =
+    useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
 
-  const { data, meta, isLoading, refetch } = usePurchase();
+  const { data, meta, isLoading, refetch } = usePurchase({
+    page,
+    per_page,
+    search,
+    status: selectedStatus,
+    payment_type: selectedPaymentType,
+  });
   const { removePurchase } = usePurchaseStore();
 
   useEffect(() => {
@@ -53,7 +69,9 @@ export const PurchasePage = () => {
         ...(selectedPaymentType && { payment_type: selectedPaymentType }),
       };
       await refetch(filterParams);
-      successToast(SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete"));
+      successToast(
+        SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete")
+      );
     } catch (error: any) {
       const errorMessage = error.response?.data?.message ?? ERROR_MESSAGE;
       errorToast(errorMessage);
@@ -82,14 +100,19 @@ export const PurchasePage = () => {
   const handleQuickPay = (purchase: PurchaseResource) => {
     // Validar que la suma de cuotas sea igual al total de la compra
     const totalAmount = parseFloat(purchase.total_amount);
-    const sumOfInstallments = purchase.installments?.reduce(
-      (sum, inst) => sum + parseFloat(inst.amount),
-      0
-    ) || 0;
+    const sumOfInstallments =
+      purchase.installments?.reduce(
+        (sum, inst) => sum + parseFloat(inst.amount),
+        0
+      ) || 0;
 
     if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
       errorToast(
-        `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(2)}) no coincide con el total de la compra (${totalAmount.toFixed(2)}). Por favor, sincronice las cuotas.`
+        `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(
+          2
+        )}) no coincide con el total de la compra (${totalAmount.toFixed(
+          2
+        )}). Por favor, sincronice las cuotas.`
       );
       return;
     }
@@ -205,7 +228,9 @@ export const PurchasePage = () => {
           await refetch(filterParams);
           // Actualizar el selectedPurchase con los datos más recientes del store
           if (selectedPurchase && data) {
-            const updatedPurchase = data.find((p: PurchaseResource) => p.id === selectedPurchase.id);
+            const updatedPurchase = data.find(
+              (p: PurchaseResource) => p.id === selectedPurchase.id
+            );
             if (updatedPurchase) {
               setSelectedPurchase(updatedPurchase);
             }

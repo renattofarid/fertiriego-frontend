@@ -16,11 +16,11 @@ import type {
 interface BoxShiftStore {
   boxShifts: BoxShiftResource[] | null;
   boxShift: BoxShiftResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   fetchBoxShifts: (params?: Record<string, any>) => Promise<void>;
   fetchBoxShift: (id: number) => Promise<void>;
@@ -33,14 +33,14 @@ interface BoxShiftStore {
 export const useBoxShiftStore = create<BoxShiftStore>((set) => ({
   boxShifts: null,
   boxShift: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchBoxShifts: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBoxShifts({ params });
       set({ boxShifts: data, meta, isLoading: false });
@@ -53,7 +53,7 @@ export const useBoxShiftStore = create<BoxShiftStore>((set) => ({
   },
 
   fetchBoxShift: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findBoxShiftById(id);
       set({ boxShift: data, isFinding: false });
@@ -66,7 +66,7 @@ export const useBoxShiftStore = create<BoxShiftStore>((set) => ({
   },
 
   createBoxShift: async (data: CreateBoxShiftProps) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const response = await storeBoxShift(data);
       set({ isSubmitting: false });
@@ -81,7 +81,7 @@ export const useBoxShiftStore = create<BoxShiftStore>((set) => ({
   },
 
   closeBoxShiftAction: async (data: CloseBoxShiftProps) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const response = await closeBoxShift(data);
       set({ isSubmitting: false });
@@ -96,7 +96,7 @@ export const useBoxShiftStore = create<BoxShiftStore>((set) => ({
   },
 
   deleteBoxShift: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteBoxShift(id);
       set({ isSubmitting: false });

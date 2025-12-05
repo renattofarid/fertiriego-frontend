@@ -17,11 +17,11 @@ import type { Meta } from "@/lib/pagination.interface";
 interface ProductComponentStore {
   productComponents: ProductComponentResource[] | null;
   productComponent: ProductComponentResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
   fetchProductComponents: (params: GetProductComponentsProps) => Promise<void>;
   fetchProductComponentById: (id: number) => Promise<void>;
   createProductComponent: (data: CreateProductComponentRequest) => Promise<void>;
@@ -33,17 +33,17 @@ interface ProductComponentStore {
 export const useProductComponentStore = create<ProductComponentStore>((set) => ({
   productComponents: null,
   productComponent: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchProductComponents: async (params: GetProductComponentsProps) => {
     const state = useProductComponentStore.getState();
     if (state.isLoading) return; // Prevent duplicate calls
 
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getProductComponents(params);
       set({ productComponents: data, meta: meta, isLoading: false });
@@ -53,7 +53,7 @@ export const useProductComponentStore = create<ProductComponentStore>((set) => (
   },
 
   fetchProductComponentById: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await getProductComponentById(id);
       set({ productComponent: data, isFinding: false });
@@ -63,7 +63,7 @@ export const useProductComponentStore = create<ProductComponentStore>((set) => (
   },
 
   createProductComponent: async (data: CreateProductComponentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createProductComponent(data);
     } catch (err) {
@@ -75,7 +75,7 @@ export const useProductComponentStore = create<ProductComponentStore>((set) => (
   },
 
   updateProductComponent: async (id: number, data: UpdateProductComponentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateProductComponent(id, data);
     } catch (err) {
@@ -87,7 +87,7 @@ export const useProductComponentStore = create<ProductComponentStore>((set) => (
   },
 
   deleteProductComponent: async (id: number) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deleteProductComponent(id);
     } catch (err) {
@@ -100,8 +100,8 @@ export const useProductComponentStore = create<ProductComponentStore>((set) => (
     set({
       productComponents: null,
       productComponent: null,
-      meta: null,
-      error: null,
+      meta: undefined,
+      error: undefined,
     });
   },
 }));

@@ -1,13 +1,16 @@
 import { Truck } from "lucide-react";
 import type { ModelComplete } from "@/lib/core.interface";
+import type { Links, Meta } from "@/lib/pagination.interface";
 
 // ===== CONSTANTS =====
 
 export const PURCHASE_SHIPPING_GUIDE_ENDPOINT = "/purchase-shipping-guides";
-export const PURCHASE_SHIPPING_GUIDE_DETAIL_ENDPOINT = "/purchase-shipping-guide-details";
+export const PURCHASE_SHIPPING_GUIDE_DETAIL_ENDPOINT =
+  "/purchase-shipping-guide-details";
 
 export const PURCHASE_SHIPPING_GUIDE_QUERY_KEY = "purchase-shipping-guides";
-export const PURCHASE_SHIPPING_GUIDE_DETAIL_QUERY_KEY = "purchase-shipping-guide-details";
+export const PURCHASE_SHIPPING_GUIDE_DETAIL_QUERY_KEY =
+  "purchase-shipping-guide-details";
 
 export const PurchaseShippingGuideRoute = "/guias-compra";
 export const PurchaseShippingGuideAddRoute = `${PurchaseShippingGuideRoute}/agregar`;
@@ -132,25 +135,12 @@ export interface AssignPurchaseRequest {
 
 export interface PurchaseShippingGuideResponse {
   data: PurchaseShippingGuideResource[];
-  current_page: number;
-  from: number;
-  last_page: number;
-  per_page: number;
-  to: number;
-  total: number;
+  meta: Meta;
+  links: Links;
 }
 
 export interface PurchaseShippingGuideResourceById {
   data: PurchaseShippingGuideResource;
-}
-
-export interface Meta {
-  current_page: number;
-  from: number;
-  last_page: number;
-  per_page: number;
-  to: number;
-  total: number;
 }
 
 // ===== MODEL COMPLETE =====

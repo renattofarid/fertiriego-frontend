@@ -85,7 +85,7 @@ export const BranchForm = ({
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Sucursal Lima Centro"
                     {...field}
                   />
@@ -103,7 +103,7 @@ export const BranchForm = ({
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Av. Abancay 1234"
                     {...field}
                   />
@@ -121,7 +121,7 @@ export const BranchForm = ({
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: 987654321"
                     maxLength={9}
                     {...field}
@@ -140,7 +140,7 @@ export const BranchForm = ({
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="email"
                     placeholder="Ej: sucursal.lima@empresa.com"
                     {...field}

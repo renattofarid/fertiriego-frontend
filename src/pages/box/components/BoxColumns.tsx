@@ -6,13 +6,22 @@ import { SelectActions } from "@/components/SelectActions";
 import type { BoxResource } from "../lib/box.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 
 export const BoxColumns = ({
   onEdit,
   onDelete,
+  onAssign,
+  onViewAssignments,
+  onToggleStatus,
+  updatingStatusId,
 }: {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onAssign?: (id: number) => void;
+  onViewAssignments?: (id: number) => void;
+  onToggleStatus: (id: number, currentStatus: string) => void;
+  updatingStatusId?: number | null;
 }): ColumnDef<BoxResource>[] => [
   {
     accessorKey: "name",
@@ -33,15 +42,24 @@ export const BoxColumns = ({
   {
     accessorKey: "status",
     header: "Estado",
-    cell: ({ getValue }) => {
-      const status = getValue() as string;
+    cell: ({ row }) => {
+      const status = row.original.status;
+      const id = row.original.id;
+      const isUpdating = updatingStatusId === id;
       return (
-        <Badge
-          variant={status === "Activo" ? "default" : "destructive"}
-          className={`font-semibold`}
-        >
-          {status}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={status === "Activo"}
+            onCheckedChange={() => onToggleStatus(id, status)}
+            disabled={isUpdating}
+          />
+          <Badge
+            variant={status === "Activo" ? "default" : "destructive"}
+            className={`font-semibold`}
+          >
+            {status}
+          </Badge>
+        </div>
       );
     },
   },
@@ -50,12 +68,12 @@ export const BoxColumns = ({
     header: "Fecha de Creación",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
-      return date.toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     },
   },
@@ -68,6 +86,16 @@ export const BoxColumns = ({
       return (
         <SelectActions>
           <DropdownMenuGroup>
+            {onViewAssignments && (
+              <DropdownMenuItem onClick={() => onViewAssignments(id)}>
+                Ver Asignaciones
+              </DropdownMenuItem>
+            )}
+            {onAssign && (
+              <DropdownMenuItem onClick={() => onAssign(id)}>
+                Asignar Usuario
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={() => onEdit(id)}>
               Editar
             </DropdownMenuItem>

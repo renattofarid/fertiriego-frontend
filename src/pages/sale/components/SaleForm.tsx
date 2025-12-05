@@ -18,7 +18,16 @@ import {
   saleSchemaUpdate,
   type SaleSchema,
 } from "../lib/sale.schema";
-import { Loader, Plus, Trash2, Edit } from "lucide-react";
+import {
+  Loader,
+  Plus,
+  Trash2,
+  Pencil,
+  FileText,
+  CreditCard,
+  ListCheck,
+  ListChecks,
+} from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
@@ -37,13 +46,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DOCUMENT_TYPES,
   PAYMENT_TYPES,
   CURRENCIES,
 } from "../lib/sale.interface";
 import { errorToast } from "@/lib/core.function";
+import { GroupFormSection } from "@/components/GroupFormSection";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -54,6 +70,8 @@ interface SaleFormProps {
   customers: PersonResource[];
   warehouses: WarehouseResource[];
   products: ProductResource[];
+  sourceData?: any; // QuotationResourceById | OrderResourceById
+  sourceType?: "quotation" | "order" | null;
   sale?: SaleResource;
 }
 
@@ -82,6 +100,8 @@ export const SaleForm = ({
   customers,
   warehouses,
   products,
+  sourceData,
+  sourceType,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -262,6 +282,70 @@ export const SaleForm = ({
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+
+  // Auto-completar datos desde sourceData (orden o cotización)
+  useEffect(() => {
+    if (sourceData && sourceType && mode === "create") {
+      // Auto-completar campos comunes
+      form.setValue("customer_id", sourceData.customer_id.toString());
+      form.setValue("warehouse_id", sourceData.warehouse_id.toString());
+      form.setValue("currency", sourceData.currency);
+      form.setValue("observations", sourceData.observations || "");
+
+      if (sourceType === "quotation") {
+        form.setValue("payment_type", sourceData.payment_type);
+
+        // Auto-completar detalles desde cotización
+        const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
+          (detail: any) => {
+            const quantity = parseFloat(detail.quantity);
+            const unitPrice = parseFloat(detail.unit_price);
+            const subtotal = roundTo6Decimals(quantity * unitPrice);
+            const igv = roundTo6Decimals(subtotal * 0.18);
+            const total = roundTo6Decimals(subtotal + igv);
+
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product?.name,
+              quantity: detail.quantity,
+              unit_price: detail.unit_price,
+              subtotal,
+              igv,
+              total,
+            };
+          }
+        );
+
+        setDetails(quotationDetails);
+        form.setValue("details", quotationDetails);
+      } else if (sourceType === "order") {
+        // Auto-completar detalles desde orden
+        const orderDetails: DetailRow[] = sourceData.order_details.map(
+          (detail: any) => {
+            const quantity = parseFloat(detail.quantity);
+            const unitPrice = parseFloat(detail.unit_price);
+            const subtotal = roundTo6Decimals(quantity * unitPrice);
+            const igv = roundTo6Decimals(subtotal * 0.18);
+            const total = roundTo6Decimals(subtotal + igv);
+
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product?.name,
+              quantity: detail.quantity,
+              unit_price: detail.unit_price,
+              subtotal,
+              igv,
+              total,
+            };
+          }
+        );
+
+        setDetails(orderDetails);
+        form.setValue("details", orderDetails);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceData, sourceType]);
 
   // Establecer fecha de emisión automáticamente al cargar el formulario
   useEffect(() => {
@@ -536,6 +620,8 @@ export const SaleForm = ({
       ...data,
       details,
       installments: validInstallments,
+      order_id: data.order_id ? parseInt(data.order_id) : undefined,
+      quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
     });
   };
 
@@ -546,63 +632,96 @@ export const SaleForm = ({
         className="space-y-6 w-full"
       >
         {/* Información General */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormSelect
-                control={form.control}
-                name="customer_id"
-                label="Cliente"
-                placeholder="Seleccione un cliente"
-                options={customers.map((customer) => ({
-                  value: customer.id.toString(),
-                  label:
-                    customer.business_name ??
-                    customer.names +
-                      " " +
-                      customer.father_surname +
-                      " " +
-                      customer.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{
+            sm: 1,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FormSelect
+              control={form.control}
+              name="customer_id"
+              label="Cliente"
+              placeholder="Seleccione un cliente"
+              options={customers.map((customer) => ({
+                value: customer.id.toString(),
+                label:
+                  customer.business_name ??
+                  customer.names +
+                    " " +
+                    customer.father_surname +
+                    " " +
+                    customer.mother_surname,
+              }))}
+              disabled={mode === "update"}
+            />
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+            <FormSelect
+              control={form.control}
+              name="warehouse_id"
+              label="Almacén"
+              placeholder="Seleccione un almacén"
+              options={warehouses.map((warehouse) => ({
+                value: warehouse.id.toString(),
+                label: warehouse.name,
+              }))}
+              disabled={mode === "update"}
+            />
 
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
+            <FormSelect
+              control={form.control}
+              name="document_type"
+              label="Tipo de Documento"
+              placeholder="Seleccione tipo"
+              options={DOCUMENT_TYPES.map((dt) => ({
+                value: dt.value,
+                label: dt.label,
+              }))}
+            />
 
+            <DatePickerFormField
+              control={form.control}
+              name="issue_date"
+              label="Fecha de Emisión"
+              placeholder="Seleccione fecha"
+              dateFormat="dd/MM/yyyy"
+            />
+
+            <FormSelect
+              control={form.control}
+              name="payment_type"
+              label="Tipo de Pago"
+              placeholder="Seleccione tipo"
+              options={PAYMENT_TYPES.map((pt) => ({
+                value: pt.value,
+                label: pt.label,
+              }))}
+            />
+
+            <FormSelect
+              control={form.control}
+              name="currency"
+              label="Moneda"
+              placeholder="Seleccione moneda"
+              options={CURRENCIES.map((c) => ({
+                value: c.value,
+                label: c.label,
+              }))}
+            />
+
+            <div className="md:col-span-2 lg:col-span-3">
               <FormField
                 control={form.control}
-                name="serie"
+                name="observations"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Serie</FormLabel>
+                    <FormLabel>Observaciones</FormLabel>
                     <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: F001"
+                      <Textarea
+                        placeholder="Ingrese observaciones adicionales"
+                        className="resize-none"
                         {...field}
                       />
                     </FormControl>
@@ -610,208 +729,311 @@ export const SaleForm = ({
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="numero"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número</FormLabel>
-                    <FormControl>
-                      <Input
-                        variant="primary"
-                        placeholder="Ej: 00000001"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DatePickerFormField
-                control={form.control}
-                name="issue_date"
-                label="Fecha de Emisión"
-                placeholder="Seleccione fecha"
-                dateFormat="dd/MM/yyyy"
-              />
-
-              <FormSelect
-                control={form.control}
-                name="payment_type"
-                label="Tipo de Pago"
-                placeholder="Seleccione tipo"
-                options={PAYMENT_TYPES.map((pt) => ({
-                  value: pt.value,
-                  label: pt.label,
-                }))}
-              />
-
-              <FormSelect
-                control={form.control}
-                name="currency"
-                label="Moneda"
-                placeholder="Seleccione moneda"
-                options={CURRENCIES.map((c) => ({
-                  value: c.value,
-                  label: c.label,
-                }))}
-              />
-
-              <div className="md:col-span-2 lg:col-span-3">
-                <FormField
-                  control={form.control}
-                  name="observations"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observaciones</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ingrese observaciones adicionales"
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GroupFormSection>
+
+        {/* Detalles */}
+        <GroupFormSection
+          title="Detalles de la Venta"
+          icon={ListCheck}
+          cols={{
+            sm: 1,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
+            <div className="md:col-span-2">
+              <Form {...detailTempForm}>
+                <FormSelect
+                  control={detailTempForm.control}
+                  name="temp_product_id"
+                  label="Producto"
+                  placeholder="Seleccione"
+                  options={products.map((product) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                  }))}
+                />
+              </Form>
+            </div>
+
+            <FormField
+              control={detailTempForm.control}
+              name="temp_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cantidad</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="0" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={detailTempForm.control}
+              name="temp_unit_price"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Precio Unit.</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.000001"
+                      placeholder="0.000000"
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="md:col-span-4 flex items-center justify-end">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleAddDetail}
+                disabled={
+                  !currentDetail.product_id ||
+                  !currentDetail.quantity ||
+                  !currentDetail.unit_price
+                }
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+              </Button>
+            </div>
+          </div>
+
+          {details.length > 0 ? (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">P. Unit.</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead className="text-right">IGV (18%)</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {details.map((detail, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{detail.product_name}</TableCell>
+                      <TableCell className="text-right">
+                        {detail.quantity}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatNumber(parseFloat(detail.unit_price))}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatNumber(detail.subtotal)}
+                      </TableCell>
+                      <TableCell className="text-right text-orange-600">
+                        {formatNumber(detail.igv)}
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-primary">
+                        {formatNumber(detail.total)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditDetail(index)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDetail(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-right font-bold">
+                      TOTALES:
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-lg">
+                      {formatNumber(calculateDetailsSubtotal())}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-lg text-orange-600">
+                      {formatNumber(calculateDetailsIGV())}
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-lg text-primary">
+                      {formatNumber(calculateDetailsTotal())}
+                    </TableCell>
+                    <TableCell></TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <Empty className="border border-dashed">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <ListCheck />
+                </EmptyMedia>
+                <EmptyTitle> No hay detalles agregados</EmptyTitle>
+                <EmptyDescription>
+                  Agregue productos a la venta utilizando el formulario de
+                  arriba.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
+        </GroupFormSection>
 
         {/* Métodos de Pago - Solo mostrar si es al contado */}
         {mode === "create" && selectedPaymentType === "CONTADO" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Métodos de Pago (Obligatorio)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="amount_cash"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto en Efectivo</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          variant="primary"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <GroupFormSection
+            title="Métodos de Pago"
+            icon={CreditCard}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <FormField
+                control={form.control}
+                name="amount_cash"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto en Efectivo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="amount_card"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto con Tarjeta</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          variant="primary"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="amount_card"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto con Tarjeta</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="amount_yape"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Yape</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          variant="primary"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="amount_yape"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto Yape</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-              {/* Mostrar total de pagos vs total de venta */}
-              {details.length > 0 && (
-                <div className="mt-4 p-4 bg-sidebar rounded-lg space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total de la Venta:</span>
-                    <span className="text-lg font-bold text-primary">
-                      {formatNumber(calculateDetailsTotal())}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="font-semibold">Total Pagado:</span>
-                    <span className="text-lg font-bold text-blue-600">
-                      {formatNumber(calculatePaymentTotal())}
-                    </span>
-                  </div>
-                  {!paymentAmountsMatchTotal() && (
-                    <div className="p-3 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded">
-                      <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                        ⚠️ El total pagado debe ser igual al total de la venta
-                      </p>
-                    </div>
-                  )}
+            {/* Mostrar total de pagos vs total de venta */}
+            {details.length > 0 && (
+              <div className="mt-4 p-4 bg-sidebar rounded-lg space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total de la Venta:</span>
+                  <span className="text-lg font-bold text-primary">
+                    {formatNumber(calculateDetailsTotal())}
+                  </span>
                 </div>
-              )}
-            </CardContent>
-          </Card>
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold">Total Pagado:</span>
+                  <span className="text-lg font-bold text-blue-600">
+                    {formatNumber(calculatePaymentTotal())}
+                  </span>
+                </div>
+                {!paymentAmountsMatchTotal() && (
+                  <Badge variant="orange">
+                    El total pagado debe ser igual al total de la venta
+                  </Badge>
+                )}
+              </div>
+            )}
+          </GroupFormSection>
         )}
 
-        {/* Detalles */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Detalles de la Venta</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+        {/* Cuotas - Solo mostrar si es a crédito */}
+        {selectedPaymentType === "CREDITO" && (
+          <GroupFormSection
+            title="Información General"
+            icon={FileText}
+            cols={{
+              sm: 1,
+            }}
+          >
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-              <div className="md:col-span-2">
-                <Form {...detailTempForm}>
-                  <FormSelect
-                    control={detailTempForm.control}
-                    name="temp_product_id"
-                    label="Producto"
-                    placeholder="Seleccione"
-                    options={products.map((product) => ({
-                      value: product.id.toString(),
-                      label: product.name,
-                    }))}
-                  />
-                </Form>
-              </div>
-
               <FormField
-                control={detailTempForm.control}
-                name="temp_quantity"
+                control={installmentTempForm.control}
+                name="temp_installment_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cantidad</FormLabel>
+                    <FormLabel>Número de Cuota</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="1" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={installmentTempForm.control}
+                name="temp_due_days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Vencimiento</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="30" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={installmentTempForm.control}
+                name="temp_amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Monto</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        variant="primary"
-                        placeholder="0"
+                        step="0.01"
+                        placeholder="0.00"
                         {...field}
                       />
                     </FormControl>
@@ -819,296 +1041,108 @@ export const SaleForm = ({
                 )}
               />
 
-              <FormField
-                control={detailTempForm.control}
-                name="temp_unit_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio Unit.</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.000001"
-                        variant="primary"
-                        placeholder="0.000000"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <div className="md:col-span-4 flex items-center justify-end">
+              <div className="flex items-end">
                 <Button
                   type="button"
                   variant="default"
-                  onClick={handleAddDetail}
+                  onClick={handleAddInstallment}
                   disabled={
-                    !currentDetail.product_id ||
-                    !currentDetail.quantity ||
-                    !currentDetail.unit_price
+                    !currentInstallment.installment_number ||
+                    !currentInstallment.due_days ||
+                    !currentInstallment.amount
                   }
+                  className="w-full"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+                  {editingInstallmentIndex !== null ? "Actualizar" : "Agregar"}
                 </Button>
               </div>
             </div>
 
-            {details.length > 0 ? (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead className="text-right">Cantidad</TableHead>
-                      <TableHead className="text-right">P. Unit.</TableHead>
-                      <TableHead className="text-right">Subtotal</TableHead>
-                      <TableHead className="text-right">IGV (18%)</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                      <TableHead className="text-center">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {details.map((detail, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{detail.product_name}</TableCell>
-                        <TableCell className="text-right">
-                          {detail.quantity}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.unit_price))}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatNumber(detail.subtotal)}
-                        </TableCell>
-                        <TableCell className="text-right text-orange-600">
-                          {formatNumber(detail.igv)}
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-primary">
-                          {formatNumber(detail.total)}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditDetail(index)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveDetail(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </TableCell>
+            {installments.length > 0 ? (
+              <>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Cuota #</TableHead>
+                        <TableHead className="text-right">
+                          Días Vencimiento
+                        </TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead className="text-center">Acciones</TableHead>
                       </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-right font-bold">
-                        TOTALES:
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsSubtotal())}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-lg text-orange-600">
-                        {formatNumber(calculateDetailsIGV())}
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-lg text-primary">
-                        {formatNumber(calculateDetailsTotal())}
-                      </TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Badge variant="outline" className="text-lg p-3">
-                  No hay detalles agregados
-                </Badge>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Cuotas - Solo mostrar si es a crédito */}
-        {selectedPaymentType === "CREDITO" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cuotas (Obligatorio)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <FormField
-                  control={installmentTempForm.control}
-                  name="temp_installment_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Número de Cuota</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          variant="primary"
-                          placeholder="1"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={installmentTempForm.control}
-                  name="temp_due_days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Vencimiento</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          variant="primary"
-                          placeholder="30"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={installmentTempForm.control}
-                  name="temp_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          variant="primary"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div className="flex items-end">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddInstallment}
-                    disabled={
-                      !currentInstallment.installment_number ||
-                      !currentInstallment.due_days ||
-                      !currentInstallment.amount
-                    }
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingInstallmentIndex !== null
-                      ? "Actualizar"
-                      : "Agregar"}
-                  </Button>
+                    </TableHeader>
+                    <TableBody>
+                      {installments.map((inst, index) => (
+                        <TableRow key={index}>
+                          <TableCell>Cuota {inst.installment_number}</TableCell>
+                          <TableCell className="text-right">
+                            {inst.due_days} días
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatDecimalTrunc(parseFloat(inst.amount), 6)}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex justify-center gap-2">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditInstallment(index)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveInstallment(index)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-right font-bold">
+                          TOTAL CUOTAS:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-lg text-blue-600">
+                          {formatDecimalTrunc(calculateInstallmentsTotal(), 6)}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
                 </div>
-              </div>
-
-              {installments.length > 0 ? (
-                <>
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Cuota #</TableHead>
-                          <TableHead className="text-right">
-                            Días Vencimiento
-                          </TableHead>
-                          <TableHead className="text-right">Monto</TableHead>
-                          <TableHead className="text-center">
-                            Acciones
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {installments.map((inst, index) => (
-                          <TableRow key={index}>
-                            <TableCell>
-                              Cuota {inst.installment_number}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {inst.due_days} días
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatDecimalTrunc(parseFloat(inst.amount), 6)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-2">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditInstallment(index)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveInstallment(index)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow>
-                          <TableCell
-                            colSpan={2}
-                            className="text-right font-bold"
-                          >
-                            TOTAL CUOTAS:
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(
-                              calculateInstallmentsTotal(),
-                              6
-                            )}
-                          </TableCell>
-                          <TableCell></TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
+                {!installmentsMatchTotal() && (
+                  <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                    <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                      ⚠️ El total de cuotas (
+                      {formatNumber(calculateInstallmentsTotal())}) debe ser
+                      igual al total de la venta (
+                      {formatNumber(calculateDetailsTotal())})
+                    </p>
                   </div>
-                  {!installmentsMatchTotal() && (
-                    <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                      <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                        ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal())}) debe ser
-                        igual al total de la venta (
-                        {formatNumber(calculateDetailsTotal())})
-                      </p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay cuotas agregadas
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </>
+            ) : (
+              <Empty className="border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <ListChecks />
+                  </EmptyMedia>
+                  <EmptyTitle>No hay cuotas agregadas</EmptyTitle>
+                  <EmptyDescription>
+                    Agregue cuotas a la venta utilizando el formulario de
+                    arriba.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </GroupFormSection>
         )}
 
         {/* <pre>

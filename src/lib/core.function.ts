@@ -47,3 +47,15 @@ export const ERROR_MESSAGE: (
   action: Action
 ) => string = ({ name, gender = true }, action) =>
   `Error al ${ACTIONS[action]} ${gender ? "la" : "el"} ${name}.`;
+
+export const matchCurrency = (currencyCode: string): string => {
+  const currency =
+    currencyCode === "PEN"
+      ? "S/"
+      : currencyCode === "USD"
+      ? "$"
+      : currencyCode === "EUR"
+      ? "€"
+      : currencyCode;
+  return currency;
+};

@@ -22,27 +22,37 @@ export interface GetPurchaseShippingGuidesParams {
 // ===== GET ALL (NO PAGINATION) =====
 
 export const getAllPurchaseShippingGuides = async () => {
-  const response = await api.get<PurchaseShippingGuideResponse>(`${ENDPOINT}/all`);
+  const response = await api.get<PurchaseShippingGuideResponse>(
+    `${ENDPOINT}/all`
+  );
   return response.data.data;
 };
 
 // ===== GET WITH PAGINATION =====
 
-export const getPurchaseShippingGuides = async (params?: GetPurchaseShippingGuidesParams) => {
-  const response = await api.get<PurchaseShippingGuideResponse>(ENDPOINT, { params });
+export const getPurchaseShippingGuides = async (
+  params?: GetPurchaseShippingGuidesParams
+) => {
+  const response = await api.get<PurchaseShippingGuideResponse>(ENDPOINT, {
+    params,
+  });
   return response.data;
 };
 
 // ===== GET BY ID =====
 
 export const findPurchaseShippingGuideById = async (id: number) => {
-  const response = await api.get<PurchaseShippingGuideResourceById>(`${ENDPOINT}/${id}`);
+  const response = await api.get<PurchaseShippingGuideResourceById>(
+    `${ENDPOINT}/${id}`
+  );
   return response.data;
 };
 
 // ===== CREATE =====
 
-export const storePurchaseShippingGuide = async (data: CreatePurchaseShippingGuideRequest) => {
+export const storePurchaseShippingGuide = async (
+  data: CreatePurchaseShippingGuideRequest
+) => {
   const response = await api.post(ENDPOINT, data);
   return response.data;
 };
@@ -66,7 +76,13 @@ export const deletePurchaseShippingGuide = async (id: number) => {
 
 // ===== ASSIGN PURCHASE =====
 
-export const assignPurchase = async (id: number, data: AssignPurchaseRequest) => {
-  const response = await api.put(`purchase-shipping-guides/${id}/assign-purchase`, data);
+export const assignPurchase = async (
+  id: number,
+  data: AssignPurchaseRequest
+) => {
+  const response = await api.put(
+    `purchase-shipping-guides/${id}/assign-purchase`,
+    data
+  );
   return response.data;
 };

@@ -7,7 +7,21 @@ import { useProductPriceStore } from "../lib/product-price.store";
 import { useAllBranches } from "@/pages/branch/lib/branch.hook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
@@ -38,7 +52,9 @@ const productPriceSchema = z.object({
   product_id: z.number(),
   branch_id: z.string().min(1, "Debe seleccionar una sucursal"),
   category: z.enum(["LISTA 1", "LISTA 2", "LISTA 3", "LISTA 4", "LISTA 5"]),
-  price_soles: z.number().min(0, "El precio en soles debe ser mayor o igual a 0"),
+  price_soles: z
+    .number()
+    .min(0, "El precio en soles debe ser mayor o igual a 0"),
   price_usd: z.number().min(0, "El precio en USD debe ser mayor o igual a 0"),
 });
 
@@ -105,8 +121,9 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
+        error.response.data.message ??
+        error.response.data.error ??
+        `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
       errorToast(errorMessage);
     }
   };
@@ -132,7 +149,9 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar el precio";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al eliminar el precio";
       errorToast(errorMessage);
     } finally {
       setDeletePriceId(null);
@@ -264,23 +283,28 @@ export function ProductPriceManager({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 px-4 border-2 border-dashed border-muted rounded-xl">
-          <DollarSign className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">
-            No hay precios configurados
-          </h3>
-          <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
-            Configura los precios para este producto por sucursal y categoría
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => setShowPriceForm(true)}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4" />
-            Agregar primer precio
-          </Button>
-        </div>
+        <Empty className="border border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <DollarSign />
+            </EmptyMedia>
+            <EmptyTitle>No hay precios configurados</EmptyTitle>
+            <EmptyDescription>
+              Configura los precios para este producto por sucursal y categoría
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPriceForm(true)}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Agregar primer precio
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
 
       {/* Price Form Modal */}
@@ -294,16 +318,21 @@ export function ProductPriceManager({
             </CardHeader>
             <CardContent className="pt-0">
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
                   <FormSelect
                     control={form.control}
                     name="branch_id"
                     label="Sucursal"
                     placeholder="Seleccionar sucursal"
-                    options={branches?.map((branch) => ({
-                      value: branch.id.toString(),
-                      label: branch.name,
-                    })) || []}
+                    options={
+                      branches?.map((branch) => ({
+                        value: branch.id.toString(),
+                        label: branch.name,
+                      })) || []
+                    }
                   />
 
                   <FormSelect
@@ -331,7 +360,9 @@ export function ProductPriceManager({
                               min="0"
                               placeholder="0.00"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
                             />
                           </FormControl>
                         </FormItem>
@@ -350,7 +381,9 @@ export function ProductPriceManager({
                               min="0"
                               placeholder="0.00"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
                             />
                           </FormControl>
                         </FormItem>

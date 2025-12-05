@@ -7,7 +7,21 @@ import { useProductComponentStore } from "../lib/product-component.store";
 import { useAllProducts } from "../lib/product.hook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "@/components/ui/form";
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
@@ -38,10 +52,11 @@ export function ProductComponentManager({
   onComponentChange,
 }: ProductComponentManagerProps) {
   const [showComponentForm, setShowComponentForm] = useState(false);
-  const [editingComponent, setEditingComponent] = useState<ProductComponentResource | null>(
+  const [editingComponent, setEditingComponent] =
+    useState<ProductComponentResource | null>(null);
+  const [deleteComponentId, setDeleteComponentId] = useState<number | null>(
     null
   );
-  const [deleteComponentId, setDeleteComponentId] = useState<number | null>(null);
 
   // Configuración del formulario con react-hook-form
   const form = useForm<ProductComponentFormData>({
@@ -68,7 +83,8 @@ export function ProductComponentManager({
   } = useProductComponentStore();
 
   // Filter out the current product from the component selection
-  const availableComponents = allProducts?.filter(product => product.id !== productId) || [];
+  const availableComponents =
+    allProducts?.filter((product) => product.id !== productId) || [];
 
   const handleSubmit = async (data: ProductComponentFormData) => {
     try {
@@ -93,8 +109,9 @@ export function ProductComponentManager({
       onComponentChange?.();
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           `Error al ${editingComponent ? "actualizar" : "agregar"} el componente`;
+        error.response.data.message ??
+        error.response.data.error ??
+        `Error al ${editingComponent ? "actualizar" : "agregar"} el componente`;
       errorToast(errorMessage);
     }
   };
@@ -118,7 +135,9 @@ export function ProductComponentManager({
       onComponentChange?.();
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? "Error al eliminar el componente";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al eliminar el componente";
       errorToast(errorMessage);
     } finally {
       setDeleteComponentId(null);
@@ -140,7 +159,7 @@ export function ProductComponentManager({
   };
 
   const getComponentName = (componentId: number) => {
-    const component = availableComponents.find(p => p.id === componentId);
+    const component = availableComponents.find((p) => p.id === componentId);
     return component?.name || `Componente ${componentId}`;
   };
 
@@ -178,7 +197,8 @@ export function ProductComponentManager({
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                       <h4 className="font-medium truncate">
-                        {component.component_name || getComponentName(component.component_id)}
+                        {component.component_name ||
+                          getComponentName(component.component_id)}
                       </h4>
                       <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs w-fit">
                         <Hash className="h-3 w-3" />
@@ -190,7 +210,9 @@ export function ProductComponentManager({
                         Cantidad: {component.quantity}
                       </span>
                       <span className="text-xs">
-                        {new Date(component.created_at).toLocaleDateString("es-ES")}
+                        {new Date(component.created_at).toLocaleDateString(
+                          "es-ES"
+                        )}
                       </span>
                     </div>
                   </div>
@@ -221,23 +243,28 @@ export function ProductComponentManager({
           ))}
         </div>
       ) : (
-        <div className="text-center py-6 sm:py-8 border-2 border-dashed border-muted rounded-xl px-4">
-          <Package className="h-10 w-10 sm:h-12 sm:w-12 mx-auto text-muted-foreground mb-3 sm:mb-4" />
-          <h3 className="text-base sm:text-lg font-semibold mb-2">
-            No hay componentes configurados
-          </h3>
-          <p className="text-sm sm:text-base text-muted-foreground mb-3 sm:mb-4">
-            Agrega componentes para crear un producto compuesto
-          </p>
-          <Button
-            variant="outline"
-            onClick={() => setShowComponentForm(true)}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Agregar primer componente</span>
-          </Button>
-        </div>
+        <Empty className="border border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Package />
+            </EmptyMedia>
+            <EmptyTitle> No hay componentes configurados</EmptyTitle>
+            <EmptyDescription>
+              Agrega componentes para crear un producto compuesto{" "}
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowComponentForm(true)}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Agregar primer componente</span>
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
 
       {/* Component Form Modal */}
@@ -246,12 +273,17 @@ export function ProductComponentManager({
           <Card className="max-w-md w-full max-h-[90vh] overflow-y-auto">
             <CardHeader>
               <CardTitle className="text-base sm:text-lg">
-                {editingComponent ? "Editar Componente" : "Agregar Nuevo Componente"}
+                {editingComponent
+                  ? "Editar Componente"
+                  : "Agregar Nuevo Componente"}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
                   <FormSelect
                     control={form.control}
                     name="component_id"
@@ -275,7 +307,9 @@ export function ProductComponentManager({
                             min="1"
                             placeholder="1"
                             {...field}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
+                            onChange={(e) =>
+                              field.onChange(parseInt(e.target.value) || 1)
+                            }
                           />
                         </FormControl>
                       </FormItem>

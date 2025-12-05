@@ -18,11 +18,11 @@ interface ProductStore {
   allProducts: ProductResource[] | null;
   products: ProductResource[] | null;
   product: ProductResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllProducts: () => Promise<void>;
   fetchProducts: (params?: Record<string, any>) => Promise<void>;
@@ -39,11 +39,24 @@ interface ProductStore {
 const createFormData = (data: ProductSchema): FormData => {
   const formData = new FormData();
 
+  // Required fields
+  formData.append("company_id", data.company_id?.toString());
+  formData.append("codigo", data.codigo);
   formData.append("name", data.name);
   formData.append("category_id", data.category_id?.toString());
   formData.append("brand_id", data.brand_id?.toString());
   formData.append("unit_id", data.unit_id?.toString());
   formData.append("product_type_id", data.product_type_id?.toString());
+  formData.append("purchase_price", data.purchase_price);
+  formData.append("sale_price", data.sale_price);
+  formData.append("is_taxed", data.is_taxed ? "1" : "0");
+  formData.append("is_igv", data.is_igv ? "1" : "0");
+  formData.append("supplier_id", data.supplier_id?.toString());
+
+  // Optional fields
+  if (data.comment) {
+    formData.append("comment", data.comment);
+  }
 
   // Append technical sheet files
   if (data.technical_sheet && data.technical_sheet.length > 0) {
@@ -59,15 +72,15 @@ export const useProductStore = create<ProductStore>((set) => ({
   allProducts: null,
   product: null,
   products: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchProducts: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getProduct({ params });
       set({ products: data, meta: meta, isLoading: false });
@@ -77,7 +90,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   fetchAllProducts: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllProducts();
       set({ allProducts: data, isLoadingAll: false });
@@ -87,7 +100,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   fetchProduct: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findProductById(id);
       set({ product: data, isFinding: false });
@@ -97,7 +110,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   createProduct: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const formData = createFormData(data);
       await storeProduct(formData);
@@ -110,7 +123,7 @@ export const useProductStore = create<ProductStore>((set) => ({
   },
 
   updateProduct: async (id: number, data: ProductSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const formData = createFormData(data);
       await updateProduct(id, formData);
@@ -126,7 +139,7 @@ export const useProductStore = create<ProductStore>((set) => ({
     productId: number,
     request: DeleteTechnicalSheetRequest
   ) => {
-    set({ error: null });
+    set({ error: undefined});
     try {
       await deleteTechnicalSheet(productId, request);
     } catch (err) {

@@ -18,11 +18,11 @@ import type {
 interface WarehouseDocumentStore {
   documents: WarehouseDocumentResource[] | null;
   document: WarehouseDocumentResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
   fetchDocuments: (params?: Record<string, any>) => Promise<void>;
   fetchDocument: (id: number) => Promise<void>;
   createDocument: (data: CreateWarehouseDocumentRequest) => Promise<void>;
@@ -39,14 +39,14 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
   (set) => ({
     documents: null,
     document: null,
-    meta: null,
+    meta: undefined,
     isLoading: false,
     isFinding: false,
     isSubmitting: false,
-    error: null,
+    error: undefined,
 
     fetchDocuments: async (params?: Record<string, any>) => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: undefined});
       try {
         const { data, meta } = await getWarehouseDocuments({ params });
         set({ documents: data, meta: meta, isLoading: false });
@@ -59,7 +59,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
     },
 
     fetchDocument: async (id: number) => {
-      set({ isFinding: true, error: null });
+      set({ isFinding: true, error: undefined});
       try {
         const { data } = await findWarehouseDocumentById(id);
         set({ document: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
     },
 
     createDocument: async (data: CreateWarehouseDocumentRequest) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await storeWarehouseDocument(data);
       } catch (err) {
@@ -84,7 +84,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
       id: number,
       data: UpdateWarehouseDocumentRequest
     ) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await updateWarehouseDocument(id, data);
       } catch (err) {
@@ -96,7 +96,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
     },
 
     confirmDocument: async (id: number) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await confirmWarehouseDocument(id);
       } catch (err) {
@@ -108,7 +108,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
     },
 
     cancelDocument: async (id: number) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await cancelWarehouseDocument(id);
       } catch (err) {
@@ -120,7 +120,7 @@ export const useWarehouseDocumentStore = create<WarehouseDocumentStore>(
     },
 
     deleteDocument: async (id: number) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await deleteWarehouseDocument(id);
       } catch (err) {

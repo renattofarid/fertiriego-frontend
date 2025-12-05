@@ -17,11 +17,11 @@ interface PurchaseOrderStore {
   allPurchaseOrders: PurchaseOrderResource[] | null;
   purchaseOrders: PurchaseOrderResource[] | null;
   purchaseOrder: PurchaseOrderResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllPurchaseOrders: () => Promise<void>;
   fetchPurchaseOrders: (params?: Record<string, any>) => Promise<void>;
@@ -37,15 +37,15 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
   allPurchaseOrders: null,
   purchaseOrder: null,
   purchaseOrders: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchPurchaseOrders: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getPurchaseOrders({ params });
       set({ purchaseOrders: data, meta: meta, isLoading: false });
@@ -55,7 +55,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
   },
 
   fetchAllPurchaseOrders: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllPurchaseOrders();
       set({ allPurchaseOrders: data, isLoadingAll: false });
@@ -65,7 +65,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
   },
 
   fetchPurchaseOrder: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findPurchaseOrderById(id);
       set({ purchaseOrder: data, isFinding: false });
@@ -75,7 +75,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
   },
 
   createPurchaseOrder: async (data: PurchaseOrderSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: CreatePurchaseOrderRequest = {
         supplier_id: Number(data.supplier_id),
@@ -115,7 +115,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
     id: number,
     data: Partial<PurchaseOrderSchema>
   ) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: any = {};
       if (data.supplier_id) request.supplier_id = Number(data.supplier_id);

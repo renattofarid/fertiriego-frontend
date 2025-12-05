@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   productSchemaCreate,
   productSchemaUpdate,
@@ -19,6 +20,7 @@ import {
 } from "../lib/product.schema";
 import { Loader, Upload, X, FileText } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSwitch } from "@/components/FormSwitch";
 import type { ProductResource } from "../lib/product.interface";
 import type { CategoryResource } from "@/pages/category/lib/category.interface";
 import type { BrandResource } from "@/pages/brand/lib/brand.interface";
@@ -28,6 +30,8 @@ import { Badge } from "@/components/ui/badge";
 import { useProductStore } from "../lib/product.store";
 import { successToast, errorToast } from "@/lib/core.function";
 import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
+import type { CompanyResource } from "@/pages/company/lib/company.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 
 interface ProductFormProps {
   defaultValues: Partial<ProductSchema>;
@@ -40,6 +44,8 @@ interface ProductFormProps {
   units: UnitResource[];
   product?: ProductResource;
   productTypes: ProductTypeResource[];
+  companies: CompanyResource[];
+  suppliers: PersonResource[];
 }
 
 export const ProductForm = ({
@@ -53,6 +59,8 @@ export const ProductForm = ({
   units,
   product,
   productTypes,
+  companies,
+  suppliers,
 }: ProductFormProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [existingFiles, setExistingFiles] = useState<string[]>(
@@ -114,7 +122,33 @@ export const ProductForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
+        {/* Información Básica */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
+          <FormSelect
+            control={form.control}
+            name="company_id"
+            label="Empresa"
+            placeholder="Seleccione una empresa"
+            options={companies.map((company) => ({
+              value: company.id.toString(),
+              label: company.social_reason,
+            }))}
+          />
+
+          <FormField
+            control={form.control}
+            name="codigo"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Código</FormLabel>
+                <FormControl>
+                  <Input placeholder="Ej: PROD-001" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="md:col-span-2">
             <FormField
               control={form.control}
@@ -123,11 +157,7 @@ export const ProductForm = ({
                 <FormItem>
                   <FormLabel>Nombre del Producto</FormLabel>
                   <FormControl>
-                    <Input
-                      variant="primary"
-                      placeholder="Ej: Televisor Samsung 55 pulgadas"
-                      {...field}
-                    />
+                    <Input placeholder="Ej: Producto de ejemplo" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -143,6 +173,17 @@ export const ProductForm = ({
             options={categories.map((category) => ({
               value: category.id.toString(),
               label: `${"  ".repeat(category.level - 1)}${category.name}`,
+            }))}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="product_type_id"
+            label="Tipo de Producto"
+            placeholder="Seleccione el tipo"
+            options={productTypes.map((productType) => ({
+              value: productType.id.toString(),
+              label: productType.name,
             }))}
           />
 
@@ -167,17 +208,96 @@ export const ProductForm = ({
               label: unit.name,
             }))}
           />
+        </div>
+
+        {/* Precios y Proveedor */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
+          <FormField
+            control={form.control}
+            name="purchase_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Precio de Compra</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="50.00"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sale_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Precio de Venta</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="60.00"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormSwitch
+            control={form.control}
+            name="is_taxed"
+            label="Impuesto"
+            text={form.watch("is_taxed") ? "Gravado" : "Exonerado"}
+          />
+
+          <FormSwitch
+            control={form.control}
+            name="is_igv"
+            label="IGV"
+            text={form.watch("is_igv") ? "Incluye IGV" : "No incluye IGV"}
+          />
 
           <FormSelect
             control={form.control}
-            name="product_type_id"
-            label="Tipo de Producto"
-            placeholder="Seleccione el tipo"
-            options={productTypes.map((productType) => ({
-              value: productType.id.toString(),
-              label: productType.name,
+            name="supplier_id"
+            label="Proveedor"
+            placeholder="Seleccione un proveedor"
+            options={suppliers.map((supplier) => ({
+              value: supplier.id.toString(),
+              label:
+                supplier.type_person === "JURIDICA"
+                  ? supplier.business_name || supplier.commercial_name
+                  : `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
             }))}
           />
+
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="comment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Comentarios</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Este es un producto de prueba"
+                      className="resize-none"
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         {/* Technical Sheets Section */}

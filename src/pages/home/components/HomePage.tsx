@@ -34,6 +34,7 @@ import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
 import FormSkeleton from "@/components/FormSkeleton";
+import formatCurrency from "@/lib/formatCurrency";
 
 // Tipos
 interface MonthData {
@@ -53,7 +54,7 @@ interface StatCardProps {
   value: string | number;
   subtitle: string;
   icon: React.ElementType;
-  variant: "primary" | "destructive" | "secondary" | "accent";
+  variant: "primary" | "destructive" | "secondary" | "accent" | "muted";
 }
 
 // Componente StatCard sin bordes
@@ -69,13 +70,15 @@ function StatCard({
     destructive: "bg-destructive/10",
     secondary: "bg-secondary/10",
     accent: "bg-accent/10",
+    muted: "bg-muted/10",
   };
 
   const textStyles = {
     primary: "text-primary",
     destructive: "text-destructive",
-    secondary: "text-secondary",
-    accent: "text-accent",
+    secondary: "text-secondary-foreground",
+    accent: "text-accent-foreground",
+    muted: "text-muted-foreground",
   };
 
   return (
@@ -269,22 +272,22 @@ export default function HomePage() {
       {/* KPI Cards - Sin bordes */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          variant="primary"
           title="Total Ventas"
-          value={`S/. ${stats.totalSaleAmount.toFixed(2)}`}
+          value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
           subtitle={`${stats.totalSales} transacciones`}
           icon={ShoppingBag}
-          variant="primary"
         />
         <StatCard
           title="Total Compras"
-          value={`S/. ${stats.totalPurchaseAmount.toFixed(2)}`}
+          value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
           subtitle={`${stats.totalPurchases} transacciones`}
           icon={ShoppingCart}
           variant="destructive"
         />
         <StatCard
           title="Balance General"
-          value={`S/. ${stats.balance.toFixed(2)}`}
+          value={`S/ ${formatCurrency(stats.balance)}`}
           subtitle={stats.balance >= 0 ? "Positivo" : "Negativo"}
           icon={DollarSign}
           variant={stats.balance >= 0 ? "primary" : "destructive"}
@@ -294,7 +297,7 @@ export default function HomePage() {
           value={stats.totalProducts}
           subtitle="En el catálogo"
           icon={Package}
-          variant="secondary"
+          variant="muted"
         />
       </div>
 

@@ -14,11 +14,11 @@ interface ProductTypeStore {
   allProductTypes: ProductTypeResource[] | null;
   productTypes: ProductTypeResource[] | null;
   productType: ProductTypeResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchAllProductTypes: () => Promise<void>;
   fetchProductTypes: (params?: Record<string, any>) => Promise<void>;
@@ -31,15 +31,15 @@ export const useProductTypeStore = create<ProductTypeStore>((set) => ({
   allProductTypes: null,
   productType: null,
   productTypes: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchProductTypes: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getProductType({ params });
       set({ productTypes: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useProductTypeStore = create<ProductTypeStore>((set) => ({
   },
 
   fetchAllProductTypes: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllProductTypes();
       set({ allProductTypes: data, isLoadingAll: false });
@@ -59,7 +59,7 @@ export const useProductTypeStore = create<ProductTypeStore>((set) => ({
   },
 
   fetchProductType: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const { data } = await findProductTypeById(id);
       set({ productType: data, isFinding: false });
@@ -69,7 +69,7 @@ export const useProductTypeStore = create<ProductTypeStore>((set) => ({
   },
 
   createProductType: async (data) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await storeProductType(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useProductTypeStore = create<ProductTypeStore>((set) => ({
   },
 
   updateProductType: async (id: number, data: ProductTypeSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateProductType(id, data);
     } catch (err) {

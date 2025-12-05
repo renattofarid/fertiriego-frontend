@@ -4,22 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Wallet, Eye } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 import { parse } from "date-fns";
-
-export const formatCurrency = (amount: number, currency: string) => {
-  return `${currency} ${amount.toFixed(2)}`;
-};
-
-export const matchCurrency = (currencyCode: string) => {
-  const currency =
-    currencyCode === "PEN"
-      ? "S/."
-      : currencyCode === "USD"
-      ? "$"
-      : currencyCode === "EUR"
-      ? "€"
-      : currencyCode;
-  return currency;
-};
+import formatCurrency from "@/lib/formatCurrency";
+import { matchCurrency } from "@/lib/core.function";
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -31,7 +17,7 @@ export const formatDate = (dateString: string) => {
 };
 
 export const getStatusBadge = (installment: SaleInstallmentResource) => {
-  const pendingAmount = parseFloat(installment.pending_amount);
+  const pendingAmount = installment.pending_amount;
 
   if (pendingAmount === 0 || installment.status === "PAGADO") {
     return <Badge variant="default">PAGADO</Badge>;
@@ -107,10 +93,9 @@ export const getAccountsReceivableColumns = (
     header: "Monto",
     cell: ({ row }) => (
       <div className="text-right font-semibold">
-        {formatCurrency(
-          parseFloat(row.original.amount),
-          matchCurrency(row.original.currency)
-        )}
+        {formatCurrency(row.original.amount, {
+          currencySymbol: matchCurrency(row.original.currency),
+        })}
       </div>
     ),
   },
@@ -118,17 +103,16 @@ export const getAccountsReceivableColumns = (
     accessorKey: "pending_amount",
     header: "Pendiente",
     cell: ({ row }) => {
-      const isPending = parseFloat(row.original.pending_amount) > 0;
+      const isPending = row.original.pending_amount > 0;
       return (
         <div
           className={`text-right font-semibold ${
             isPending ? "text-destructive" : "text-primary"
           }`}
         >
-          {formatCurrency(
-            parseFloat(row.original.pending_amount),
-            matchCurrency(row.original.currency)
-          )}
+          {formatCurrency(row.original.pending_amount, {
+            currencySymbol: matchCurrency(row.original.currency),
+          })}
         </div>
       );
     },
@@ -142,7 +126,7 @@ export const getAccountsReceivableColumns = (
     id: "actions",
     header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => {
-      const isPending = parseFloat(row.original.pending_amount) > 0;
+      const isPending = row.original.pending_amount > 0;
       return (
         <div className="flex items-center justify-center gap-2">
           <Button

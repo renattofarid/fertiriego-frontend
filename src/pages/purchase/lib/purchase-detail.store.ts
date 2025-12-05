@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   PurchaseDetailResource,
-  Meta,
   CreatePurchaseDetailRequestFull,
   UpdatePurchaseDetailRequest,
 } from "./purchase.interface";
@@ -13,8 +12,14 @@ import {
   deletePurchaseDetail,
   type GetPurchaseDetailsParams,
 } from "./purchase.actions";
-import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  SUCCESS_MESSAGE,
+  errorToast,
+  successToast,
+} from "@/lib/core.function";
 import { PURCHASE_DETAIL } from "./purchase.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = PURCHASE_DETAIL;
 
@@ -22,17 +27,23 @@ interface PurchaseDetailStore {
   // State
   details: PurchaseDetailResource[] | null;
   detail: PurchaseDetailResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
-  fetchDetails: (purchaseId: number, params?: GetPurchaseDetailsParams) => Promise<void>;
+  fetchDetails: (
+    purchaseId: number,
+    params?: GetPurchaseDetailsParams
+  ) => Promise<void>;
   fetchDetail: (id: number) => Promise<void>;
   createDetail: (data: CreatePurchaseDetailRequestFull) => Promise<void>;
-  updateDetail: (id: number, data: UpdatePurchaseDetailRequest) => Promise<void>;
+  updateDetail: (
+    id: number,
+    data: UpdatePurchaseDetailRequest
+  ) => Promise<void>;
   deleteDetail: (id: number) => Promise<void>;
   resetDetail: () => void;
 }
@@ -41,25 +52,21 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
   // Initial state
   details: null,
   detail: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch details for a purchase
-  fetchDetails: async (purchaseId: number, params?: GetPurchaseDetailsParams) => {
-    set({ isLoading: true, error: null });
+  fetchDetails: async (
+    purchaseId: number,
+    params?: GetPurchaseDetailsParams
+  ) => {
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getPurchaseDetails(purchaseId, params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ details: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar los detalles", isLoading: false });
@@ -69,7 +76,7 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
 
   // Fetch single detail by ID
   fetchDetail: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await getPurchaseDetailById(id);
       set({ detail: response.data, isFinding: false });
@@ -81,7 +88,7 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
 
   // Create new detail
   createDetail: async (data: CreatePurchaseDetailRequestFull) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createPurchaseDetail(data);
       set({ isSubmitting: false });
@@ -95,7 +102,7 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
 
   // Update detail
   updateDetail: async (id: number, data: UpdatePurchaseDetailRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updatePurchaseDetail(id, data);
       set({ isSubmitting: false });
@@ -109,7 +116,7 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
 
   // Delete detail
   deleteDetail: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deletePurchaseDetail(id);
       set({ isSubmitting: false });
@@ -123,6 +130,6 @@ export const usePurchaseDetailStore = create<PurchaseDetailStore>((set) => ({
 
   // Reset detail state
   resetDetail: () => {
-    set({ detail: null, error: null });
+    set({ detail: null, error: undefined});
   },
 }));

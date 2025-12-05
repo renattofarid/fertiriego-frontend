@@ -2,7 +2,6 @@ import GeneralSheet from "@/components/GeneralSheet";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  ShoppingBag,
   FileText,
   User,
   Warehouse,
@@ -14,6 +13,7 @@ import {
   Clock,
 } from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
+import TraceabilityTimeline from "@/components/TraceabilityTimeline";
 
 interface SaleDetailSheetProps {
   sale: SaleResource | null;
@@ -56,7 +56,7 @@ export default function SaleDetailSheet({
       open={open}
       onClose={onClose}
       title={`Venta #${sale.id}`}
-      icon={<ShoppingBag className="h-5 w-5" />}
+      icon={"ShoppingBag"}
       className="overflow-y-auto p-2 !gap-0 w-full sm:max-w-3xl"
     >
       <div className="space-y-4 p-4">
@@ -353,14 +353,14 @@ export default function SaleDetailSheet({
                     key={detail.id}
                     className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start gap-3">
+                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-2">
                           <Badge variant="outline" className="text-xs shrink-0">
                             #{index + 1}
                           </Badge>
                           <p className="font-semibold text-sm leading-tight">
-                            {detail.product_name}
+                            {detail.product.name}
                           </p>
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
@@ -369,7 +369,7 @@ export default function SaleDetailSheet({
                               Cantidad:
                             </span>
                             <span className="ml-1 font-medium">
-                              {parseFloat(detail.quantity).toFixed(2)}
+                              {detail.quantity.toFixed(2)}
                             </span>
                           </div>
                           <div>
@@ -377,18 +377,17 @@ export default function SaleDetailSheet({
                               P. Unit:
                             </span>
                             <span className="ml-1 font-medium">
-                              {currency}{" "}
-                              {parseFloat(detail.unit_price).toFixed(2)}
+                              {currency} {detail.unit_price.toFixed(2)}
                             </span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         <p className="font-bold text-lg">
-                          {currency} {parseFloat(detail.total).toFixed(2)}
+                          {currency} {detail.total.toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          IGV: {currency} {parseFloat(detail.tax).toFixed(2)}
+                          IGV: {currency} {detail.tax.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -415,7 +414,7 @@ export default function SaleDetailSheet({
                     key={installment.id}
                     className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start gap-3">
+                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="outline" className="font-semibold">
@@ -443,17 +442,17 @@ export default function SaleDetailSheet({
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-lg">
-                          {currency} {parseFloat(installment.amount).toFixed(2)}
+                          {currency} {installment.amount.toFixed(2)}
                         </p>
                         <p
                           className={`text-sm font-medium ${
-                            parseFloat(installment.pending_amount) === 0
+                            installment.pending_amount === 0
                               ? "text-primary"
                               : "text-orange-600"
                           }`}
                         >
                           Pendiente: {currency}{" "}
-                          {parseFloat(installment.pending_amount).toFixed(2)}
+                          {installment.pending_amount.toFixed(2)}
                         </p>
                       </div>
                     </div>
@@ -480,6 +479,9 @@ export default function SaleDetailSheet({
             </CardContent>
           </Card>
         )}
+
+        {/* Trazabilidad */}
+        <TraceabilityTimeline entityType="sale" entityId={sale.id} />
 
         {/* Footer con metadata */}
         <Card className="bg-muted/30">

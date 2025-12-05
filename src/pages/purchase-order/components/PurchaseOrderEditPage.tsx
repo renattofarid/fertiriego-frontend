@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
 import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
@@ -29,9 +28,8 @@ import { PurchaseOrderDetailModal } from "./PurchaseOrderDetailModal";
 import { PurchaseOrderDetailTable } from "./PurchaseOrderDetailTable";
 import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store";
 
-const { MODEL } = PURCHASE_ORDER;
-
 export default function PurchaseOrderEditPage() {
+  const { MODEL, ICON } = PURCHASE_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
@@ -131,8 +129,7 @@ export default function PurchaseOrderEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/ordenes-compra" />
-            <TitleFormComponent title={MODEL.name} mode="edit" />
+            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -144,8 +141,7 @@ export default function PurchaseOrderEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/ordenes-compra" />
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Orden de compra no encontrada</p>
@@ -158,8 +154,7 @@ export default function PurchaseOrderEditPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/ordenes-compra" />
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 

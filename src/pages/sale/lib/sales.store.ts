@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   SaleResource,
-  Meta,
   CreateSaleRequest,
   UpdateSaleRequest,
 } from "./sale.interface";
@@ -22,6 +21,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { SALE } from "./sale.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE;
 
@@ -30,12 +30,12 @@ interface SaleStore {
   allSales: SaleResource[] | null;
   sales: SaleResource[] | null;
   sale: SaleResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoadingAll: boolean;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchAllSales: () => Promise<void>;
@@ -52,16 +52,16 @@ export const useSaleStore = create<SaleStore>((set) => ({
   allSales: null,
   sales: null,
   sale: null,
-  meta: null,
+  meta: undefined,
   isLoadingAll: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch all sales (no pagination)
   fetchAllSales: async () => {
-    set({ isLoadingAll: true, error: null });
+    set({ isLoadingAll: true, error: undefined});
     try {
       const data = await getAllSales();
       set({ allSales: data, isLoadingAll: false });
@@ -73,17 +73,10 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch sales with pagination
   fetchSales: async (params?: GetSalesParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getSales(params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ sales: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar las ventas", isLoading: false });
@@ -93,7 +86,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch single sale by ID
   fetchSale: async (id: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await findSaleById(id);
       set({ sale: response.data, isFinding: false });
@@ -105,14 +98,12 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Create new sale
   createSale: async (data: SaleSchema) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: CreateSaleRequest = {
         customer_id: Number(data.customer_id),
         warehouse_id: Number(data.warehouse_id),
         document_type: data.document_type,
-        serie: data.serie,
-        numero: data.numero,
         issue_date: data.issue_date,
         payment_type: data.payment_type,
         currency: data.currency,
@@ -120,6 +111,8 @@ export const useSaleStore = create<SaleStore>((set) => ({
         amount_cash: data.amount_cash || "0",
         amount_card: data.amount_card || "0",
         amount_yape: data.amount_yape || "0",
+        quotation_id: data.quotation_id ? Number(data.quotation_id) : undefined,
+        order_id: data.order_id ? Number(data.order_id) : undefined,
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
           quantity: Number(detail.quantity),
@@ -145,34 +138,34 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Update sale
   updateSale: async (id: number, data: Partial<SaleUpdateSchema>) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       const request: UpdateSaleRequest = {
         ...(data.customer_id && { customer_id: Number(data.customer_id) }),
         ...(data.warehouse_id && { warehouse_id: Number(data.warehouse_id) }),
         ...(data.document_type && { document_type: data.document_type }),
-        ...(data.serie && { serie: data.serie }),
-        ...(data.numero && { numero: data.numero }),
         ...(data.issue_date && { issue_date: data.issue_date }),
         ...(data.payment_type && { payment_type: data.payment_type }),
         ...(data.currency && { currency: data.currency }),
         ...(data.observations !== undefined && {
           observations: data.observations,
         }),
-        ...(data.details && data.details.length > 0 && {
-          details: data.details.map((detail) => ({
-            product_id: Number(detail.product_id),
-            quantity: Number(detail.quantity),
-            unit_price: Number(detail.unit_price),
-          })),
-        }),
-        ...(data.installments && data.installments.length > 0 && {
-          installments: data.installments.map((installment) => ({
-            installment_number: Number(installment.installment_number),
-            due_days: Number(installment.due_days),
-            amount: Number(installment.amount),
-          })),
-        }),
+        ...(data.details &&
+          data.details.length > 0 && {
+            details: data.details.map((detail) => ({
+              product_id: Number(detail.product_id),
+              quantity: Number(detail.quantity),
+              unit_price: Number(detail.unit_price),
+            })),
+          }),
+        ...(data.installments &&
+          data.installments.length > 0 && {
+            installments: data.installments.map((installment) => ({
+              installment_number: Number(installment.installment_number),
+              due_days: Number(installment.due_days),
+              amount: Number(installment.amount),
+            })),
+          }),
       };
 
       await updateSale(id, request);
@@ -187,7 +180,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Delete sale
   removeSale: async (id: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteSale(id);
       set({ isSubmitting: false });
@@ -201,6 +194,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Reset sale state
   resetSale: () => {
-    set({ sale: null, error: null });
+    set({ sale: null, error: undefined});
   },
 }));

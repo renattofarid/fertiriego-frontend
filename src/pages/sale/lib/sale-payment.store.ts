@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   SalePaymentResource,
-  Meta,
   CreateSalePaymentRequest,
   UpdateSalePaymentRequest,
 } from "./sale.interface";
@@ -15,6 +14,7 @@ import {
 } from "./sale.actions";
 import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { SALE_PAYMENT } from "./sale.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE_PAYMENT;
 
@@ -22,11 +22,11 @@ interface SalePaymentStore {
   // State
   payments: SalePaymentResource[] | null;
   payment: SalePaymentResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
   isSubmitting: boolean;
-  error: string | null;
+  error?: string;
 
   // Actions
   fetchPayments: (installmentId: number, params?: GetSalePaymentsParams) => Promise<void>;
@@ -41,25 +41,18 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
   // Initial state
   payments: null,
   payment: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   // Fetch payments for an installment
   fetchPayments: async (installmentId: number, params?: GetSalePaymentsParams) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const response = await getSalePayments(installmentId, params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta: Meta = response.meta;
       set({ payments: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar los pagos", isLoading: false });
@@ -69,7 +62,7 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
 
   // Fetch single payment by ID
   fetchPayment: async (installmentId: number, paymentId: number) => {
-    set({ isFinding: true, error: null });
+    set({ isFinding: true, error: undefined});
     try {
       const response = await getSalePaymentById(installmentId, paymentId);
       set({ payment: response.data, isFinding: false });
@@ -81,7 +74,7 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
 
   // Create new payment
   createPayment: async (installmentId: number, data: CreateSalePaymentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await createSalePayment(installmentId, data);
       set({ isSubmitting: false });
@@ -95,7 +88,7 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
 
   // Update payment
   updatePayment: async (installmentId: number, paymentId: number, data: UpdateSalePaymentRequest) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await updateSalePayment(installmentId, paymentId, data);
       set({ isSubmitting: false });
@@ -109,7 +102,7 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
 
   // Delete payment
   deletePayment: async (installmentId: number, paymentId: number) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     try {
       await deleteSalePayment(installmentId, paymentId);
       set({ isSubmitting: false });
@@ -123,6 +116,6 @@ export const useSalePaymentStore = create<SalePaymentStore>((set) => ({
 
   // Reset payment state
   resetPayment: () => {
-    set({ payment: null, error: null });
+    set({ payment: null, error: undefined});
   },
 }));

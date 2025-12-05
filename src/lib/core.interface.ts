@@ -18,7 +18,7 @@ export interface TitlesInterface {
   delete: TitleInterface;
 }
 
-export interface ModelComplete<T> {
+export interface ModelComplete<T = undefined> {
   MODEL: ModelInterface;
   TITLES: TitlesInterface;
   ICON: keyof typeof LucideReact;

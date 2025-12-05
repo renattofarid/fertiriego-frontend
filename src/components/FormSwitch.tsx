@@ -39,7 +39,7 @@ export function FormSwitch<T extends FieldValues>({
           {label && <FormLabel className="h-fit flex">{label}</FormLabel>}
           <FormLabel
             className={cn(
-              "flex flex-row items-center justify-between rounded-lg border h-10 p-3 shadow-xs bg-transparent border-primary hover:bg-muted hover:cursor-pointer",
+              "flex flex-row truncate items-center justify-between rounded-lg border h-10 p-3 shadow-xs bg-transparent hover:bg-muted hover:cursor-pointer",
               className
             )}
           >

@@ -607,7 +607,7 @@ export const PurchaseForm = ({
                     <FormLabel>Número de Documento</FormLabel>
                     <FormControl>
                       <Input
-                        variant="primary"
+                        
                         placeholder="Ej: F001-001245"
                         {...field}
                       />
@@ -694,7 +694,7 @@ export const PurchaseForm = ({
                       <FormControl>
                         <Input
                           type="number"
-                          variant="primary"
+                          
                           placeholder="0"
                           {...field}
                         />
@@ -713,7 +713,7 @@ export const PurchaseForm = ({
                         <Input
                           type="number"
                           step="0.000001"
-                          variant="primary"
+                          
                           placeholder="0.000000"
                           {...field}
                         />
@@ -868,7 +868,7 @@ export const PurchaseForm = ({
                       <FormControl>
                         <Input
                           type="number"
-                          variant="primary"
+                          
                           placeholder="0"
                           {...field}
                         />
@@ -887,7 +887,7 @@ export const PurchaseForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          variant="primary"
+                          
                           placeholder="0.00"
                           {...field}
                         />

@@ -14,7 +14,7 @@ const inputVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "primary",
+      variant: "default",
     },
   }
 );
@@ -33,4 +33,4 @@ function Input({ className, variant, type, ...props }: InputProps) {
   );
 }
 
-export { Input, inputVariants };
+export { Input, inputVariants, type InputProps };

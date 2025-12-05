@@ -1,6 +1,6 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingBasket } from "lucide-react";
 import type { PurchaseOrderSchema } from "./purchase-order.schema";
 
 const ROUTE = "/ordenes-compra";
@@ -13,8 +13,8 @@ export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
     plural: "Órdenes de Compra",
     gender: false,
   },
-  ICON: "ShoppingCart",
-  ICON_REACT: ShoppingCart,
+  ICON: "ShoppingBasket",
+  ICON_REACT: ShoppingBasket,
   ENDPOINT: "/purchaseorder",
   QUERY_KEY: "purchase-orders",
   ROUTE,

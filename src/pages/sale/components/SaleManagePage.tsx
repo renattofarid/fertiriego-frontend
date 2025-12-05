@@ -304,7 +304,7 @@ export default function SaleManagePage() {
             ) : (
               <div className="space-y-3">
                 {sale.installments.map((installment) => {
-                  const isPending = parseFloat(installment.pending_amount) > 0;
+                  const isPending = installment.pending_amount > 0;
                   const isOverdue =
                     isPending &&
                     new Date(installment.due_date) < new Date() &&
@@ -354,8 +354,7 @@ export default function SaleManagePage() {
                                 Monto
                               </p>
                               <p className="font-semibold">
-                                {currency}{" "}
-                                {parseFloat(installment.amount).toFixed(2)}
+                                {currency} {installment.amount.toFixed(2)}
                               </p>
                             </div>
                             <div>
@@ -370,9 +369,7 @@ export default function SaleManagePage() {
                                 }`}
                               >
                                 {currency}{" "}
-                                {parseFloat(installment.pending_amount).toFixed(
-                                  2
-                                )}
+                                {installment.pending_amount.toFixed(2)}
                               </p>
                             </div>
                           </div>

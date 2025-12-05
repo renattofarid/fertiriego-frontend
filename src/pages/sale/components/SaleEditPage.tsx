@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { SaleForm } from "./SaleForm";
 import { type SaleUpdateSchema } from "../lib/sale.schema";
@@ -10,13 +9,14 @@ import { useSaleStore } from "../lib/sales.store";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
-import type { SaleResource } from "../lib/sale.interface";
+import { SALE, type SaleResource } from "../lib/sale.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
 import { format, parse } from "date-fns";
 
 export const SaleEditPage = () => {
+  const { ICON } = SALE;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,9 +43,8 @@ export const SaleEditPage = () => {
     if (sale) {
       // Verificar si alguna cuota tiene pagos registrados
       const hasPayments =
-        sale.installments?.some(
-          (inst) => parseFloat(inst.pending_amount) < parseFloat(inst.amount)
-        ) ?? false;
+        sale.installments?.some((inst) => inst.pending_amount < inst.amount) ??
+        false;
 
       if (hasPayments) {
         errorToast(
@@ -60,8 +59,6 @@ export const SaleEditPage = () => {
     customer_id: data.customer_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
     document_type: data.document_type,
-    serie: data.serie,
-    numero: data.numero,
     issue_date: format(
       parse(data.issue_date, "yyyy-MM-dd", new Date()),
       "yyyy-MM-dd"
@@ -105,8 +102,7 @@ export const SaleEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/ventas" />
-            <TitleFormComponent title="Venta" mode="edit" />
+            <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -118,8 +114,7 @@ export const SaleEditPage = () => {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/ventas" />
-          <TitleFormComponent title="Venta" mode="edit" />
+          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Venta no encontrada</p>
@@ -132,8 +127,7 @@ export const SaleEditPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/ventas" />
-          <TitleFormComponent title="Venta" mode="edit" />
+          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
         </div>
       </div>
 

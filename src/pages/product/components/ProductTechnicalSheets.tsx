@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { FileText, Download, Trash2 } from "lucide-react";
+import { FileText, Download, Trash2, ListChecks } from "lucide-react";
 import { deleteTechnicalSheet } from "../lib/product.actions";
 import { useProductStore } from "../lib/product.store";
+import { successToast, errorToast } from "@/lib/core.function";
 import {
-  successToast,
-  errorToast,
-} from "@/lib/core.function";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 
 interface ProductTechnicalSheetsProps {
   technicalSheets: string[];
@@ -16,7 +20,7 @@ interface ProductTechnicalSheetsProps {
 
 export function ProductTechnicalSheets({
   technicalSheets,
-  productId
+  productId,
 }: ProductTechnicalSheetsProps) {
   const [deleteSheetValue, setDeleteSheetValue] = useState<string | null>(null);
   const { fetchProduct } = useProductStore();
@@ -31,8 +35,9 @@ export function ProductTechnicalSheets({
       successToast("Ficha técnica eliminada exitosamente");
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           "Error al eliminar la ficha técnica";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al eliminar la ficha técnica";
       errorToast(errorMessage);
     } finally {
       setDeleteSheetValue(null);
@@ -40,12 +45,12 @@ export function ProductTechnicalSheets({
   };
 
   const getFileName = (url: string) => {
-    return url.split('/').pop() || 'Archivo';
+    return url.split("/").pop() || "Archivo";
   };
 
   const getFileExtension = (url: string) => {
     const fileName = getFileName(url);
-    return fileName.split('.').pop()?.toUpperCase() || '';
+    return fileName.split(".").pop()?.toUpperCase() || "";
   };
 
   return (
@@ -81,7 +86,7 @@ export function ProductTechnicalSheets({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => window.open(sheet, '_blank')}
+                    onClick={() => window.open(sheet, "_blank")}
                     className="gap-2 flex-1 sm:flex-none"
                   >
                     <Download className="h-4 w-4" />
@@ -102,16 +107,17 @@ export function ProductTechnicalSheets({
           ))}
         </div>
       ) : (
-        <div className="text-center py-8 px-4 border-2 border-dashed border-muted rounded-xl">
-          <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No hay fichas técnicas</h3>
-          <p className="text-muted-foreground mb-4 text-sm sm:text-base max-w-md mx-auto">
-            Este producto no tiene fichas técnicas asociadas
-          </p>
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-sm mx-auto">
-            Las fichas técnicas se pueden agregar al editar el producto
-          </p>
-        </div>
+        <Empty className="border border-dashed">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <ListChecks />
+            </EmptyMedia>
+            <EmptyTitle>No hay fichas técnicas</EmptyTitle>
+            <EmptyDescription>
+              Las fichas técnicas se pueden agregar al editar el producto
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
 
       {/* Delete Dialog */}

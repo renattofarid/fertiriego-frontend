@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { ProductForm } from "./ProductForm";
 import { type ProductSchema } from "../lib/product.schema";
@@ -11,6 +10,8 @@ import { useAllCategories } from "@/pages/category/lib/category.hook";
 import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
 import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
+import { useAllCompanies } from "@/pages/company/lib/company.hook";
+import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -21,21 +22,30 @@ import { PRODUCT, type ProductResource } from "../lib/product.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL } = PRODUCT;
+const { MODEL, ICON } = PRODUCT;
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { data: categories, isLoading: categoriesLoading } = useAllCategories();
   const { data: brands, isLoading: brandsLoading } = useAllBrands();
   const { data: units, isLoading: unitsLoading } = useAllUnits();
   const { data: productTypes } = useAllProductTypes();
-  
+  const { data: companies, isLoading: companiesLoading } = useAllCompanies();
+  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
+
   const { updateProduct, fetchProduct, product, isFinding } = useProductStore();
 
-  const isLoading = categoriesLoading || brandsLoading || unitsLoading || !productTypes || isFinding;
+  const isLoading =
+    categoriesLoading ||
+    brandsLoading ||
+    unitsLoading ||
+    !productTypes ||
+    companiesLoading ||
+    suppliersLoading ||
+    isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -47,11 +57,19 @@ export default function ProductEditPage() {
   }, [id, navigate, fetchProduct]);
 
   const mapProductToForm = (data: ProductResource): Partial<ProductSchema> => ({
+    company_id: (data as any).company_id?.toString() || "",
+    codigo: (data as any).codigo || "",
     name: data.name,
     category_id: data.category_id?.toString(),
     brand_id: data.brand_id?.toString(),
     unit_id: data.unit_id?.toString(),
     product_type_id: data.product_type_id?.toString(),
+    purchase_price: (data as any).purchase_price?.toString() || "",
+    sale_price: (data as any).sale_price?.toString() || "",
+    is_taxed: (data as any).is_taxed || false,
+    is_igv: (data as any).is_igv || false,
+    supplier_id: (data as any).supplier_id?.toString() || "",
+    comment: (data as any).comment || "",
     technical_sheet: [], // Files are handled separately
   });
 
@@ -65,8 +83,9 @@ export default function ProductEditPage() {
       navigate("/productos");
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           ERROR_MESSAGE(MODEL, "update");
+        error.response.data.message ??
+        error.response.data.error ??
+        ERROR_MESSAGE(MODEL, "update");
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -78,8 +97,7 @@ export default function ProductEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/productos" />
-            <TitleFormComponent title={MODEL.name} mode="edit" />
+            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -91,8 +109,7 @@ export default function ProductEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/productos" />
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Producto no encontrado</p>
@@ -105,8 +122,7 @@ export default function ProductEditPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/productos" />
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 
@@ -117,7 +133,11 @@ export default function ProductEditPage() {
         units &&
         units.length > 0 &&
         productTypes &&
-        productTypes.length > 0 && (
+        productTypes.length > 0 &&
+        companies &&
+        companies.length > 0 &&
+        suppliers &&
+        suppliers.length > 0 && (
           <ProductForm
             defaultValues={mapProductToForm(product)}
             onSubmit={handleSubmit}
@@ -127,6 +147,8 @@ export default function ProductEditPage() {
             brands={brands}
             units={units}
             productTypes={productTypes}
+            companies={companies}
+            suppliers={suppliers}
             product={product}
             onCancel={() => navigate("/productos")}
           />

@@ -5,9 +5,9 @@ import type { BoxMovementHistoryResource } from "./box-movement-history.interfac
 
 interface BoxMovementHistoryStore {
   histories: BoxMovementHistoryResource[] | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
-  error: string | null;
+  error?: string;
 
   fetchHistories: (params?: Record<string, any>) => Promise<void>;
   fetchHistoriesByMovement: (box_movement_id: number) => Promise<void>;
@@ -15,12 +15,12 @@ interface BoxMovementHistoryStore {
 
 export const useBoxMovementHistoryStore = create<BoxMovementHistoryStore>((set) => ({
   histories: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
-  error: null,
+  error: undefined,
 
   fetchHistories: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getBoxMovementHistories({ params });
       set({ histories: data, meta, isLoading: false });
@@ -30,7 +30,7 @@ export const useBoxMovementHistoryStore = create<BoxMovementHistoryStore>((set) 
   },
 
   fetchHistoriesByMovement: async (box_movement_id: number) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const { data, meta } = await getHistoriesByMovement({ box_movement_id });
       set({ histories: data, meta, isLoading: false });

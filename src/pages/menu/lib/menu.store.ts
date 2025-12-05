@@ -6,9 +6,9 @@ import { getOptionsMenu, setAccessTypeUser } from "./menu.actions";
 
 interface TypeUserStore {
   optionMenus: OptionMenuResource[];
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchOptionMenus: () => Promise<void>;
   setAccessTypeUser: (id: number, data: any) => Promise<void>;
@@ -17,13 +17,13 @@ interface TypeUserStore {
 export const usePermissionStore = create<TypeUserStore>((set) => ({
   optionMenus: [],
   permissions: null,
-  meta: null,
+  meta: undefined,
   isLoading: false,
   isSubmitting: false,
-  error: null,
+  error: undefined,
 
   fetchOptionMenus: async () => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: undefined});
     try {
       const data = await getOptionsMenu({});
       set({ optionMenus: data, isLoading: false });
@@ -36,7 +36,7 @@ export const usePermissionStore = create<TypeUserStore>((set) => ({
   },
 
   setAccessTypeUser: async (id: number, data: any) => {
-    set({ isSubmitting: true, error: null });
+    set({ isSubmitting: true, error: undefined});
     await setAccessTypeUser(id, data).finally(() =>
       set({ isSubmitting: false })
     );

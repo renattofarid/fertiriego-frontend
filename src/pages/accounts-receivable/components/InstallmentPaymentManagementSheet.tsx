@@ -28,14 +28,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Wallet, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
 import { deleteInstallmentPayment } from "../lib/accounts-receivable.actions";
 import { createSalePayment } from "@/pages/sale/lib/sale.actions";
-import { errorToast, successToast } from "@/lib/core.function";
+import { errorToast, matchCurrency, successToast } from "@/lib/core.function";
 import { dateStringSchema } from "@/lib/core.schema";
 import { format } from "date-fns";
 import { useState } from "react";
+import formatCurrency from "@/lib/formatCurrency";
 
 const paymentFormSchema = z.object({
   payment_date: dateStringSchema("Fecha de Pago"),
@@ -83,10 +84,10 @@ export default function InstallmentPaymentManagementSheet({
     },
   });
 
+  const currency = matchCurrency(installment?.currency || "PEN");
+
   const { watch, reset } = form;
   const formValues = watch();
-
-  const currency = "S/.";
 
   useEffect(() => {
     if (open && installment) {
@@ -137,7 +138,7 @@ export default function InstallmentPaymentManagementSheet({
     if (!installment) return;
 
     const total = calculateTotal();
-    const pendingAmount = parseFloat(installment.pending_amount);
+    const pendingAmount = installment.pending_amount;
 
     if (total === 0) {
       errorToast("Debe ingresar al menos un monto de pago");
@@ -146,9 +147,11 @@ export default function InstallmentPaymentManagementSheet({
 
     if (total > pendingAmount) {
       errorToast(
-        `El monto total (${currency} ${total.toFixed(
-          2
-        )}) excede el monto pendiente (${currency} ${pendingAmount.toFixed(2)})`
+        `El monto total (${formatCurrency(
+          total
+        )}) excede el monto pendiente (${formatCurrency(pendingAmount, {
+          currencySymbol: currency,
+        })})`
       );
       return;
     }
@@ -187,9 +190,9 @@ export default function InstallmentPaymentManagementSheet({
 
   if (!installment) return null;
 
-  const isPending = parseFloat(installment.pending_amount) > 0;
+  const isPending = installment.pending_amount > 0;
   const total = calculateTotal();
-  const pendingAmount = parseFloat(installment.pending_amount);
+  const pendingAmount = installment.pending_amount;
   const isSubmitting = form.formState.isSubmitting;
 
   return (
@@ -198,8 +201,8 @@ export default function InstallmentPaymentManagementSheet({
         open={open}
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
-        icon={<Wallet className="h-5 w-5" />}
-        className="overflow-y-auto w-full sm:max-w-3xl p-4"
+        icon={"Wallet"}
+        className="w-full sm:max-w-3xl p-4"
       >
         <div className="space-y-6">
           {/* Installment Summary */}
@@ -207,7 +210,7 @@ export default function InstallmentPaymentManagementSheet({
             <div className="flex justify-between items-center mb-3">
               <div>
                 <p className="text-xs text-muted-foreground">Venta</p>
-                <p className="font-semibold">{installment.sale_correlativo}</p>
+                {/* <p className="font-semibold">{installment.sale_correlativo}</p> */}
               </div>
               <Badge
                 variant={
@@ -230,17 +233,20 @@ export default function InstallmentPaymentManagementSheet({
                   Monto Total
                 </span>
                 <p className="font-semibold">
-                  {currency} {parseFloat(installment.amount).toFixed(2)}
+                  {formatCurrency(installment.amount, {
+                    currencySymbol: currency,
+                  })}
                 </p>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Pagado</span>
                 <p className="font-semibold text-primary">
-                  {currency}{" "}
-                  {(
-                    parseFloat(installment.amount) -
-                    parseFloat(installment.pending_amount)
-                  ).toFixed(2)}
+                  {formatCurrency(
+                    installment.amount - installment.pending_amount,
+                    {
+                      currencySymbol: currency,
+                    }
+                  )}
                 </p>
               </div>
               <div>
@@ -250,7 +256,9 @@ export default function InstallmentPaymentManagementSheet({
                     isPending ? "text-orange-600" : "text-primary"
                   }`}
                 >
-                  {currency} {parseFloat(installment.pending_amount).toFixed(2)}
+                  {formatCurrency(installment.pending_amount, {
+                    currencySymbol: currency,
+                  })}
                 </p>
               </div>
             </div>
@@ -448,7 +456,9 @@ export default function InstallmentPaymentManagementSheet({
                             : "text-muted-foreground"
                         }`}
                       >
-                        {currency} {total.toFixed(2)}
+                        {formatCurrency(total, {
+                          currencySymbol: currency,
+                        })}
                       </span>
                     </div>
                     {total > pendingAmount && (
@@ -458,8 +468,10 @@ export default function InstallmentPaymentManagementSheet({
                     )}
                     {total > 0 && total <= pendingAmount && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        Pendiente después del pago: {currency}{" "}
-                        {(pendingAmount - total).toFixed(2)}
+                        Pendiente después del pago:{" "}
+                        {formatCurrency(pendingAmount - total, {
+                          currencySymbol: currency,
+                        })}
                       </p>
                     )}
                   </div>

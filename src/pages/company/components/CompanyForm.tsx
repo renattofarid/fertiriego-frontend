@@ -74,7 +74,7 @@ export const CompanyForm = ({
                 <FormLabel>Razón Social</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Comercial Ferriego SAC"
                     disabled={fieldsFromSearch.social_reason}
                     {...field}
@@ -94,7 +94,7 @@ export const CompanyForm = ({
                 <FormControl>
                   <div className="flex gap-2">
                     <Input
-                      variant="primary"
+                      
                       placeholder="Ej: 20123456789"
                       maxLength={11}
                       {...field}
@@ -162,7 +162,7 @@ export const CompanyForm = ({
                 <FormLabel>Nombre Comercial</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Ferriego"
                     {...field}
                   />
@@ -180,7 +180,7 @@ export const CompanyForm = ({
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: Av. Los Olivos 123, Lima"
                     disabled={fieldsFromSearch.address}
                     {...field}
@@ -199,7 +199,7 @@ export const CompanyForm = ({
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: 987654321"
                     maxLength={9}
                     {...field}
@@ -218,7 +218,7 @@ export const CompanyForm = ({
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     type="email"
                     placeholder="Ej: contacto@ferriego.com"
                     {...field}

@@ -16,10 +16,10 @@ import type {
 interface PurchaseOrderDetailStore {
   details: PurchaseOrderDetailResource[] | null;
   detail: PurchaseOrderDetailResource | null;
-  meta: Meta | null;
+  meta?: Meta;
   isLoading: boolean;
   isFinding: boolean;
-  error: string | null;
+  error?: string;
   isSubmitting: boolean;
   fetchDetails: (
     purchaseOrderId: number,
@@ -39,17 +39,17 @@ export const usePurchaseOrderDetailStore = create<PurchaseOrderDetailStore>(
   (set) => ({
     details: null,
     detail: null,
-    meta: null,
+    meta: undefined,
     isLoading: false,
     isFinding: false,
     isSubmitting: false,
-    error: null,
+    error: undefined,
 
     fetchDetails: async (
       purchaseOrderId: number,
       params?: Record<string, any>
     ) => {
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, error: undefined});
       try {
         const { data, meta } = await getPurchaseOrderDetails({
           purchaseOrderId,
@@ -65,7 +65,7 @@ export const usePurchaseOrderDetailStore = create<PurchaseOrderDetailStore>(
     },
 
     fetchDetail: async (id: number) => {
-      set({ isFinding: true, error: null });
+      set({ isFinding: true, error: undefined});
       try {
         const { data } = await getPurchaseOrderDetailById(id);
         set({ detail: data, isFinding: false });
@@ -75,7 +75,7 @@ export const usePurchaseOrderDetailStore = create<PurchaseOrderDetailStore>(
     },
 
     createDetail: async (data: CreatePurchaseOrderDetailRequestFull) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await createPurchaseOrderDetail(data);
       } catch (err) {
@@ -90,7 +90,7 @@ export const usePurchaseOrderDetailStore = create<PurchaseOrderDetailStore>(
       id: number,
       data: UpdatePurchaseOrderDetailRequest
     ) => {
-      set({ isSubmitting: true, error: null });
+      set({ isSubmitting: true, error: undefined});
       try {
         await updatePurchaseOrderDetail(id, data);
       } catch (err) {
@@ -102,7 +102,7 @@ export const usePurchaseOrderDetailStore = create<PurchaseOrderDetailStore>(
     },
 
     deleteDetail: async (id: number) => {
-      set({ error: null });
+      set({ error: undefined});
       try {
         await deletePurchaseOrderDetail(id);
       } catch (err) {

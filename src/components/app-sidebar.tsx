@@ -1,6 +1,14 @@
 "use client";
 
-import { LayoutGrid, ShieldUser, Package, ShoppingCart, ShoppingBag, DollarSign, Warehouse, Activity } from "lucide-react";
+import {
+  LayoutGrid,
+  ShieldUser,
+  Package,
+  ShoppingCart,
+  ShoppingBag,
+  Warehouse,
+  Activity,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -27,16 +35,18 @@ import { CLIENT } from "@/pages/client/lib/client.interface";
 import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
-import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
-import { SaleRoute } from "@/pages/sale/lib/sale.interface";
-import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
+import { SALE } from "@/pages/sale/lib/sale.interface";
+import { ACCOUNTS_RECEIVABLE } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
 import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
 import { hasAccessToRoute } from "@/App";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
+import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
+import { ORDER } from "@/pages/order/lib/order.interface";
+import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -129,6 +139,12 @@ const {
 } = PURCHASE_ORDER;
 
 const {
+  ICON_REACT: PurchaseIcon,
+  ROUTE: PurchaseRoute,
+  MODEL: { name: PurchasesTitle },
+} = PURCHASE;
+
+const {
   ICON_REACT: PurchaseShippingGuideIcon,
   ROUTE: PurchaseShippingGuideRoute,
   MODEL: { name: PurchaseShippingGuideTitle },
@@ -152,6 +168,30 @@ const {
   MODEL: { plural: BoxShiftTitle },
 } = BOX_SHIFT;
 
+const {
+  ICON_REACT: QuotationIcon,
+  ROUTE: QuotationRoute,
+  MODEL: { name: QuotationTitle },
+} = QUOTATION;
+
+const {
+  ICON_REACT: OrderIcon,
+  ROUTE: OrderRoute,
+  MODEL: { name: OrderTitle },
+} = ORDER;
+
+const {
+  ICON_REACT: SaleIcon,
+  ROUTE: SaleRoute,
+  MODEL: { name: SaleTitle },
+} = SALE;
+
+const {
+  ROUTE: AccountsReceivableRoute,
+  ICON_REACT: AccountsReceivableIcon,
+  MODEL: { name: AccountsReceivableTitle },
+} = ACCOUNTS_RECEIVABLE;
+
 const data = {
   navMain: [
     {
@@ -160,7 +200,115 @@ const data = {
       icon: LayoutGrid,
     },
     {
-      title: "Gestión",
+      title: "Compras",
+      url: "#",
+      icon: ShoppingCart,
+      items: [
+        {
+          title: PurchaseOrderTitle,
+          url: PurchaseOrderRoute,
+          icon: PurchaseOrderIcon,
+        },
+        {
+          title: PurchasesTitle,
+          url: PurchaseRoute,
+          icon: PurchaseIcon,
+        },
+        {
+          title: PurchaseShippingGuideTitle,
+          url: PurchaseShippingGuideRoute,
+          icon: PurchaseShippingGuideIcon,
+        },
+      ],
+    },
+    {
+      title: "Ventas",
+      url: "#",
+      icon: ShoppingBag,
+      items: [
+        {
+          title: QuotationTitle,
+          url: QuotationRoute,
+          icon: QuotationIcon,
+        },
+        {
+          title: OrderTitle,
+          url: OrderRoute,
+          icon: OrderIcon,
+        },
+        {
+          title: SaleTitle,
+          url: SaleRoute,
+          icon: SaleIcon,
+        },
+        {
+          title: AccountsReceivableTitle,
+          url: AccountsReceivableRoute,
+          icon: AccountsReceivableIcon,
+        },
+      ],
+    },
+    {
+      title: "Productos",
+      url: "#",
+      icon: Package,
+      items: [
+        {
+          title: CategoryTitle,
+          url: CategoryRoute,
+          icon: CategoryIcon,
+        },
+        {
+          title: ProductTitle,
+          url: ProductRoute,
+          icon: ProductIcon,
+        },
+        {
+          title: ProductTypeTitle,
+          url: ProductTypeRoute,
+          icon: ProductTypeIcon,
+        },
+        {
+          title: WarehouseProductTitle,
+          url: WarehouseProductRoute,
+          icon: WarehouseProductIcon,
+        },
+        {
+          title: BrandTitle,
+          url: BrandRoute,
+          icon: BrandIcon,
+        },
+        {
+          title: UnitTitle,
+          url: UnitRoute,
+          icon: UnitIcon,
+        },
+      ],
+    },
+    {
+      title: "Personas",
+      url: "#",
+      icon: ClientIcon,
+      items: [
+        {
+          title: ClientTitle,
+          url: ClientRoute,
+          icon: ClientIcon,
+        },
+        {
+          title: SupplierTitle,
+          url: SupplierRoute,
+          icon: SupplierIcon,
+        },
+        {
+          title: WorkerTitle,
+          url: WorkerRoute,
+          icon: WorkerIcon,
+        },
+      ],
+    },
+    {
+      title: "Organización",
       url: "#",
       icon: CompanyIcon,
       items: [
@@ -179,11 +327,13 @@ const data = {
           url: WarehouseRoute,
           icon: WarehouseIcon,
         },
-        {
-          title: WarehouseProductTitle,
-          url: WarehouseProductRoute,
-          icon: WarehouseProductIcon,
-        },
+      ],
+    },
+    {
+      title: "Operaciones",
+      url: "#",
+      icon: BoxIcon,
+      items: [
         {
           title: WarehouseDocumentTitle,
           url: WarehouseDocumentRoute,
@@ -212,96 +362,10 @@ const data = {
       ],
     },
     {
-      title: "Productos",
-      url: "#",
-      icon: Package,
-      items: [
-        {
-          title: CategoryTitle,
-          url: CategoryRoute,
-          icon: CategoryIcon,
-        },
-        {
-          title: ProductTitle,
-          url: ProductRoute,
-          icon: ProductIcon,
-        },
-        {
-          title: ProductTypeTitle,
-          url: ProductTypeRoute,
-          icon: ProductTypeIcon,
-        },
-        {
-          title: BrandTitle,
-          url: BrandRoute,
-          icon: BrandIcon,
-        },
-        {
-          title: UnitTitle,
-          url: UnitRoute,
-          icon: UnitIcon,
-        },
-      ],
-    },
-    {
-      title: "Compras",
-      url: "#",
-      icon: ShoppingCart,
-      items: [
-        {
-          title: PurchaseOrderTitle,
-          url: PurchaseOrderRoute,
-          icon: PurchaseOrderIcon,
-        },
-        {
-          title: "Compras",
-          url: PurchaseRoute,
-          icon: ShoppingCart,
-        },
-        {
-          title: PurchaseShippingGuideTitle,
-          url: PurchaseShippingGuideRoute,
-          icon: PurchaseShippingGuideIcon,
-        },
-      ],
-    },
-    {
-      title: "Ventas",
-      url: "#",
-      icon: ShoppingBag,
-      items: [
-        {
-          title: "Ventas",
-          url: SaleRoute,
-          icon: ShoppingBag,
-        },
-        {
-          title: "Cuentas por Cobrar",
-          url: AccountsReceivableRoute,
-          icon: DollarSign,
-        },
-      ],
-    },
-    {
       title: "Seguridad",
       url: "#",
       icon: ShieldUser,
       items: [
-        {
-          title: ClientTitle,
-          url: ClientRoute,
-          icon: ClientIcon,
-        },
-        {
-          title: SupplierTitle,
-          url: SupplierRoute,
-          icon: SupplierIcon,
-        },
-        {
-          title: WorkerTitle,
-          url: WorkerRoute,
-          icon: WorkerIcon,
-        },
         {
           title: UserTitle,
           url: UserRoute,

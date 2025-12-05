@@ -60,7 +60,7 @@ export const CategoryForm = ({
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: SmartPhones"
                     {...field}
                   />
@@ -78,7 +78,7 @@ export const CategoryForm = ({
                 <FormLabel>Código</FormLabel>
                 <FormControl>
                   <Input
-                    variant="primary"
+                    
                     placeholder="Ej: SMP"
                     maxLength={10}
                     onChange={(e) => {
