@@ -6,7 +6,6 @@ import {
   Package,
   ShoppingCart,
   ShoppingBag,
-  DollarSign,
   Warehouse,
   Activity,
 } from "lucide-react";
@@ -36,10 +35,9 @@ import { CLIENT } from "@/pages/client/lib/client.interface";
 import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
-import { PurchaseRoute } from "@/pages/purchase/lib/purchase.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
-import { SaleRoute } from "@/pages/sale/lib/sale.interface";
-import { AccountsReceivableRoute } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
+import { SALE } from "@/pages/sale/lib/sale.interface";
+import { ACCOUNTS_RECEIVABLE } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
 import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
@@ -48,6 +46,7 @@ import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
 import { ORDER } from "@/pages/order/lib/order.interface";
+import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -140,6 +139,12 @@ const {
 } = PURCHASE_ORDER;
 
 const {
+  ICON_REACT: PurchaseIcon,
+  ROUTE: PurchaseRoute,
+  MODEL: { name: PurchasesTitle },
+} = PURCHASE;
+
+const {
   ICON_REACT: PurchaseShippingGuideIcon,
   ROUTE: PurchaseShippingGuideRoute,
   MODEL: { name: PurchaseShippingGuideTitle },
@@ -175,6 +180,18 @@ const {
   MODEL: { name: OrderTitle },
 } = ORDER;
 
+const {
+  ICON_REACT: SaleIcon,
+  ROUTE: SaleRoute,
+  MODEL: { name: SaleTitle },
+} = SALE;
+
+const {
+  ROUTE: AccountsReceivableRoute,
+  ICON_REACT: AccountsReceivableIcon,
+  MODEL: { name: AccountsReceivableTitle },
+} = ACCOUNTS_RECEIVABLE;
+
 const data = {
   navMain: [
     {
@@ -193,9 +210,9 @@ const data = {
           icon: PurchaseOrderIcon,
         },
         {
-          title: "Compras",
+          title: PurchasesTitle,
           url: PurchaseRoute,
-          icon: ShoppingCart,
+          icon: PurchaseIcon,
         },
         {
           title: PurchaseShippingGuideTitle,
@@ -210,11 +227,6 @@ const data = {
       icon: ShoppingBag,
       items: [
         {
-          title: "Ventas",
-          url: SaleRoute,
-          icon: ShoppingBag,
-        },
-        {
           title: QuotationTitle,
           url: QuotationRoute,
           icon: QuotationIcon,
@@ -225,9 +237,14 @@ const data = {
           icon: OrderIcon,
         },
         {
-          title: "Cuentas por Cobrar",
+          title: SaleTitle,
+          url: SaleRoute,
+          icon: SaleIcon,
+        },
+        {
+          title: AccountsReceivableTitle,
           url: AccountsReceivableRoute,
-          icon: DollarSign,
+          icon: AccountsReceivableIcon,
         },
       ],
     },

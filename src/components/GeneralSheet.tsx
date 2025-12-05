@@ -15,6 +15,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { useIsMobile, useIsTablet } from "@/hooks/use-mobile";
 
 export interface GeneralSheetProps {
   open: boolean;
@@ -56,16 +57,20 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   modal,
   icon,
   size = "large",
-  type = "default",
 }) => {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
     : null;
 
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+
+  const type = isMobile ? "mobile" : isTablet ? "tablet" : "default";
+
   {
     return type === "default" ? (
       <Sheet open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
-        <SheetContent side={side} className={cn(sizes[size], className)}>
+        <SheetContent side={side} className={cn(sizes[size], className, "overflow-y-auto")}>
           <SheetHeader>
             <div className="flex items-center gap-2">
               {icon && IconComponent && (
@@ -82,13 +87,13 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
             </div>
             <SheetClose onClick={onClose} />
           </SheetHeader>
-          <div className="mt-4 h-full">{children}</div>
+          <div className="mt-4">{children}</div>
         </SheetContent>
       </Sheet>
     ) : (
       <Drawer open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
-        <DrawerContent className={cn(sizes[size], className, "px-4 pb-4")}>
-          <DrawerHeader>
+        <DrawerContent className={cn(sizes[size], className, "px-4 pb-4 flex flex-col max-h-[96vh]")}>
+          <DrawerHeader className="flex-shrink-0 p-2">
             <div className="flex items-center gap-2">
               {icon && IconComponent && (
                 <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
@@ -104,7 +109,9 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
             </div>
             <DrawerClose onClick={onClose} />
           </DrawerHeader>
-          <div className="mt-4 h-full">{children}</div>
+          <div className="mt-4 overflow-y-auto flex-1 min-h-0" data-vaul-no-drag>
+            {children}
+          </div>
         </DrawerContent>
       </Drawer>
     );

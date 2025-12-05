@@ -353,7 +353,7 @@ export default function SaleDetailSheet({
                     key={detail.id}
                     className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start gap-3">
+                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start gap-2">
                           <Badge variant="outline" className="text-xs shrink-0">
@@ -414,7 +414,7 @@ export default function SaleDetailSheet({
                     key={installment.id}
                     className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <div className="flex justify-between items-start gap-3">
+                    <div className="flex flex-col md:flex-row justify-between md:items-start gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <Badge variant="outline" className="font-semibold">

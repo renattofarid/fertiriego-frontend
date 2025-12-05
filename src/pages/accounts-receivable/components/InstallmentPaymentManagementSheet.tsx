@@ -202,7 +202,7 @@ export default function InstallmentPaymentManagementSheet({
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
         icon={"Wallet"}
-        className="overflow-y-auto w-full sm:max-w-3xl p-4"
+        className="w-full sm:max-w-3xl p-4"
       >
         <div className="space-y-6">
           {/* Installment Summary */}
