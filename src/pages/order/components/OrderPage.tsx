@@ -72,7 +72,7 @@ export default function OrderPage() {
           subtitle="Administrar todos los pedidos registrados en el sistema"
           icon={ICON}
         />
-        <Button onClick={() => navigate("/pedidos/agregar")}>
+        <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
           <Plus className="mr-2 h-4 w-4" />
           Nuevo Pedido
         </Button>

@@ -39,21 +39,21 @@ export const getOrderColumns = ({
       </span>
     ),
   },
-  {
-    accessorKey: "customer_fullname",
-    header: "Cliente",
-    cell: ({ row }) => (
-      <div className="max-w-[200px]">
-        {row.original.customer?.business_name ||
-          row.original.customer?.full_name}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "warehouse_name",
-    header: "Almacén",
-    cell: ({ row }) => <span>{row.original.warehouse?.name || "N/A"}</span>,
-  },
+  // {
+  //   accessorKey: "customer_fullname",
+  //   header: "Cliente",
+  //   cell: ({ row }) => (
+  //     <div className="max-w-[200px]">
+  //       {row.original.customer?.business_name ||
+  //         row.original.customer?.full_name}
+  //     </div>
+  //   ),
+  // },
+  // {
+  //   accessorKey: "warehouse_name",
+  //   header: "Almacén",
+  //   cell: ({ row }) => <span>{row.original.warehouse?.name || "N/A"}</span>,
+  // },
   {
     accessorKey: "order_date",
     header: "Fecha Pedido",

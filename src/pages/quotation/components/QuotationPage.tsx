@@ -74,7 +74,7 @@ export default function QuotationPage() {
           subtitle="Administrar todas las cotizaciones registradas en el sistema"
           icon={ICON}
         />
-        <Button onClick={() => navigate("/cotizaciones/agregar")}>
+        <Button size={"sm"} onClick={() => navigate("/cotizaciones/agregar")}>
           <Plus className="mr-2 h-4 w-4" />
           Nueva Cotización
         </Button>
