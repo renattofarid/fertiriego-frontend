@@ -20,7 +20,7 @@ export interface TitlesInterface {
 
 export interface ModelComplete<T = undefined> {
   MODEL: ModelInterface;
-  TITLES?: TitlesInterface;
+  TITLES: TitlesInterface;
   ICON: keyof typeof LucideReact;
   ICON_REACT: LucideReact.LucideIcon;
   ENDPOINT: string;

@@ -59,8 +59,6 @@ export const SaleEditPage = () => {
     customer_id: data.customer_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
     document_type: data.document_type,
-    serie: data.serie,
-    numero: data.numero,
     issue_date: format(
       parse(data.issue_date, "yyyy-MM-dd", new Date()),
       "yyyy-MM-dd"

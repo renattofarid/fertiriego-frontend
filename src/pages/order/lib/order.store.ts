@@ -13,12 +13,7 @@ import {
   deleteOrder,
   type GetOrdersParams,
 } from "./order.actions";
-import {
-  ERROR_MESSAGE,
-  SUCCESS_MESSAGE,
-  errorToast,
-  successToast,
-} from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
 import { ORDER } from "./order.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
@@ -60,7 +55,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Fetch all orders (no pagination)
   fetchAllOrders: async () => {
-    set({ isLoadingAll: true, error: undefined});
+    set({ isLoadingAll: true, error: undefined });
     try {
       const data = await getAllOrders();
       set({ allOrders: data, isLoadingAll: false });
@@ -72,7 +67,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Fetch orders with pagination
   fetchOrders: async (params?: GetOrdersParams) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const response = await getOrders(params);
       const meta = response.meta;
@@ -85,7 +80,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Fetch single order by ID
   fetchOrder: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const response = await findOrderById(id);
       set({ order: response.data, isFinding: false });
@@ -97,49 +92,43 @@ export const useOrderStore = create<OrderStore>((set) => ({
 
   // Create new order
   createOrder: async (data: CreateOrderRequest) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       const response = await storeOrder(data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "create"));
       return response.data;
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },
 
   // Update order
   updateOrder: async (id: number, data: UpdateOrderRequest) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await updateOrder(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "update"));
       throw error;
     }
   },
 
   // Delete order
   removeOrder: async (id: number) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await deleteOrder(id);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "delete"));
       throw error;
     }
   },
 
   // Reset order state
   resetOrder: () => {
-    set({ order: null, error: undefined});
+    set({ order: null, error: undefined });
   },
 }));

@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash2, Eye, Pencil, FileText } from "lucide-react";
+import { MoreVertical, Trash2, Eye, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { OrderResource } from "../lib/order.interface";
 
@@ -14,14 +14,12 @@ interface OrderColumnsProps {
   onEdit: (order: OrderResource) => void;
   onDelete: (id: number) => void;
   onViewDetails: (order: OrderResource) => void;
-  onGenerateSale: (order: OrderResource) => void;
 }
 
 export const getOrderColumns = ({
   onEdit,
   onDelete,
   onViewDetails,
-  onGenerateSale,
 }: OrderColumnsProps): ColumnDef<OrderResource>[] => [
   {
     accessorKey: "id",
@@ -41,21 +39,21 @@ export const getOrderColumns = ({
       </span>
     ),
   },
-  // {
-  //   accessorKey: "customer_fullname",
-  //   header: "Cliente",
-  //   cell: ({ row }) => (
-  //     <div className="max-w-[200px]">
-  //       {row.original.customer?.business_name ||
-  //         row.original.customer?.full_name}
-  //     </div>
-  //   ),
-  // },
-  // {
-  //   accessorKey: "warehouse_name",
-  //   header: "Almacén",
-  //   cell: ({ row }) => <span>{row.original.warehouse?.name || "N/A"}</span>,
-  // },
+  {
+    accessorKey: "customer_fullname",
+    header: "Cliente",
+    cell: ({ row }) => (
+      <div className="max-w-[200px]">
+        {row.original.customer?.business_name ||
+          row.original.customer?.full_name}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "warehouse_name",
+    header: "Almacén",
+    cell: ({ row }) => <span>{row.original.warehouse?.name || "N/A"}</span>,
+  },
   {
     accessorKey: "order_date",
     header: "Fecha Pedido",
@@ -166,13 +164,6 @@ export const getOrderColumns = ({
           >
             <Eye className="mr-2 h-4 w-4" />
             Ver Detalles
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onGenerateSale(row.original)}
-            className="cursor-pointer"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Generar Venta
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => onEdit(row.original)}

@@ -54,8 +54,6 @@ export const saleSchemaCreate = z.object({
   document_type: z
     .string()
     .min(1, { message: "Debe seleccionar un tipo de documento" }),
-  serie: z.string().min(1, { message: "La serie es requerida" }).max(10),
-  numero: z.string().min(1, { message: "El número es requerido" }).max(20),
   issue_date: z
     .string()
     .min(1, { message: "La fecha de emisión es requerida" })

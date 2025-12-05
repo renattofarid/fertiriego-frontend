@@ -677,34 +677,6 @@ export const SaleForm = ({
               }))}
             />
 
-            <FormField
-              control={form.control}
-              name="serie"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Serie</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: F001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="numero"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Número</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ej: 00000001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <DatePickerFormField
               control={form.control}
               name="issue_date"
