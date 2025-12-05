@@ -43,6 +43,10 @@ export default function OrderPage() {
     navigate(`/pedidos/${order.id}`);
   };
 
+  const handleGenerateSale = (order: OrderResource) => {
+    navigate(`/ventas/agregar?order_id=${order.id}`);
+  };
+
   const confirmDelete = async () => {
     if (orderToDelete) {
       try {
@@ -62,6 +66,7 @@ export default function OrderPage() {
     onEdit: handleEdit,
     onDelete: handleDelete,
     onViewDetails: handleViewDetails,
+    onGenerateSale: handleGenerateSale,
   });
 
   return (

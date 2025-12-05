@@ -34,8 +34,6 @@ import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import type { OrderResource } from "@/pages/order/lib/order.interface";
-import type { QuotationResource } from "@/pages/quotation/lib/quotation.interface";
 import { useState, useEffect } from "react";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
@@ -72,8 +70,8 @@ interface SaleFormProps {
   customers: PersonResource[];
   warehouses: WarehouseResource[];
   products: ProductResource[];
-  orders?: OrderResource[];
-  quotations?: QuotationResource[];
+  sourceData?: any; // QuotationResourceById | OrderResourceById
+  sourceType?: "quotation" | "order" | null;
   sale?: SaleResource;
 }
 
@@ -102,8 +100,8 @@ export const SaleForm = ({
   customers,
   warehouses,
   products,
-  orders = [],
-  quotations = [],
+  sourceData,
+  sourceType,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -285,29 +283,42 @@ export const SaleForm = ({
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
 
-  // Watch para orden y cotización
-  const selectedOrderId = form.watch("order_id");
-  const selectedQuotationId = form.watch("quotation_id");
-
-  // Auto-completar datos desde orden
+  // Auto-completar datos desde sourceData (orden o cotización)
   useEffect(() => {
-    if (selectedOrderId && mode === "create") {
-      const selectedOrder = orders.find(
-        (o) => o.id.toString() === selectedOrderId
-      );
+    if (sourceData && sourceType && mode === "create") {
+      // Auto-completar campos comunes
+      form.setValue("customer_id", sourceData.customer_id.toString());
+      form.setValue("warehouse_id", sourceData.warehouse_id.toString());
+      form.setValue("currency", sourceData.currency);
+      form.setValue("observations", sourceData.observations || "");
 
-      if (selectedOrder) {
-        // Limpiar quotation_id si se selecciona orden
-        form.setValue("quotation_id", "");
+      if (sourceType === "quotation") {
+        form.setValue("payment_type", sourceData.payment_type);
 
-        // Auto-completar campos
-        form.setValue("customer_id", selectedOrder.customer_id.toString());
-        form.setValue("warehouse_id", selectedOrder.warehouse_id.toString());
-        form.setValue("currency", selectedOrder.currency);
-        form.setValue("observations", selectedOrder.observations || "");
+        // Auto-completar detalles desde cotización
+        const quotationDetails: DetailRow[] = sourceData.quotation_details.map((detail: any) => {
+          const quantity = parseFloat(detail.quantity);
+          const unitPrice = parseFloat(detail.unit_price);
+          const subtotal = roundTo6Decimals(quantity * unitPrice);
+          const igv = roundTo6Decimals(subtotal * 0.18);
+          const total = roundTo6Decimals(subtotal + igv);
 
-        // Auto-completar detalles
-        const orderDetails: DetailRow[] = selectedOrder.order_details.map((detail) => {
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product?.name,
+            quantity: detail.quantity,
+            unit_price: detail.unit_price,
+            subtotal,
+            igv,
+            total,
+          };
+        });
+
+        setDetails(quotationDetails);
+        form.setValue("details", quotationDetails);
+      } else if (sourceType === "order") {
+        // Auto-completar detalles desde orden
+        const orderDetails: DetailRow[] = sourceData.order_details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
           const unitPrice = parseFloat(detail.unit_price);
           const subtotal = roundTo6Decimals(quantity * unitPrice);
@@ -330,51 +341,7 @@ export const SaleForm = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedOrderId]);
-
-  // Auto-completar datos desde cotización
-  useEffect(() => {
-    if (selectedQuotationId && mode === "create") {
-      const selectedQuotation = quotations.find(
-        (q) => q.id.toString() === selectedQuotationId
-      );
-
-      if (selectedQuotation) {
-        // Limpiar order_id si se selecciona cotización
-        form.setValue("order_id", "");
-
-        // Auto-completar campos
-        form.setValue("customer_id", selectedQuotation.customer_id.toString());
-        form.setValue("warehouse_id", selectedQuotation.warehouse_id.toString());
-        form.setValue("currency", selectedQuotation.currency);
-        form.setValue("payment_type", selectedQuotation.payment_type);
-        form.setValue("observations", selectedQuotation.observations || "");
-
-        // Auto-completar detalles
-        const quotationDetails: DetailRow[] = selectedQuotation.quotation_details.map((detail) => {
-          const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price);
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
-          const igv = roundTo6Decimals(subtotal * 0.18);
-          const total = roundTo6Decimals(subtotal + igv);
-
-          return {
-            product_id: detail.product_id.toString(),
-            product_name: detail.product?.name,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
-            subtotal,
-            igv,
-            total,
-          };
-        });
-
-        setDetails(quotationDetails);
-        form.setValue("details", quotationDetails);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedQuotationId]);
+  }, [sourceData, sourceType]);
 
   // Establecer fecha de emisión automáticamente al cargar el formulario
   useEffect(() => {
@@ -669,33 +636,6 @@ export const SaleForm = ({
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* Selectores de Orden y Cotización - Solo en modo creación */}
-            {mode === "create" && (
-              <>
-                <FormSelect
-                  control={form.control}
-                  name="order_id"
-                  label="Orden de Compra (Opcional)"
-                  placeholder="Seleccione una orden"
-                  options={orders.map((order) => ({
-                    value: order.id.toString(),
-                    label: order.order_number,
-                  }))}
-                />
-
-                <FormSelect
-                  control={form.control}
-                  name="quotation_id"
-                  label="Cotización (Opcional)"
-                  placeholder="Seleccione una cotización"
-                  options={quotations.map((quotation) => ({
-                    value: quotation.id.toString(),
-                    label: quotation.quotation_number,
-                  }))}
-                />
-              </>
-            )}
-
             <FormSelect
               control={form.control}
               name="customer_id"
