@@ -269,6 +269,11 @@ const data = {
           icon: ProductTypeIcon,
         },
         {
+          title: WarehouseProductTitle,
+          url: WarehouseProductRoute,
+          icon: WarehouseProductIcon,
+        },
+        {
           title: BrandTitle,
           url: BrandRoute,
           icon: BrandIcon,
@@ -353,11 +358,6 @@ const data = {
           title: BoxShiftTitle,
           url: BoxShiftRoute,
           icon: BoxShiftIcon,
-        },
-        {
-          title: WarehouseProductTitle,
-          url: WarehouseProductRoute,
-          icon: WarehouseProductIcon,
         },
       ],
     },
