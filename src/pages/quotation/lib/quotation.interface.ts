@@ -100,19 +100,9 @@ export interface QuotationResourceById {
 // ===== API RESPONSES =====
 
 export interface QuotationResponse {
-  current_page: number;
   data: QuotationResource[];
-  first_page_url: string;
-  from: number;
-  last_page: number;
-  last_page_url: string;
-  links: { url: string | null; label: string; active: boolean }[];
-  next_page_url: string | null;
-  path: string;
-  per_page: number;
-  prev_page_url: string | null;
-  to: number;
-  total: number;
+  links: Links;
+  meta: Meta;
 }
 
 // ===== CREATE/UPDATE REQUESTS =====
@@ -132,7 +122,6 @@ export interface CreateQuotationRequest {
   currency: string;
   payment_type: string;
   observations: string;
-  status: string;
   address: string;
   reference: string;
   account_number: string;
@@ -194,6 +183,7 @@ export const QUOTATION_STATUSES = [
 // ===== MODEL COMPLETE =====
 
 import type { ModelComplete } from "@/lib/core.interface";
+import type { Links, Meta } from "@/lib/pagination.interface";
 import { FileText } from "lucide-react";
 
 const NAME = "Cotización";

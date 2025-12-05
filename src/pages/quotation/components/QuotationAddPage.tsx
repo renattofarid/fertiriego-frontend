@@ -11,7 +11,10 @@ import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
-import { QUOTATION, type CreateQuotationRequest } from "../lib/quotation.interface";
+import {
+  QUOTATION,
+  type CreateQuotationRequest,
+} from "../lib/quotation.interface";
 
 export const QuotationAddPage = () => {
   const { ICON } = QUOTATION;
@@ -19,8 +22,7 @@ export const QuotationAddPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: customers, isLoading: customersLoading } = useClients();
-  const { data: warehouses, isLoading: warehousesLoading } =
-    useAllWarehouses();
+  const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const { createQuotation } = useQuotationStore();

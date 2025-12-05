@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   QuotationResource,
-  Meta,
   CreateQuotationRequest,
   UpdateQuotationRequest,
 } from "./quotation.interface";
@@ -21,6 +20,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { QUOTATION } from "./quotation.interface";
+import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = QUOTATION;
 
@@ -75,14 +75,7 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await getQuotations(params);
-      const meta: Meta = {
-        current_page: response.current_page,
-        from: response.from,
-        last_page: response.last_page,
-        per_page: response.per_page,
-        to: response.to,
-        total: response.total,
-      };
+      const meta = response.meta;
       set({ quotations: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar las cotizaciones", isLoading: false });
