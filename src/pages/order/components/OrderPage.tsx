@@ -13,6 +13,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import ExportButtons from "@/components/ExportButtons";
 
 export default function OrderPage() {
   const navigate = useNavigate();
@@ -77,10 +78,16 @@ export default function OrderPage() {
           subtitle="Administrar todos los pedidos registrados en el sistema"
           icon={ICON}
         />
-        <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Pedido
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButtons
+            excelEndpoint="/order/export"
+            excelFileName="pedidos.xlsx"
+          />
+          <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Pedido
+          </Button>
+        </div>
       </div>
 
       <OrderTable columns={columns} data={orders || []} isLoading={isLoading}>

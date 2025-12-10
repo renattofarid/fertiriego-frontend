@@ -9,6 +9,7 @@ import {
 import { MoreVertical, Trash2, Eye, Pencil, FileText } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { OrderResource } from "../lib/order.interface";
+import ExportButtons from "@/components/ExportButtons";
 
 interface OrderColumnsProps {
   onEdit: (order: OrderResource) => void;
@@ -152,44 +153,51 @@ export const getOrderColumns = ({
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onClick={() => onViewDetails(row.original)}
-            className="cursor-pointer"
-          >
-            <Eye className="mr-2 h-4 w-4" />
-            Ver Detalles
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onGenerateSale(row.original)}
-            className="cursor-pointer"
-          >
-            <FileText className="mr-2 h-4 w-4" />
-            Generar Venta
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onEdit(row.original)}
-            className="cursor-pointer"
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onDelete(row.original.id)}
-            className="cursor-pointer text-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-1">
+        <ExportButtons
+          pdfEndpoint={`/order/pdf/${row.original.id}`}
+          pdfFileName={`pedido-${row.original.order_number}.pdf`}
+          variant="separate"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Abrir menú</span>
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => onViewDetails(row.original)}
+              className="cursor-pointer"
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Ver Detalles
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onGenerateSale(row.original)}
+              className="cursor-pointer"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              Generar Venta
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onEdit(row.original)}
+              className="cursor-pointer"
+            >
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDelete(row.original.id)}
+              className="cursor-pointer text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Eliminar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     ),
   },
 ];

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   useReactTable,
@@ -15,12 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useState } from "react";
-import type {
-  ColumnFiltersState,
-  VisibilityState,
-} from "@tanstack/react-table";
+import type { VisibilityState } from "@tanstack/react-table";
 import DataTableColumnFilter from "./DataTableColumnFilter";
 import FormSkeleton from "./FormSkeleton";
 
@@ -31,6 +29,7 @@ interface DataTableProps<TData, TValue> {
   isLoading?: boolean;
   initialColumnVisibility?: VisibilityState;
   isVisibleColumnFilter?: boolean;
+  mobileCardRender?: (row: TData, index: number) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +39,7 @@ export function DataTable<TData, TValue>({
   isLoading = false,
   initialColumnVisibility,
   isVisibleColumnFilter = true,
+  mobileCardRender,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -128,43 +128,80 @@ export function DataTable<TData, TValue>({
       {/* Vista de Cards para móviles */}
       <div className="md:hidden w-full space-y-3">
         {isLoading ? (
-          <Card>
+          <Card className="py-0">
             <CardContent className="pt-6">
               <FormSkeleton />
             </CardContent>
           </Card>
+        ) : mobileCardRender ? (
+          // Renderizado personalizado de cards
+          table
+            .getRowModel()
+            .rows.map((row, index) => (
+              <div key={row.id}>{mobileCardRender(row.original, index)}</div>
+            ))
         ) : data.length ? (
-          table.getRowModel().rows.map((row) => (
-            <Card key={row.id} className="overflow-hidden">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {row.getVisibleCells().map((cell) => {
-                    const header = cell.column.columnDef.header;
-                    const headerText =
-                      typeof header === "string"
-                        ? header
-                        : typeof header === "function"
-                        ? cell.column.id
-                        : cell.column.id;
+          // Renderizado por defecto
+          table.getRowModel().rows.map((row) => {
+            // Separar las celdas de acciones del resto
+            const cells = row.getVisibleCells();
+            const actionCell = cells.find(
+              (cell) =>
+                cell.column.id.toLowerCase().includes("accion") ||
+                cell.column.id.toLowerCase().includes("action")
+            );
+            const contentCells = cells.filter(
+              (cell) =>
+                !cell.column.id.toLowerCase().includes("accion") &&
+                !cell.column.id.toLowerCase().includes("action")
+            );
 
-                    return (
-                      <div key={cell.id} className="flex flex-col gap-1">
-                        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          {headerText}
-                        </span>
-                        <div className="text-sm break-words">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+            return (
+              <Card
+                key={row.id}
+                className={`py-0 gap-0! overflow-hidden border-primary/10 hover:border-primary/30 transition-colors`}
+              >
+                <CardContent className="py-4 px-2">
+                  <div className="grid grid-cols-1 gap-2">
+                    {contentCells.map((cell) => {
+                      const header = cell.column.columnDef.header;
+                      const headerText =
+                        typeof header === "string"
+                          ? header
+                          : typeof header === "function"
+                          ? cell.column.id
+                          : cell.column.id;
+
+                      return (
+                        <div
+                          key={cell.id}
+                          className="grid grid-cols-3 items-center gap-1"
+                        >
+                          <span className="text-xs font-semibold text-primary uppercase">
+                            {headerText}
+                          </span>
+                          <div className="text-xs text-foreground col-span-2">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                      );
+                    })}
+                  </div>
+                </CardContent>
+                {actionCell && (
+                  <CardFooter className="p-1! bg-muted/60 border-t border-primary/10 px-3 flex justify-end gap-2">
+                    {flexRender(
+                      actionCell.column.columnDef.cell,
+                      actionCell.getContext()
+                    )}
+                  </CardFooter>
+                )}
+              </Card>
+            );
+          })
         ) : (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">

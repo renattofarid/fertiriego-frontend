@@ -13,6 +13,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import ExportButtons from "@/components/ExportButtons";
 
 export default function QuotationPage() {
   const navigate = useNavigate();
@@ -79,10 +80,16 @@ export default function QuotationPage() {
           subtitle="Administrar todas las cotizaciones registradas en el sistema"
           icon={ICON}
         />
-        <Button size={"sm"} onClick={() => navigate("/cotizaciones/agregar")}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nueva Cotización
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButtons
+            excelEndpoint="/quotation/export"
+            excelFileName="cotizaciones.xlsx"
+          />
+          <Button size={"sm"} onClick={() => navigate("/cotizaciones/agregar")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nueva Cotización
+          </Button>
+        </div>
       </div>
 
       <QuotationTable
