@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSale } from "../lib/sale.hook";
 import SaleTable from "./SaleTable";
 import SaleOptions from "./SaleOptions";
+import SaleActions from "./SaleActions";
 import { getSaleColumns } from "./SaleColumns";
 import { useSaleStore } from "../lib/sales.store";
 import { useNavigate } from "react-router-dom";
@@ -152,6 +153,7 @@ export default function SalePage() {
           subtitle="Administrar todas las ventas registradas en el sistema"
           icon={ICON}
         />
+        <SaleActions />
       </div>
 
       <SaleTable columns={columns} data={sales || []} isLoading={isLoading}>

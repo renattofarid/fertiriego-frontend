@@ -82,10 +82,11 @@ export default function ExportButtons({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 transition-colors"
+                className="p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
                 onClick={handleExcelDownload}
               >
                 <Sheet className="size-4" />
+                Excel
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -100,10 +101,11 @@ export default function ExportButtons({
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 transition-colors"
+                className="p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
                 onClick={handlePDFDownload}
               >
                 <FileText className="size-4" />
+                PDF
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -124,7 +126,7 @@ export default function ExportButtons({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-green-100 hover:text-green-700 transition-colors"
+              className="h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
               onClick={handleExcelDownload}
             >
               <Sheet className="size-4" />
@@ -142,7 +144,7 @@ export default function ExportButtons({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-700 transition-colors"
+              className="h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
               onClick={handlePDFDownload}
             >
               <FileText className="size-4" />
