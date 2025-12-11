@@ -117,24 +117,24 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 <linearGradient id="fillVentas" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--primary)"
+                    stopColor="var(--chart-3)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--primary)"
+                    stopColor="var(--chart-3)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
                 <linearGradient id="fillCompras" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="var(--muted-foreground)"
+                    stopColor="var(--chart-2)"
                     stopOpacity={0.8}
                   />
                   <stop
                     offset="95%"
-                    stopColor="var(--muted-foreground)"
+                    stopColor="var(--chart-2)"
                     stopOpacity={0.1}
                   />
                 </linearGradient>
@@ -188,7 +188,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 dataKey="ventas"
                 type="monotone"
                 fill="url(#fillVentas)"
-                stroke="var(--primary)"
+                stroke="var(--chart-3)"
                 strokeWidth={2}
                 dot={false}
               />
@@ -196,7 +196,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 dataKey="compras"
                 type="monotone"
                 fill="url(#fillCompras)"
-                stroke="var(--muted-foreground)"
+                stroke="var(--chart-2)"
                 strokeWidth={2}
                 dot={false}
               />
@@ -204,7 +204,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
             </AreaChart>
           </ChartContainer>
         ) : (
-          <div className="h-[280px] sm:h-[320px] flex items-center justify-center text-muted-foreground text-sm">
+          <div className="h-[280px] sm:h-[320px] flex items-center justify-center text-chart-2 text-sm">
             No hay datos disponibles para el período seleccionado
           </div>
         )}
