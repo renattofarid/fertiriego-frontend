@@ -98,7 +98,7 @@ export const getAccountsPayableColumns = (
     header: "Monto",
     cell: ({ row }) => (
       <div className="text-right font-semibold">
-        {formatCurrency(row.original.amount, {
+        {formatCurrency(Number(row.original.amount), {
           currencySymbol: "S/.",
         })}
       </div>
@@ -108,14 +108,15 @@ export const getAccountsPayableColumns = (
     accessorKey: "pending_amount",
     header: "Pendiente",
     cell: ({ row }) => {
-      const isPending = parseFloat(row.original.pending_amount) > 0;
+      const pending = Number(row.original.pending_amount);
+      const isPending = pending > 0;
       return (
         <div
           className={`text-right font-semibold ${
             isPending ? "text-destructive" : "text-primary"
           }`}
         >
-          {formatCurrency(row.original.pending_amount, {
+          {formatCurrency(pending, {
             currencySymbol: "S/.",
           })}
         </div>

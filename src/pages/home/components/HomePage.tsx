@@ -30,7 +30,7 @@ interface TopProduct {
   revenue: number;
 }
 
-// Componente de métrica simple y limpio
+// Componente de métrica simple y limpio - layout horizontal compacto
 function MetricCard({
   title,
   value,
@@ -66,17 +66,19 @@ function MetricCard({
   };
 
   return (
-    <div className={cn("rounded-lg p-4", variantStyles[variant])}>
-      <div className="flex items-center gap-3 mb-2">
-        <div className={cn("p-1.5 rounded-md", iconBgStyles[variant])}>
-          <Icon className={cn("h-4 w-4", textStyles[variant])} />
+    <div className={cn("rounded-lg p-3", variantStyles[variant])}>
+      <div className="flex items-center gap-3">
+        <div className={cn("p-2 rounded-md shrink-0", iconBgStyles[variant])}>
+          <Icon className={cn("h-5 w-5", textStyles[variant])} />
         </div>
-        <p className="text-xs font-medium text-muted-foreground">{title}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">{title}</p>
+          <p className={cn("text-xl font-bold mb-0.5", textStyles[variant])}>
+            {value}
+          </p>
+          <p className="text-xs text-muted-foreground">{description}</p>
+        </div>
       </div>
-      <p className={cn("text-2xl font-bold mb-1", textStyles[variant])}>
-        {value}
-      </p>
-      <p className="text-xs text-muted-foreground">{description}</p>
     </div>
   );
 }
