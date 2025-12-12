@@ -24,6 +24,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
 import { parse } from "date-fns";
+import ExportButtons from "@/components/ExportButtons";
 
 interface SaleColumnsProps {
   onEdit: (sale: SaleResource) => void;
@@ -289,38 +290,45 @@ export const getSaleColumns = ({
         ) ?? false;
 
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Detalle
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManage(row.original)}>
-              <Settings className="mr-2 h-4 w-4" />
-              Gestionar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => !hasPayments && onEdit(row.original)}
-              disabled={hasPayments}
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar {hasPayments && "(Tiene pagos)"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => !isPaid && onDelete(row.original.id)}
-              disabled={isPaid || hasPayments}
-              className="text-destructive"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar {isPaid && "(Pagada)"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-1">
+          <ExportButtons
+            pdfEndpoint={`/sale/${row.original.id}/pdf`}
+            pdfFileName={`venta-${row.original.full_document_number}.pdf`}
+            variant="separate"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
+                <Eye className="mr-2 h-4 w-4" />
+                Ver Detalle
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onManage(row.original)}>
+                <Settings className="mr-2 h-4 w-4" />
+                Gestionar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !hasPayments && onEdit(row.original)}
+                disabled={hasPayments}
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Editar {hasPayments && "(Tiene pagos)"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => !isPaid && onDelete(row.original.id)}
+                disabled={isPaid || hasPayments}
+                className="text-destructive"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Eliminar {isPaid && "(Pagada)"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       );
     },
   },

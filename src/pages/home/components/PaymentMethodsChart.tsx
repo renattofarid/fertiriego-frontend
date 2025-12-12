@@ -65,6 +65,13 @@ export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
     chartData.length > 0 ? chartData[0].name : ""
   )
 
+  // Actualizar activeMethod cuando chartData cambie y esté vacío
+  React.useEffect(() => {
+    if (chartData.length > 0 && !activeMethod) {
+      setActiveMethod(chartData[0].name);
+    }
+  }, [chartData, activeMethod]);
+
   const activeIndex = React.useMemo(
     () => chartData.findIndex((item) => item.name === activeMethod),
     [activeMethod, chartData]
@@ -175,6 +182,9 @@ export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
               <Label
                 content={({ viewBox }) => {
                   if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    const currentData = chartData[activeIndex >= 0 ? activeIndex : 0];
+                    if (!currentData) return null;
+
                     return (
                       <text
                         x={viewBox.cx}
@@ -187,14 +197,14 @@ export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
                           y={viewBox.cy}
                           className="fill-foreground text-3xl font-bold"
                         >
-                          {chartData[activeIndex].value.toLocaleString()}
+                          {currentData.value.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          {chartData[activeIndex].name}
+                          {currentData.name}
                         </tspan>
                       </text>
                     )

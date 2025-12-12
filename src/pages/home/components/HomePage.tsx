@@ -5,6 +5,7 @@ import {
   TrendingUp,
   ShoppingBag,
   DollarSign,
+  TrendingDown,
 } from "lucide-react";
 import { usePurchase } from "@/pages/purchase/lib/purchase.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
@@ -13,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
 import { TopProductsChart } from "./TopProductsChart";
 import { PaymentMethodsChart } from "./PaymentMethodsChart";
-import { FinancialSummaryCard } from "./FinancialSummaryCard";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
 
@@ -30,55 +30,55 @@ interface TopProduct {
   revenue: number;
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  subtitle: string;
-  icon: React.ElementType;
-  variant: "primary" | "destructive" | "secondary" | "accent" | "muted";
-}
-
-// Componente StatCard sin bordes
-function StatCard({
+// Componente de métrica simple y limpio (estilo FinancialSummaryCard)
+function MetricCard({
   title,
   value,
-  subtitle,
+  description,
   icon: Icon,
   variant,
-}: StatCardProps) {
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ElementType;
+  variant: "primary" | "destructive" | "muted" | "success";
+}) {
   const variantStyles = {
+    primary: "bg-primary/5",
+    destructive: "bg-destructive/5",
+    muted: "bg-muted-foreground/5",
+    success: "bg-green-500/5",
+  };
+
+  const iconBgStyles = {
     primary: "bg-primary/10",
     destructive: "bg-destructive/10",
-    secondary: "bg-secondary/10",
-    accent: "bg-accent/10",
-    muted: "bg-muted/10",
+    muted: "bg-muted-foreground/10",
+    success: "bg-green-500/10",
   };
 
   const textStyles = {
     primary: "text-primary",
     destructive: "text-destructive",
-    secondary: "text-secondary-foreground",
-    accent: "text-accent-foreground",
     muted: "text-muted-foreground",
+    success: "text-green-600",
   };
 
   return (
-    <div className={cn("rounded-xl p-5 shadow-sm", variantStyles[variant])}>
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
+    <div className={cn("rounded-xl p-5", variantStyles[variant])}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={cn("p-2 rounded-lg", iconBgStyles[variant])}>
+          <Icon className={cn("h-5 w-5", textStyles[variant])} />
+        </div>
+        <div>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p
-            className={cn(
-              "text-2xl md:text-3xl font-bold",
-              textStyles[variant]
-            )}
-          >
+          <p className={cn("text-xl font-bold", textStyles[variant])}>
             {value}
           </p>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
-        <Icon className={cn("h-10 w-10 opacity-60", textStyles[variant])} />
       </div>
+      <p className="text-xs text-muted-foreground">{description}</p>
     </div>
   );
 }
@@ -98,6 +98,10 @@ export default function HomePage() {
     salePendingAmount: 0,
     totalProducts: 0,
     balance: 0,
+    averageTicketSale: 0,
+    averageTicketPurchase: 0,
+    cashSalesPercentage: 0,
+    creditSalesPercentage: 0,
   });
 
   const [allTransactionsByDate, setAllTransactionsByDate] = useState<
@@ -131,6 +135,16 @@ export default function HomePage() {
 
       const balance = totalSaleAmount - totalPurchaseAmount;
 
+      // Calcular promedios
+      const averageTicketSale = sales.length > 0 ? totalSaleAmount / sales.length : 0;
+      const averageTicketPurchase = purchases.length > 0 ? totalPurchaseAmount / purchases.length : 0;
+
+      // Calcular porcentajes de métodos de pago
+      const cashSales = sales.filter(s => s.payment_type === "CONTADO").length;
+      const creditSales = sales.filter(s => s.payment_type === "CREDITO").length;
+      const cashSalesPercentage = sales.length > 0 ? (cashSales / sales.length) * 100 : 0;
+      const creditSalesPercentage = sales.length > 0 ? (creditSales / sales.length) * 100 : 0;
+
       setStats({
         totalPurchases: purchases.length,
         totalPurchaseAmount,
@@ -140,6 +154,10 @@ export default function HomePage() {
         salePendingAmount,
         totalProducts: products?.length || 0,
         balance,
+        averageTicketSale,
+        averageTicketPurchase,
+        cashSalesPercentage,
+        creditSalesPercentage,
       });
 
       // Agrupar transacciones por fecha (diarias para el chart)
@@ -235,85 +253,83 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      {/* Header */}
+    <div className="space-y-8 p-4 md:p-6">
+      {/* Header Simple */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Vista general de tu sistema de gestión
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Resumen general de tu negocio
         </p>
       </div>
 
-      {/* Gráfico Principal - AreaChart Interactivo */}
-      <SalesVsPurchasesChart data={allTransactionsByDate} />
+      {/* Sección de Métricas - Todo con el mismo estilo limpio */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Métricas Principales</h2>
 
-      {/* KPI Cards - Sin bordes */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          variant="primary"
-          title="Total Ventas"
-          value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
-          subtitle={`${stats.totalSales} transacciones`}
-          icon={ShoppingBag}
-        />
-        <StatCard
-          title="Total Compras"
-          value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
-          subtitle={`${stats.totalPurchases} transacciones`}
-          icon={ShoppingCart}
-          variant="destructive"
-        />
-        <StatCard
-          title="Balance General"
-          value={`S/ ${formatCurrency(stats.balance)}`}
-          subtitle={stats.balance >= 0 ? "Positivo" : "Negativo"}
-          icon={DollarSign}
-          variant={stats.balance >= 0 ? "primary" : "destructive"}
-        />
-        <StatCard
-          title="Productos"
-          value={stats.totalProducts}
-          subtitle="En el catálogo"
-          icon={Package}
-          variant="muted"
-        />
+        {/* Grid de métricas - 6 cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            title="Total Ventas"
+            value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
+            description={`${stats.totalSales} transacciones realizadas`}
+            icon={ShoppingBag}
+            variant="primary"
+          />
+
+          <MetricCard
+            title="Total Compras"
+            value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
+            description={`${stats.totalPurchases} compras registradas`}
+            icon={ShoppingCart}
+            variant="destructive"
+          />
+
+          <MetricCard
+            title="Balance Neto"
+            value={`S/ ${formatCurrency(stats.balance)}`}
+            description={`Margen: ${stats.totalSaleAmount > 0 ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1) : 0}%`}
+            icon={DollarSign}
+            variant={stats.balance >= 0 ? "success" : "destructive"}
+          />
+
+          <MetricCard
+            title="Cuentas por Cobrar"
+            value={`S/ ${formatCurrency(stats.salePendingAmount)}`}
+            description={`${((stats.salePendingAmount / stats.totalSaleAmount) * 100).toFixed(0)}% del total de ventas`}
+            icon={TrendingUp}
+            variant="primary"
+          />
+
+          <MetricCard
+            title="Cuentas por Pagar"
+            value={`S/ ${formatCurrency(stats.purchasePendingAmount)}`}
+            description={`${((stats.purchasePendingAmount / stats.totalPurchaseAmount) * 100).toFixed(0)}% del total de compras`}
+            icon={TrendingDown}
+            variant="destructive"
+          />
+
+          <MetricCard
+            title="Productos en Catálogo"
+            value={stats.totalProducts.toString()}
+            description={`Ticket promedio: S/ ${formatCurrency(stats.averageTicketSale)}`}
+            icon={Package}
+            variant="muted"
+          />
+        </div>
       </div>
 
-      {/* Charts Secundarios */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        <TopProductsChart data={topProducts} />
-        <PaymentMethodsChart data={salesByPaymentType} />
-      </div>
+      {/* Sección de Gráficos */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold">Análisis Visual</h2>
 
-      {/* Resumen Financiero Compacto */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <FinancialSummaryCard
-          title="Cuentas por Cobrar"
-          value={`S/. ${stats.salePendingAmount.toFixed(2)}`}
-          description="Ventas a crédito pendientes de pago"
-          icon={TrendingUp}
-          variant="primary"
-        />
-        <FinancialSummaryCard
-          title="Cuentas por Pagar"
-          value={`S/. ${stats.purchasePendingAmount.toFixed(2)}`}
-          description="Compras a crédito pendientes de pago"
-          icon={TrendingUp}
-          variant="destructive"
-        />
-        <FinancialSummaryCard
-          title="Margen Bruto"
-          value={`${
-            stats.totalSaleAmount > 0
-              ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1)
-              : 0
-          }%`}
-          description="Porcentaje de ganancia sobre ventas"
-          icon={DollarSign}
-          variant="muted"
-        />
+        {/* Gráfico Principal */}
+        <SalesVsPurchasesChart data={allTransactionsByDate} />
+
+        {/* Gráficos Secundarios */}
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <TopProductsChart data={topProducts} />
+          <PaymentMethodsChart data={salesByPaymentType} />
+        </div>
       </div>
     </div>
   );
