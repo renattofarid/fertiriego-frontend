@@ -1,6 +1,7 @@
 import { api } from "@/lib/config";
 import type {
   SaleInstallmentResource,
+  SaleInstallmentResponse,
   SalePaymentResource,
 } from "@/pages/sale/lib/sale.interface";
 import type { CreateSalePaymentRequest } from "@/pages/sale/lib/sale.interface";
@@ -9,6 +10,18 @@ import { ACCOUNTS_RECEIVABLE_ENDPOINT } from "./accounts-receivable.interface";
 // ============================================
 // Obtener todas las cuotas (cuentas por cobrar)
 // ============================================
+
+export const getInstallments = async (
+  params: Record<string, any>
+): Promise<SaleInstallmentResponse> => {
+  const response = await api.get<SaleInstallmentResponse>(
+    ACCOUNTS_RECEIVABLE_ENDPOINT,
+    {
+      params,
+    }
+  );
+  return response.data;
+};
 
 export const getAllInstallments = async (): Promise<
   SaleInstallmentResource[]

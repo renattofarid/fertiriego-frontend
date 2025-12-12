@@ -18,7 +18,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import {
@@ -33,6 +33,9 @@ import {
   PAYMENT_TYPES,
   CURRENCIES,
   type CreateQuotationRequest,
+  type UpdateQuotationRequest,
+  type QuotationResource,
+  type QuotationDetailResource,
 } from "../lib/quotation.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -45,7 +48,9 @@ import {
 } from "@/components/ui/empty";
 
 interface QuotationFormProps {
-  onSubmit: (data: CreateQuotationRequest) => void;
+  mode?: "create" | "edit";
+  initialData?: QuotationResource;
+  onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   customers: PersonResource[];
@@ -66,6 +71,8 @@ interface DetailRow {
 }
 
 export const QuotationForm = ({
+  mode = "create",
+  initialData,
   onCancel,
   onSubmit,
   isSubmitting = false,
@@ -77,22 +84,42 @@ export const QuotationForm = ({
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const form = useForm<any>({
+  const form = useForm({
     defaultValues: {
-      fecha_emision: new Date().toISOString().split("T")[0],
-      delivery_time: "3 días hábiles",
-      validity_time: "10 días",
-      currency: "PEN",
-      payment_type: "CONTADO",
-      status: "Pendiente",
-      observations: "",
-      address: "",
-      reference: "",
-      account_number: "",
-      warehouse_id: "",
-      customer_id: "",
+      fecha_emision: initialData?.fecha_emision || new Date().toISOString().split("T")[0],
+      delivery_time: initialData?.delivery_time || "3 días hábiles",
+      validity_time: initialData?.validity_time || "10 días",
+      currency: initialData?.currency || "PEN",
+      payment_type: initialData?.payment_type || "CONTADO",
+      status: initialData?.status || "Pendiente",
+      observations: initialData?.observations || "",
+      address: initialData?.address || "",
+      reference: initialData?.reference || "",
+      account_number: initialData?.account_number || "",
+      warehouse_id: initialData?.warehouse_id?.toString() || "",
+      customer_id: initialData?.customer_id?.toString() || "",
     },
   });
+
+  // Cargar detalles iniciales cuando se está editando
+  useEffect(() => {
+    if (mode === "edit" && initialData?.quotation_details) {
+      const loadedDetails: DetailRow[] = initialData.quotation_details.map(
+        (detail: QuotationDetailResource) => ({
+          product_id: detail.product_id.toString(),
+          product_name: detail.product?.name || "",
+          is_igv: detail.is_igv,
+          quantity: detail.quantity.toString(),
+          unit_price: detail.unit_price.toString(),
+          purchase_price: detail.purchase_price.toString(),
+          subtotal: parseFloat(detail.subtotal),
+          tax: parseFloat(detail.tax),
+          total: parseFloat(detail.total),
+        })
+      );
+      setDetails(loadedDetails);
+    }
+  }, [mode, initialData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -114,7 +141,7 @@ export const QuotationForm = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
-  const handleSubmitForm = (formData: any) => {
+  const handleSubmitForm = (formData: Record<string, string>) => {
     if (details.length === 0) {
       return;
     }
@@ -418,7 +445,13 @@ export const QuotationForm = ({
           )}
           <Button type="submit" disabled={isSubmitting || details.length === 0}>
             {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Creando..." : "Crear Cotización"}
+            {mode === "edit"
+              ? isSubmitting
+                ? "Actualizando..."
+                : "Actualizar Cotización"
+              : isSubmitting
+              ? "Creando..."
+              : "Crear Cotización"}
           </Button>
         </div>
       </form>

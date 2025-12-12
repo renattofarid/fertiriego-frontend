@@ -144,6 +144,7 @@ export interface UpdateQuotationRequest {
   account_number?: string;
   warehouse_id?: number;
   customer_id?: number;
+  user_id?: number;
   quotation_details?: CreateQuotationDetailRequest[];
 }
 

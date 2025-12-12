@@ -85,11 +85,13 @@ import { QUOTATION } from "./pages/quotation/lib/quotation.interface";
 import { ORDER } from "./pages/order/lib/order.interface";
 import {
   QuotationAddPage,
+  QuotationEditPage,
   QuotationDetailPage,
   QuotationPage,
 } from "./pages/quotation/components";
 import {
   OrderAddPage,
+  OrderEditPage,
   OrderDetailPage,
   OrderPage,
 } from "./pages/order/components";
@@ -647,6 +649,15 @@ export default function App() {
           />
 
           <Route
+            path="/cotizaciones/actualizar/:id"
+            element={
+              <ProtectedRoute path={QuotationRoute}>
+                <QuotationEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/cotizaciones/:id"
             element={
               <ProtectedRoute path={QuotationRoute}>
@@ -670,6 +681,15 @@ export default function App() {
             element={
               <ProtectedRoute path={OrderRoute}>
                 <OrderAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/pedidos/actualizar/:id"
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderEditPage />
               </ProtectedRoute>
             }
           />

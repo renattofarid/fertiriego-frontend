@@ -126,7 +126,6 @@ export interface CreateOrderRequest {
   warehouse_id: number;
   user_id: number;
   observations: string;
-  status: string;
   quotation_id?: number;
   customer_id: number;
   order_details: CreateOrderDetailRequest[];
@@ -140,7 +139,6 @@ export interface UpdateOrderRequest {
   address?: string;
   warehouse_id?: number;
   observations?: string;
-  status?: string;
   quotation_id?: number;
   customer_id?: number;
   order_details?: CreateOrderDetailRequest[];

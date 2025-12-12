@@ -30,11 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  CURRENCIES,
-  ORDER_STATUSES,
-  type CreateOrderRequest,
-} from "../lib/order.interface";
+import { CURRENCIES, type CreateOrderRequest } from "../lib/order.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
@@ -53,6 +49,9 @@ interface OrderFormProps {
   warehouses: WarehouseResource[];
   products: ProductResource[];
   quotations?: QuotationResource[];
+  defaultValues?: any;
+  mode?: "create" | "update";
+  order?: any;
 }
 
 interface DetailRow {
@@ -75,13 +74,16 @@ export const OrderForm = ({
   warehouses,
   products,
   quotations,
+  defaultValues,
+  mode = "create",
+  order,
 }: OrderFormProps) => {
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const form = useForm<any>({
-    defaultValues: {
+    defaultValues: defaultValues || {
       order_date: new Date().toISOString().split("T")[0],
       order_expiry_date: "",
       order_delivery_date: "",
@@ -97,16 +99,39 @@ export const OrderForm = ({
 
   const quotationId = form.watch("quotation_id");
 
+  // Load order details when in edit mode
+  useEffect(() => {
+    if (mode === "update" && order && order.order_details) {
+      const orderDetails: DetailRow[] = order.order_details.map(
+        (detail: any) => ({
+          product_id: detail.product_id.toString(),
+          product_name: detail.product?.name || "Producto",
+          is_igv: detail.is_igv,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          purchase_price: detail.purchase_price,
+          subtotal: parseFloat(detail.subtotal),
+          tax: parseFloat(detail.tax),
+          total: parseFloat(detail.total),
+        })
+      );
+      setDetails(orderDetails);
+    }
+  }, [mode, order]);
+
   useEffect(() => {
     if (quotationId && quotations) {
       const selectedQuotation = quotations.find(
         (q) => q.id === parseInt(quotationId)
       );
 
-      if (selectedQuotation) {
+      if (selectedQuotation && mode === "create") {
         // Prellenar datos del formulario
         form.setValue("customer_id", selectedQuotation.customer_id.toString());
-        form.setValue("warehouse_id", selectedQuotation.warehouse_id.toString());
+        form.setValue(
+          "warehouse_id",
+          selectedQuotation.warehouse_id.toString()
+        );
         form.setValue("currency", selectedQuotation.currency);
         form.setValue("address", selectedQuotation.address || "");
         form.setValue("observations", selectedQuotation.observations || "");
@@ -224,6 +249,7 @@ export const OrderForm = ({
               options={warehouses.map((w) => ({
                 value: w.id.toString(),
                 label: w.name,
+                description: w.address,
               }))}
               placeholder="Seleccionar almacén"
             />
@@ -271,17 +297,6 @@ export const OrderForm = ({
                 label: c.label,
               }))}
               placeholder="Seleccionar moneda"
-            />
-
-            <FormSelect
-              control={form.control}
-              name="status"
-              label="Estado"
-              options={ORDER_STATUSES.map((s) => ({
-                value: s.value,
-                label: s.label,
-              }))}
-              placeholder="Seleccionar estado"
             />
 
             <FormField
@@ -427,7 +442,13 @@ export const OrderForm = ({
           )}
           <Button type="submit" disabled={isSubmitting || details.length === 0}>
             {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? "Creando..." : "Crear Pedido"}
+            {isSubmitting
+              ? mode === "update"
+                ? "Actualizando..."
+                : "Creando..."
+              : mode === "update"
+              ? "Actualizar Pedido"
+              : "Crear Pedido"}
           </Button>
         </div>
       </form>

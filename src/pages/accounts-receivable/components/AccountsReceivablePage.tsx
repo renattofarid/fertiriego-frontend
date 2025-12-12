@@ -3,18 +3,27 @@
 import { useEffect, useState, useMemo } from "react";
 import TitleComponent from "@/components/TitleComponent";
 import { DataTable } from "@/components/DataTable";
-import { getAllInstallments } from "../lib/accounts-receivable.actions";
+import {
+  getAllInstallments,
+  getInstallments,
+} from "../lib/accounts-receivable.actions";
 import InstallmentPaymentManagementSheet from "./InstallmentPaymentManagementSheet";
 import InstallmentPaymentsSheet from "@/pages/sale/components/InstallmentPaymentsSheet";
 import AccountsReceivableOptions from "./AccountsReceivableOptions";
 import { getAccountsReceivableColumns } from "./AccountsReceivableColumns";
 import PageWrapper from "@/components/PageWrapper";
 import type { SaleInstallmentResource } from "../lib/accounts-receivable.interface";
+import DataTablePagination from "@/components/DataTablePagination";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import type { Meta } from "@/lib/pagination.interface";
 
 export default function AccountsReceivablePage() {
   const [installments, setInstallments] = useState<SaleInstallmentResource[]>(
     []
   );
+  const [meta, setMeta] = useState<Meta>();
+  const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [filteredInstallments, setFilteredInstallments] = useState<
     SaleInstallmentResource[]
   >([]);
@@ -36,8 +45,12 @@ export default function AccountsReceivablePage() {
   const fetchInstallments = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllInstallments();
+      const { data, meta } = await getInstallments({
+        page,
+        per_page,
+      });
       setInstallments(data);
+      setMeta(meta);
     } catch (error) {
       console.error("Error fetching installments:", error);
     } finally {
@@ -209,6 +222,15 @@ export default function AccountsReceivablePage() {
       >
         <AccountsReceivableOptions search={search} setSearch={setSearch} />
       </DataTable>
+
+      <DataTablePagination
+        page={page}
+        totalPages={meta?.last_page || 1}
+        onPageChange={setPage}
+        per_page={per_page}
+        setPerPage={setPerPage}
+        totalData={meta?.total || 0}
+      />
 
       {/* Quick View Sheet */}
       <InstallmentPaymentsSheet
