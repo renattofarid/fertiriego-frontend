@@ -12,14 +12,9 @@ import {
   deletePurchasePayment,
   type GetPurchasePaymentsParams,
 } from "./purchase.actions";
-import {
-  ERROR_MESSAGE,
-  SUCCESS_MESSAGE,
-  errorToast,
-  successToast,
-} from "@/lib/core.function";
 import { PURCHASE_PAYMENT } from "./purchase.interface";
 import type { Meta } from "@/lib/pagination.interface";
+import { ERROR_MESSAGE } from "@/lib/core.function";
 
 const { MODEL } = PURCHASE_PAYMENT;
 
@@ -65,39 +60,35 @@ export const usePurchasePaymentStore = create<PurchasePaymentStore>((set) => ({
     installmentId: number,
     params?: GetPurchasePaymentsParams
   ) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const response = await getPurchasePayments(installmentId, params);
       const meta = response.meta;
       set({ payments: response.data, meta, isLoading: false });
     } catch (error) {
       set({ error: "Error al cargar los pagos", isLoading: false });
-      errorToast("Error al cargar los pagos");
     }
   },
 
   // Fetch single payment by ID
   fetchPayment: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const response = await getPurchasePaymentById(id);
       set({ payment: response.data, isFinding: false });
     } catch (error) {
       set({ error: "Error al cargar el pago", isFinding: false });
-      errorToast("Error al cargar el pago");
     }
   },
 
   // Create new payment
   createPayment: async (data: CreatePurchasePaymentRequest | FormData) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await createPurchasePayment(data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "create"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },
@@ -107,34 +98,30 @@ export const usePurchasePaymentStore = create<PurchasePaymentStore>((set) => ({
     id: number,
     data: UpdatePurchasePaymentRequest | FormData
   ) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await updatePurchasePayment(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "update"));
       throw error;
     }
   },
 
   // Delete payment
   deletePayment: async (id: number) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await deletePurchasePayment(id);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "delete"));
       throw error;
     }
   },
 
   // Reset payment state
   resetPayment: () => {
-    set({ payment: null, error: undefined});
+    set({ payment: null, error: undefined });
   },
 }));

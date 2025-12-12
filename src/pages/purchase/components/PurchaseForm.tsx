@@ -18,7 +18,7 @@ import {
   purchaseSchemaUpdate,
   type PurchaseSchema,
 } from "../lib/purchase.schema";
-import { Loader, Plus, Trash2, Edit } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import type { PurchaseResource } from "../lib/purchase.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
@@ -794,7 +794,7 @@ export const PurchaseForm = ({
                                 size="sm"
                                 onClick={() => handleEditDetail(index)}
                               >
-                                <Edit className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 type="button"
@@ -948,7 +948,7 @@ export const PurchaseForm = ({
                                   size="sm"
                                   onClick={() => handleEditInstallment(index)}
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Pencil className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   type="button"

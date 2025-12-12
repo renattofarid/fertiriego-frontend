@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseOrderDetailResource } from "../lib/purchase-order.interface";
 import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store";
@@ -125,7 +125,7 @@ export function PurchaseOrderDetailTable({
                       size="sm"
                       onClick={() => onEdit(detail.id)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"

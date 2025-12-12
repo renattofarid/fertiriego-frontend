@@ -9,7 +9,7 @@ import type { ValuatedInventoryItem } from "../lib/warehouse-kardex.interface";
 import { Badge } from "@/components/ui/badge";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ValuatedInventorySummary from "./ValuatedInventorySummary";
 
 const inventoryColumns: ColumnDef<ValuatedInventoryItem>[] = [
   {
@@ -109,11 +109,6 @@ export default function ValuatedInventoryPage() {
     refetch(params);
   }, [page, per_page, selectedWarehouse]);
 
-  // Calculate totals
-  const totalValue = data?.reduce((sum, item) => sum + item.total_cost_balance, 0) || 0;
-  const totalStock = data?.reduce((sum, item) => sum + item.quantity_balance, 0) || 0;
-  const totalItems = data?.length || 0;
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -124,53 +119,7 @@ export default function ValuatedInventoryPage() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total de Productos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalItems}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Stock Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{totalStock}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Valor Total del Inventario
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-primary">S/ {totalValue.toFixed(2)}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Valor Promedio por Producto
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              S/ {totalItems > 0 ? (totalValue / totalItems).toFixed(2) : "0.00"}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <ValuatedInventorySummary items={data || []} />
 
       <div className="border-none text-muted-foreground max-w-full">
         <DataTable

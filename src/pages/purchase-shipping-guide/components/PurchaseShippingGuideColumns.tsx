@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2, Eye, Link as LinkIcon } from "lucide-react";
+import { Pencil, MoreVertical, Trash2, Eye, Link as LinkIcon } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseShippingGuideResource } from "../lib/purchase-shipping-guide.interface";
 
@@ -117,7 +117,7 @@ export const getPurchaseShippingGuideColumns = ({
             </DropdownMenuItem>
           )}
           <DropdownMenuItem onClick={() => onEdit(row.original)}>
-            <Edit className="mr-2 h-4 w-4" />
+            <Pencil className="mr-2 h-4 w-4" />
             Editar
           </DropdownMenuItem>
           <DropdownMenuItem

@@ -17,7 +17,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Edit, CheckCircle, XCircle } from "lucide-react";
+import { Pencil, CheckCircle, XCircle } from "lucide-react";
 import { WAREHOUSE_DOCUMENT } from "../lib/warehouse-document.interface";
 import type { WarehouseDocumentResource } from "../lib/warehouse-document.interface";
 import {
@@ -162,7 +162,7 @@ export default function WarehouseDocumentDetailPage() {
             {document.status === "BORRADOR" && (
               <>
                 <Button onClick={handleEdit} variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
+                  <Pencil className="h-4 w-4 mr-2" />
                   Editar
                 </Button>
                 <Button

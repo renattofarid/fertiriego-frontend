@@ -25,7 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
-import { Plus, Trash2, Edit, DollarSign } from "lucide-react";
+import { Plus, Trash2, Pencil, DollarSign } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type {
@@ -265,7 +265,7 @@ export function ProductPriceManager({
                     onClick={() => handleEdit(price)}
                     className="gap-2 flex-1 sm:flex-none"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Pencil className="h-4 w-4" />
                     <span>Editar</span>
                   </Button>
                   <Button
