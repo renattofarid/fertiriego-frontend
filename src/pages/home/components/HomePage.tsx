@@ -217,7 +217,7 @@ export default function HomePage() {
 
       const salePaymentData = Object.entries(salePaymentGroups).map(
         ([type, count]) => ({
-          name: type === "CONTADO" ? "Contado" : "Crédito",
+          name: type,
           value: count,
         })
       );
