@@ -30,7 +30,7 @@ interface TopProduct {
   revenue: number;
 }
 
-// Componente de métrica simple y limpio (estilo FinancialSummaryCard)
+// Componente de métrica simple y limpio
 function MetricCard({
   title,
   value,
@@ -42,42 +42,40 @@ function MetricCard({
   value: string;
   description: string;
   icon: React.ElementType;
-  variant: "primary" | "destructive" | "muted" | "success";
+  variant: "blue" | "orange" | "gray" | "green";
 }) {
   const variantStyles = {
-    primary: "bg-primary/5",
-    destructive: "bg-destructive/5",
-    muted: "bg-muted-foreground/5",
-    success: "bg-green-500/5",
+    blue: "bg-blue-50",
+    orange: "bg-orange-50",
+    gray: "bg-gray-50",
+    green: "bg-emerald-50",
   };
 
   const iconBgStyles = {
-    primary: "bg-primary/10",
-    destructive: "bg-destructive/10",
-    muted: "bg-muted-foreground/10",
-    success: "bg-green-500/10",
+    blue: "bg-blue-100",
+    orange: "bg-orange-100",
+    gray: "bg-gray-100",
+    green: "bg-emerald-100",
   };
 
   const textStyles = {
-    primary: "text-primary",
-    destructive: "text-destructive",
-    muted: "text-muted-foreground",
-    success: "text-green-600",
+    blue: "text-blue-700",
+    orange: "text-orange-700",
+    gray: "text-gray-700",
+    green: "text-emerald-700",
   };
 
   return (
-    <div className={cn("rounded-xl p-5", variantStyles[variant])}>
-      <div className="flex items-center gap-3 mb-3">
-        <div className={cn("p-2 rounded-lg", iconBgStyles[variant])}>
-          <Icon className={cn("h-5 w-5", textStyles[variant])} />
+    <div className={cn("rounded-lg p-4", variantStyles[variant])}>
+      <div className="flex items-center gap-3 mb-2">
+        <div className={cn("p-1.5 rounded-md", iconBgStyles[variant])}>
+          <Icon className={cn("h-4 w-4", textStyles[variant])} />
         </div>
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className={cn("text-xl font-bold", textStyles[variant])}>
-            {value}
-          </p>
-        </div>
+        <p className="text-xs font-medium text-muted-foreground">{title}</p>
       </div>
+      <p className={cn("text-2xl font-bold mb-1", textStyles[variant])}>
+        {value}
+      </p>
       <p className="text-xs text-muted-foreground">{description}</p>
     </div>
   );
@@ -253,27 +251,27 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-8 p-4 md:p-6">
+    <div className="space-y-6 p-4 md:p-6">
       {/* Header Simple */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
           Resumen general de tu negocio
         </p>
       </div>
 
       {/* Sección de Métricas - Todo con el mismo estilo limpio */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Métricas Principales</h2>
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Métricas Principales</h2>
 
-        {/* Grid de métricas - 6 cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Grid de métricas - 6 cards más compactas */}
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             title="Total Ventas"
             value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
             description={`${stats.totalSales} transacciones realizadas`}
             icon={ShoppingBag}
-            variant="primary"
+            variant="blue"
           />
 
           <MetricCard
@@ -281,7 +279,7 @@ export default function HomePage() {
             value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
             description={`${stats.totalPurchases} compras registradas`}
             icon={ShoppingCart}
-            variant="destructive"
+            variant="orange"
           />
 
           <MetricCard
@@ -289,7 +287,7 @@ export default function HomePage() {
             value={`S/ ${formatCurrency(stats.balance)}`}
             description={`Margen: ${stats.totalSaleAmount > 0 ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1) : 0}%`}
             icon={DollarSign}
-            variant={stats.balance >= 0 ? "success" : "destructive"}
+            variant={stats.balance >= 0 ? "green" : "orange"}
           />
 
           <MetricCard
@@ -297,7 +295,7 @@ export default function HomePage() {
             value={`S/ ${formatCurrency(stats.salePendingAmount)}`}
             description={`${((stats.salePendingAmount / stats.totalSaleAmount) * 100).toFixed(0)}% del total de ventas`}
             icon={TrendingUp}
-            variant="primary"
+            variant="blue"
           />
 
           <MetricCard
@@ -305,7 +303,7 @@ export default function HomePage() {
             value={`S/ ${formatCurrency(stats.purchasePendingAmount)}`}
             description={`${((stats.purchasePendingAmount / stats.totalPurchaseAmount) * 100).toFixed(0)}% del total de compras`}
             icon={TrendingDown}
-            variant="destructive"
+            variant="orange"
           />
 
           <MetricCard
@@ -313,14 +311,14 @@ export default function HomePage() {
             value={stats.totalProducts.toString()}
             description={`Ticket promedio: S/ ${formatCurrency(stats.averageTicketSale)}`}
             icon={Package}
-            variant="muted"
+            variant="gray"
           />
         </div>
       </div>
 
       {/* Sección de Gráficos */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold">Análisis Visual</h2>
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Análisis Visual</h2>
 
         {/* Gráfico Principal */}
         <SalesVsPurchasesChart data={allTransactionsByDate} />
