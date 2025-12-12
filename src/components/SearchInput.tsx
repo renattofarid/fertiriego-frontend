@@ -35,7 +35,7 @@ export default function SearchInput({
   return (
     <InputGroup className="w-full md:w-64">
       <InputGroupInput
-        className="w-full md:w-64 h-9 text-sm md:text-sm"
+        className="w-full md:w-64 h-8 text-sm md:text-sm"
         placeholder={placeholder}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}

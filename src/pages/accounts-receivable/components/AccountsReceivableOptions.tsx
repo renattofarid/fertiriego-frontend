@@ -10,14 +10,10 @@ export default function AccountsReceivableOptions({
   setSearch,
 }: AccountsReceivableOptionsProps) {
   return (
-    <div className="flex items-center gap-2 py-4">
-      <div className="relative flex-1">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar cuenta por cobrar..."
-        />
-      </div>
-    </div>
+    <SearchInput
+      value={search}
+      onChange={setSearch}
+      placeholder="Buscar cuenta por cobrar..."
+    />
   );
 }

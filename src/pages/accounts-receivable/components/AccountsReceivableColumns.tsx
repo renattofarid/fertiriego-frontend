@@ -34,18 +34,15 @@ export const getAccountsReceivableColumns = (
   onOpenPayment: (installment: SaleInstallmentResource) => void,
   onOpenQuickView: (installment: SaleInstallmentResource) => void
 ): ColumnDef<SaleInstallmentResource>[] => [
-  // {
-  //   accessorKey: "sale_correlativo",
-  //   header: "Venta",
-  //   cell: ({ row }) => (
-  //     <div className="flex flex-col">
-  //       <span className="font-semibold">{row.original.sale_correlativo}</span>
-  //       <span className="text-xs text-muted-foreground">
-  //         {row.original.correlativo}
-  //       </span>
-  //     </div>
-  //   ),
-  // },
+  {
+    accessorKey: "sale_correlativo",
+    header: "Venta",
+    cell: ({ row }) => (
+      <Badge variant={"outline"} className="font-mono font-semibold">
+        {row.original.full_document_number}
+      </Badge>
+    ),
+  },
   {
     accessorKey: "installment_number",
     header: "Cuota",

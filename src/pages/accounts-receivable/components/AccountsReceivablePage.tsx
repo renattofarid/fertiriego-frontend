@@ -3,10 +3,6 @@
 import { useEffect, useState, useMemo } from "react";
 import TitleComponent from "@/components/TitleComponent";
 import { DataTable } from "@/components/DataTable";
-import {
-  getAllInstallments,
-  getInstallments,
-} from "../lib/accounts-receivable.actions";
 import InstallmentPaymentManagementSheet from "./InstallmentPaymentManagementSheet";
 import InstallmentPaymentsSheet from "@/pages/sale/components/InstallmentPaymentsSheet";
 import AccountsReceivableOptions from "./AccountsReceivableOptions";
@@ -14,21 +10,25 @@ import { getAccountsReceivableColumns } from "./AccountsReceivableColumns";
 import PageWrapper from "@/components/PageWrapper";
 import type { SaleInstallmentResource } from "../lib/accounts-receivable.interface";
 import DataTablePagination from "@/components/DataTablePagination";
-import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import type { Meta } from "@/lib/pagination.interface";
+import { useAccountsReceivableStore } from "../lib/accounts-receivable.store";
 
 export default function AccountsReceivablePage() {
-  const [installments, setInstallments] = useState<SaleInstallmentResource[]>(
-    []
-  );
-  const [meta, setMeta] = useState<Meta>();
-  const [page, setPage] = useState(1);
-  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
+  const {
+    installments,
+    meta,
+    isLoading,
+    page,
+    per_page,
+    search,
+    setPage,
+    setPerPage,
+    setSearch,
+    fetchInstallments,
+  } = useAccountsReceivableStore();
+
   const [filteredInstallments, setFilteredInstallments] = useState<
     SaleInstallmentResource[]
   >([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState("");
   const [selectedInstallment, setSelectedInstallment] =
     useState<SaleInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
@@ -41,22 +41,6 @@ export default function AccountsReceivablePage() {
   useEffect(() => {
     filterInstallments();
   }, [search, installments]);
-
-  const fetchInstallments = async () => {
-    setIsLoading(true);
-    try {
-      const { data, meta } = await getInstallments({
-        page,
-        per_page,
-      });
-      setInstallments(data);
-      setMeta(meta);
-    } catch (error) {
-      console.error("Error fetching installments:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const filterInstallments = () => {
     if (!search.trim()) {
