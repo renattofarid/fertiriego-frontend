@@ -20,9 +20,18 @@ export interface SaleDetailResource {
   created_at: string;
 }
 
+export interface SaleInstallmentResponse {
+  data: SaleInstallmentResource[];
+  links: Links;
+  meta: Meta;
+}
+
 export interface SaleInstallmentResource {
   id: number;
   sale_id: number;
+  serie: string;
+  numero: string;
+  full_document_number: string;
   installment_number: number;
   due_days: number;
   due_date: string;

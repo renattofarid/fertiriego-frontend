@@ -3,17 +3,16 @@
 import { useEffect, useState, useMemo } from "react";
 import TitleComponent from "@/components/TitleComponent";
 import { DataTable } from "@/components/DataTable";
-import InstallmentPaymentManagementSheet from "./InstallmentPaymentManagementSheet";
-import InstallmentPaymentsSheet from "@/pages/sale/components/InstallmentPaymentsSheet";
-import AccountsReceivableOptions from "./AccountsReceivableOptions";
-import { getAccountsReceivableColumns } from "./AccountsReceivableColumns";
+import AccountsPayableOptions from "./AccountsPayableOptions";
+import { getAccountsPayableColumns } from "./AccountsPayableColumns";
 import PageWrapper from "@/components/PageWrapper";
-import type { SaleInstallmentResource } from "../lib/accounts-receivable.interface";
+import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 import DataTablePagination from "@/components/DataTablePagination";
-import { useAccountsReceivableStore } from "../lib/accounts-receivable.store";
-import AccountsReceivableSummary from "./AccountsReceivableSummary";
+import { useAccountsPayableStore } from "../lib/accounts-payable.store";
+import AccountsPayableSummary from "./AccountsPayableSummary";
+import { InstallmentPaymentsSheet } from "@/pages/purchase/components/sheets/InstallmentPaymentsSheet";
 
-export default function AccountsReceivablePage() {
+export default function AccountsPayablePage() {
   const {
     installments,
     allInstallments,
@@ -27,13 +26,13 @@ export default function AccountsReceivablePage() {
     setSearch,
     fetchInstallments,
     fetchAllInstallments,
-  } = useAccountsReceivableStore();
+  } = useAccountsPayableStore();
 
   const [filteredInstallments, setFilteredInstallments] = useState<
-    SaleInstallmentResource[]
+    PurchaseInstallmentResource[]
   >([]);
   const [selectedInstallment, setSelectedInstallment] =
-    useState<SaleInstallmentResource | null>(null);
+    useState<PurchaseInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
   const [openQuickViewSheet, setOpenQuickViewSheet] = useState(false);
 
@@ -53,18 +52,21 @@ export default function AccountsReceivablePage() {
     }
 
     const searchLower = search.toLowerCase();
-    const filtered = installments.filter((inst) =>
-      inst.installment_number.toString().includes(searchLower)
+    const filtered = installments.filter(
+      (inst) =>
+        inst.correlativo.toLowerCase().includes(searchLower) ||
+        inst.purchase_correlativo.toLowerCase().includes(searchLower) ||
+        inst.installment_number.toString().includes(searchLower)
     );
     setFilteredInstallments(filtered);
   };
 
-  const handleOpenPayment = (installment: SaleInstallmentResource) => {
+  const handleOpenPayment = (installment: PurchaseInstallmentResource) => {
     setSelectedInstallment(installment);
     setOpenPaymentSheet(true);
   };
 
-  const handleOpenQuickView = (installment: SaleInstallmentResource) => {
+  const handleOpenQuickView = (installment: PurchaseInstallmentResource) => {
     setSelectedInstallment(installment);
     setOpenQuickViewSheet(true);
   };
@@ -76,8 +78,15 @@ export default function AccountsReceivablePage() {
     setSelectedInstallment(null);
   };
 
+  const handleClosePaymentSheet = () => {
+    fetchInstallments();
+    fetchAllInstallments();
+    setOpenPaymentSheet(false);
+    setSelectedInstallment(null);
+  };
+
   const columns = useMemo(
-    () => getAccountsReceivableColumns(handleOpenPayment, handleOpenQuickView),
+    () => getAccountsPayableColumns(handleOpenPayment, handleOpenQuickView),
     []
   );
 
@@ -85,13 +94,13 @@ export default function AccountsReceivablePage() {
     <PageWrapper>
       {/* Header */}
       <TitleComponent
-        title="Cuentas por Cobrar"
-        subtitle="Gestión y seguimiento de cuotas pendientes"
+        title="Cuentas por Pagar"
+        subtitle="Gestión y seguimiento de cuotas pendientes a proveedores"
         icon="DollarSign"
       />
 
       {/* Summary - Minimalista */}
-      <AccountsReceivableSummary installments={allInstallments} />
+      <AccountsPayableSummary installments={allInstallments} />
 
       {/* Table */}
       <DataTable
@@ -99,7 +108,7 @@ export default function AccountsReceivablePage() {
         data={filteredInstallments}
         isLoading={isLoading}
       >
-        <AccountsReceivableOptions search={search} setSearch={setSearch} />
+        <AccountsPayableOptions search={search} setSearch={setSearch} />
       </DataTable>
 
       <DataTablePagination
@@ -119,18 +128,14 @@ export default function AccountsReceivablePage() {
           setSelectedInstallment(null);
         }}
         installment={selectedInstallment}
-        currency="S/."
       />
 
       {/* Payment Management Sheet */}
-      <InstallmentPaymentManagementSheet
+      <InstallmentPaymentsSheet
         open={openPaymentSheet}
-        onClose={() => {
-          setOpenPaymentSheet(false);
-          setSelectedInstallment(null);
-        }}
+        onClose={handleClosePaymentSheet}
         installment={selectedInstallment}
-        onSuccess={handlePaymentSuccess}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </PageWrapper>
   );

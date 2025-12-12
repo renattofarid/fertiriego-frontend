@@ -18,7 +18,7 @@ import {
   purchaseShippingGuideSchemaUpdate,
   type PurchaseShippingGuideSchema,
 } from "../lib/purchase-shipping-guide.schema";
-import { Loader, Plus, Trash2, Edit, Search } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Search } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -589,7 +589,7 @@ export const PurchaseShippingGuideForm = ({
                                 size="sm"
                                 onClick={() => handleEditDetail(index)}
                               >
-                                <Edit className="h-4 w-4" />
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 type="button"

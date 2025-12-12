@@ -17,7 +17,7 @@ import {
   purchaseOrderSchemaUpdate,
   type PurchaseOrderSchema,
 } from "../lib/purchase-order.schema";
-import { Loader, Trash2, Edit, FileText, ListCheck } from "lucide-react";
+import { Loader, Trash2, Pencil, FileText, ListCheck } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
@@ -390,7 +390,7 @@ export const PurchaseOrderForm = ({
                               size="sm"
                               onClick={() => handleEditDetail(index)}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
                               type="button"

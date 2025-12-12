@@ -1,38 +1,19 @@
 import { useEffect, useState } from "react";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   ShoppingCart,
   Package,
   TrendingUp,
   ShoppingBag,
   DollarSign,
+  TrendingDown,
 } from "lucide-react";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 import { usePurchase } from "@/pages/purchase/lib/purchase.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
+import { TopProductsChart } from "./TopProductsChart";
+import { PaymentMethodsChart } from "./PaymentMethodsChart";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
 
@@ -49,54 +30,54 @@ interface TopProduct {
   revenue: number;
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  subtitle: string;
-  icon: React.ElementType;
-  variant: "primary" | "destructive" | "secondary" | "accent" | "muted";
-}
-
-// Componente StatCard sin bordes
-function StatCard({
+// Componente de métrica simple y limpio - layout horizontal compacto
+function MetricCard({
   title,
   value,
-  subtitle,
+  description,
   icon: Icon,
   variant,
-}: StatCardProps) {
+}: {
+  title: string;
+  value: string;
+  description: string;
+  icon: React.ElementType;
+  variant: "blue" | "orange" | "gray" | "green";
+}) {
   const variantStyles = {
-    primary: "bg-primary/10",
-    destructive: "bg-destructive/10",
-    secondary: "bg-secondary/10",
-    accent: "bg-accent/10",
-    muted: "bg-muted/10",
+    blue: "bg-blue-50",
+    orange: "bg-orange-50",
+    gray: "bg-gray-50",
+    green: "bg-emerald-50",
+  };
+
+  const iconBgStyles = {
+    blue: "bg-blue-100",
+    orange: "bg-orange-100",
+    gray: "bg-gray-100",
+    green: "bg-emerald-100",
   };
 
   const textStyles = {
-    primary: "text-primary",
-    destructive: "text-destructive",
-    secondary: "text-secondary-foreground",
-    accent: "text-accent-foreground",
-    muted: "text-muted-foreground",
+    blue: "text-blue-700",
+    orange: "text-orange-700",
+    gray: "text-gray-700",
+    green: "text-emerald-700",
   };
 
   return (
-    <div className={cn("rounded-xl p-5 shadow-sm", variantStyles[variant])}>
-      <div className="flex items-start justify-between">
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p
-            className={cn(
-              "text-2xl md:text-3xl font-bold",
-              textStyles[variant]
-            )}
-          >
+    <div className={cn("rounded-lg p-3", variantStyles[variant])}>
+      <div className="flex items-center gap-3">
+        <div className={cn("p-2 rounded-md shrink-0", iconBgStyles[variant])}>
+          <Icon className={cn("h-5 w-5", textStyles[variant])} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">{title}</p>
+          <p className={cn("text-xl font-bold mb-0.5", textStyles[variant])}>
             {value}
           </p>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         </div>
-        <Icon className={cn("h-10 w-10 opacity-60", textStyles[variant])} />
       </div>
     </div>
   );
@@ -117,6 +98,10 @@ export default function HomePage() {
     salePendingAmount: 0,
     totalProducts: 0,
     balance: 0,
+    averageTicketSale: 0,
+    averageTicketPurchase: 0,
+    cashSalesPercentage: 0,
+    creditSalesPercentage: 0,
   });
 
   const [allTransactionsByDate, setAllTransactionsByDate] = useState<
@@ -150,6 +135,16 @@ export default function HomePage() {
 
       const balance = totalSaleAmount - totalPurchaseAmount;
 
+      // Calcular promedios
+      const averageTicketSale = sales.length > 0 ? totalSaleAmount / sales.length : 0;
+      const averageTicketPurchase = purchases.length > 0 ? totalPurchaseAmount / purchases.length : 0;
+
+      // Calcular porcentajes de métodos de pago
+      const cashSales = sales.filter(s => s.payment_type === "CONTADO").length;
+      const creditSales = sales.filter(s => s.payment_type === "CREDITO").length;
+      const cashSalesPercentage = sales.length > 0 ? (cashSales / sales.length) * 100 : 0;
+      const creditSalesPercentage = sales.length > 0 ? (creditSales / sales.length) * 100 : 0;
+
       setStats({
         totalPurchases: purchases.length,
         totalPurchaseAmount,
@@ -159,6 +154,10 @@ export default function HomePage() {
         salePendingAmount,
         totalProducts: products?.length || 0,
         balance,
+        averageTicketSale,
+        averageTicketPurchase,
+        cashSalesPercentage,
+        creditSalesPercentage,
       });
 
       // Agrupar transacciones por fecha (diarias para el chart)
@@ -236,7 +235,7 @@ export default function HomePage() {
 
       const salePaymentData = Object.entries(salePaymentGroups).map(
         ([type, count]) => ({
-          name: type === "CONTADO" ? "Contado" : "Crédito",
+          name: type,
           value: count,
         })
       );
@@ -245,7 +244,6 @@ export default function HomePage() {
     }
   }, [purchases, sales, products]);
 
-  const pieColors = ["var(--primary)", "var(--secondary)"];
   if (purchasesLoading || salesLoading || productsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -256,236 +254,81 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      {/* Header */}
+      {/* Header Simple */}
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground">
-          Vista general de tu sistema de gestión
+        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Resumen general de tu negocio
         </p>
       </div>
 
-      {/* Gráfico Principal - AreaChart Interactivo */}
-      <SalesVsPurchasesChart data={allTransactionsByDate} />
+      {/* Sección de Métricas - Todo con el mismo estilo limpio */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Métricas Principales</h2>
 
-      {/* KPI Cards - Sin bordes */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          variant="primary"
-          title="Total Ventas"
-          value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
-          subtitle={`${stats.totalSales} transacciones`}
-          icon={ShoppingBag}
-        />
-        <StatCard
-          title="Total Compras"
-          value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
-          subtitle={`${stats.totalPurchases} transacciones`}
-          icon={ShoppingCart}
-          variant="destructive"
-        />
-        <StatCard
-          title="Balance General"
-          value={`S/ ${formatCurrency(stats.balance)}`}
-          subtitle={stats.balance >= 0 ? "Positivo" : "Negativo"}
-          icon={DollarSign}
-          variant={stats.balance >= 0 ? "primary" : "destructive"}
-        />
-        <StatCard
-          title="Productos"
-          value={stats.totalProducts}
-          subtitle="En el catálogo"
-          icon={Package}
-          variant="muted"
-        />
+        {/* Grid de métricas - 6 cards más compactas */}
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <MetricCard
+            title="Total Ventas"
+            value={`S/ ${formatCurrency(stats.totalSaleAmount)}`}
+            description={`${stats.totalSales} transacciones realizadas`}
+            icon={ShoppingBag}
+            variant="blue"
+          />
+
+          <MetricCard
+            title="Total Compras"
+            value={`S/ ${formatCurrency(stats.totalPurchaseAmount)}`}
+            description={`${stats.totalPurchases} compras registradas`}
+            icon={ShoppingCart}
+            variant="orange"
+          />
+
+          <MetricCard
+            title="Balance Neto"
+            value={`S/ ${formatCurrency(stats.balance)}`}
+            description={`Margen: ${stats.totalSaleAmount > 0 ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1) : 0}%`}
+            icon={DollarSign}
+            variant={stats.balance >= 0 ? "green" : "orange"}
+          />
+
+          <MetricCard
+            title="Cuentas por Cobrar"
+            value={`S/ ${formatCurrency(stats.salePendingAmount)}`}
+            description={`${((stats.salePendingAmount / stats.totalSaleAmount) * 100).toFixed(0)}% del total de ventas`}
+            icon={TrendingUp}
+            variant="blue"
+          />
+
+          <MetricCard
+            title="Cuentas por Pagar"
+            value={`S/ ${formatCurrency(stats.purchasePendingAmount)}`}
+            description={`${((stats.purchasePendingAmount / stats.totalPurchaseAmount) * 100).toFixed(0)}% del total de compras`}
+            icon={TrendingDown}
+            variant="orange"
+          />
+
+          <MetricCard
+            title="Productos en Catálogo"
+            value={stats.totalProducts.toString()}
+            description={`Ticket promedio: S/ ${formatCurrency(stats.averageTicketSale)}`}
+            icon={Package}
+            variant="gray"
+          />
+        </div>
       </div>
 
-      {/* Charts Secundarios */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Top 5 Productos */}
-        <Card className="border-none shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base md:text-lg">
-              Top 5 Productos Más Vendidos
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Por cantidad vendida
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 md:px-6">
-            {topProducts.length > 0 ? (
-              <ChartContainer
-                config={{
-                  quantity: {
-                    label: "Cantidad",
-                    color: "var(--primary)",
-                  },
-                }}
-                className="h-[280px] w-full"
-              >
-                <BarChart
-                  data={topProducts}
-                  layout="vertical"
-                  margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    className="stroke-muted"
-                  />
-                  <XAxis type="number" tick={{ fontSize: 10 }} />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    tick={{ fontSize: 10 }}
-                    width={100}
-                  />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value, _name, props) => [
-                          `${value} unidades - S/. ${props.payload.revenue.toFixed(
-                            2
-                          )}`,
-                          "Cantidad",
-                        ]}
-                      />
-                    }
-                  />
-                  <Bar
-                    dataKey="quantity"
-                    fill="var(--primary)"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ChartContainer>
-            ) : (
-              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
-                No hay datos de productos vendidos
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Sección de Gráficos */}
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Análisis Visual</h2>
 
-        {/* Métodos de Pago */}
-        <Card className="border-none shadow-md">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base md:text-lg">
-              Distribución de Métodos de Pago
-            </CardTitle>
-            <CardDescription className="text-xs md:text-sm">
-              Ventas por tipo de pago
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 md:px-6">
-            {salesByPaymentType.length > 0 ? (
-              <ChartContainer
-                config={{
-                  contado: {
-                    label: "Contado",
-                    color: "var(--primary)",
-                  },
-                  credito: {
-                    label: "Crédito",
-                    color: "var(--secondary)",
-                  },
-                }}
-                className="h-[280px] w-full"
-              >
-                <PieChart>
-                  <Pie
-                    data={salesByPaymentType}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={5}
-                    dataKey="value"
-                    nameKey="name"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {salesByPaymentType.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={pieColors[index % pieColors.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </PieChart>
-              </ChartContainer>
-            ) : (
-              <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
-                No hay datos de métodos de pago
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        {/* Gráfico Principal */}
+        <SalesVsPurchasesChart data={allTransactionsByDate} />
 
-      {/* Resumen Financiero Compacto */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Cuentas por Cobrar */}
-        <div className="rounded-xl bg-primary/5 p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <TrendingUp className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Cuentas por Cobrar
-              </p>
-              <p className="text-xl font-bold text-primary">
-                S/. {stats.salePendingAmount.toFixed(2)}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Ventas a crédito pendientes de pago
-          </p>
-        </div>
-
-        {/* Cuentas por Pagar */}
-        <div className="rounded-xl bg-destructive/5 p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-destructive/10">
-              <TrendingUp className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Cuentas por Pagar
-              </p>
-              <p className="text-xl font-bold text-destructive">
-                S/. {stats.purchasePendingAmount.toFixed(2)}
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Compras a crédito pendientes de pago
-          </p>
-        </div>
-
-        {/* Margen Neto */}
-        <div className="rounded-xl bg-muted-foreground/5 p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-lg bg-muted-foreground/10">
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Margen Bruto
-              </p>
-              <p className="text-xl font-bold text-muted-foreground">
-                {stats.totalSaleAmount > 0
-                  ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1)
-                  : 0}
-                %
-              </p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Porcentaje de ganancia sobre ventas
-          </p>
+        {/* Gráficos Secundarios */}
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          <TopProductsChart data={topProducts} />
+          <PaymentMethodsChart data={salesByPaymentType} />
         </div>
       </div>
     </div>

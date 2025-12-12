@@ -9,7 +9,7 @@ import FormSkeleton from "@/components/FormSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Link as LinkIcon } from "lucide-react";
+import { Pencil, Link as LinkIcon } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -99,7 +99,7 @@ export const PurchaseShippingGuideDetailViewPage = () => {
               </Button>
             )}
             <Button onClick={handleEditGuide} variant="outline">
-              <Edit className="h-4 w-4 mr-2" />
+              <Pencil className="h-4 w-4 mr-2" />
               Editar
             </Button>
           </div>

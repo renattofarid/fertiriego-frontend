@@ -13,7 +13,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  Edit,
+  Pencil,
   MoreVertical,
   Trash2,
   Eye,
@@ -287,7 +287,7 @@ export const getPurchaseColumns = ({
               disabled={isPaid}
               className={isPaid ? "opacity-50 cursor-not-allowed" : ""}
             >
-              <Edit className="mr-2 h-4 w-4" />
+              <Pencil className="mr-2 h-4 w-4" />
               Editar {isPaid && "(Pagado)"}
             </DropdownMenuItem>
             <DropdownMenuItem

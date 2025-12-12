@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PurchasePaymentResource } from "../lib/purchase.interface";
 import { usePurchasePaymentStore } from "../lib/purchase-payment.store";
@@ -115,7 +115,7 @@ export function PurchasePaymentTable({
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <Button variant="ghost" size="sm" onClick={() => onEdit(payment.id)}>
-                      <Edit className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => setDeleteId(payment.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />

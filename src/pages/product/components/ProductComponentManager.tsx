@@ -25,7 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
-import { Plus, Trash2, Edit, Package, Hash } from "lucide-react";
+import { Plus, Trash2, Pencil, Package, Hash } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import type {
   CreateProductComponentRequest,
@@ -225,7 +225,7 @@ export function ProductComponentManager({
                     onClick={() => handleEdit(component)}
                     className="gap-2 flex-1 sm:flex-none"
                   >
-                    <Edit className="h-4 w-4" />
+                    <Pencil className="h-4 w-4" />
                     <span className="sm:inline">Editar</span>
                   </Button>
                   <Button

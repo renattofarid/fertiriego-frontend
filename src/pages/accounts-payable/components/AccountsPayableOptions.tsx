@@ -1,19 +1,19 @@
 import SearchInput from "@/components/SearchInput";
 
-interface AccountsReceivableOptionsProps {
+interface AccountsPayableOptionsProps {
   search: string;
   setSearch: (value: string) => void;
 }
 
-export default function AccountsReceivableOptions({
+export default function AccountsPayableOptions({
   search,
   setSearch,
-}: AccountsReceivableOptionsProps) {
+}: AccountsPayableOptionsProps) {
   return (
     <SearchInput
       value={search}
       onChange={setSearch}
-      placeholder="Buscar cuenta por cobrar..."
+      placeholder="Buscar cuenta por pagar..."
     />
   );
 }

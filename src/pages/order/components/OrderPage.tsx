@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useOrder } from "../lib/order.hook";
 import OrderTable from "./OrderTable";
 import { getOrderColumns } from "./OrderColumns";
@@ -13,10 +13,15 @@ import PageWrapper from "@/components/PageWrapper";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import ExportButtons from "@/components/ExportButtons";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import DataTablePagination from "@/components/DataTablePagination";
 
 export default function OrderPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
 
@@ -24,9 +29,21 @@ export default function OrderPage() {
     data: orders,
     isLoading,
     refetch,
+    meta,
   } = useOrder({
+    page,
     search,
+    per_page,
   });
+
+  useEffect(() => {
+    const filterParams = {
+      page,
+      search,
+      per_page,
+    };
+    refetch(filterParams);
+  }, [page, search, per_page]);
 
   const { removeOrder } = useOrderStore();
 
@@ -77,10 +94,16 @@ export default function OrderPage() {
           subtitle="Administrar todos los pedidos registrados en el sistema"
           icon={ICON}
         />
-        <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nuevo Pedido
-        </Button>
+        <div className="flex items-center gap-2">
+          <ExportButtons
+            excelEndpoint="/order/export"
+            excelFileName="pedidos.xlsx"
+          />
+          <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Pedido
+          </Button>
+        </div>
       </div>
 
       <OrderTable columns={columns} data={orders || []} isLoading={isLoading}>
@@ -93,6 +116,15 @@ export default function OrderPage() {
           />
         </div>
       </OrderTable>
+
+      <DataTablePagination
+        page={page}
+        totalPages={meta?.last_page || 1}
+        onPageChange={setPage}
+        per_page={per_page}
+        setPerPage={setPerPage}
+        totalData={meta?.total || 0}
+      />
 
       <SimpleDeleteDialog
         open={openDelete}

@@ -13,12 +13,7 @@ import {
   deleteQuotation,
   type GetQuotationsParams,
 } from "./quotation.actions";
-import {
-  ERROR_MESSAGE,
-  SUCCESS_MESSAGE,
-  errorToast,
-  successToast,
-} from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
 import { QUOTATION } from "./quotation.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
@@ -101,7 +96,6 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
     try {
       const response = await storeQuotation(data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "create"));
       return response.data;
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
@@ -116,7 +110,6 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
     try {
       await updateQuotation(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
       errorToast(ERROR_MESSAGE(MODEL, "update"));
@@ -130,7 +123,6 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
     try {
       await deleteQuotation(id);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
       errorToast(ERROR_MESSAGE(MODEL, "delete"));

@@ -38,6 +38,7 @@ import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interf
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SALE } from "@/pages/sale/lib/sale.interface";
 import { ACCOUNTS_RECEIVABLE } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
+import { ACCOUNTS_PAYABLE } from "@/pages/accounts-payable/lib/accounts-payable.interface";
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
 import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
@@ -192,6 +193,12 @@ const {
   MODEL: { name: AccountsReceivableTitle },
 } = ACCOUNTS_RECEIVABLE;
 
+const {
+  ROUTE: AccountsPayableRoute,
+  ICON_REACT: AccountsPayableIcon,
+  MODEL: { name: AccountsPayableTitle },
+} = ACCOUNTS_PAYABLE;
+
 const data = {
   navMain: [
     {
@@ -218,6 +225,11 @@ const data = {
           title: PurchaseShippingGuideTitle,
           url: PurchaseShippingGuideRoute,
           icon: PurchaseShippingGuideIcon,
+        },
+        {
+          title: AccountsPayableTitle,
+          url: AccountsPayableRoute,
+          icon: AccountsPayableIcon,
         },
       ],
     },

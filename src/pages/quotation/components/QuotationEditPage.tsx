@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
 import { useQuotationStore } from "../lib/quotation.store";
@@ -11,30 +11,49 @@ import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
-import { QUOTATION } from "../lib/quotation.interface";
+import {
+  QUOTATION,
+  type UpdateQuotationRequest,
+} from "../lib/quotation.interface";
 
-export const QuotationAddPage = () => {
+export const QuotationEditPage = () => {
   const { ICON } = QUOTATION;
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
-  const { createQuotation } = useQuotationStore();
+  const {
+    quotation,
+    fetchQuotation,
+    isFinding,
+    updateQuotation: updateQuotationStore,
+  } = useQuotationStore();
 
-  const isLoading = customersLoading || warehousesLoading || productsLoading;
+  useEffect(() => {
+    if (id) {
+      fetchQuotation(parseInt(id));
+    }
+  }, [id, fetchQuotation]);
 
-  const handleSubmit = async (data: any) => {
+  const isLoading =
+    customersLoading || warehousesLoading || productsLoading || isFinding;
+
+  const handleSubmit = async (data: UpdateQuotationRequest) => {
+    if (!id) return;
+
     setIsSubmitting(true);
     try {
-      await createQuotation(data);
-      successToast("Cotización creada correctamente");
+      await updateQuotationStore(parseInt(id), data);
+      successToast("Cotización actualizada correctamente");
       navigate("/cotizaciones");
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as { response?: { data?: { message?: string } } };
       errorToast(
-        error.response?.data?.message || "Error al crear la cotización"
+        err.response?.data?.message || "Error al actualizar la cotización"
       );
     } finally {
       setIsSubmitting(false);
@@ -46,10 +65,25 @@ export const QuotationAddPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="create" icon={ICON} />
+            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
+      </FormWrapper>
+    );
+  }
+
+  if (!quotation) {
+    return (
+      <FormWrapper>
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-4">
+            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+          </div>
+        </div>
+        <div className="text-center py-8 text-muted-foreground">
+          No se encontró la cotización
+        </div>
       </FormWrapper>
     );
   }
@@ -58,7 +92,7 @@ export const QuotationAddPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Cotización" mode="create" icon={ICON} />
+          <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
         </div>
       </div>
 
@@ -69,6 +103,8 @@ export const QuotationAddPage = () => {
         products &&
         products.length > 0 && (
           <QuotationForm
+            mode="edit"
+            initialData={quotation}
             onSubmit={handleSubmit}
             onCancel={() => navigate("/cotizaciones")}
             isSubmitting={isSubmitting}

@@ -2,10 +2,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Wallet, Eye } from "lucide-react";
-import type { SaleInstallmentResource } from "@/pages/sale/lib/sale.interface";
+import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 import { parse } from "date-fns";
 import formatCurrency from "@/lib/formatCurrency";
-import { matchCurrency } from "@/lib/core.function";
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -16,8 +15,8 @@ export const formatDate = (dateString: string) => {
   });
 };
 
-export const getStatusBadge = (installment: SaleInstallmentResource) => {
-  const pendingAmount = installment.pending_amount;
+export const getStatusBadge = (installment: PurchaseInstallmentResource) => {
+  const pendingAmount = parseFloat(installment.pending_amount);
 
   if (pendingAmount === 0 || installment.status === "PAGADO") {
     return <Badge variant="default">PAGADO</Badge>;
@@ -30,22 +29,31 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
   return <Badge variant="secondary">PENDIENTE</Badge>;
 };
 
-export const getAccountsReceivableColumns = (
-  onOpenPayment: (installment: SaleInstallmentResource) => void,
-  onOpenQuickView: (installment: SaleInstallmentResource) => void
-): ColumnDef<SaleInstallmentResource>[] => [
+export const getAccountsPayableColumns = (
+  onOpenPayment: (installment: PurchaseInstallmentResource) => void,
+  onOpenQuickView: (installment: PurchaseInstallmentResource) => void
+): ColumnDef<PurchaseInstallmentResource>[] => [
   {
-    accessorKey: "sale_correlativo",
-    header: "Venta",
+    accessorKey: "purchase_correlativo",
+    header: "Compra",
     cell: ({ row }) => (
       <Badge variant={"outline"} className="font-mono font-semibold">
-        {row.original.full_document_number}
+        {row.original.purchase_correlativo}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "correlativo",
+    header: "Cuota",
+    cell: ({ row }) => (
+      <Badge variant="outline" className="font-mono">
+        {row.original.correlativo}
       </Badge>
     ),
   },
   {
     accessorKey: "installment_number",
-    header: "Cuota",
+    header: "Nº Cuota",
     cell: ({ row }) => (
       <Badge variant="outline">Cuota {row.original.installment_number}</Badge>
     ),
@@ -70,7 +78,7 @@ export const getAccountsReceivableColumns = (
                   (1000 * 60 * 60 * 24)
               );
 
-              if (row.original.status === "PAGADA") {
+              if (row.original.status === "PAGADO") {
                 return "Pagado";
               } else if (daysUntilDue > 0) {
                 return `${daysUntilDue} días para vencer`;
@@ -90,8 +98,8 @@ export const getAccountsReceivableColumns = (
     header: "Monto",
     cell: ({ row }) => (
       <div className="text-right font-semibold">
-        {formatCurrency(row.original.amount, {
-          currencySymbol: matchCurrency(row.original.currency),
+        {formatCurrency(Number(row.original.amount), {
+          currencySymbol: "S/.",
         })}
       </div>
     ),
@@ -100,15 +108,16 @@ export const getAccountsReceivableColumns = (
     accessorKey: "pending_amount",
     header: "Pendiente",
     cell: ({ row }) => {
-      const isPending = row.original.pending_amount > 0;
+      const pending = Number(row.original.pending_amount);
+      const isPending = pending > 0;
       return (
         <div
           className={`text-right font-semibold ${
             isPending ? "text-destructive" : "text-primary"
           }`}
         >
-          {formatCurrency(row.original.pending_amount, {
-            currencySymbol: matchCurrency(row.original.currency),
+          {formatCurrency(pending, {
+            currencySymbol: "S/.",
           })}
         </div>
       );
@@ -123,7 +132,7 @@ export const getAccountsReceivableColumns = (
     id: "actions",
     header: () => <div className="text-center">Acciones</div>,
     cell: ({ row }) => {
-      const isPending = row.original.pending_amount > 0;
+      const isPending = parseFloat(row.original.pending_amount) > 0;
       return (
         <div className="flex items-center justify-center gap-2">
           <Button
@@ -143,7 +152,7 @@ export const getAccountsReceivableColumns = (
               title="Gestionar pagos"
             >
               <Wallet className="h-4 w-4 mr-1" />
-              Gestionar
+              Pagar
             </Button>
           )}
         </div>

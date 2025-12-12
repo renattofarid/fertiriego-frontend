@@ -7,7 +7,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw } from "lucide-react";
+import { Pencil, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -110,7 +110,7 @@ export function PurchaseInstallmentTable({
                               disabled
                               className="cursor-not-allowed"
                             >
-                              <Edit className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                           </span>
                         </TooltipTrigger>
@@ -129,7 +129,7 @@ export function PurchaseInstallmentTable({
                       size="sm"
                       onClick={() => onEdit(inst.id)}
                     >
-                      <Edit className="h-4 w-4" />
+                      <Pencil className="h-4 w-4" />
                     </Button>
                   )}
 
