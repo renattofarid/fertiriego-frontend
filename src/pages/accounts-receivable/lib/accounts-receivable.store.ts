@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { SaleInstallmentResource } from "./accounts-receivable.interface";
-import { getInstallments } from "./accounts-receivable.actions";
+import { getInstallments, getAllInstallments } from "./accounts-receivable.actions";
 import { errorToast } from "@/lib/core.function";
 import type { Meta } from "@/lib/pagination.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -14,8 +14,10 @@ interface GetInstallmentsParams {
 interface AccountsReceivableStore {
   // State
   installments: SaleInstallmentResource[];
+  allInstallments: SaleInstallmentResource[];
   meta?: Meta;
   isLoading: boolean;
+  isLoadingAll: boolean;
   error?: string;
 
   // Pagination state
@@ -25,6 +27,7 @@ interface AccountsReceivableStore {
 
   // Actions
   fetchInstallments: (params?: GetInstallmentsParams) => Promise<void>;
+  fetchAllInstallments: () => Promise<void>;
   setPage: (page: number) => void;
   setPerPage: (per_page: number) => void;
   setSearch: (search: string) => void;
@@ -35,8 +38,10 @@ export const useAccountsReceivableStore = create<AccountsReceivableStore>(
   (set, get) => ({
     // Initial state
     installments: [],
+    allInstallments: [],
     meta: undefined,
     isLoading: false,
+    isLoadingAll: false,
     error: undefined,
 
     // Initial pagination state
@@ -70,6 +75,24 @@ export const useAccountsReceivableStore = create<AccountsReceivableStore>(
       }
     },
 
+    // Fetch all installments (no pagination) for summary
+    fetchAllInstallments: async () => {
+      set({ isLoadingAll: true, error: undefined });
+      try {
+        const data = await getAllInstallments();
+        set({
+          allInstallments: data,
+          isLoadingAll: false,
+        });
+      } catch (error) {
+        set({
+          error: "Error al cargar el resumen de cuotas",
+          isLoadingAll: false,
+        });
+        errorToast("Error al cargar el resumen de cuotas");
+      }
+    },
+
     // Set page and refetch
     setPage: (page: number) => {
       set({ page });
@@ -91,6 +114,7 @@ export const useAccountsReceivableStore = create<AccountsReceivableStore>(
     reset: () => {
       set({
         installments: [],
+        allInstallments: [],
         meta: undefined,
         page: 1,
         per_page: DEFAULT_PER_PAGE,
