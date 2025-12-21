@@ -102,7 +102,7 @@ export const SaleEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+            <TitleFormComponent title="Venta" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -114,7 +114,7 @@ export const SaleEditPage = () => {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+          <TitleFormComponent title="Venta" mode="update" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Venta no encontrada</p>
@@ -127,7 +127,7 @@ export const SaleEditPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+          <TitleFormComponent title="Venta" mode="update" icon={ICON} />
         </div>
       </div>
 

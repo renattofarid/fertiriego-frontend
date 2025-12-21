@@ -108,7 +108,7 @@ export default function WorkerEditPage() {
     <FormWrapper>
       <div className="flex items-center gap-4 mb-6">
         <BackButton to="/trabajadores" />
-        <TitleFormComponent title={MODEL.name} mode="edit" />
+        <TitleFormComponent title={MODEL.name} mode="update" />
       </div>
 
       <PersonForm

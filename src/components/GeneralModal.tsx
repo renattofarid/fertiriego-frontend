@@ -20,11 +20,12 @@ import {
 } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import * as LucideReact from "lucide-react";
+import TitleFormComponent from "./TitleFormComponent";
 
 interface GeneralModalProps {
   open: boolean;
   onClose: () => void;
-  title?: string;
+  title: string;
   subtitle?: string;
   children: ReactNode;
   size?: Size;
@@ -32,6 +33,8 @@ interface GeneralModalProps {
   className?: string;
   modal?: boolean;
   icon?: keyof typeof LucideReact;
+  titleComponent?: boolean;
+  mode?: "create" | "update" | "detail";
 }
 
 type Size = "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
@@ -52,6 +55,7 @@ const sizes: SizeClasses = {
 export function GeneralModal({
   open,
   onClose,
+  titleComponent,
   title,
   subtitle,
   children,
@@ -59,6 +63,7 @@ export function GeneralModal({
   className,
   modal,
   icon,
+  mode = "create",
 }: GeneralModalProps) {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -84,19 +89,28 @@ export function GeneralModal({
           onInteractOutside={(e) => e.preventDefault()}
         >
           <DialogHeader>
-            <div className="flex items-start gap-2">
-              {icon && IconComponent && (
-                <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
-                  <IconComponent className="size-5" />
+            {titleComponent ? (
+              <TitleFormComponent
+                title={title}
+                icon={icon}
+                mode={mode}
+                back={false}
+              />
+            ) : (
+              <div className="flex items-start gap-2">
+                {icon && IconComponent && (
+                  <div className="mr-2 bg-primary text-primary-foreground rounded-md p-2">
+                    <IconComponent className="size-5" />
+                  </div>
+                )}
+                <div className="flex flex-col items-start">
+                  {title && <DialogTitle>{title}</DialogTitle>}
+                  <DialogDescription className="text-muted-foreground text-sm">
+                    {subtitle}
+                  </DialogDescription>
                 </div>
-              )}
-              <div className="flex flex-col items-start">
-                {title && <DialogTitle>{title}</DialogTitle>}
-                <DialogDescription className="text-muted-foreground text-sm">
-                  {subtitle}
-                </DialogDescription>
               </div>
-            </div>
+            )}
           </DialogHeader>
           <div>{children}</div>
         </DialogContent>

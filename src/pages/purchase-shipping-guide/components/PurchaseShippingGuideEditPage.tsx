@@ -71,7 +71,7 @@ export const PurchaseShippingGuideEditPage = () => {
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <BackButton to="/guias-compra" />
-            <TitleFormComponent title="Guía de Compra" mode="edit" />
+            <TitleFormComponent title="Guía de Compra" mode="update" />
           </div>
         </div>
         <FormSkeleton />
@@ -84,7 +84,7 @@ export const PurchaseShippingGuideEditPage = () => {
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
           <BackButton to="/guias-compra" />
-          <TitleFormComponent title="Guía de Compra" mode="edit" />
+          <TitleFormComponent title="Guía de Compra" mode="update" />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Guía no encontrada</p>
@@ -98,7 +98,7 @@ export const PurchaseShippingGuideEditPage = () => {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <BackButton to="/guias-compra" />
-          <TitleFormComponent title="Guía de Compra" mode="edit" />
+          <TitleFormComponent title="Guía de Compra" mode="update" />
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export const PurchaseShippingGuideEditPage = () => {
           defaultValues={getDefaultValues()}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="edit"
+          mode="update"
           products={products}
           onCancel={() => navigate("/guias-compra")}
         />

@@ -65,7 +65,7 @@ export const QuotationEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+            <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -78,7 +78,7 @@ export const QuotationEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+            <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
           </div>
         </div>
         <div className="text-center py-8 text-muted-foreground">
@@ -92,7 +92,7 @@ export const QuotationEditPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+          <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export const QuotationEditPage = () => {
         products &&
         products.length > 0 && (
           <QuotationForm
-            mode="edit"
+            mode="update"
             initialData={quotation}
             onSubmit={handleSubmit}
             onCancel={() => navigate("/cotizaciones")}

@@ -42,7 +42,8 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
   const mapBranchToForm = (data: BranchResource): Partial<BranchSchema> => ({
     name: data?.name || "",
     address: data?.address || "",
-    is_invoice: Boolean(data?.is_invoice === 1 || data?.is_invoice === true),
+    is_invoice: Boolean(data?.is_invoice) === true,
+    has_igv: Boolean(data?.has_igv) === true,
     responsible_id: user?.id || data?.responsible_id || 0,
     phone: data?.phone || "",
     email: data?.email || "",
@@ -89,7 +90,15 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
   const isLoadingAny = isSubmitting || findingBranch;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title} icon={ICON} >
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      icon={ICON}
+      size="2xl"
+      titleComponent={true}
+      mode={mode}
+    >
       {!isLoadingAny && branch ? (
         <BranchForm
           defaultValues={mapBranchToForm(branch)}
