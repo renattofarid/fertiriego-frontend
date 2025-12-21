@@ -35,6 +35,7 @@ export interface Option {
   label: string | (() => React.ReactNode);
   value: string;
   description?: string;
+  searchCode?: string; // Campo adicional para búsqueda por código
 }
 
 export type Action = "create" | "update" | "delete";

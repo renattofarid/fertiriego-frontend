@@ -56,7 +56,7 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   className,
   modal,
   icon,
-  size = "large",
+  size = "lg",
 }) => {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -70,7 +70,10 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   {
     return type === "default" ? (
       <Sheet open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
-        <SheetContent side={side} className={cn(sizes[size], className, "overflow-y-auto")}>
+        <SheetContent
+          side={side}
+          className={cn(sizes[size], className, "overflow-y-auto gap-0!")}
+        >
           <SheetHeader>
             <div className="flex items-center gap-2">
               {icon && IconComponent && (
@@ -87,12 +90,18 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
             </div>
             <SheetClose onClick={onClose} />
           </SheetHeader>
-          <div className="mt-4">{children}</div>
+          <div className="p-4">{children}</div>
         </SheetContent>
       </Sheet>
     ) : (
       <Drawer open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
-        <DrawerContent className={cn(sizes[size], className, "px-4 pb-4 flex flex-col max-h-[96vh]")}>
+        <DrawerContent
+          className={cn(
+            sizes[size],
+            className,
+            "px-4 pb-4 flex flex-col max-h-[96vh]"
+          )}
+        >
           <DrawerHeader className="flex-shrink-0 p-2">
             <div className="flex items-center gap-2">
               {icon && IconComponent && (
@@ -103,13 +112,18 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
               <div>
                 {title && <DrawerTitle>{title}</DrawerTitle>}
                 {subtitle && (
-                  <p className="text-sm text-muted-foreground">{subtitle}</p>
+                  <p className="text-sm text-start text-muted-foreground">
+                    {subtitle}
+                  </p>
                 )}
               </div>
             </div>
             <DrawerClose onClick={onClose} />
           </DrawerHeader>
-          <div className="mt-4 overflow-y-auto flex-1 min-h-0" data-vaul-no-drag>
+          <div
+            className="mt-4 overflow-y-auto flex-1 min-h-0"
+            data-vaul-no-drag
+          >
             {children}
           </div>
         </DrawerContent>

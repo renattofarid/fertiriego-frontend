@@ -21,7 +21,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { type Control } from "react-hook-form";
 import { useState } from "react";
 import React from "react";
 import {
@@ -30,6 +29,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { Control } from "react-hook-form";
 import type { Option } from "@/lib/core.interface";
 
 interface FormSelectProps {
@@ -39,12 +40,12 @@ interface FormSelectProps {
   placeholder?: string;
   options: Option[];
   control: Control<any>;
-  portalContainer?: HTMLElement | null;
   disabled?: boolean;
   tooltip?: string | React.ReactNode;
-  strictFilter?: boolean;
-  classNameOption?: string;
   withValue?: boolean;
+  classNameOption?: string;
+  strictFilter?: boolean;
+  enableCodeSearch?: boolean; // Nueva prop para habilitar búsqueda por código
 }
 
 export function FormSelect({
@@ -56,12 +57,14 @@ export function FormSelect({
   control,
   disabled,
   tooltip,
-  strictFilter = false,
+  withValue = false,
   classNameOption,
-  withValue = true,
+  strictFilter = false,
+  enableCodeSearch = false,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [searchTab, setSearchTab] = useState<"name" | "code">("name");
 
   return (
     <FormField
@@ -71,7 +74,7 @@ export function FormSelect({
         const selected = options.find((opt) => opt.value === field.value);
 
         return (
-          <FormItem className="flex flex-col justify-between">
+          <FormItem className="flex flex-col justify-start">
             {typeof label === "function" ? (
               label()
             ) : (
@@ -103,13 +106,18 @@ export function FormSelect({
               open={open}
               onOpenChange={(newOpen) => {
                 setOpen(newOpen);
-                if (!newOpen && strictFilter) setSearch("");
+                if (!newOpen) {
+                  setSearch("");
+                  if (enableCodeSearch) {
+                    setSearchTab("name");
+                  }
+                }
               }}
             >
               <PopoverTrigger asChild>
                 <FormControl>
                   <Button
-                    variant="outline"
+                    variant={"outline"}
                     role="combobox"
                     disabled={disabled}
                     className={cn(
@@ -135,69 +143,223 @@ export function FormSelect({
                 onWheelCapture={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
               >
-                <Command
-                  className="max-h-72 overflow-hidden"
-                  shouldFilter={!strictFilter}
-                >
-                  <CommandInput
-                    className="border-none focus:ring-0"
-                    placeholder="Buscar..."
-                    value={strictFilter ? search : undefined}
-                    onValueChange={strictFilter ? setSearch : undefined}
-                  />
-                  <CommandList className="max-h-60 overflow-y-auto">
-                    <CommandEmpty className="py-4 text-center text-sm">
-                      No hay resultados.
-                    </CommandEmpty>
-                    {(strictFilter
-                      ? options.filter((option) => {
-                          if (!search) return true;
-                          const label =
-                            typeof option.label === "function"
-                              ? option.label()
-                              : option.label;
-                          return (label || "")
-                            .toString()
-                            .toLowerCase()
-                            .includes(search.toLowerCase());
-                        })
-                      : options
-                    ).map((option) => (
-                      <CommandItem
-                        key={option.value}
-                        className="cursor-pointer"
-                        onSelect={() => {
-                          const newValue =
-                            option.value === field.value ? "" : option.value;
-                          field.onChange(newValue);
-                          setOpen(false);
-                        }}
+                {enableCodeSearch ? (
+                  <Tabs
+                    value={searchTab}
+                    onValueChange={(value) => {
+                      setSearchTab(value as "name" | "code");
+                      setSearch("");
+                    }}
+                    className="w-full"
+                  >
+                    <TabsList className="w-full grid grid-cols-2 rounded-b-none">
+                      <TabsTrigger value="name" className="text-xs">
+                        Por Nombre
+                      </TabsTrigger>
+                      <TabsTrigger value="code" className="text-xs">
+                        Por Código
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="name" className="m-0">
+                      <Command
+                        className="max-h-72 overflow-hidden"
+                        shouldFilter={!strictFilter}
                       >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4 shrink-0",
-                            option.value === field.value
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
+                        <CommandInput
+                          className="border-none focus:ring-0"
+                          placeholder="Buscar por nombre..."
+                          value={strictFilter ? search : undefined}
+                          onValueChange={strictFilter ? setSearch : undefined}
                         />
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span className={cn("truncate", classNameOption)}>
-                            {typeof option.label === "function"
-                              ? option.label()
-                              : option.label}
-                          </span>
-                          {option.description && (
-                            <span className="text-[10px] text-muted-foreground truncate">
-                              {withValue && `${option.value} - `}{" "}
-                              {option.description}
+                        <CommandList className="max-h-60 overflow-y-auto">
+                          <CommandEmpty className="py-4 text-center text-sm">
+                            No hay resultados.
+                          </CommandEmpty>
+                          {(strictFilter
+                            ? options.filter((option) => {
+                                if (!search) return true;
+                                const label =
+                                  typeof option.label === "function"
+                                    ? option.label()
+                                    : option.label;
+                                return (label || "")
+                                  .toString()
+                                  .toLowerCase()
+                                  .includes(search.toLowerCase());
+                              })
+                            : options
+                          ).map((option) => (
+                            <CommandItem
+                              key={option.value}
+                              className="cursor-pointer"
+                              onSelect={() => {
+                                const newValue =
+                                  option.value === field.value
+                                    ? ""
+                                    : option.value;
+                                field.onChange(newValue);
+                                setOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4 shrink-0",
+                                  option.value === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col min-w-0 flex-1">
+                                <span
+                                  className={cn("truncate", classNameOption)}
+                                >
+                                  {typeof option.label === "function"
+                                    ? option.label()
+                                    : option.label}
+                                </span>
+                                {option.description && (
+                                  <span className="text-[10px] text-muted-foreground truncate">
+                                    {withValue && `${option.value} - `}{" "}
+                                    {option.description}
+                                  </span>
+                                )}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandList>
+                      </Command>
+                    </TabsContent>
+
+                    <TabsContent value="code" className="m-0">
+                      <Command
+                        className="max-h-72 overflow-hidden"
+                        shouldFilter={false}
+                      >
+                        <CommandInput
+                          className="border-none focus:ring-0"
+                          placeholder="Buscar por código..."
+                          value={search}
+                          onValueChange={setSearch}
+                        />
+                        <CommandList className="max-h-60 overflow-y-auto">
+                          <CommandEmpty className="py-4 text-center text-sm">
+                            No hay resultados.
+                          </CommandEmpty>
+                          {options
+                            .filter((option) => {
+                              if (!search) return true;
+                              return (option.searchCode || "")
+                                .toLowerCase()
+                                .includes(search.toLowerCase());
+                            })
+                            .map((option) => (
+                              <CommandItem
+                                key={option.value}
+                                className="cursor-pointer"
+                                onSelect={() => {
+                                  const newValue =
+                                    option.value === field.value
+                                      ? ""
+                                      : option.value;
+                                  field.onChange(newValue);
+                                  setOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={cn(
+                                    "mr-2 h-4 w-4 shrink-0",
+                                    option.value === field.value
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                                <div className="flex flex-col min-w-0 flex-1">
+                                  <span
+                                    className={cn("truncate", classNameOption)}
+                                  >
+                                    {typeof option.label === "function"
+                                      ? option.label()
+                                      : option.label}
+                                  </span>
+                                  {option.description && (
+                                    <span className="text-[10px] text-muted-foreground truncate">
+                                      {withValue && `${option.value} - `}{" "}
+                                      {option.description}
+                                    </span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            ))}
+                        </CommandList>
+                      </Command>
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <Command
+                    className="max-h-72 overflow-hidden"
+                    shouldFilter={!strictFilter}
+                  >
+                    <CommandInput
+                      className="border-none focus:ring-0"
+                      placeholder="Buscar..."
+                      value={strictFilter ? search : undefined}
+                      onValueChange={strictFilter ? setSearch : undefined}
+                    />
+                    <CommandList className="max-h-60 overflow-y-auto">
+                      <CommandEmpty className="py-4 text-center text-sm">
+                        No hay resultados.
+                      </CommandEmpty>
+                      {(strictFilter
+                        ? options.filter((option) => {
+                            if (!search) return true;
+                            const label =
+                              typeof option.label === "function"
+                                ? option.label()
+                                : option.label;
+                            return (label || "")
+                              .toString()
+                              .toLowerCase()
+                              .includes(search.toLowerCase());
+                          })
+                        : options
+                      ).map((option) => (
+                        <CommandItem
+                          key={option.value}
+                          className="cursor-pointer"
+                          onSelect={() => {
+                            const newValue =
+                              option.value === field.value ? "" : option.value;
+                            field.onChange(newValue);
+                            setOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4 shrink-0",
+                              option.value === field.value
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className={cn("truncate", classNameOption)}>
+                              {typeof option.label === "function"
+                                ? option.label()
+                                : option.label}
                             </span>
-                          )}
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandList>
-                </Command>
+                            {option.description && (
+                              <span className="text-[10px] text-muted-foreground truncate">
+                                {withValue && `${option.value} - `}{" "}
+                                {option.description}
+                              </span>
+                            )}
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandList>
+                  </Command>
+                )}
               </PopoverContent>
             </Popover>
 
