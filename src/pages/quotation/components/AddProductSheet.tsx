@@ -13,6 +13,10 @@ interface AddProductSheetProps {
   onClose: () => void;
   onAdd: (detail: ProductDetail) => void;
   products: ProductResource[];
+  defaultIsIgv?: boolean;
+  editingDetail?: ProductDetail | null;
+  editIndex?: number | null;
+  onEdit?: (detail: ProductDetail, index: number) => void;
 }
 
 export interface ProductDetail {
@@ -32,14 +36,20 @@ export const AddProductSheet = ({
   onClose,
   onAdd,
   products,
+  defaultIsIgv = true,
+  editingDetail = null,
+  editIndex = null,
+  onEdit,
 }: AddProductSheetProps) => {
+  const isEditMode = editingDetail !== null && editIndex !== null;
+
   const form = useForm({
     defaultValues: {
       product_id: "",
       quantity: "",
       unit_price: "",
       purchase_price: "",
-      is_igv: true,
+      is_igv: defaultIsIgv,
     },
   });
 
@@ -53,6 +63,34 @@ export const AddProductSheet = ({
   const quantity = form.watch("quantity");
   const unitPrice = form.watch("unit_price");
   const isIgv = form.watch("is_igv");
+
+  // Cargar datos cuando se está editando
+  useEffect(() => {
+    if (editingDetail) {
+      form.reset({
+        product_id: editingDetail.product_id,
+        quantity: editingDetail.quantity,
+        unit_price: editingDetail.unit_price,
+        purchase_price: editingDetail.purchase_price,
+        is_igv: editingDetail.is_igv,
+      });
+    } else {
+      form.reset({
+        product_id: "",
+        quantity: "",
+        unit_price: "",
+        purchase_price: "",
+        is_igv: defaultIsIgv,
+      });
+    }
+  }, [editingDetail, defaultIsIgv, form]);
+
+  // Actualizar is_igv cuando cambie defaultIsIgv (solo si no está editando)
+  useEffect(() => {
+    if (!editingDetail) {
+      form.setValue("is_igv", defaultIsIgv);
+    }
+  }, [defaultIsIgv, form, editingDetail]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
@@ -75,7 +113,7 @@ export const AddProductSheet = ({
     }
   }, [quantity, unitPrice, isIgv]);
 
-  const handleAdd = () => {
+  const handleSave = () => {
     const formData = form.getValues();
 
     if (
@@ -105,7 +143,12 @@ export const AddProductSheet = ({
       total: calculatedValues.total,
     };
 
-    onAdd(detail);
+    if (isEditMode && onEdit && editIndex !== null) {
+      onEdit(detail, editIndex);
+    } else {
+      onAdd(detail);
+    }
+
     form.reset();
     setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     onClose();
@@ -115,7 +158,7 @@ export const AddProductSheet = ({
     <GeneralSheet
       open={open}
       onClose={onClose}
-      title="Agregar Producto"
+      title={isEditMode ? "Editar Producto" : "Agregar Producto"}
       subtitle="Complete los datos del producto"
       icon="Package"
       size="lg"
@@ -197,7 +240,7 @@ export const AddProductSheet = ({
           </Button>
           <Button
             type="button"
-            onClick={handleAdd}
+            onClick={handleSave}
             disabled={
               !productId ||
               !quantity ||
@@ -206,7 +249,7 @@ export const AddProductSheet = ({
             }
           >
             <Plus className="h-4 w-4 mr-2" />
-            Agregar Producto
+            {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
           </Button>
         </div>
       </div>

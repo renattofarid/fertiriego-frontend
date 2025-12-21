@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { type LucideIcon } from "lucide-react";
+import { type ReactNode } from "react";
 
 interface FormSectionProps {
   title: string;
@@ -16,6 +16,7 @@ interface FormSectionProps {
   };
   className?: string;
   gap?: string;
+  headerExtra?: ReactNode;
 }
 
 export const GroupFormSection = ({
@@ -26,7 +27,8 @@ export const GroupFormSection = ({
   children,
   cols = { sm: 2, md: 3, lg: 4 },
   className,
-  gap = "gap-6",
+  gap = "gap-3 md:gap-6",
+  headerExtra,
 }: FormSectionProps) => {
   const gridClasses = [
     "grid",
@@ -49,14 +51,20 @@ export const GroupFormSection = ({
       )}
     >
       <div className={`${bgColor} px-6 py-2.5 border-b border-muted`}>
-        <h3
-          className={cn("text-base font-semibold flex items-center", iconColor)}
-        >
-          <Icon className={`size-5 mr-2`} />
-          {title}
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <h3
+            className={cn(
+              "text-sm md:text-base font-semibold flex items-center",
+              iconColor
+            )}
+          >
+            <Icon className={`size-4 md:size-5 mr-2`} />
+            {title}
+          </h3>
+          {headerExtra}
+        </div>
       </div>
-      <div className="p-6">
+      <div className="p-4 md:p-6">
         <div className={cn(gridClasses)}>{children}</div>
       </div>
     </div>
