@@ -15,7 +15,7 @@ export default function UserActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <UserModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}
