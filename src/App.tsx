@@ -97,6 +97,8 @@ import {
   OrderDetailPage,
   OrderPage,
 } from "./pages/order/components";
+import { VEHICLE } from "./pages/vehicle/lib/vehicle.interface";
+import VehiclePage from "./pages/vehicle/components/VehiclePage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -119,6 +121,7 @@ const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
 const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
 const { ROUTE: QuotationRoute } = QUOTATION;
 const { ROUTE: OrderRoute } = ORDER;
+const { ROUTE: VehicleRoute } = VEHICLE;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -710,6 +713,16 @@ export default function App() {
             element={
               <ProtectedRoute path={OrderRoute}>
                 <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Vehículos */}
+          <Route
+            path={VehicleRoute}
+            element={
+              <ProtectedRoute path={VehicleRoute}>
+                <VehiclePage />
               </ProtectedRoute>
             }
           />

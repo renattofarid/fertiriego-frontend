@@ -48,6 +48,7 @@ import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
 import { ORDER } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -198,6 +199,12 @@ const {
   ICON_REACT: AccountsPayableIcon,
   MODEL: { name: AccountsPayableTitle },
 } = ACCOUNTS_PAYABLE;
+
+const {
+  ICON_REACT: VehicleIcon,
+  ROUTE: VehicleRoute,
+  MODEL: { name: VehicleTitle },
+} = VEHICLE;
 
 const data = {
   navMain: [
@@ -370,6 +377,11 @@ const data = {
           title: BoxShiftTitle,
           url: BoxShiftRoute,
           icon: BoxShiftIcon,
+        },
+        {
+          title: VehicleTitle,
+          url: VehicleRoute,
+          icon: VehicleIcon,
         },
       ],
     },

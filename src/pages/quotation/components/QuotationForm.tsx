@@ -93,6 +93,7 @@ export const QuotationForm = ({
       validity_time: initialData?.validity_time || "10 días",
       currency: initialData?.currency || "PEN",
       payment_type: initialData?.payment_type || "CONTADO",
+      days: initialData?.days?.toString() || "",
       status: initialData?.status || "Pendiente",
       observations: initialData?.observations || "",
       address: initialData?.address || "",
@@ -104,6 +105,7 @@ export const QuotationForm = ({
   });
 
   const warehouseId = form.watch("warehouse_id");
+  const paymentType = form.watch("payment_type");
 
   // Obtener datos de la branch solo cuando tengamos un branch_id válido
   const { data: branchData } = useBranchById(selectedBranchId || 0);
@@ -323,6 +325,9 @@ export const QuotationForm = ({
       validity_time: formData.validity_time,
       currency: formData.currency,
       payment_type: formData.payment_type,
+      ...(formData.payment_type === "CREDITO" && formData.days
+        ? { days: parseInt(formData.days) }
+        : {}),
       observations: formData.observations || "",
       address: formData.address || "",
       reference: formData.reference || "",
@@ -433,6 +438,27 @@ export const QuotationForm = ({
               }))}
               placeholder="Seleccionar tipo de pago"
             />
+
+            {paymentType === "CREDITO" && (
+              <FormField
+                control={form.control}
+                name="days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Crédito</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        placeholder="Número de días"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormSelect
               control={form.control}
