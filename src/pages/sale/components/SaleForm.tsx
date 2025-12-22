@@ -34,7 +34,8 @@ import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
@@ -86,7 +87,6 @@ interface DetailRow {
 }
 
 interface InstallmentRow {
-  installment_number: string;
   due_days: string;
   amount: string;
 }
@@ -106,6 +106,15 @@ export const SaleForm = ({
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
 
+  // Watch para el almacén seleccionado
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
+
+  // Obtener productos del almacén seleccionado
+  const { data: warehouseProducts, isLoading: isLoadingWarehouseProducts } =
+    useAllWarehouseProducts(
+      selectedWarehouseId ? { warehouse_id: selectedWarehouseId } : undefined
+    );
+
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -124,7 +133,6 @@ export const SaleForm = ({
     number | null
   >(null);
   const [currentInstallment, setCurrentInstallment] = useState<InstallmentRow>({
-    installment_number: "",
     due_days: "",
     amount: "",
   });
@@ -140,7 +148,6 @@ export const SaleForm = ({
 
   const installmentTempForm = useForm({
     defaultValues: {
-      temp_installment_number: currentInstallment.installment_number,
       temp_due_days: currentInstallment.due_days,
       temp_amount: currentInstallment.amount,
     },
@@ -152,9 +159,6 @@ export const SaleForm = ({
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
 
   // Watchers para cuotas
-  const selectedInstallmentNumber = installmentTempForm.watch(
-    "temp_installment_number"
-  );
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
   const selectedAmount = installmentTempForm.watch("temp_amount");
 
@@ -190,16 +194,6 @@ export const SaleForm = ({
   }, [selectedUnitPrice]);
 
   // Observers para cuotas
-  useEffect(() => {
-    if (selectedInstallmentNumber !== currentInstallment.installment_number) {
-      setCurrentInstallment((prev) => ({
-        ...prev,
-        installment_number: selectedInstallmentNumber || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedInstallmentNumber]);
-
   useEffect(() => {
     if (selectedDueDays !== currentInstallment.due_days) {
       setCurrentInstallment((prev) => ({
@@ -265,7 +259,6 @@ export const SaleForm = ({
       if (defaultValues.installments && defaultValues.installments.length > 0) {
         const initialInstallments = defaultValues.installments.map(
           (inst: any) => ({
-            installment_number: inst.installment_number,
             due_days: inst.due_days,
             amount: inst.amount,
           })
@@ -282,6 +275,36 @@ export const SaleForm = ({
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+
+  // Watch para el almacén seleccionado
+  const watchedWarehouseId = form.watch("warehouse_id");
+
+  // Actualizar el warehouse_id cuando cambie
+  useEffect(() => {
+    if (watchedWarehouseId && watchedWarehouseId !== selectedWarehouseId) {
+      setSelectedWarehouseId(watchedWarehouseId);
+    }
+  }, [watchedWarehouseId, selectedWarehouseId]);
+
+  // Generar lista de productos con stock según el almacén seleccionado
+  const productsOptions = useMemo(() => {
+    if (
+      selectedWarehouseId &&
+      warehouseProducts &&
+      warehouseProducts.length > 0
+    ) {
+      return warehouseProducts.map((wp) => ({
+        value: wp.product_id.toString(),
+        label: wp.product_name,
+        description: `Stock: ${wp.stock}`,
+      }));
+    }
+    // Si no hay almacén seleccionado, mostrar todos los productos sin stock
+    return products.map((product) => ({
+      value: product.id.toString(),
+      label: product.name,
+    }));
+  }, [selectedWarehouseId, warehouseProducts, products]);
 
   // Auto-completar datos desde sourceData (orden o cotización)
   useEffect(() => {
@@ -459,11 +482,7 @@ export const SaleForm = ({
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
-    if (
-      !currentInstallment.installment_number ||
-      !currentInstallment.due_days ||
-      !currentInstallment.amount
-    ) {
+    if (!currentInstallment.due_days || !currentInstallment.amount) {
       return;
     }
 
@@ -504,11 +523,9 @@ export const SaleForm = ({
     }
 
     setCurrentInstallment({
-      installment_number: "",
       due_days: "",
       amount: "",
     });
-    installmentTempForm.setValue("temp_installment_number", "");
     installmentTempForm.setValue("temp_due_days", "");
     installmentTempForm.setValue("temp_amount", "");
   };
@@ -516,10 +533,6 @@ export const SaleForm = ({
   const handleEditInstallment = (index: number) => {
     const inst = installments[index];
     setCurrentInstallment(inst);
-    installmentTempForm.setValue(
-      "temp_installment_number",
-      inst.installment_number
-    );
     installmentTempForm.setValue("temp_due_days", inst.due_days);
     installmentTempForm.setValue("temp_amount", inst.amount);
     setEditingInstallmentIndex(index);
@@ -595,7 +608,6 @@ export const SaleForm = ({
 
     // Preparar cuotas según el tipo de pago
     let validInstallments: {
-      installment_number: number;
       due_days: string;
       amount: string;
     }[];
@@ -606,11 +618,8 @@ export const SaleForm = ({
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
       validInstallments = installments
-        .filter(
-          (inst) => inst.installment_number && inst.due_days && inst.amount
-        )
+        .filter((inst) => inst.due_days && inst.amount)
         .map((inst) => ({
-          installment_number: parseInt(inst.installment_number),
           due_days: inst.due_days,
           amount: inst.amount,
         }));
@@ -687,6 +696,9 @@ export const SaleForm = ({
               label="Fecha de Emisión"
               placeholder="Seleccione fecha"
               dateFormat="dd/MM/yyyy"
+              disabledRange={{
+                after: new Date(),
+              }}
             />
 
             <FormSelect
@@ -749,10 +761,8 @@ export const SaleForm = ({
                   name="temp_product_id"
                   label="Producto"
                   placeholder="Seleccione"
-                  options={products.map((product) => ({
-                    value: product.id.toString(),
-                    label: product.name,
-                  }))}
+                  options={productsOptions}
+                  disabled={isLoadingWarehouseProducts}
                 />
               </Form>
             </div>
@@ -764,7 +774,7 @@ export const SaleForm = ({
                 <FormItem>
                   <FormLabel>Cantidad</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input type="number" min={0} placeholder="0" {...field} />
                   </FormControl>
                 </FormItem>
               )}
@@ -779,6 +789,7 @@ export const SaleForm = ({
                   <FormControl>
                     <Input
                       type="number"
+                      min={0}
                       step="0.000001"
                       placeholder="0.000000"
                       {...field}
@@ -914,6 +925,7 @@ export const SaleForm = ({
                       <Input
                         type="number"
                         step="0.01"
+                        min={0}
                         placeholder="0.00"
                         {...field}
                       />
@@ -933,6 +945,7 @@ export const SaleForm = ({
                       <Input
                         type="number"
                         step="0.01"
+                        min={0}
                         placeholder="0.00"
                         {...field}
                       />
@@ -952,6 +965,7 @@ export const SaleForm = ({
                       <Input
                         type="number"
                         step="0.01"
+                        min={0}
                         placeholder="0.00"
                         {...field}
                       />
@@ -996,20 +1010,7 @@ export const SaleForm = ({
               sm: 1,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-              <FormField
-                control={installmentTempForm.control}
-                name="temp_installment_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Cuota</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="1" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
               <FormField
                 control={installmentTempForm.control}
                 name="temp_due_days"
@@ -1017,7 +1018,12 @@ export const SaleForm = ({
                   <FormItem>
                     <FormLabel>Días de Vencimiento</FormLabel>
                     <FormControl>
-                      <Input type="number" placeholder="30" {...field} />
+                      <Input
+                        type="number"
+                        min={0}
+                        placeholder="30"
+                        {...field}
+                      />
                     </FormControl>
                   </FormItem>
                 )}
@@ -1033,6 +1039,7 @@ export const SaleForm = ({
                       <Input
                         type="number"
                         step="0.01"
+                        min={0}
                         placeholder="0.00"
                         {...field}
                       />
@@ -1047,9 +1054,7 @@ export const SaleForm = ({
                   variant="default"
                   onClick={handleAddInstallment}
                   disabled={
-                    !currentInstallment.installment_number ||
-                    !currentInstallment.due_days ||
-                    !currentInstallment.amount
+                    !currentInstallment.due_days || !currentInstallment.amount
                   }
                   className="w-full"
                 >
@@ -1065,7 +1070,6 @@ export const SaleForm = ({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Cuota #</TableHead>
                         <TableHead className="text-right">
                           Días Vencimiento
                         </TableHead>
@@ -1076,7 +1080,6 @@ export const SaleForm = ({
                     <TableBody>
                       {installments.map((inst, index) => (
                         <TableRow key={index}>
-                          <TableCell>Cuota {inst.installment_number}</TableCell>
                           <TableCell className="text-right">
                             {inst.due_days} días
                           </TableCell>
@@ -1106,7 +1109,7 @@ export const SaleForm = ({
                         </TableRow>
                       ))}
                       <TableRow>
-                        <TableCell colSpan={2} className="text-right font-bold">
+                        <TableCell className="text-right font-bold">
                           TOTAL CUOTAS:
                         </TableCell>
                         <TableCell className="text-right font-bold text-lg text-blue-600">

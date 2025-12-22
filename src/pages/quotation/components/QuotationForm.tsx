@@ -18,7 +18,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -80,7 +80,9 @@ export const QuotationForm = ({
   const [sheetOpen, setSheetOpen] = useState(false);
   const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
-  const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(null);
+  const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
+    null
+  );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const form = useForm({
@@ -106,27 +108,33 @@ export const QuotationForm = ({
   // Obtener datos de la branch solo cuando tengamos un branch_id válido
   const { data: branchData } = useBranchById(selectedBranchId || 0);
 
-  const handleEditDetail = (index: number) => {
-    const detail = details[index];
-    const productDetail: ProductDetail = {
-      product_id: detail.product_id,
-      product_name: detail.product_name || "",
-      is_igv: detail.is_igv,
-      quantity: detail.quantity,
-      unit_price: detail.unit_price,
-      purchase_price: detail.purchase_price,
-      subtotal: detail.subtotal,
-      tax: detail.tax,
-      total: detail.total,
-    };
-    setEditingDetail(productDetail);
-    setEditingIndex(index);
-    setSheetOpen(true);
-  };
+  const handleEditDetail = useCallback(
+    (index: number) => {
+      const detail = details[index];
+      const productDetail: ProductDetail = {
+        product_id: detail.product_id,
+        product_name: detail.product_name || "",
+        is_igv: detail.is_igv,
+        quantity: detail.quantity,
+        unit_price: detail.unit_price,
+        purchase_price: detail.purchase_price,
+        subtotal: detail.subtotal,
+        tax: detail.tax,
+        total: detail.total,
+      };
+      setEditingDetail(productDetail);
+      setEditingIndex(index);
+      setSheetOpen(true);
+    },
+    [details]
+  );
 
-  const handleRemoveDetail = (index: number) => {
-    setDetails(details.filter((_, i) => i !== index));
-  };
+  const handleRemoveDetail = useCallback(
+    (index: number) => {
+      setDetails(details.filter((_, i) => i !== index));
+    },
+    [details]
+  );
 
   const columns = useMemo<ColumnDef<DetailRow>[]>(
     () => [
@@ -218,8 +226,7 @@ export const QuotationForm = ({
         ),
       },
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [handleEditDetail, handleRemoveDetail]
   );
 
   // Cargar detalles iniciales cuando se está editando
@@ -507,6 +514,12 @@ export const QuotationForm = ({
             sm: 1,
           }}
         >
+          <div className="flex justify-end">
+            <Button type="button" onClick={() => setSheetOpen(true)} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Producto
+            </Button>
+          </div>
           {details.length === 0 ? (
             <Empty className="border border-dashed">
               <EmptyHeader>
@@ -527,7 +540,6 @@ export const QuotationForm = ({
                 data={details}
                 isVisibleColumnFilter={false}
                 variant="default"
-
               />
               <div className="flex justify-end items-center gap-4 px-4">
                 <span className="text-sm font-bold">Total General:</span>
@@ -537,12 +549,6 @@ export const QuotationForm = ({
               </div>
             </div>
           )}
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => setSheetOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Producto
-            </Button>
-          </div>
         </GroupFormSection>
 
         <AddProductSheet

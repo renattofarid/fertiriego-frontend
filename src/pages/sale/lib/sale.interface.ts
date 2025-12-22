@@ -134,7 +134,6 @@ export interface CreateSaleDetailRequest {
 }
 
 export interface CreateSaleInstallmentRequest {
-  installment_number: number;
   due_days: number;
   amount: number;
 }
@@ -170,7 +169,6 @@ export interface UpdateSaleRequest {
     unit_price: number;
   }[];
   installments?: {
-    installment_number: number;
     due_days: number;
     amount: number;
   }[];
@@ -215,7 +213,6 @@ export interface SaleInstallmentResourceById {
 
 export interface CreateSaleInstallmentRequestFull {
   sale_id: number;
-  installment_number: number;
   due_days: number;
   amount: number;
 }
@@ -310,6 +307,7 @@ export const SaleEditRoute = "/ventas/actualizar/:id";
 export const DOCUMENT_TYPES = [
   { value: "FACTURA", label: "Factura" },
   { value: "BOLETA", label: "Boleta" },
+  { value: "TICKET", label: "Nota de Venta" },
   // { value: "GUIA", label: "Guía de Remisión" },
 ] as const;
 

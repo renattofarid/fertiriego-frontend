@@ -18,19 +18,20 @@ export function useWarehouseProduct(params?: Record<string, unknown>) {
   };
 }
 
-export function useAllWarehouseProducts() {
+export function useAllWarehouseProducts(params?: Record<string, unknown>) {
   const { allWarehouseProducts, isLoadingAll, error, fetchAllWarehouseProducts } =
     useWarehouseProductStore();
 
   useEffect(() => {
-    if (!allWarehouseProducts) fetchAllWarehouseProducts();
-  }, [allWarehouseProducts, fetchAllWarehouseProducts]);
+    fetchAllWarehouseProducts(params);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(params)]);
 
   return {
     data: allWarehouseProducts,
     isLoading: isLoadingAll,
     error,
-    refetch: fetchAllWarehouseProducts,
+    refetch: () => fetchAllWarehouseProducts(params),
   };
 }
 

@@ -24,10 +24,11 @@ export async function getWarehouseProduct({
   return data;
 }
 
-export async function getAllWarehouseProducts(): Promise<WarehouseProductResource[]> {
+export async function getAllWarehouseProducts(params?: Record<string, any>): Promise<WarehouseProductResource[]> {
   const config: AxiosRequestConfig = {
     params: {
       all: true,
+      ...params,
     },
   };
   const { data } = await api.get<WarehouseProductResource[]>(ENDPOINT, config);

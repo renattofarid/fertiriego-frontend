@@ -24,12 +24,6 @@ export type SaleDetailSchema = z.infer<typeof saleDetailSchema>;
 // ===== INSTALLMENT SCHEMA =====
 
 export const saleInstallmentSchema = z.object({
-  installment_number: z
-    .string()
-    .min(1, { message: "El número de cuota es requerido" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "El número de cuota debe ser mayor a 0",
-    }),
   due_days: z
     .string()
     .min(1, { message: "Los días de vencimiento son requeridos" })
@@ -130,12 +124,6 @@ export type SaleDetailUpdateSchema = z.infer<typeof saleDetailSchemaUpdate>;
 
 export const saleInstallmentSchemaCreate = z.object({
   sale_id: requiredStringId("El ID de venta es requerido"),
-  installment_number: z
-    .string()
-    .min(1, { message: "El número de cuota es requerido" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "El número de cuota debe ser mayor a 0",
-    }),
   due_days: z
     .string()
     .min(1, { message: "Los días de vencimiento son requeridos" })
