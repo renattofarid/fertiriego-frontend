@@ -42,16 +42,14 @@ export interface GuideResource {
   vehicle_id: number;
   driver_license: string;
   origin_address: string;
-  origin_ubigeo: string;
+  origin_ubigeo_id: number;
   destination_address: string;
-  destination_ubigeo: string;
+  destination_ubigeo_id: number;
   destination_warehouse_id?: number;
   recipient_id?: number;
   status: string;
   is_electronic: boolean;
   observations: string;
-  origin_ubigeo_id: number;
-  destination_ubigeo_id: number;
   company: Company;
   warehouse: Branch;
   user: User;
