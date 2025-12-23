@@ -103,6 +103,7 @@ import { CREDIT_NOTE } from "./pages/credit-note/lib/credit-note.interface";
 import CreditNotePage from "./pages/credit-note/components/CreditNotePage";
 import CreditNoteAddPage from "./pages/credit-note/components/CreditNoteAddPage";
 import CreditNoteEditPage from "./pages/credit-note/components/CreditNoteEditPage";
+import { DEBIT_NOTE } from "./pages/debit-note/lib/debit-note.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -127,6 +128,7 @@ const { ROUTE: QuotationRoute } = QUOTATION;
 const { ROUTE: OrderRoute } = ORDER;
 const { ROUTE: VehicleRoute } = VEHICLE;
 const { ROUTE: CreditNoteRoute } = CREDIT_NOTE;
+const { ROUTE: DebitNoteRoute } = DEBIT_NOTE;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();

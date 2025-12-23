@@ -11,12 +11,15 @@ import {
   ERROR_MESSAGE,
 } from "@/lib/core.function";
 import FormWrapper from "@/components/FormWrapper";
+import { useCreditNoteReasons } from "../lib/credit-note.hook";
+import FormSkeleton from "@/components/FormSkeleton";
 
 const { MODEL, ICON, TITLES } = CREDIT_NOTE;
 
 export default function CreditNoteAddPage() {
   const navigate = useNavigate();
   const { isSubmitting, createCreditNote } = useCreditNoteStore();
+  const { data: creditNoteReasons = [], isLoading } = useCreditNoteReasons();
 
   const handleSubmit = async (data: CreditNoteSchema) => {
     await createCreditNote(data)
@@ -45,20 +48,25 @@ export default function CreditNoteAddPage() {
         icon={ICON}
       />
 
-      <CreditNoteForm
-        defaultValues={{
-          sale_id: "",
-          issue_date: "",
-          credit_note_type: "",
-          reason: "",
-          affects_stock: true,
-          details: [],
-        }}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        mode="create"
-        onCancel={handleCancel}
-      />
+      {isSubmitting || isLoading ? (
+        <FormSkeleton />
+      ) : (
+        <CreditNoteForm
+          defaultValues={{
+            sale_id: "",
+            issue_date: "",
+            credit_note_type: "",
+            reason: "",
+            affects_stock: true,
+            details: [],
+          }}
+          creditNoteReasons={creditNoteReasons}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="create"
+          onCancel={handleCancel}
+        />
+      )}
     </FormWrapper>
   );
 }

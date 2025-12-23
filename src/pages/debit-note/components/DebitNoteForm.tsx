@@ -14,9 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  creditNoteSchema,
-  type CreditNoteSchema,
-} from "../lib/credit-note.schema";
+  debitNoteSchema,
+  type DebitNoteSchema,
+} from "../lib/debit-note.schema";
 import { Loader, Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
@@ -24,26 +24,24 @@ import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
 import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
+import { useDebitNoteReasons } from "../lib/debit-note.hook";
 import type { Option } from "@/lib/core.interface";
-import type { CreditNoteReason } from "../lib/credit-note.interface";
 
-interface CreditNoteFormProps {
-  defaultValues: Partial<CreditNoteSchema>;
+interface DebitNoteFormProps {
+  defaultValues: Partial<DebitNoteSchema>;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
-  creditNoteReasons: CreditNoteReason[];
 }
 
-export const CreditNoteForm = ({
+export const DebitNoteForm = ({
   onCancel,
   defaultValues,
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  creditNoteReasons,
-}: CreditNoteFormProps) => {
+}: DebitNoteFormProps) => {
   const { data: sales } = useAllSales();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
     defaultValues.sale_id || null
@@ -51,11 +49,11 @@ export const CreditNoteForm = ({
   const { data: selectedSale } = useSaleById(Number(selectedSaleId));
 
   const form = useForm({
-    resolver: zodResolver(creditNoteSchema),
+    resolver: zodResolver(debitNoteSchema),
     defaultValues: {
       sale_id: "",
       issue_date: new Date().toISOString().split("T")[0],
-      credit_note_type: "",
+      debit_note_type: "",
       reason: "",
       affects_stock: true,
       details: [],
@@ -76,6 +74,13 @@ export const CreditNoteForm = ({
       label: `${sale.full_document_number} - ${sale.customer_fullname}`,
       description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
+
+  const { data: debitNoteReasons = [] } = useDebitNoteReasons();
+
+  const debitNoteTypeOptions: Option[] = debitNoteReasons.map((reason) => ({
+    value: reason.id.toString(),
+    label: reason.name,
+  }));
 
   // Cuando se selecciona una venta, actualizar el estado y cargar detalles
   useEffect(() => {
@@ -148,21 +153,13 @@ export const CreditNoteForm = ({
             name="issue_date"
             label="Fecha de Emisión"
             placeholder="Seleccione la fecha"
-            disabledRange={{
-              after: new Date(),
-            }}
           />
 
           <FormSelect
-            name="credit_note_type"
+            name="debit_note_type"
             label="Tipo de Nota de Crédito"
             placeholder="Seleccione el tipo"
-            options={creditNoteReasons.map(
-              (reason): Option => ({
-                value: reason.id.toString(),
-                label: reason.name,
-              })
-            )}
+            options={debitNoteTypeOptions}
             control={form.control}
           />
 

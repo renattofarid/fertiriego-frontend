@@ -2,20 +2,20 @@ import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
 import { FileText } from "lucide-react";
 
-const ROUTE = "/notas-credito";
-const NAME = "Nota de Crédito";
+const ROUTE = "/notas-debito";
+const NAME = "Nota de Débito";
 
-export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
+export const DEBIT_NOTE: ModelComplete<DebitNoteResource> = {
   MODEL: {
     name: NAME,
-    description: "Gestión de notas de crédito.",
-    plural: "Notas de Crédito",
+    description: "Gestión de notas de débito.",
+    plural: "Notas de Débito",
     gender: false,
   },
   ICON: "FileText",
   ICON_REACT: FileText,
-  ENDPOINT: "/credit-notes",
-  QUERY_KEY: "credit-notes",
+  ENDPOINT: "/debit-notes",
+  QUERY_KEY: "debit-notes",
   ROUTE,
   ROUTE_ADD: `${ROUTE}/agregar`,
   ROUTE_UPDATE: `${ROUTE}/actualizar`,
@@ -37,7 +37,7 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
     id: 0,
     sale_id: 0,
     issue_date: "",
-    credit_note_type: "",
+    debit_note_type: "",
     reason: "",
     affects_stock: false,
     total_amount: 0,
@@ -53,15 +53,15 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
   },
 };
 
-export interface CreditNoteResponse {
-  data: CreditNoteResource[];
+export interface DebitNoteResponse {
+  data: DebitNoteResource[];
   links: Links;
   meta: Meta;
 }
 
-export interface CreditNoteDetailResource {
+export interface DebitNoteDetailResource {
   id: number;
-  credit_note_id: number;
+  debit_note_id: number;
   sale_detail_id: number;
   product_id: number;
   product: {
@@ -77,11 +77,11 @@ export interface CreditNoteDetailResource {
   created_at: string;
 }
 
-export interface CreditNoteResource {
+export interface DebitNoteResource {
   id: number;
   sale_id: number;
   issue_date: string;
-  credit_note_type: string;
+  debit_note_type: string;
   reason: string;
   affects_stock: boolean;
   total_amount: number;
@@ -92,28 +92,19 @@ export interface CreditNoteResource {
     customer_fullname: string;
     total_amount: number;
   };
-  details: CreditNoteDetailResource[];
+  details: DebitNoteDetailResource[];
   created_at: string;
 }
 
-export interface CreditNoteResourceById {
-  data: CreditNoteResource;
+export interface DebitNoteResourceById {
+  data: DebitNoteResource;
 }
 
-export interface getCreditNoteProps {
+export interface getDebitNoteProps {
   params?: Record<string, any>;
 }
 
-export const CREDIT_NOTE_TYPES = [
-  { value: "DEVOLUCION", label: "Devolución" },
-  { value: "DESCUENTO", label: "Descuento" },
-  { value: "ANULACION", label: "Anulación" },
-  { value: "BONIFICACION", label: "Bonificación" },
-] as const;
-
-export interface CreditNoteReason {
+export interface DebitNoteReason {
   id: number;
-  code: string;
   name: string;
-  active: number;
 }
