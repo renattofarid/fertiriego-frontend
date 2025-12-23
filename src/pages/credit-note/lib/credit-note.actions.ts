@@ -13,7 +13,6 @@ export const getCreditNotes = async ({
 }: getCreditNoteProps = {}): Promise<CreditNoteResponse> => {
   const config: AxiosRequestConfig = {
     params: {
-      all: true,
       ...params,
     },
   };

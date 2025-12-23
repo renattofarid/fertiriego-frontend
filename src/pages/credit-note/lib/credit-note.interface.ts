@@ -35,18 +35,50 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
   },
   EMPTY: {
     id: 0,
-    sale_id: 0,
+    currency: "",
+    document_series: "",
+    document_number: "",
+    customer: {
+      id: 0,
+      full_name: "",
+      business_name: "",
+      document_number: null,
+    },
+    user: {
+      id: 0,
+      name: "",
+      email: null,
+    },
+    warehouse: {
+      id: 0,
+      name: "",
+      address: "",
+    },
+    subtotal: "",
+    tax: "",
+    full_document_number: "",
+    updated_at: "",
+    observations: "",
     issue_date: "",
+    credit_note_motive_id: 0,
     credit_note_type: "",
     reason: "",
     affects_stock: false,
-    total_amount: 0,
+    total_amount: "",
     status: "",
     sale: {
       id: 0,
-      full_document_number: "",
-      customer_fullname: "",
-      total_amount: 0,
+      serie: "",
+      numero: "",
+      document_type: "",
+      customer: {
+        id: 0,
+        full_name: "",
+        business_name: "",
+        document_number: null,
+      },
+      issue_date: "",
+      total_amount: "",
     },
     details: [],
     created_at: "",
@@ -79,21 +111,27 @@ export interface CreditNoteDetailResource {
 
 export interface CreditNoteResource {
   id: number;
-  sale_id: number;
+  document_series: string;
+  document_number: string;
+  full_document_number: string;
   issue_date: string;
-  credit_note_type: string;
+  credit_note_type?: string;
   reason: string;
+  currency: string;
+  subtotal: string;
+  tax: string;
+  total_amount: string;
   affects_stock: boolean;
-  total_amount: number;
   status: string;
-  sale: {
-    id: number;
-    full_document_number: string;
-    customer_fullname: string;
-    total_amount: number;
-  };
-  details: CreditNoteDetailResource[];
+  observations?: string;
+  sale: Sale;
+  warehouse: Warehouse;
+  customer: Customer;
+  user: User;
+  credit_note_motive_id: number;
+  details: Detail[];
   created_at: string;
+  updated_at: string;
 }
 
 export interface CreditNoteResourceById {
@@ -116,4 +154,45 @@ export interface CreditNoteReason {
   code: string;
   name: string;
   active: number;
+}
+interface Detail {
+  id: number;
+  sale_detail_id: number;
+  product_id: number;
+  product_name: string;
+  product_code: null;
+  quantity: string;
+  unit_price: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: null;
+}
+
+interface Warehouse {
+  id: number;
+  name: string;
+  address: string;
+}
+
+interface Sale {
+  id: number;
+  serie: string;
+  numero: string;
+  document_type: string;
+  total_amount: string;
+  issue_date: string;
+  customer: Customer;
+}
+
+interface Customer {
+  id: number;
+  full_name: string;
+  business_name: string;
+  document_number: null;
 }

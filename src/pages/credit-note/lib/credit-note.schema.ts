@@ -12,10 +12,8 @@ export const creditNoteDetailSchema = z.object({
 
 export const creditNoteSchema = z.object({
   sale_id: requiredStringId("La venta es requerida"),
+  credit_note_motive_id: requiredStringId("El motivo es requerido"),
   issue_date: z.string().min(1, "La fecha de emisión es requerida"),
-  credit_note_type: z
-    .string()
-    .min(1, "El tipo de nota de crédito es requerido"),
   reason: z
     .string()
     .min(1, "El motivo es requerido")

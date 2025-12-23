@@ -55,7 +55,7 @@ export const CreditNoteForm = ({
     defaultValues: {
       sale_id: "",
       issue_date: new Date().toISOString().split("T")[0],
-      credit_note_type: "",
+      credit_note_motive_id: "",
       reason: "",
       affects_stock: true,
       details: [],
@@ -154,7 +154,7 @@ export const CreditNoteForm = ({
           />
 
           <FormSelect
-            name="credit_note_type"
+            name="credit_note_motive_id"
             label="Tipo de Nota de Crédito"
             placeholder="Seleccione el tipo"
             options={creditNoteReasons.map(

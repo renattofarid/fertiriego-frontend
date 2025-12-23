@@ -55,12 +55,12 @@ export default function CreditNoteAddPage() {
           defaultValues={{
             sale_id: "",
             issue_date: "",
-            credit_note_type: "",
+            credit_note_motive_id: "",
             reason: "",
             affects_stock: true,
             details: [],
           }}
-          creditNoteReasons={creditNoteReasons}
+          creditNoteReasons={creditNoteReasons || []}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="create"

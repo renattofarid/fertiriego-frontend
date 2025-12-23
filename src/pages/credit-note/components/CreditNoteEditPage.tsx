@@ -1,9 +1,15 @@
 import { useNavigate, useParams } from "react-router-dom";
 import TitleComponent from "@/components/TitleComponent";
-import { CREDIT_NOTE, type CreditNoteResource } from "../lib/credit-note.interface";
+import {
+  CREDIT_NOTE,
+  type CreditNoteResource,
+} from "../lib/credit-note.interface";
 import { CreditNoteForm } from "./CreditNoteForm";
 import { useCreditNoteStore } from "../lib/credit-note.store";
-import { useCreditNoteById } from "../lib/credit-note.hook";
+import {
+  useCreditNoteById,
+  useCreditNoteReasons,
+} from "../lib/credit-note.hook";
 import type { CreditNoteSchema } from "../lib/credit-note.schema";
 import {
   errorToast,
@@ -12,6 +18,7 @@ import {
   ERROR_MESSAGE,
 } from "@/lib/core.function";
 import FormSkeleton from "@/components/FormSkeleton";
+import FormWrapper from "@/components/FormWrapper";
 
 const { MODEL, ICON, TITLES } = CREDIT_NOTE;
 
@@ -22,21 +29,22 @@ export default function CreditNoteEditPage() {
 
   const { data: creditNote, isFinding } = useCreditNoteById(creditNoteId);
   const { isSubmitting, updateCreditNote } = useCreditNoteStore();
+  const { data: creditNoteReasons = [], isLoading } = useCreditNoteReasons();
 
   const mapCreditNoteToForm = (
     data: CreditNoteResource
   ): Partial<CreditNoteSchema> => ({
-    sale_id: data?.sale_id || 0,
+    sale_id: data?.sale.id.toString() || "",
+    credit_note_motive_id: data?.credit_note_motive_id.toString() || "",
     issue_date: data?.issue_date || new Date().toISOString().split("T")[0],
-    credit_note_type: data?.credit_note_type || "",
     reason: data?.reason || "",
     affects_stock: data?.affects_stock ?? true,
     details:
       data?.details?.map((detail) => ({
-        sale_detail_id: detail.sale_detail_id,
+        sale_detail_id: detail.sale_detail_id.toString(),
         product_id: detail.product_id,
-        quantity: detail.quantity,
-        unit_price: detail.unit_price,
+        quantity: Number(detail.quantity),
+        unit_price: Number(detail.unit_price),
       })) || [],
   });
 
@@ -59,50 +67,26 @@ export default function CreditNoteEditPage() {
     navigate("/notas-credito");
   };
 
-  if (isFinding) {
-    return (
-      <div className="space-y-4">
-        <TitleComponent
-          title={TITLES.update.title}
-          subtitle={TITLES.update.subtitle}
-          icon={ICON}
-        />
-        <div className="bg-card rounded-lg border p-6">
-          <FormSkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  if (!creditNote) {
-    return (
-      <div className="space-y-4">
-        <TitleComponent
-          title="Error"
-          subtitle="No se encontró la nota de crédito"
-          icon={ICON}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
+    <FormWrapper>
       <TitleComponent
         title={TITLES.update.title}
         subtitle={TITLES.update.subtitle}
         icon={ICON}
       />
 
-      <div className="bg-card rounded-lg border">
+      {isFinding || isLoading || !creditNote ? (
+        <FormSkeleton />
+      ) : (
         <CreditNoteForm
           defaultValues={mapCreditNoteToForm(creditNote)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="update"
+          creditNoteReasons={creditNoteReasons || []}
           onCancel={handleCancel}
         />
-      </div>
-    </div>
+      )}
+    </FormWrapper>
   );
 }

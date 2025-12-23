@@ -17,7 +17,7 @@ interface CreditNoteStore {
   allCreditNotes: CreditNoteResource[] | null;
   creditNotes: CreditNoteResource[] | null;
   creditNote: CreditNoteResource | null;
-  allCreditNoteReasons?: CreditNoteReason[];
+  allCreditNoteReasons?: CreditNoteReason[] | null;
   meta?: Meta;
   isLoadingAll: boolean;
   isLoadingAllReasons: boolean;
@@ -37,7 +37,7 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
   allCreditNotes: null,
   creditNote: null,
   creditNotes: null,
-  allCreditNoteReasons: [],
+  allCreditNoteReasons: null,
   meta: undefined,
   isLoadingAll: false,
   isLoadingAllReasons: false,
