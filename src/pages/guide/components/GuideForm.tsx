@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState, useEffect } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Form,
   FormField,
@@ -14,14 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Loader, Plus, Trash2, Pencil, Truck, MapPin } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -40,6 +33,7 @@ import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/w
 import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
+import { DataTable } from "@/components/DataTable";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -67,6 +61,70 @@ interface DetailRow {
   unit_measure: string;
   weight: string;
 }
+
+const createDetailColumns = (
+  products: ProductResource[],
+  onEdit: (index: number) => void,
+  onDelete: (index: number) => void
+): ColumnDef<DetailRow>[] => [
+  {
+    accessorKey: "product_id",
+    header: "Producto",
+    cell: ({ row }) => {
+      const productId = row.original.product_id;
+      const productName = products.find((p) => p.id == productId);
+      return <span className="text-sm">{productName?.name || "N/A"}</span>;
+    },
+  },
+  {
+    accessorKey: "quantity",
+    header: "Cantidad",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "unit_measure",
+    header: "Unidad",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "weight",
+    header: "Peso",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row, table }) => {
+      const index = table.getRowModel().rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="flex justify-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(index)}
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(index)}
+          >
+            <Trash2 className="h-3 w-3 text-red-500" />
+          </Button>
+        </div>
+      );
+    },
+  },
+];
 
 const MODALITIES = [
   { value: "PUBLICO", label: "Transporte Público" },
@@ -680,65 +738,16 @@ export const GuideForm = ({
 
                   {/* Tabla de detalles */}
                   {details.length > 0 && (
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-slate-100">
-                          <TableRow>
-                            <TableHead className="text-xs">Producto</TableHead>
-                            <TableHead className="text-xs text-center">
-                              Cantidad
-                            </TableHead>
-                            <TableHead className="text-xs text-center">
-                              Unidad
-                            </TableHead>
-                            <TableHead className="text-xs text-center">
-                              Peso
-                            </TableHead>
-                            <TableHead className="text-xs text-center w-20">
-                              Acciones
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {details.map((detail, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="text-xs">
-                                {products.find(
-                                  (p) => p.id === detail.product_id
-                                )?.name || "N/A"}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.quantity}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.unit_measure}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.weight}
-                              </TableCell>
-                              <TableCell className="text-xs text-center space-x-1">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditDetail(index)}
-                                >
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteDetail(index)}
-                                >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <DataTable
+                      columns={createDetailColumns(
+                        products,
+                        handleEditDetail,
+                        handleDeleteDetail
+                      )}
+                      data={details}
+                      isLoading={false}
+                      variant="ghost"
+                    />
                   )}
                 </div>
                 <FormMessage />

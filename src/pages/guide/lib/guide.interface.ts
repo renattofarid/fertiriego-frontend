@@ -12,6 +12,10 @@ export interface GuideMotiveResource {
 
 export type GuideStatus = "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA";
 
+export interface GuideResourceById {
+  data: GuideResource;
+}
+
 export interface GuideResource {
   id: number;
   guide_series: string;

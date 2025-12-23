@@ -2,10 +2,10 @@ import { api } from "@/lib/config";
 import type {
   GuideResponse,
   GuideResource,
-  GuideResourceById,
   CreateGuideRequest,
   UpdateGuideRequest,
   GuideMotiveResponse,
+  GuideResourceById,
 } from "./guide.interface";
 import { GUIDE_ENDPOINT, GUIDE_MOTIVE_ENDPOINT } from "./guide.interface";
 
@@ -79,7 +79,7 @@ export const changeGuideStatus = async (
   id: number,
   data: ChangeGuideStatusRequest
 ): Promise<{ message: string }> => {
-  const response = await api.put<{ message: string }>(
+  const response = await api.patch<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}/status`,
     data
   );

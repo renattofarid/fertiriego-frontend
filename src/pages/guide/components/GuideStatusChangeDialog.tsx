@@ -32,9 +32,8 @@ export function GuideStatusChangeDialog({
   currentStatus,
 }: GuideStatusChangeDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState<GuideStatus>(
-    currentStatus
-  );
+  const [selectedStatus, setSelectedStatus] =
+    useState<GuideStatus>(currentStatus);
 
   const handleConfirm = async () => {
     if (selectedStatus === currentStatus) {
@@ -65,13 +64,13 @@ export function GuideStatusChangeDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             <label className="text-sm font-medium">Nuevo estado</label>
             <Select
               value={selectedStatus}
               onValueChange={(value) => setSelectedStatus(value as GuideStatus)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

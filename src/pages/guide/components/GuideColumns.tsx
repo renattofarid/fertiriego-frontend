@@ -71,7 +71,11 @@ export const GuideColumns = ({
     header: "Cliente",
     cell: ({ row }) => {
       const sale = row.original.sale;
-      return <span className="text-sm text-wrap">{sale?.customer_fullname || "-"}</span>;
+      return (
+        <span className="text-sm text-wrap">
+          {sale?.customer_fullname || "-"}
+        </span>
+      );
     },
   },
   {
@@ -92,7 +96,9 @@ export const GuideColumns = ({
     cell: ({ getValue }) => {
       const driver = getValue() as Carrier;
       return (
-        <span className="text-sm text-wrap">{driver.business_name ?? driver.names}</span>
+        <span className="text-sm text-wrap">
+          {driver.names ?? driver.business_name}
+        </span>
       );
     },
   },
