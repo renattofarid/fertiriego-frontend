@@ -1,5 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { GuideResource, GuideStatus } from "../lib/guide.interface";
+import type {
+  Carrier,
+  GuideResource,
+  GuideStatus,
+} from "../lib/guide.interface";
 import { SelectActions } from "@/components/SelectActions";
 import {
   DropdownMenuGroup,
@@ -22,7 +26,7 @@ export const GuideColumns = ({
   onChangeStatus,
 }: GuideColumnsProps): ColumnDef<GuideResource>[] => [
   {
-    accessorKey: "full_document_number",
+    accessorKey: "full_guide_number",
     header: "N° Documento",
     cell: ({ getValue }) => (
       <Badge variant={"outline"} className="font-mono text-xs font-semibold">
@@ -67,7 +71,7 @@ export const GuideColumns = ({
     header: "Cliente",
     cell: ({ row }) => {
       const sale = row.original.sale;
-      return <span className="text-sm">{sale?.customer_fullname || "-"}</span>;
+      return <span className="text-sm text-wrap">{sale?.customer_fullname || "-"}</span>;
     },
   },
   {
@@ -83,22 +87,21 @@ export const GuideColumns = ({
     },
   },
   {
-    accessorKey: "carrier_name",
+    accessorKey: "driver",
     header: "Transportista",
-    cell: ({ getValue }) => (
-      <span className="text-sm">{getValue() as string}</span>
-    ),
+    cell: ({ getValue }) => {
+      const driver = getValue() as Carrier;
+      return (
+        <span className="text-sm text-wrap">{driver.business_name ?? driver.names}</span>
+      );
+    },
   },
   {
     accessorKey: "total_weight",
     header: "Peso Total",
     cell: ({ row }) => {
       const weight = row.original.total_weight;
-      return (
-        <span className="text-sm font-mono">
-          {weight} KG
-        </span>
-      );
+      return <span className="text-sm font-mono">{weight} KG</span>;
     },
   },
   {

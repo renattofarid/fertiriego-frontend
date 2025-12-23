@@ -232,7 +232,7 @@ interface Vehicle {
   created_at: string;
 }
 
-interface Carrier {
+export interface Carrier {
   id: number;
   type_document: string;
   type_person: string;

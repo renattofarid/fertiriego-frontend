@@ -36,7 +36,8 @@ export default function GuideEditPage() {
   });
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
-  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } = useWarehouseDocuments();
+  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
+    useWarehouseDocuments();
   const recipients = useAllPersons();
 
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
@@ -71,31 +72,37 @@ export default function GuideEditPage() {
 
   const mapGuideToForm = (data: GuideResource): Partial<GuideSchema> => {
     return {
-      warehouse_id: data.warehouse_id.toString(),
+      warehouse_id: data.warehouse?.id?.toString() || "",
       issue_date: data.issue_date?.split("T")[0],
       transfer_date: data.transfer_date?.split("T")[0],
-      motive_id: data.motive_id.toString(),
-      sale_id: data.sale_id ? data.sale_id.toString() : undefined,
-      purchase_id: data.purchase_id ? data.purchase_id.toString() : undefined,
-      warehouse_document_id: data.warehouse_document_id ? data.warehouse_document_id.toString() : undefined,
+      motive_id: data.motive?.id?.toString() || "",
+      sale_id: data.sale?.id ? data.sale.id.toString() : undefined,
+      purchase_id: data.purchase?.id ? data.purchase.id.toString() : undefined,
+      warehouse_document_id: data.warehouse_document?.id
+        ? data.warehouse_document.id.toString()
+        : undefined,
       transport_modality: data.transport_modality,
-      carrier_id: data.carrier_id.toString(),
-      driver_id: data.driver_id.toString(),
-      vehicle_id: data.vehicle_id.toString(),
+      carrier_id: data.carrier?.id?.toString() || "",
+      driver_id: data.driver?.id?.toString() || "",
+      vehicle_id: data.vehicle?.id?.toString() || "",
       driver_license: data.driver_license,
       origin_address: data.origin_address,
-      origin_ubigeo_id: data.origin_ubigeo_id.toString(),
+      origin_ubigeo_id: "", // Este campo no viene completo en GuideResource, se podría buscar
       destination_address: data.destination_address,
-      destination_ubigeo_id: data.destination_ubigeo_id.toString(),
-      destination_warehouse_id: data.destination_warehouse_id ? data.destination_warehouse_id.toString() : undefined,
-      recipient_id: data.recipient_id ? data.recipient_id.toString() : undefined,
+      destination_ubigeo_id: "", // Este campo no viene completo en GuideResource, se podría buscar
+      destination_warehouse_id: data.destination_warehouse?.id
+        ? data.destination_warehouse.id.toString()
+        : undefined,
+      recipient_id: data.recipient?.id
+        ? data.recipient.id.toString()
+        : undefined,
       observations: data.observations,
       details: data.details.map((detail) => ({
         product_id: detail.product_id.toString(),
         description: detail.description,
-        quantity: detail.quantity,
-        unit_measure: detail.unit_measure,
-        weight: detail.weight || 0,
+        quantity: Number(detail.quantity),
+        unit_measure: detail.unit_measure || "UND",
+        weight: Number(detail.weight) || 0,
       })),
     };
   };
