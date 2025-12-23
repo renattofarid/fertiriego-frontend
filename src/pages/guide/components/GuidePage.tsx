@@ -17,7 +17,6 @@ import { GuideColumns } from "./GuideColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { GUIDE } from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 const { MODEL, ICON } = GUIDE;
 
@@ -27,10 +26,9 @@ export default function GuidePage() {
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { user } = useAuthStore();
+  // const { user } = useAuthStore(); // user not used currently
 
   const { data, meta, isLoading, refetch } = useGuides({
-    company_id: user?.company_id,
     page,
     search,
     per_page,
@@ -62,15 +60,11 @@ export default function GuidePage() {
   const exportEndpoint = useMemo(() => {
     const params = new URLSearchParams();
 
-    if (user?.company_id) {
-      params.append("company_id", user.company_id.toString());
-    }
-
     const queryString = params.toString();
     const baseExcelUrl = "/guide/export";
 
     return queryString ? `${baseExcelUrl}?${queryString}` : baseExcelUrl;
-  }, [user?.company_id]);
+  }, []);
 
   return (
     <div className="space-y-4">

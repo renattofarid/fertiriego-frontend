@@ -211,7 +211,6 @@ export const AddProductSheet = ({
           name="is_igv"
           text="Incluye IGV"
           textDescription="El precio unitario incluye el IGV"
-          autoHeight
         />
 
         {calculatedValues.total > 0 && (

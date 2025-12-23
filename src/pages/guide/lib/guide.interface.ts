@@ -10,6 +10,7 @@ export interface GuideDetailResource {
   product_id: number;
   quantity: number;
   unit_measure: string;
+  unit_code: string;
   description: string;
   weight: number;
   product: Product;
@@ -36,6 +37,7 @@ export interface GuideResource {
   issue_date: string;
   transfer_date: string;
   transport_modality: string;
+  modality: string;
   motive_id: number;
   carrier_id: number;
   driver_id: number;
@@ -43,15 +45,31 @@ export interface GuideResource {
   driver_license: string;
   origin_address: string;
   origin_ubigeo_id: number;
+  origin_ubigeo: string;
   destination_address: string;
   destination_ubigeo_id: number;
+  destination_ubigeo: string;
   destination_warehouse_id?: number;
   recipient_id?: number;
   status: string;
   is_electronic: boolean;
   observations: string;
+  total_weight: number;
+  unit_measurement: string;
+  total_packages: number;
+  sale_document_number?: string;
+  carrier_name: string;
+  carrier_ruc: string;
+  carrier_mtc_number: string;
+  carrier_document_type: string;
+  carrier_document_number: string;
+  vehicle_plate?: string;
+  driver_name?: string;
+  driver_document_type?: string;
+  driver_document_number?: string;
   company: Company;
   warehouse: Branch;
+  customer?: Customer;
   user: User;
   motive: GuideMotiveResource;
   sale?: string;
@@ -87,6 +105,12 @@ interface Company {
   social_reason: string;
   trade_name: string;
   ruc: string;
+}
+
+interface Customer {
+  id: number;
+  full_name?: string;
+  business_name?: string;
 }
 
 export interface GuideResourceById {

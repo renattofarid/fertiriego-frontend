@@ -41,8 +41,8 @@ export default function DebitNoteEditPage() {
         sale_detail_id: detail.sale_detail_id.toString(),
         product_id: detail.product_id,
         concept: detail.concept,
-        quantity: detail.quantity,
-        unit_price: detail.unit_price,
+        quantity: Number(detail.quantity),
+        unit_price: Number(detail.unit_price),
       })) || [],
   });
 

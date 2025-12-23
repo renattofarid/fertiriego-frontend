@@ -19,6 +19,7 @@ interface FormSwitchProps<T extends FieldValues> {
   className?: string;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
+  autoHeight?: boolean;
 }
 
 export function FormSwitch<T extends FieldValues>({
@@ -31,6 +32,7 @@ export function FormSwitch<T extends FieldValues>({
   className,
   disabled,
   size = "md",
+  autoHeight = false,
 }: FormSwitchProps<T>) {
   const sizeClasses = {
     sm: "h-8 p-2 gap-2",
@@ -49,7 +51,8 @@ export function FormSwitch<T extends FieldValues>({
             className={cn(
               "flex flex-row items-center justify-between rounded-lg border shadow-xs bg-background hover:bg-muted hover:cursor-pointer",
               sizeClasses[size],
-              className
+              className,
+              autoHeight ? "h-auto" : "h-8 md:h-10"
             )}
           >
             <div className="flex flex-col gap-1 flex-1 min-w-0">

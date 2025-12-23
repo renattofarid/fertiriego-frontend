@@ -42,7 +42,7 @@ interface PurchaseShippingGuideFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "edit";
+  mode?: "create" | "update";
   products: ProductResource[];
   purchases?: PurchaseResource[];
 }

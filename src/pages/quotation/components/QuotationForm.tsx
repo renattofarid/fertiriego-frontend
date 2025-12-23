@@ -43,7 +43,7 @@ import {
 import { useBranchById } from "@/pages/branch/lib/branch.hook";
 
 interface QuotationFormProps {
-  mode?: "create" | "edit";
+  mode?: "create" | "update";
   initialData?: QuotationResource;
   onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
@@ -233,7 +233,7 @@ export const QuotationForm = ({
 
   // Cargar detalles iniciales cuando se está editando
   useEffect(() => {
-    if (mode === "edit" && initialData?.quotation_details) {
+    if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => ({
           product_id: detail.product_id.toString(),
@@ -596,7 +596,7 @@ export const QuotationForm = ({
           )}
           <Button type="submit" disabled={isSubmitting || details.length === 0}>
             {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === "edit"
+            {mode === "update"
               ? isSubmitting
                 ? "Actualizando..."
                 : "Actualizar Cotización"
