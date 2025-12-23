@@ -52,6 +52,7 @@ import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
 import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 import { GUIDE } from "@/pages/guide/lib/guide.interface";
+import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -227,6 +228,12 @@ const {
   MODEL: { name: GuideTitle },
 } = GUIDE;
 
+const {
+  ICON_REACT: ShippingGuideCarrierIcon,
+  ROUTE: ShippingGuideCarrierRoute,
+  MODEL: { name: ShippingGuideCarrierTitle },
+} = SHIPPING_GUIDE_CARRIER;
+
 const data = {
   navMain: [
     {
@@ -295,6 +302,11 @@ const data = {
           title: GuideTitle,
           url: GuideRoute,
           icon: GuideIcon,
+        },
+        {
+          title: ShippingGuideCarrierTitle,
+          url: ShippingGuideCarrierRoute,
+          icon: ShippingGuideCarrierIcon,
         },
         {
           title: AccountsReceivableTitle,

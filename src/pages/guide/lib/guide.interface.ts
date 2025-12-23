@@ -40,13 +40,20 @@ export interface GuideResource {
   carrier: Carrier;
   driver: Carrier;
   vehicle: Vehicle;
-  origin_ubigeo?: string;
-  destination_ubigeo?: string;
+  originUbigeo: UbigeoGuide;
+  destinationUbigeo: UbigeoGuide;
   destination_warehouse: Warehouse;
   recipient: Carrier;
   details: GuideDetailResource[];
   created_at: string;
   updated_at: string;
+}
+
+export interface UbigeoGuide {
+  id: number;
+  name: string;
+  cadena: string;
+  ubigeo_code: string;
 }
 
 // ===== API RESPONSES =====

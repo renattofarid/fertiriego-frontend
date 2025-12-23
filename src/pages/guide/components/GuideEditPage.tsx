@@ -87,9 +87,9 @@ export default function GuideEditPage() {
       vehicle_id: data.vehicle?.id?.toString() || "",
       driver_license: data.driver_license,
       origin_address: data.origin_address,
-      origin_ubigeo_id: "", // Este campo no viene completo en GuideResource, se podría buscar
+      origin_ubigeo_id: data.originUbigeo.id.toString(),
       destination_address: data.destination_address,
-      destination_ubigeo_id: "", // Este campo no viene completo en GuideResource, se podría buscar
+      destination_ubigeo_id: data.destinationUbigeo.id.toString(),
       destination_warehouse_id: data.destination_warehouse?.id
         ? data.destination_warehouse.id.toString()
         : undefined,

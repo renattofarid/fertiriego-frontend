@@ -4,13 +4,11 @@ import {
   FileText,
   Calendar,
   Truck,
-  MapPin,
   User,
   Package,
   Clock,
   Building,
   Route as RouteIcon,
-  Weight,
   CircleDot,
   Flag,
   FileCheck,
@@ -74,7 +72,7 @@ export default function GuideDetailPage() {
       <div className="flex justify-between items-center gap-2">
         <BackButton to={ROUTE} />
         <TitleComponent
-          title={`${MODEL.name} - ${guide.full_document_number}`}
+          title={`${MODEL.name} - ${guide.full_guide_number}`}
           subtitle={`Detalle de la ${MODEL.name.toLowerCase()}`}
           icon={ICON}
         />
@@ -100,25 +98,6 @@ export default function GuideDetailPage() {
                 </div>
                 <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
                   <FileCheck className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Peso Total */}
-          <Card className="border-none bg-primary/5 hover:bg-primary/10 transition-colors !p-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">
-                    Peso Total
-                  </p>
-                  <p className="text-xl font-bold text-primary truncate">
-                    {guide.total_weight} {guide.unit_measurement}
-                  </p>
-                </div>
-                <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
-                  <Weight className="h-5 w-5 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -152,10 +131,10 @@ export default function GuideDetailPage() {
                     Modalidad
                   </p>
                   <Badge
-                    variant={modalityVariants[guide.modality] || "default"}
+                    variant={modalityVariants[guide.transport_modality] || "default"}
                     className="text-sm"
                   >
-                    {guide.modality === "PUBLICO" ? "🚌 Público" : "🚗 Privado"}
+                    {guide.transport_modality === "PUBLICO" ? "🚌 Público" : "🚗 Privado"}
                   </Badge>
                 </div>
                 <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
@@ -177,70 +156,29 @@ export default function GuideDetailPage() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Número de Documento
-                </p>
-                <p className="font-mono font-bold text-lg">
-                  {guide.full_document_number}
-                </p>
+                <p className="text-xs text-muted-foreground">Número de Documento</p>
+                <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Motivo</p>
                 <p className="font-semibold">{guide.motive?.name}</p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Electrónico</p>
-                <Badge variant={guide.is_electronic ? "default" : "secondary"}>
-                  {guide.is_electronic ? "✅ Sí" : "❌ No"}
-                </Badge>
-              </div>
             </div>
-
-            {guide.sale_document_number && (
-              <div className="pt-2 border-t">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    Documento de Venta Asociado
-                  </p>
-                  <p className="font-mono font-bold text-primary">
-                    {guide.sale_document_number}
-                  </p>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Cliente y Almacén */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {guide.customer && (
-            <Card className="!gap-0">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Cliente
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <p className="font-semibold text-lg">
-                  {guide.customer?.full_name ?? guide.customer?.business_name}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Card className="!gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                Almacén
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-              <p className="font-semibold">{guide.warehouse?.name}</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Almacén */}
+        <Card className="!gap-0">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Building className="h-5 w-5" />
+              Almacén
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            <p className="font-semibold">{guide.warehouse?.name}</p>
+          </CardContent>
+        </Card>
 
         {/* Fechas */}
         <Card className="!gap-0">
@@ -289,49 +227,24 @@ export default function GuideDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Razón Social</p>
-                <p className="font-semibold">{guide.carrier_name}</p>
+                <p className="font-semibold">{guide.carrier?.business_name}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">RUC</p>
-                <p className="font-mono font-semibold">{guide.carrier_ruc}</p>
+                <p className="font-mono font-semibold">{guide.carrier?.number_document}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Número MTC</p>
-                <p className="font-mono font-semibold">
-                  {guide.carrier_mtc_number}
+                <p className="text-xs text-muted-foreground">🚗 Placa del Vehículo</p>
+                <p className="font-mono font-bold text-lg text-primary">
+                  {guide.vehicle?.plate}
                 </p>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Tipo de Documento
-                </p>
-                <Badge variant="outline">{guide.carrier_document_type}</Badge>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Número de Documento
-                </p>
-                <p className="font-mono font-semibold">
-                  {guide.carrier_document_number}
-                </p>
-              </div>
-              {guide.vehicle_plate && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    🚗 Placa del Vehículo
-                  </p>
-                  <p className="font-mono font-bold text-lg text-primary">
-                    {guide.vehicle_plate}
-                  </p>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
 
         {/* Información del Conductor */}
-        {guide.driver_name && (
-          <Card className="!gap-0">
+        <Card className="!gap-0">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -342,47 +255,25 @@ export default function GuideDetailPage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">Nombre</p>
-                  <p className="font-semibold">{guide.driver_name}</p>
+                  <p className="font-semibold">{guide.driver?.business_name}</p>
                 </div>
-                {guide.driver_document_type && (
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      Tipo de Documento
-                    </p>
-                    <Badge variant="outline">
-                      {guide.driver_document_type}
-                    </Badge>
-                  </div>
-                )}
-                {guide.driver_document_number && (
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">
-                      Número de Documento
-                    </p>
-                    <p className="font-mono font-semibold">
-                      {guide.driver_document_number}
-                    </p>
-                  </div>
-                )}
-                {guide.driver_license && (
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Licencia</p>
-                    <p className="font-mono font-semibold">
-                      {guide.driver_license}
-                    </p>
-                  </div>
-                )}
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Documento</p>
+                <p className="font-mono">{guide.driver?.number_document}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Licencia</p>
+                <p className="font-mono">{guide.driver_license}</p>
+              </div>
               </div>
             </CardContent>
-          </Card>
-        )}
-
-        {/* Origen y Destino */}
+        </Card>
+        {/* Ubicaciones */}
         <Card className="!gap-0">
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Origen y Destino
+              <RouteIcon className="h-5 w-5" />
+              Ubicaciones
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -456,11 +347,13 @@ export default function GuideDetailPage() {
                           </Badge>
                           <div>
                             <p className="font-semibold text-sm leading-tight">
-                              {detail.product?.name}
+                              {detail.product_name}
                             </p>
-                            <p className="text-xs text-muted-foreground font-mono">
-                              Código: {detail.product?.codigo}
-                            </p>
+                            {detail.product_code && (
+                              <p className="text-xs text-muted-foreground font-mono">
+                                Código: {detail.product_code}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <p className="text-sm text-muted-foreground mt-2">
@@ -472,7 +365,7 @@ export default function GuideDetailPage() {
                           {detail.quantity}
                         </p>
                         <Badge variant="secondary" className="mt-1">
-                          {detail.unit_code}
+                          {detail.unit_measure || 'UND'}
                         </Badge>
                       </div>
                     </div>

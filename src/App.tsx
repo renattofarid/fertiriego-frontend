@@ -112,6 +112,10 @@ import GuidePage from "./pages/guide/components/GuidePage";
 import GuideAddPage from "./pages/guide/components/GuideAddPage";
 import GuideEditPage from "./pages/guide/components/GuideEditPage";
 import GuideDetailPage from "./pages/guide/components/GuideDetailPage";
+import { SHIPPING_GUIDE_CARRIER } from "./pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
+import ShippingGuideCarrierPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierPage";
+import ShippingGuideCarrierAddPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierAddPage";
+import ShippingGuideCarrierEditPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierEditPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -140,6 +144,9 @@ const { ROUTE: DebitNoteRoute } = DEBIT_NOTE;
 const { ROUTE: GuideRoute } = GUIDE;
 const { ROUTE_ADD: GuideAddRoute } = GUIDE;
 const { ROUTE_UPDATE: GuideUpdateRoute } = GUIDE;
+const { ROUTE: ShippingGuideCarrierRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE_ADD: ShippingGuideCarrierAddRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } = SHIPPING_GUIDE_CARRIER;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -834,6 +841,34 @@ export default function App() {
             element={
               <ProtectedRoute path={GuideRoute}>
                 <GuideDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Guías de Transportista */}
+          <Route
+            path={ShippingGuideCarrierRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierAddRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierUpdateRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierEditPage />
               </ProtectedRoute>
             }
           />
