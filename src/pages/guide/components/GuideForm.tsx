@@ -471,8 +471,8 @@ export const GuideForm = ({
           <FormSelect
             control={form.control}
             name="recipient_id"
-            label="Receptor"
-            placeholder="Selecciona un receptor"
+            label="Destinatario"
+            placeholder="Selecciona un destinatario"
             options={recipients.map((recipient) => ({
               value: recipient.id.toString(),
               label:
