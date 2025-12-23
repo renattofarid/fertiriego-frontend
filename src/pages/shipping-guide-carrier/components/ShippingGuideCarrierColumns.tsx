@@ -67,7 +67,11 @@ export const ShippingGuideCarrierColumns = ({
     header: "Transportista",
     cell: ({ row }) => {
       const carrier = row.original.carrier;
-      return <span className="text-sm">{carrier?.business_name || "-"}</span>;
+      return (
+        <span className="text-sm text-wrap">
+          {carrier?.business_name || "-"}
+        </span>
+      );
     },
   },
   {
@@ -75,7 +79,11 @@ export const ShippingGuideCarrierColumns = ({
     header: "Remitente",
     cell: ({ row }) => {
       const remittent = row.original.remittent;
-      return <span className="text-sm">{remittent?.business_name || "-"}</span>;
+      return (
+        <span className="text-sm text-wrap">
+          {remittent?.business_name || "-"}
+        </span>
+      );
     },
   },
   {
@@ -83,7 +91,9 @@ export const ShippingGuideCarrierColumns = ({
     header: "Conductor",
     cell: ({ row }) => {
       const driver = row.original.driver;
-      return <span className="text-sm">{driver?.full_name || "-"}</span>;
+      return (
+        <span className="text-sm text-wrap">{driver?.full_name || "-"}</span>
+      );
     },
   },
   {
@@ -91,11 +101,7 @@ export const ShippingGuideCarrierColumns = ({
     header: "Vehículo",
     cell: ({ row }) => {
       const vehicle = row.original.vehicle;
-      return (
-        <span className="text-sm font-mono">
-          {vehicle?.plate || "-"}
-        </span>
-      );
+      return <span className="text-sm font-mono">{vehicle?.plate || "-"}</span>;
     },
   },
   {
@@ -103,11 +109,7 @@ export const ShippingGuideCarrierColumns = ({
     header: "Peso Total",
     cell: ({ row }) => {
       const weight = row.original.total_weight;
-      return (
-        <span className="text-sm font-mono">
-          {weight} KG
-        </span>
-      );
+      return <span className="text-sm font-mono">{weight} KG</span>;
     },
   },
   {

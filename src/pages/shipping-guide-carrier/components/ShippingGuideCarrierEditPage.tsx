@@ -1,63 +1,106 @@
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import TitleFormComponent from "@/components/TitleFormComponent";
-import FormWrapper from "@/components/FormWrapper";
-import FormSkeleton from "@/components/FormSkeleton";
 import { useShippingGuideCarrierStore } from "../lib/shipping-guide-carrier.store";
+import {
+  ERROR_MESSAGE,
+  SUCCESS_MESSAGE,
+  errorToast,
+  successToast,
+} from "@/lib/core.function";
 import { SHIPPING_GUIDE_CARRIER } from "../lib/shipping-guide-carrier.interface";
-import { Button } from "@/components/ui/button";
+import {
+  ShippingGuideCarrierForm,
+  type ShippingGuideCarrierFormValues,
+} from "./ShippingGuideCarrierForm";
+import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
+import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
+import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import { useAllProducts } from "@/pages/product/lib/product.hook";
+import PageSkeleton from "@/components/PageSkeleton";
+import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 
 export default function ShippingGuideCarrierEditPage() {
+  const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { MODEL, ROUTE, ICON } = SHIPPING_GUIDE_CARRIER;
-
-  const { fetchGuide, guide, isFinding } =
+  const { guide, fetchGuide, updateGuide, isSubmitting, isFinding } =
     useShippingGuideCarrierStore();
 
-  useEffect(() => {
-    if (!id) {
-      navigate(ROUTE);
-      return;
-    }
-    fetchGuide(Number(id));
-  }, [id, navigate, fetchGuide]);
+  // Hooks para datos
+  const { data: suppliers = [], isLoading: loadingSuppliers } =
+    useAllSuppliers();
+  const workers = useAllWorkers();
+  const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
+  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
+  const { data: guides = [] } = useAllGuides();
 
-  if (isFinding) {
-    return (
-      <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
-          </div>
-        </div>
-        <FormSkeleton />
-      </FormWrapper>
-    );
+  // Cargar guía al montar
+  useEffect(() => {
+    if (id) {
+      fetchGuide(parseInt(id));
+    }
+  }, [id, fetchGuide]);
+
+  const isLoading =
+    loadingSuppliers ||
+    loadingVehicles ||
+    loadingProducts ||
+    !workers ||
+    !guides ||
+    isFinding;
+
+  const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
+    if (!id) return;
+    try {
+      await updateGuide(parseInt(id), values as any);
+      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      navigate(ROUTE);
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
+      );
+    }
+  };
+
+  if (isLoading || !guide) {
+    return <PageSkeleton />;
   }
 
-  return (
-    <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
-        </div>
-      </div>
+  // Mapear datos de la guía a initialValues
+  const initialValues: ShippingGuideCarrierFormValues = {
+    carrier_id: guide.carrier.id.toString(),
+    issue_date: guide.issue_date,
+    transfer_start_date: guide.transfer_start_date,
+    shipping_guide_remittent_id: guide.remittent.id.toString(),
+    driver_id: guide.driver.id.toString(),
+    vehicle_id: guide.vehicle.id.toString(),
+    secondary_vehicle_id: guide.secondary_vehicle?.id.toString() || "",
+    driver_license: guide.driver_license,
+    origin_address: guide.origin_address,
+    origin_ubigeo_id: guide.origin_ubigeo?.id.toString() || "",
+    destination_address: guide.destination_address,
+    destination_ubigeo_id: guide.destination_ubigeo?.id.toString() || "",
+    observations: guide.observations || "",
+    details: guide.details.map((d) => ({
+      product_id: d.product_id.toString(),
+      description: d.description,
+      quantity: d.quantity,
+      unit: d.unit_measure || "",
+      weight: d.weight,
+    })),
+  };
 
-      <div className="p-4 border rounded-lg">
-        <p className="text-sm text-muted-foreground mb-4">
-          El formulario completo para editar guías de transportista está en desarrollo.
-        </p>
-        {guide && (
-          <div className="mb-4 text-sm">
-            <p><strong>Guía:</strong> {guide.full_guide_number}</p>
-            <p><strong>Estado:</strong> {guide.status}</p>
-          </div>
-        )}
-        <Button onClick={() => navigate(ROUTE)} variant="outline">
-          Volver al listado
-        </Button>
-      </div>
-    </FormWrapper>
+  return (
+    <ShippingGuideCarrierForm
+      mode="update"
+      onSubmit={onSubmit}
+      isSubmitting={isSubmitting}
+      initialValues={initialValues}
+      carriers={suppliers || []}
+      remittents={guides || []}
+      drivers={workers || []}
+      vehicles={vehicles || []}
+      products={products || []}
+    />
   );
 }

@@ -150,6 +150,25 @@ export function ShippingGuideCarrierForm({
     },
   });
 
+  // Cargar detalles iniciales cuando hay initialValues
+  useEffect(() => {
+    if (initialValues?.details && initialValues.details.length > 0) {
+      const mappedDetails: DetailRow[] = initialValues.details.map((d) => {
+        const product = products.find((p) => p.id.toString() === d.product_id);
+        return {
+          product_id: d.product_id,
+          product_name: product?.name || "Producto desconocido",
+          brand_name: product?.brand_name,
+          description: d.description,
+          quantity: parseFloat(d.quantity) || 0,
+          unit: d.unit,
+          weight: parseFloat(d.weight) || 0,
+        };
+      });
+      setDetails(mappedDetails);
+    }
+  }, [initialValues, products]);
+
   // Buscar ubigeos origen
   const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
     if (!searchTerm || searchTerm.length < 3) {
@@ -666,6 +685,48 @@ export function ShippingGuideCarrierForm({
               )}
             </div>
           </GroupFormSection>
+
+          {form.formState.errors &&
+            Object.keys(form.formState.errors).length > 0 && (
+              <div className="p-4 bg-red-100 text-red-800 rounded">
+                <strong>Errores de validación:</strong>
+                <ul className="mt-2 list-disc list-inside">
+                  {Object.entries(form.formState.errors).map(
+                    ([field, error]) => {
+                      if (Array.isArray(error)) {
+                        return error.map((err, idx) => {
+                          if (typeof err === "object" && err !== null) {
+                            return Object.entries(err).map(([key, val]) => (
+                              <li key={`${field}-${idx}-${key}`}>
+                                {field}[{idx}].{key}:{" "}
+                                {typeof val === "object" &&
+                                val !== null &&
+                                "message" in val
+                                  ? (val as { message: string }).message
+                                  : "Error en este campo"}
+                              </li>
+                            ));
+                          }
+                          return (
+                            <li key={`${field}-${idx}`}>
+                              {field}[{idx}]:{" "}
+                              {typeof err === "object" && err?.message
+                                ? err.message
+                                : "Error en este campo"}
+                            </li>
+                          );
+                        });
+                      }
+                      return (
+                        <li key={field}>
+                          {field}: {error?.message || "Error en este campo"}
+                        </li>
+                      );
+                    }
+                  )}
+                </ul>
+              </div>
+            )}
 
           <div className="flex justify-end gap-3">
             <Button

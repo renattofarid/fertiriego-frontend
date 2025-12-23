@@ -8,7 +8,11 @@ import { Truck } from "lucide-react";
 
 // ===== API RESOURCES =====
 
-export type ShippingGuideCarrierStatus = "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA";
+export type ShippingGuideCarrierStatus =
+  | "EMITIDA"
+  | "EN_TRANSITO"
+  | "ENTREGADA"
+  | "ANULADA";
 
 export interface ShippingGuideCarrierDetailResource {
   id: number;
@@ -152,7 +156,8 @@ export const SHIPPING_GUIDE_CARRIER_QUERY_KEY = "shipping-guide-carriers";
 
 export const ShippingGuideCarrierRoute = "/guias-transportista";
 export const ShippingGuideCarrierAddRoute = "/guias-transportista/agregar";
-export const ShippingGuideCarrierEditRoute = "/guias-transportista/actualizar/:id";
+export const ShippingGuideCarrierEditRoute =
+  "/guias-transportista/actualizar/:id";
 export const ShippingGuideCarrierDetailRoute = "/guias-transportista/:id";
 
 // ===== STATUS & TYPE OPTIONS =====
@@ -175,36 +180,36 @@ export const SHIPPING_GUIDE_CARRIER_STATUSES = [
 // ===== MODEL COMPLETE =====
 import type { ShippingGuideCarrierSchema } from "./shipping-guide-carrier.schema.ts";
 
-
 const NAME = "Guía de Transportista";
 
-export const SHIPPING_GUIDE_CARRIER: ModelComplete<ShippingGuideCarrierSchema> = {
-  MODEL: {
-    name: NAME,
-    description: "Gestión de guías de transportista del sistema.",
-    plural: "Guías de Transportista",
-    gender: false,
-  },
-  ICON: "Truck",
-  ICON_REACT: Truck,
-  ENDPOINT: SHIPPING_GUIDE_CARRIER_ENDPOINT,
-  QUERY_KEY: SHIPPING_GUIDE_CARRIER_QUERY_KEY,
-  ROUTE: ShippingGuideCarrierRoute,
-  ROUTE_ADD: ShippingGuideCarrierAddRoute,
-  ROUTE_UPDATE: ShippingGuideCarrierEditRoute,
-  TITLES: {
-    create: {
-      title: `Crear ${NAME}`,
-      subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+export const SHIPPING_GUIDE_CARRIER: ModelComplete<ShippingGuideCarrierSchema> =
+  {
+    MODEL: {
+      name: NAME,
+      description: "Gestión de guías de transportista del sistema.",
+      plural: "Guías de Transportista",
+      gender: false,
     },
-    update: {
-      title: `Actualizar ${NAME}`,
-      subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+    ICON: "Truck",
+    ICON_REACT: Truck,
+    ENDPOINT: SHIPPING_GUIDE_CARRIER_ENDPOINT,
+    QUERY_KEY: SHIPPING_GUIDE_CARRIER_QUERY_KEY,
+    ROUTE: ShippingGuideCarrierRoute,
+    ROUTE_ADD: ShippingGuideCarrierAddRoute,
+    ROUTE_UPDATE: ShippingGuideCarrierEditRoute,
+    TITLES: {
+      create: {
+        title: `Crear ${NAME}`,
+        subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+      },
+      update: {
+        title: `Actualizar ${NAME}`,
+        subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+      },
+      delete: {
+        title: `Eliminar ${NAME}`,
+        subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+      },
     },
-    delete: {
-      title: `Eliminar ${NAME}`,
-      subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
-    },
-  },
-  EMPTY: {} as any,
-};
+    EMPTY: {} as any,
+  };
