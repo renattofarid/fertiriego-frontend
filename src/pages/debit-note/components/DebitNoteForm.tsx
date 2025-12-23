@@ -20,6 +20,7 @@ import {
 import { Loader, Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
+import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -43,6 +44,7 @@ export const DebitNoteForm = ({
   debitNoteReasons,
 }: DebitNoteFormProps) => {
   const { data: sales } = useAllSales();
+  const { data: warehouses } = useAllWarehouses();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
     defaultValues.sale_id || null
   );
@@ -56,7 +58,15 @@ export const DebitNoteForm = ({
       issue_date: "",
       debit_note_motive_id: "",
       observations: "",
-      details: [],
+      details: [
+        {
+          sale_detail_id: "",
+          product_id: 0,
+          concept: "",
+          quantity: 0,
+          unit_price: 0,
+        },
+      ],
       ...defaultValues,
     },
     mode: "onChange",
@@ -66,6 +76,13 @@ export const DebitNoteForm = ({
     control: form.control,
     name: "details",
   });
+
+  // Preparar opciones para el selector de almacenes
+  const warehouseOptions =
+    warehouses?.map((warehouse) => ({
+      value: warehouse.id.toString(),
+      label: warehouse.name,
+    })) || [];
 
   // Preparar opciones para el selector de ventas
   const saleOptions =
@@ -96,7 +113,7 @@ export const DebitNoteForm = ({
         selectedSale.details?.map((detail) => ({
           sale_detail_id: detail.id.toString(),
           product_id: detail.product_id,
-          concept: detail.concept,
+          concept: detail.concept ?? "",
           quantity: detail.quantity,
           unit_price: detail.unit_price,
         })) || [];
@@ -132,15 +149,26 @@ export const DebitNoteForm = ({
         <GroupFormSection
           title="Información de la Nota de Crédito"
           icon={Info}
-          cols={{ sm: 1 }}
+          cols={{ sm: 1, md: 3 }}
         >
+          <div className="md:col-span-3">
+            <FormSelect
+              name="sale_id"
+              label="Venta"
+              placeholder="Seleccione la venta"
+              options={saleOptions}
+              control={form.control}
+              disabled={mode === "update"}
+              withValue
+            />
+          </div>
+
           <FormSelect
-            name="sale_id"
-            label="Venta"
-            placeholder="Seleccione la venta"
-            options={saleOptions}
+            name="warehouse_id"
+            label="Almacén"
+            placeholder="Seleccione el almacén"
+            options={warehouseOptions}
             control={form.control}
-            disabled={mode === "update"}
             withValue
           />
           <DatePickerFormField
@@ -148,10 +176,13 @@ export const DebitNoteForm = ({
             name="issue_date"
             label="Fecha de Emisión"
             placeholder="Seleccione la fecha"
+            disabledRange={{
+              after: new Date(),
+            }}
           />
 
           <FormSelect
-            name="debit_note_type"
+            name="debit_note_motive_id"
             label="Tipo de Nota de Crédito"
             placeholder="Seleccione el tipo"
             options={debitNoteReasons.map((reason) => ({
@@ -161,7 +192,7 @@ export const DebitNoteForm = ({
             control={form.control}
           />
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <FormField
               control={form.control}
               name="observations"
@@ -209,7 +240,7 @@ export const DebitNoteForm = ({
           <div className="space-y-4">
             {fields.map((field, index) => (
               <div
-                className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+                className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end"
                 key={field.id}
               >
                 <div className="md:col-span-2">
@@ -219,6 +250,22 @@ export const DebitNoteForm = ({
                     placeholder="Seleccione el producto"
                     options={saleDetailOptions}
                     control={form.control}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name={`details.${index}.concept`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Concepto</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ingrese el concepto" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
                 </div>
 
@@ -278,6 +325,12 @@ export const DebitNoteForm = ({
             ))}
           </div>
         </GroupFormSection>
+
+        <pre>
+          <code>
+            {JSON.stringify(form.formState.errors, null, 2)}
+          </code>
+        </pre>
 
         <div className="flex justify-end space-x-2 px-4 pb-4">
           {onCancel && (

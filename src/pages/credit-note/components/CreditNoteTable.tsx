@@ -16,7 +16,12 @@ export default function CreditNoteTable({
   children,
 }: CreditNoteTableProps) {
   return (
-    <DataTable data={data} columns={columns} isLoading={isLoading}>
+    <DataTable
+      data={data}
+      columns={columns}
+      isLoading={isLoading}
+      initialColumnVisibility={{ created_at: false }}
+    >
       {children}
     </DataTable>
   );

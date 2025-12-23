@@ -1,6 +1,6 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
-import { FilePlus } from "lucide-react";
+import { FileMinus } from "lucide-react";
 
 const ROUTE = "/notas-credito";
 const NAME = "Nota de Crédito";
@@ -12,8 +12,8 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
     plural: "Notas de Crédito",
     gender: false,
   },
-  ICON: "FilePlus",
-  ICON_REACT: FilePlus,
+  ICON: "FileMinus",
+  ICON_REACT: FileMinus,
   ENDPOINT: "/credit-notes",
   QUERY_KEY: "credit-notes",
   ROUTE,

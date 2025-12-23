@@ -13,7 +13,6 @@ export const getDebitNotes = async ({
 }: getDebitNoteProps = {}): Promise<DebitNoteResponse> => {
   const config: AxiosRequestConfig = {
     params: {
-      all: true,
       ...params,
     },
   };

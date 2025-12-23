@@ -16,7 +16,12 @@ export default function DebitNoteTable({
   children,
 }: DebitNoteTableProps) {
   return (
-    <DataTable data={data} columns={columns} isLoading={isLoading}>
+    <DataTable
+      data={data}
+      columns={columns}
+      isLoading={isLoading}
+      initialColumnVisibility={{ created_at: false }}
+    >
       {children}
     </DataTable>
   );
