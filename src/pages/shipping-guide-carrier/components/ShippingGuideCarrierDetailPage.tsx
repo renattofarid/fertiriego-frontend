@@ -1,13 +1,13 @@
 import { useParams } from "react-router-dom";
 import TitleComponent from "@/components/TitleComponent";
-import { FileText, Calendar, Truck, User, Package, FileCheck, Route as RouteIcon, Building } from "lucide-react";
+import { FileText, Calendar, Truck, User, Package, FileCheck, Route as RouteIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { BackButton } from "@/components/BackButton";
 import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
+import { GroupFormSection } from "@/components/GroupFormSection";
 import { useShippingGuideCarrierStore } from "../lib/shipping-guide-carrier.store";
 import { SHIPPING_GUIDE_CARRIER, type ShippingGuideCarrierDetailResource } from "../lib/shipping-guide-carrier.interface";
 
@@ -61,187 +61,113 @@ export default function ShippingGuideCarrierDetailPage() {
       </div>
 
       <div className="space-y-4">
-        {/* Header */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">Estado</p>
-                  <Badge variant={statusVariants[guide.status] || "default"} className="text-sm">
-                    {guide.status}
-                  </Badge>
-                </div>
-                <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
-                  <FileCheck className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-primary/5 hover:bg-primary/10 transition-colors !p-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">Total Bultos</p>
-                  <p className="text-xl font-bold text-primary truncate">{guide.total_packages}</p>
-                </div>
-                <div className="bg-primary/10 p-2.5 rounded-lg shrink-0">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground font-medium mb-1">Peso Total (KG)</p>
-                  <p className="text-xl font-bold truncate">{guide.total_weight}</p>
-                </div>
-                <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
-                  <Truck className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Resumen */}
+        <GroupFormSection title="Resumen" icon={FileCheck} cols={{ sm: 2, md: 3 }}>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Estado</p>
+            <Badge variant={statusVariants[guide.status] || "default"} className="text-sm">
+              {guide.status}
+            </Badge>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Total Bultos</p>
+            <p className="text-lg font-bold">{guide.total_packages}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Peso Total (KG)</p>
+            <p className="text-lg font-bold">{guide.total_weight}</p>
+          </div>
+        </GroupFormSection>
 
         {/* Documento */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Información del Documento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Número</p>
-                <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" /> Fecha Emisión
-                </p>
-                <p className="font-medium">{formatDate(guide.issue_date)}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" /> Inicio Traslado
-                </p>
-                <p className="font-medium">{formatDate(guide.transfer_start_date)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <GroupFormSection title="Información del Documento" icon={FileText} cols={{ sm: 2, md: 3 }}>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Número</p>
+            <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-3 w-3" /> Fecha Emisión
+            </p>
+            <p className="font-medium">{formatDate(guide.issue_date)}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-3 w-3" /> Inicio Traslado
+            </p>
+            <p className="font-medium">{formatDate(guide.transfer_start_date)}</p>
+          </div>
+        </GroupFormSection>
 
         {/* Participantes */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-5 w-5" /> Participantes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Transportista</p>
-              <p className="font-semibold">{guide.carrier?.business_name}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Remitente</p>
-              <p className="font-semibold">{guide.remittent?.business_name}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Conductor</p>
-              <p className="font-semibold">{guide.driver?.full_name}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <GroupFormSection title="Participantes" icon={User} cols={{ sm: 1, md: 3 }}>
+          <div>
+            <p className="text-xs text-muted-foreground">Transportista</p>
+            <p className="font-semibold">{guide.carrier?.business_name}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Remitente</p>
+            <p className="font-semibold">{guide.remittent?.business_name}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Conductor</p>
+            <p className="font-semibold">{guide.driver?.full_name}</p>
+          </div>
+        </GroupFormSection>
 
         {/* Vehículos */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Truck className="h-5 w-5" /> Vehículos
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Principal</p>
-              <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Secundario</p>
-              <p className="font-mono font-semibold">{guide.secondary_vehicle?.plate || "-"}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Licencia Conductor</p>
-              <p className="font-semibold">{guide.driver_license}</p>
-            </div>
-          </CardContent>
-        </Card>
+        <GroupFormSection title="Vehículos" icon={Truck} cols={{ sm: 1, md: 3 }}>
+          <div>
+            <p className="text-xs text-muted-foreground">Principal</p>
+            <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Secundario</p>
+            <p className="font-mono font-semibold">{guide.secondary_vehicle?.plate || "-"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Licencia Conductor</p>
+            <p className="font-semibold">{guide.driver_license}</p>
+          </div>
+        </GroupFormSection>
 
-        {/* Direcciones */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <RouteIcon className="h-5 w-5" /> Rutas
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Dirección Origen</p>
-                <p className="font-medium">{guide.origin_address}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Ubigeo Origen</p>
-                <Badge variant="outline" className="font-mono">
-                  {guide.origin_ubigeo?.full_name || "-"}
-                </Badge>
-              </div>
+        {/* Rutas */}
+        <GroupFormSection title="Rutas" icon={RouteIcon} cols={{ sm: 1, md: 2 }}>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Dirección Origen</p>
+              <p className="font-medium">{guide.origin_address}</p>
             </div>
-            <div className="space-y-2">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Dirección Destino</p>
-                <p className="font-medium">{guide.destination_address}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Ubigeo Destino</p>
-                <Badge variant="outline" className="font-mono">
-                  {guide.destination_ubigeo?.full_name || "-"}
-                </Badge>
-              </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Ubigeo Origen</p>
+              <Badge variant="outline" className="font-mono">
+                {guide.origin_ubigeo?.full_name || "-"}
+              </Badge>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Dirección Destino</p>
+              <p className="font-medium">{guide.destination_address}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground">Ubigeo Destino</p>
+              <Badge variant="outline" className="font-mono">
+                {guide.destination_ubigeo?.full_name || "-"}
+              </Badge>
+            </div>
+          </div>
+        </GroupFormSection>
 
-        {/* Almacén y Observaciones (si aplica) */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Building className="h-5 w-5" /> Observaciones
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{guide.observations || "-"}</p>
-          </CardContent>
-        </Card>
+        {/* Observaciones */}
+        <GroupFormSection title="Observaciones" icon={FileText} cols={{ sm: 1 }}>
+          <p className="text-sm">{guide.observations || "-"}</p>
+        </GroupFormSection>
 
         {/* Detalles */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Package className="h-5 w-5" /> Detalles de Productos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <DataTable columns={detailColumns} data={guide.details || []} />
-          </CardContent>
-        </Card>
+        <GroupFormSection title="Detalles de Productos" icon={Package} cols={{ sm: 1 }}>
+          <DataTable columns={detailColumns} data={guide.details || []} />
+        </GroupFormSection>
       </div>
     </FormWrapper>
   );
