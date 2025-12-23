@@ -99,6 +99,10 @@ import {
 } from "./pages/order/components";
 import { VEHICLE } from "./pages/vehicle/lib/vehicle.interface";
 import VehiclePage from "./pages/vehicle/components/VehiclePage";
+import { CREDIT_NOTE } from "./pages/credit-note/lib/credit-note.interface";
+import CreditNotePage from "./pages/credit-note/components/CreditNotePage";
+import CreditNoteAddPage from "./pages/credit-note/components/CreditNoteAddPage";
+import CreditNoteEditPage from "./pages/credit-note/components/CreditNoteEditPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -122,6 +126,7 @@ const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
 const { ROUTE: QuotationRoute } = QUOTATION;
 const { ROUTE: OrderRoute } = ORDER;
 const { ROUTE: VehicleRoute } = VEHICLE;
+const { ROUTE: CreditNoteRoute } = CREDIT_NOTE;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -723,6 +728,34 @@ export default function App() {
             element={
               <ProtectedRoute path={VehicleRoute}>
                 <VehiclePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Notas de Crédito */}
+          <Route
+            path={CreditNoteRoute}
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNotePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-credito/agregar"
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNoteAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-credito/actualizar/:id"
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNoteEditPage />
               </ProtectedRoute>
             }
           />

@@ -49,6 +49,7 @@ import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
 import { ORDER } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -206,6 +207,12 @@ const {
   MODEL: { name: VehicleTitle },
 } = VEHICLE;
 
+const {
+  ICON_REACT: CreditNoteIcon,
+  ROUTE: CreditNoteRoute,
+  MODEL: { name: CreditNoteTitle },
+} = CREDIT_NOTE;
+
 const data = {
   navMain: [
     {
@@ -259,6 +266,11 @@ const data = {
           title: SaleTitle,
           url: SaleRoute,
           icon: SaleIcon,
+        },
+        {
+          title: CreditNoteTitle,
+          url: CreditNoteRoute,
+          icon: CreditNoteIcon,
         },
         {
           title: AccountsReceivableTitle,
