@@ -71,6 +71,21 @@ export const deleteGuide = async (id: number): Promise<{ message: string }> => {
   return response.data;
 };
 
+export interface ChangeGuideStatusRequest {
+  status: string; // "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA"
+}
+
+export const changeGuideStatus = async (
+  id: number,
+  data: ChangeGuideStatusRequest
+): Promise<{ message: string }> => {
+  const response = await api.put<{ message: string }>(
+    `${GUIDE_ENDPOINT}/${id}/status`,
+    data
+  );
+  return response.data;
+};
+
 // ============================================
 // GUIDE MOTIVES - Read Only Actions
 // ============================================

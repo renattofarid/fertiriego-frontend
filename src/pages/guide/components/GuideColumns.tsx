@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import type { GuideResource } from "../lib/guide.interface";
+import type { GuideResource, GuideStatus } from "../lib/guide.interface";
 import { SelectActions } from "@/components/SelectActions";
 import {
   DropdownMenuGroup,
@@ -12,12 +12,14 @@ interface GuideColumnsProps {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onView: (id: number) => void;
+  onChangeStatus: (id: number, status: GuideStatus) => void;
 }
 
 export const GuideColumns = ({
   onEdit,
   onDelete,
   onView,
+  onChangeStatus,
 }: GuideColumnsProps): ColumnDef<GuideResource>[] => [
   {
     accessorKey: "full_document_number",
@@ -64,8 +66,8 @@ export const GuideColumns = ({
     accessorKey: "customer",
     header: "Cliente",
     cell: ({ row }) => {
-      const customer = row.original.customer;
-      return <span className="text-sm">{customer?.full_name || "-"}</span>;
+      const sale = row.original.sale;
+      return <span className="text-sm">{sale?.customer_fullname || "-"}</span>;
     },
   },
   {
@@ -92,10 +94,9 @@ export const GuideColumns = ({
     header: "Peso Total",
     cell: ({ row }) => {
       const weight = row.original.total_weight;
-      const unit = row.original.unit_measurement;
       return (
         <span className="text-sm font-mono">
-          {weight} {unit}
+          {weight} KG
         </span>
       );
     },
@@ -124,6 +125,11 @@ export const GuideColumns = ({
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => onView(row.original.id)}>
             Ver Detalle
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => onChangeStatus(row.original.id, row.original.status)}
+          >
+            Cambiar Estado
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
             Editar
