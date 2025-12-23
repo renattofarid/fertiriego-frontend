@@ -35,10 +35,10 @@ export const DebitNoteColumns = ({
       },
     },
     {
-      accessorKey: "sale.customer.name",
+      accessorKey: "customer.names",
       header: "Cliente",
       cell: ({ row }) => {
-        return row.original.sale.customer.name;
+        return row.original.customer.names;
       },
     },
     {

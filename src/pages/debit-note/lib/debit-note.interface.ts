@@ -83,9 +83,22 @@ export const DEBIT_NOTE: ModelComplete<DebitNoteResource> = {
     },
     customer: {
       id: 0,
-      name: "",
-      document_type: "",
-      document_number: "",
+      type_document: "",
+      type_person: "",
+      number_document: "",
+      names: "",
+      father_surname: "",
+      mother_surname: "",
+      address: "",
+      phone: "",
+      email: "",
+      business_name: "",
+      commercial_name: "",
+      created_at: "",
+      roles: [],
+      birth_date: "",
+      gender: "",
+      user_id: "",
     },
     user: {
       id: 0,
@@ -190,9 +203,27 @@ interface Unit {
 
 interface Customer2 {
   id: number;
-  name?: string;
-  document_type?: string;
-  document_number?: string;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names: string;
+  father_surname?: string;
+  mother_surname?: string;
+  gender?: string;
+  birth_date?: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name: string;
+  commercial_name: string;
+  user_id?: string;
+  created_at: string;
+  roles: Role[];
+}
+
+interface Role {
+  id: number;
+  name: string;
 }
 
 interface Warehouse {
