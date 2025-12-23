@@ -10,6 +10,7 @@ import {
   SUCCESS_MESSAGE,
   ERROR_MESSAGE,
 } from "@/lib/core.function";
+import FormWrapper from "@/components/FormWrapper";
 
 const { MODEL, ICON, TITLES } = CREDIT_NOTE;
 
@@ -37,29 +38,27 @@ export default function CreditNoteAddPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <FormWrapper>
       <TitleComponent
         title={TITLES.create.title}
         subtitle={TITLES.create.subtitle}
         icon={ICON}
       />
 
-      <div className="bg-card rounded-lg border">
-        <CreditNoteForm
-          defaultValues={{
-            sale_id: 0,
-            issue_date: new Date().toISOString().split("T")[0],
-            credit_note_type: "",
-            reason: "",
-            affects_stock: true,
-            details: [],
-          }}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          mode="create"
-          onCancel={handleCancel}
-        />
-      </div>
-    </div>
+      <CreditNoteForm
+        defaultValues={{
+          sale_id: "",
+          issue_date: "",
+          credit_note_type: "",
+          reason: "",
+          affects_stock: true,
+          details: [],
+        }}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        mode="create"
+        onCancel={handleCancel}
+      />
+    </FormWrapper>
   );
 }

@@ -110,3 +110,8 @@ export const CREDIT_NOTE_TYPES = [
   { value: "ANULACION", label: "Anulación" },
   { value: "BONIFICACION", label: "Bonificación" },
 ] as const;
+
+export interface CreditNoteReason {
+  id: number;
+  name: string;
+}

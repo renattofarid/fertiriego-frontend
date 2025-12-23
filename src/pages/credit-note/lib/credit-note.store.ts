@@ -4,17 +4,23 @@ import {
   getCreditNotes,
   createCreditNote,
   updateCreditNote,
+  getCreditNoteReasons,
 } from "./credit-note.actions";
 import type { CreditNoteSchema } from "./credit-note.schema";
 import type { Meta } from "@/lib/pagination.interface";
-import type { CreditNoteResource } from "./credit-note.interface";
+import type {
+  CreditNoteReason,
+  CreditNoteResource,
+} from "./credit-note.interface";
 
 interface CreditNoteStore {
   allCreditNotes: CreditNoteResource[] | null;
   creditNotes: CreditNoteResource[] | null;
   creditNote: CreditNoteResource | null;
+  allCreditNoteReasons?: CreditNoteReason[];
   meta?: Meta;
   isLoadingAll: boolean;
+  isLoadingAllReasons: boolean;
   isLoading: boolean;
   isFinding: boolean;
   error?: string;
@@ -22,6 +28,7 @@ interface CreditNoteStore {
   fetchAllCreditNotes: () => Promise<void>;
   fetchCreditNotes: (params?: Record<string, any>) => Promise<void>;
   fetchCreditNote: (id: number) => Promise<void>;
+  fetchAllCreditNoteReasons: () => Promise<void>;
   createCreditNote: (data: CreditNoteSchema) => Promise<void>;
   updateCreditNote: (id: number, data: CreditNoteSchema) => Promise<void>;
 }
@@ -30,15 +37,17 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
   allCreditNotes: null,
   creditNote: null,
   creditNotes: null,
+  allCreditNoteReasons: [],
   meta: undefined,
   isLoadingAll: false,
+  isLoadingAllReasons: false,
   isLoading: false,
   isFinding: false,
   isSubmitting: false,
   error: undefined,
 
   fetchCreditNotes: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const { data, meta } = await getCreditNotes({ params });
       set({ creditNotes: data, meta: meta, isLoading: false });
@@ -48,7 +57,7 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
   },
 
   fetchAllCreditNotes: async () => {
-    set({ isLoadingAll: true, error: undefined});
+    set({ isLoadingAll: true, error: undefined });
     try {
       const { data } = await getCreditNotes();
       set({ allCreditNotes: data, isLoadingAll: false });
@@ -58,7 +67,7 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
   },
 
   fetchCreditNote: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const { data } = await getCreditNoteById(id);
       set({ creditNote: data, isFinding: false });
@@ -67,8 +76,21 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
     }
   },
 
+  fetchAllCreditNoteReasons: async (params?: Record<string, any>) => {
+    set({ isLoadingAllReasons: true, error: undefined });
+    try {
+      const data = await getCreditNoteReasons(params);
+      set({ allCreditNoteReasons: data, isLoadingAllReasons: false });
+    } catch (err) {
+      set({
+        error: "Error al cargar la nota de crédito",
+        isLoadingAllReasons: false,
+      });
+    }
+  },
+
   createCreditNote: async (data) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await createCreditNote(data);
     } catch (err) {
@@ -80,7 +102,7 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
   },
 
   updateCreditNote: async (id: number, data: CreditNoteSchema) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await updateCreditNote(id, data);
     } catch (err) {

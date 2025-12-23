@@ -17,14 +17,15 @@ import {
   creditNoteSchema,
   type CreditNoteSchema,
 } from "../lib/credit-note.schema";
-import { Loader, Trash2, Plus } from "lucide-react";
+import { Loader, Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
-import { CREDIT_NOTE_TYPES } from "../lib/credit-note.interface";
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
+import { GroupFormSection } from "@/components/GroupFormSection";
+import { useCreditNoteReasons } from "../lib/credit-note.hook";
+import type { Option } from "@/lib/core.interface";
 
 interface CreditNoteFormProps {
   defaultValues: Partial<CreditNoteSchema>;
@@ -74,12 +75,14 @@ export const CreditNoteForm = ({
       description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
 
-  const creditNoteTypeOptions = CREDIT_NOTE_TYPES.map((type) => ({
-    value: type.value,
-    label: type.label,
+  const { data: creditNoteReasons = [] } = useCreditNoteReasons();
+
+  const creditNoteTypeOptions: Option[] = creditNoteReasons.map((reason) => ({
+    value: reason.id.toString(),
+    label: reason.name,
   }));
 
-  // Cuando se selecciona una venta, actualizar el estado
+  // Cuando se selecciona una venta, actualizar el estado y cargar detalles
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === "sale_id" && value.sale_id) {
@@ -88,6 +91,25 @@ export const CreditNoteForm = ({
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  // Cargar todos los detalles de la venta seleccionada
+  useEffect(() => {
+    if (selectedSale && mode === "create") {
+      // Limpiar detalles existentes
+      form.setValue("details", []);
+
+      // Cargar todos los detalles de la venta
+      const saleDetails =
+        selectedSale.details?.map((detail) => ({
+          sale_detail_id: detail.id.toString(),
+          product_id: detail.product_id,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+        })) || [];
+
+      form.setValue("details", saleDetails);
+    }
+  }, [selectedSale, mode, form]);
 
   // Preparar opciones de productos de la venta seleccionada
   const saleDetailOptions =
@@ -112,7 +134,11 @@ export const CreditNoteForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg">
+        <GroupFormSection
+          title="Información de la Nota de Crédito"
+          icon={Info}
+          cols={{ sm: 1 }}
+        >
           <FormSelect
             name="sale_id"
             label="Venta"
@@ -120,6 +146,7 @@ export const CreditNoteForm = ({
             options={saleOptions}
             control={form.control}
             disabled={mode === "update"}
+            withValue
           />
           <DatePickerFormField
             control={form.control}
@@ -162,26 +189,25 @@ export const CreditNoteForm = ({
               )}
             />
           </div>
-        </div>
+        </GroupFormSection>
 
         {/* Detalles */}
-        <div className="p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">
-              Detalles de la Nota de Crédito
-            </h3>
+        <GroupFormSection
+          title="Detalles de la Nota de Crédito"
+          icon={Info}
+          cols={{ sm: 1 }}
+          headerExtra={
             <Button
               type="button"
               onClick={handleAddDetail}
-              variant="outline"
               size="sm"
               disabled={!selectedSaleId}
             >
               <Plus className="mr-2 h-4 w-4" />
               Agregar Detalle
             </Button>
-          </div>
-
+          }
+        >
           {fields.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               No hay detalles agregados. Seleccione una venta y agregue
@@ -191,77 +217,76 @@ export const CreditNoteForm = ({
 
           <div className="space-y-4">
             {fields.map((field, index) => (
-              <Card key={field.id}>
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                    <div className="md:col-span-2">
-                      <FormSelect
-                        name={`details.${index}.sale_detail_id`}
-                        label="Producto de la Venta"
-                        placeholder="Seleccione el producto"
-                        options={saleDetailOptions}
-                        control={form.control}
-                      />
-                    </div>
+              <div
+                className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+                key={field.id}
+              >
+                <div className="md:col-span-2">
+                  <FormSelect
+                    name={`details.${index}.sale_detail_id`}
+                    label="Producto de la Venta"
+                    placeholder="Seleccione el producto"
+                    options={saleDetailOptions}
+                    control={form.control}
+                  />
+                </div>
 
-                    <FormField
-                      control={form.control}
-                      name={`details.${index}.quantity`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cantidad</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.001"
-                              placeholder="0"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <FormField
+                  control={form.control}
+                  name={`details.${index}.quantity`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cantidad</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.001"
+                          placeholder="0"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                    <FormField
-                      control={form.control}
-                      name={`details.${index}.unit_price`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Precio Unitario</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <FormField
+                  control={form.control}
+                  name={`details.${index}.unit_price`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Precio Unitario</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => remove(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             ))}
           </div>
-        </div>
+        </GroupFormSection>
 
         <div className="flex justify-end space-x-2 px-4 pb-4">
           {onCancel && (

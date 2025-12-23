@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useCreditNoteStore } from "./credit-note.store";
 
 export function useCreditNote(params?: Record<string, unknown>) {
-  const { creditNotes, meta, isLoading, error, fetchCreditNotes } = useCreditNoteStore();
+  const { creditNotes, meta, isLoading, error, fetchCreditNotes } =
+    useCreditNoteStore();
 
   useEffect(() => {
     if (!creditNotes) fetchCreditNotes(params);
@@ -17,8 +18,27 @@ export function useCreditNote(params?: Record<string, unknown>) {
   };
 }
 
+export function useCreditNoteReasons() {
+  const {
+    allCreditNoteReasons,
+    fetchAllCreditNoteReasons,
+    isLoadingAllReasons,
+  } = useCreditNoteStore();
+
+  useEffect(() => {
+    if (!allCreditNoteReasons) fetchAllCreditNoteReasons();
+  }, [allCreditNoteReasons, fetchAllCreditNoteReasons]);
+
+  return {
+    data: allCreditNoteReasons,
+    isLoading: isLoadingAllReasons,
+    refetch: fetchAllCreditNoteReasons,
+  };
+}
+
 export function useAllCreditNotes() {
-  const { allCreditNotes, isLoadingAll, error, fetchAllCreditNotes } = useCreditNoteStore();
+  const { allCreditNotes, isLoadingAll, error, fetchAllCreditNotes } =
+    useCreditNoteStore();
 
   useEffect(() => {
     if (!allCreditNotes) fetchAllCreditNotes();
@@ -33,7 +53,8 @@ export function useAllCreditNotes() {
 }
 
 export function useCreditNoteById(id: number) {
-  const { creditNote, isFinding, error, fetchCreditNote } = useCreditNoteStore();
+  const { creditNote, isFinding, error, fetchCreditNote } =
+    useCreditNoteStore();
 
   useEffect(() => {
     fetchCreditNote(id);
