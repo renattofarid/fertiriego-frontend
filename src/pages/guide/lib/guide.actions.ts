@@ -2,10 +2,10 @@ import { api } from "@/lib/config";
 import type {
   GuideResponse,
   GuideResource,
-  GuideResourceById,
   CreateGuideRequest,
   UpdateGuideRequest,
   GuideMotiveResponse,
+  GuideResourceById,
 } from "./guide.interface";
 import { GUIDE_ENDPOINT, GUIDE_MOTIVE_ENDPOINT } from "./guide.interface";
 
@@ -67,6 +67,21 @@ export const updateGuide = async (
 export const deleteGuide = async (id: number): Promise<{ message: string }> => {
   const response = await api.delete<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}`
+  );
+  return response.data;
+};
+
+export interface ChangeGuideStatusRequest {
+  status: string; // "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA"
+}
+
+export const changeGuideStatus = async (
+  id: number,
+  data: ChangeGuideStatusRequest
+): Promise<{ message: string }> => {
+  const response = await api.patch<{ message: string }>(
+    `${GUIDE_ENDPOINT}/${id}/status`,
+    data
   );
   return response.data;
 };

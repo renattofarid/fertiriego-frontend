@@ -193,7 +193,7 @@ export function DataTable<TData, TValue>({
       {/* Vista de Cards para móviles */}
       <div className="md:hidden w-full space-y-3">
         {isLoading ? (
-          <Card>
+          <Card className="py-0!">
             <CardContent className="pt-6">
               <FormSkeleton />
             </CardContent>
@@ -224,7 +224,7 @@ export function DataTable<TData, TValue>({
             return (
               <Card
                 key={row.id}
-                className={cn(mobileCardVariants({ variant }))}
+                className={cn(mobileCardVariants({ variant }), "py-0! gap-0")}
               >
                 <CardContent className="p-4">
                   <div className="grid grid-cols-1 gap-2">
@@ -258,7 +258,7 @@ export function DataTable<TData, TValue>({
                 </CardContent>
                 {actionCell && (
                   <CardFooter
-                    className={cn(mobileCardFooterVariants({ variant }))}
+                    className={cn(mobileCardFooterVariants({ variant }), "py-0!")}
                   >
                     {flexRender(
                       actionCell.column.columnDef.cell,

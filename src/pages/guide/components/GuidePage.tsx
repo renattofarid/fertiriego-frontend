@@ -7,6 +7,7 @@ import GuideTable from "./GuideTable";
 import GuideOptions from "./GuideOptions";
 import { useGuideStore } from "../lib/guide.store";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import { GuideStatusChangeDialog } from "./GuideStatusChangeDialog";
 import {
   successToast,
   errorToast,
@@ -15,7 +16,7 @@ import {
 } from "@/lib/core.function";
 import { GuideColumns } from "./GuideColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { GUIDE } from "../lib/guide.interface";
+import { GUIDE, type GuideStatus } from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = GUIDE;
@@ -26,14 +27,17 @@ export default function GuidePage() {
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  // const { user } = useAuthStore(); // user not used currently
+  const [statusChangeData, setStatusChangeData] = useState<{
+    id: number;
+    currentStatus: GuideStatus;
+  } | null>(null);
 
   const { data, meta, isLoading, refetch } = useGuides({
     page,
     search,
     per_page,
   });
-  const { removeGuide } = useGuideStore();
+  const { removeGuide, changeStatus } = useGuideStore();
 
   const handleEdit = (id: number) => {
     navigate(`${GUIDE.ROUTE}/actualizar/${id}`);
@@ -53,6 +57,26 @@ export default function GuidePage() {
       errorToast(error.response?.data?.message, ERROR_MESSAGE(MODEL, "delete"));
     } finally {
       setDeleteId(null);
+    }
+  };
+
+  const handleChangeStatus = (id: number, currentStatus: GuideStatus) => {
+    setStatusChangeData({ id, currentStatus });
+  };
+
+  const confirmStatusChange = async (newStatus: GuideStatus) => {
+    if (!statusChangeData) return;
+    try {
+      await changeStatus(statusChangeData.id, newStatus);
+      await refetch();
+      successToast(`Estado actualizado a ${newStatus}`);
+    } catch (error: any) {
+      errorToast(
+        error.response?.data?.message || "Error al actualizar el estado",
+        "Error al cambiar el estado"
+      );
+    } finally {
+      setStatusChangeData(null);
     }
   };
 
@@ -83,6 +107,7 @@ export default function GuidePage() {
           onEdit: handleEdit,
           onDelete: setDeleteId,
           onView: handleView,
+          onChangeStatus: handleChangeStatus,
         })}
         data={data || []}
       >
@@ -103,6 +128,15 @@ export default function GuidePage() {
           open={true}
           onOpenChange={(open) => !open && setDeleteId(null)}
           onConfirm={handleDelete}
+        />
+      )}
+
+      {statusChangeData !== null && (
+        <GuideStatusChangeDialog
+          open={true}
+          onOpenChange={(open) => !open && setStatusChangeData(null)}
+          onConfirm={confirmStatusChange}
+          currentStatus={statusChangeData.currentStatus}
         />
       )}
     </div>

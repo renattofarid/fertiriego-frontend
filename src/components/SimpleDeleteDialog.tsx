@@ -13,14 +13,23 @@ interface SimpleDeleteDialogProps {
   onConfirm: () => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  isLoading?: boolean;
 }
 
 export function SimpleDeleteDialog({
   onConfirm,
   open,
   onOpenChange,
+  title,
+  description,
+  confirmText,
+  isLoading,
 }: SimpleDeleteDialogProps) {
   const [loading, setLoading] = useState(false);
+  const effectiveLoading = isLoading ?? loading;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -36,26 +45,26 @@ export function SimpleDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Eliminar registro</DialogTitle>
+          <DialogTitle>{title ?? "Eliminar registro"}</DialogTitle>
           <DialogDescription>
-            Esta acción no se puede deshacer. ¿Estás seguro de que deseas
-            eliminar este registro?
+            {description ??
+              "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?"}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2 mt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={loading}
+            disabled={effectiveLoading}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={loading}
+            disabled={effectiveLoading}
           >
-            {loading ? "Eliminando..." : "Confirmar"}
+            {effectiveLoading ? (confirmText ? `${confirmText}...` : "Procesando...") : (confirmText ?? "Confirmar")}
           </Button>
         </div>
       </DialogContent>

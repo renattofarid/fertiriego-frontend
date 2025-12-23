@@ -326,11 +326,9 @@ export const DebitNoteForm = ({
           </div>
         </GroupFormSection>
 
-        <pre>
-          <code>
-            {JSON.stringify(form.formState.errors, null, 2)}
-          </code>
-        </pre>
+        {/* <pre>
+          <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+        </pre> */}
 
         <div className="flex justify-end space-x-2 px-4 pb-4">
           {onCancel && (

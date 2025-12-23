@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useState, useEffect } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
   Form,
   FormField,
@@ -14,14 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Loader, Plus, Trash2, Pencil, Truck, MapPin } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -40,6 +33,7 @@ import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/w
 import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
+import { DataTable } from "@/components/DataTable";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -67,6 +61,70 @@ interface DetailRow {
   unit_measure: string;
   weight: string;
 }
+
+const createDetailColumns = (
+  products: ProductResource[],
+  onEdit: (index: number) => void,
+  onDelete: (index: number) => void
+): ColumnDef<DetailRow>[] => [
+  {
+    accessorKey: "product_id",
+    header: "Producto",
+    cell: ({ row }) => {
+      const productId = row.original.product_id;
+      const productName = products.find((p) => p.id == productId);
+      return <span className="text-sm">{productName?.name || "N/A"}</span>;
+    },
+  },
+  {
+    accessorKey: "quantity",
+    header: "Cantidad",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "unit_measure",
+    header: "Unidad",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    accessorKey: "weight",
+    header: "Peso",
+    cell: ({ getValue }) => (
+      <span className="text-sm text-center block">{getValue() as string}</span>
+    ),
+  },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row, table }) => {
+      const index = table.getRowModel().rows.findIndex((r) => r.id === row.id);
+      return (
+        <div className="flex justify-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onEdit(index)}
+          >
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onDelete(index)}
+          >
+            <Trash2 className="h-3 w-3 text-red-500" />
+          </Button>
+        </div>
+      );
+    },
+  },
+];
 
 const MODALITIES = [
   { value: "PUBLICO", label: "Transporte Público" },
@@ -250,11 +308,7 @@ export const GuideForm = ({
     const hasCurrentDetail =
       currentDetail.product_id && currentDetail.quantity?.trim() !== "";
     const effectiveDetails =
-      details.length > 0
-        ? details
-        : hasCurrentDetail
-        ? [currentDetail]
-        : [];
+      details.length > 0 ? details : hasCurrentDetail ? [currentDetail] : [];
 
     if (effectiveDetails.length === 0) {
       alert("Debe agregar al menos un detalle");
@@ -310,7 +364,9 @@ export const GuideForm = ({
             options={motives.map((motive) => ({
               value: motive.id.toString(),
               label: motive.name,
+              description: motive.code,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -359,7 +415,7 @@ export const GuideForm = ({
         <GroupFormSection
           title="Información Opcional"
           icon={Truck}
-          cols={{ sm: 1, md: 2, lg: 4 }}
+          cols={{ sm: 1, md: 2, lg: 3 }}
         >
           <FormSelect
             control={form.control}
@@ -369,7 +425,9 @@ export const GuideForm = ({
             options={sales.map((sale) => ({
               value: sale.id.toString(),
               label: sale.full_document_number || `Venta #${sale.id}`,
+              description: sale.customer.full_name,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -380,7 +438,9 @@ export const GuideForm = ({
             options={purchases.map((purchase) => ({
               value: purchase.id.toString(),
               label: purchase.document_number || `Compra #${purchase.id}`,
+              description: purchase.supplier_fullname,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -391,7 +451,9 @@ export const GuideForm = ({
             options={warehouseDocuments.map((doc) => ({
               value: doc.id.toString(),
               label: `${doc.document_type} - ${doc.document_number}`,
+              description: doc.warehouse_name,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -409,14 +471,18 @@ export const GuideForm = ({
           <FormSelect
             control={form.control}
             name="recipient_id"
-            label="Receptor"
-            placeholder="Selecciona un receptor"
+            label="Destinatario"
+            placeholder="Selecciona un destinatario"
             options={recipients.map((recipient) => ({
               value: recipient.id.toString(),
               label:
                 recipient.business_name ||
                 `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
+              description: recipient.business_name
+                ? ""
+                : `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
             }))}
+            withValue
           />
         </GroupFormSection>
 
@@ -571,30 +637,31 @@ export const GuideForm = ({
                 <div className="space-y-4">
                   {/* Formulario para agregar detalles */}
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium mb-2 block">
-                        Producto
-                      </label>
-                      <SearchableSelect
-                        options={products.map((product) => ({
-                          value: product.id.toString(),
-                          label: product.name,
-                        }))}
-                        value={currentDetail.product_id.toString()}
-                        onChange={(value) => {
-                          const productId = Number(value);
-                          const selected = products.find(
-                            (p) => p.id === productId
-                          );
-                          setCurrentDetail({
-                            ...currentDetail,
-                            product_id: productId,
-                            description: selected?.name || "",
-                          });
-                        }}
-                        placeholder="Selecciona un producto"
-                      />
-                    </div>
+                    <SearchableSelect
+                      label="Producto"
+                      options={products.map((product) => ({
+                        value: product.id.toString(),
+                        label: product.name,
+                        description: product.brand_name,
+                      }))}
+                      withValue
+                      value={currentDetail.product_id.toString()}
+                      onChange={(value) => {
+                        const productId = Number(value);
+                        const selected = products.find(
+                          (p) => p.id === productId
+                        );
+                        setCurrentDetail({
+                          ...currentDetail,
+                          product_id: productId,
+                          description: selected?.name || "",
+                        });
+                      }}
+                      placeholder="Selecciona un producto"
+                      classNameDiv="md:col-span-2"
+                      buttonSize="default"
+                      className="md:w-full"
+                    />
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
@@ -613,25 +680,22 @@ export const GuideForm = ({
                       />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Unidad
-                      </label>
-                      <SearchableSelect
-                        options={UNIT_MEASUREMENTS.map((unit) => ({
-                          value: unit.value,
-                          label: unit.label,
-                        }))}
-                        value={currentDetail.unit_measure}
-                        onChange={(value) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            unit_measure: value,
-                          })
-                        }
-                        placeholder="Selecciona unidad"
-                      />
-                    </div>
+                    <SearchableSelect
+                      label="Unidad"
+                      options={UNIT_MEASUREMENTS.map((unit) => ({
+                        value: unit.value,
+                        label: unit.label,
+                      }))}
+                      value={currentDetail.unit_measure}
+                      onChange={(value) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          unit_measure: value,
+                        })
+                      }
+                      buttonSize="default"
+                      placeholder="Selecciona unidad"
+                    />
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
@@ -674,65 +738,16 @@ export const GuideForm = ({
 
                   {/* Tabla de detalles */}
                   {details.length > 0 && (
-                    <div className="border rounded-lg overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-slate-100">
-                          <TableRow>
-                            <TableHead className="text-xs">Producto</TableHead>
-                            <TableHead className="text-xs text-center">
-                              Cantidad
-                            </TableHead>
-                            <TableHead className="text-xs text-center">
-                              Unidad
-                            </TableHead>
-                            <TableHead className="text-xs text-center">
-                              Peso
-                            </TableHead>
-                            <TableHead className="text-xs text-center w-20">
-                              Acciones
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {details.map((detail, index) => (
-                            <TableRow key={index}>
-                              <TableCell className="text-xs">
-                                {products.find(
-                                  (p) => p.id === detail.product_id
-                                )?.name || "N/A"}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.quantity}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.unit_measure}
-                              </TableCell>
-                              <TableCell className="text-xs text-center">
-                                {detail.weight}
-                              </TableCell>
-                              <TableCell className="text-xs text-center space-x-1">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleEditDetail(index)}
-                                >
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleDeleteDetail(index)}
-                                >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <DataTable
+                      columns={createDetailColumns(
+                        products,
+                        handleEditDetail,
+                        handleDeleteDetail
+                      )}
+                      data={details}
+                      isLoading={false}
+                      variant="ghost"
+                    />
                   )}
                 </div>
                 <FormMessage />

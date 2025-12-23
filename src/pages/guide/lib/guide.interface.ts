@@ -4,117 +4,56 @@
 
 // ===== API RESOURCES =====
 
-export interface GuideDetailResource {
-  id: number;
-  sale_shipping_guide_id: number;
-  product_id: number;
-  quantity: number;
-  unit_measure: string;
-  unit_code: string;
-  description: string;
-  weight: number;
-  product: Product;
-  created_at: string;
-}
-
 export interface GuideMotiveResource {
   id: number;
   code: string;
   name: string;
 }
 
+export type GuideStatus = "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA";
+
+export interface GuideResourceById {
+  data: GuideResource;
+}
+
 export interface GuideResource {
   id: number;
-  company_id: number;
-  warehouse_id: number;
-  sale_id?: number;
-  purchase_id?: number;
-  warehouse_document_id?: number;
-  user_id: number;
-  serie: string;
-  numero: string;
-  full_document_number: string;
+  guide_series: string;
+  guide_number: string;
+  full_guide_number: string;
   issue_date: string;
   transfer_date: string;
   transport_modality: string;
-  modality: string;
-  motive_id: number;
-  carrier_id: number;
-  driver_id: number;
-  vehicle_id: number;
   driver_license: string;
   origin_address: string;
-  origin_ubigeo_id: number;
-  origin_ubigeo: string;
   destination_address: string;
-  destination_ubigeo_id: number;
-  destination_ubigeo: string;
-  destination_warehouse_id?: number;
-  recipient_id?: number;
-  status: string;
-  is_electronic: boolean;
-  observations: string;
-  total_weight: number;
-  unit_measurement: string;
+  total_weight: string;
   total_packages: number;
-  sale_document_number?: string;
-  carrier_name: string;
-  carrier_ruc: string;
-  carrier_mtc_number: string;
-  carrier_document_type: string;
-  carrier_document_number: string;
-  vehicle_plate?: string;
-  driver_name?: string;
-  driver_document_type?: string;
-  driver_document_number?: string;
-  company: Company;
-  warehouse: Branch;
-  customer?: Customer;
+  status: GuideStatus;
+  observations?: string;
+  warehouse: Warehouse;
   user: User;
-  motive: GuideMotiveResource;
-  sale?: string;
+  motive: Motive;
+  sale: Sale;
+  purchase: Purchase;
+  warehouse_document: Warehousedocument;
+  carrier: Carrier;
+  driver: Carrier;
+  vehicle: Vehicle;
+  originUbigeo: UbigeoGuide;
+  destinationUbigeo: UbigeoGuide;
+  destination_warehouse: Warehouse;
+  recipient: Carrier;
   details: GuideDetailResource[];
-  electronic_document?: string;
   created_at: string;
   updated_at: string;
 }
 
-interface Product {
-  id: number;
-  codigo: string;
-  name: string;
-  brand: string;
-  category: string;
-  unit: string;
-}
-
-interface User {
+export interface UbigeoGuide {
   id: number;
   name: string;
-  email?: string;
-}
-
-interface Branch {
-  id: number;
-  name: string;
-  address: string;
-}
-
-interface Company {
-  id: number;
-  social_reason: string;
-  trade_name: string;
-  ruc: string;
-}
-
-interface Customer {
-  id: number;
-  full_name?: string;
-  business_name?: string;
-}
-
-export interface GuideResourceById {
-  data: GuideResource;
+  cadena: string;
+  ubigeo_code: string;
 }
 
 // ===== API RESPONSES =====
@@ -226,12 +165,18 @@ export const UNIT_MEASUREMENTS = [
 ] as const;
 
 export const GUIDE_STATUSES = [
-  { value: "REGISTRADA", label: "Registrada" },
-  { value: "ENVIADA", label: "Enviada" },
-  { value: "ACEPTADA", label: "Aceptada" },
-  { value: "RECHAZADA", label: "Rechazada" },
+  { value: "EMITIDA", label: "Emitida" },
+  { value: "EN_TRANSITO", label: "En tránsito" },
+  { value: "ENTREGADA", label: "Entregada" },
   { value: "ANULADA", label: "Anulada" },
 ] as const;
+
+export const GUIDE_STATUS_LABELS: Record<GuideStatus, string> = {
+  EMITIDA: "Emitida",
+  EN_TRANSITO: "En tránsito",
+  ENTREGADA: "Entregada",
+  ANULADA: "Anulada",
+};
 
 // ===== MODEL COMPLETE =====
 
@@ -272,3 +217,207 @@ export const GUIDE: ModelComplete<GuideSchema> = {
   },
   EMPTY: {} as any,
 };
+
+export interface GuideDetailResource {
+  id: number;
+  product_id: number;
+  product_name: string;
+  product_code?: string;
+  description: string;
+  quantity: string;
+  unit_measure?: string;
+  weight: string;
+}
+
+interface Vehicle {
+  id: number;
+  plate: string;
+  brand: string;
+  model: string;
+  year: number;
+  color: string;
+  vehicle_type: string;
+  max_weight: string;
+  status: string;
+  observations?: string;
+  created_at: string;
+}
+
+export interface Carrier {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names: string;
+  father_surname?: string;
+  mother_surname?: string;
+  gender?: string;
+  birth_date?: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name: string;
+  commercial_name: string;
+  user_id?: string;
+  created_at: string;
+  roles: Role[];
+}
+
+interface Role {
+  id: number;
+  name: string;
+}
+
+interface Warehousedocument {
+  id: number;
+  correlativo: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  document_type: string;
+  document_number: string;
+  destination_warehouse_id?: string;
+  destination_warehouse_name?: string;
+  person_id: number;
+  person_fullname: string;
+  user_id: number;
+  user_name: string;
+  document_date: string;
+  posting_date: string;
+  status: string;
+  observations: string;
+  details: Detail2[];
+  created_at: string;
+}
+
+interface Detail2 {
+  id: number;
+  warehouse_document_id: number;
+  product_id: number;
+  product_name: string;
+  quantity: number;
+  unit_cost: number;
+  total_cost: number;
+  observations: string;
+}
+
+interface Purchase {
+  id: number;
+  correlativo: string;
+  supplier_id: number;
+  supplier_fullname: string;
+  warehouse_id: number;
+  warehouse_name: string;
+  user_id: number;
+  user_name: string;
+  purchase_order_id: number;
+  document_type: string;
+  document_number: string;
+  issue_date: string;
+  payment_type: string;
+  total_amount: string;
+  current_amount: string;
+  currency: string;
+  status: string;
+  observations: string;
+  details: Detail[];
+  installments: Installment[];
+  created_at: string;
+}
+
+interface Installment {
+  id: number;
+  correlativo: string;
+  purchase_id: number;
+  purchase_correlativo: string;
+  installment_number: number;
+  due_days: number;
+  due_date: string;
+  amount: string;
+  pending_amount: string;
+  status: string;
+  created_at: string;
+  currency: string;
+}
+
+interface Detail {
+  id: number;
+  correlativo: string;
+  purchase_id: number;
+  purchase_correlativo: string;
+  product_id: number;
+  product_name: string;
+  quantity: string;
+  unit_price: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+  created_at: string;
+}
+
+interface Sale {
+  id: number;
+  customer_id: number;
+  warehouse_id: number;
+  user_id: number;
+  customer_fullname: string;
+  customer_document?: string;
+  warehouse_name: string;
+  user_name: string;
+  document_type: string;
+  serie: string;
+  numero: string;
+  full_document_number: string;
+  issue_date: string;
+  payment_type: string;
+  amount_cash: number;
+  amount_card: number;
+  amount_yape: number;
+  amount_plin: number;
+  amount_deposit: number;
+  amount_transfer: number;
+  amount_other: number;
+  total_paid: number;
+  quotation_id?: string;
+  order_id?: string;
+  order?: string;
+  quotation?: string;
+  total_amount: number;
+  current_amount: number;
+  currency: string;
+  status: string;
+  observations?: string;
+  customer: Customer;
+  warehouse: Warehouse;
+  user: User;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Customer {
+  id: number;
+  document_type?: string;
+  document_number?: string;
+  first_name?: string;
+  father_surname?: string;
+  mother_surname?: string;
+  business_name: string;
+  full_name: string;
+}
+
+interface Motive {
+  id: number;
+  code: string;
+  name: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface Warehouse {
+  id: number;
+  name: string;
+  address: string;
+}

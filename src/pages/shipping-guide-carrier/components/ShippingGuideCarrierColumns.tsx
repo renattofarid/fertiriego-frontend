@@ -1,30 +1,26 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type {
-  Carrier,
-  GuideResource,
-  GuideStatus,
-} from "../lib/guide.interface";
+  ShippingGuideCarrierResource,
+  ShippingGuideCarrierStatus,
+} from "../lib/shipping-guide-carrier.interface";
 import { SelectActions } from "@/components/SelectActions";
 import {
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
-interface GuideColumnsProps {
+interface ShippingGuideCarrierColumnsProps {
   onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
   onView: (id: number) => void;
-  onChangeStatus: (id: number, status: GuideStatus) => void;
+  onChangeStatus: (id: number, status: ShippingGuideCarrierStatus) => void;
 }
 
-export const GuideColumns = ({
+export const ShippingGuideCarrierColumns = ({
   onEdit,
-  onDelete,
   onView,
   onChangeStatus,
-}: GuideColumnsProps): ColumnDef<GuideResource>[] => [
+}: ShippingGuideCarrierColumnsProps): ColumnDef<ShippingGuideCarrierResource>[] => [
   {
     accessorKey: "full_guide_number",
     header: "N° Documento",
@@ -51,8 +47,8 @@ export const GuideColumns = ({
     },
   },
   {
-    accessorKey: "transfer_date",
-    header: "F. Traslado",
+    accessorKey: "transfer_start_date",
+    header: "F. Inicio Traslado",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
       return (
@@ -67,39 +63,57 @@ export const GuideColumns = ({
     },
   },
   {
-    accessorKey: "customer",
-    header: "Cliente",
+    accessorKey: "carrier",
+    header: "Transportista",
     cell: ({ row }) => {
-      const sale = row.original.sale;
+      const carrier = row.original.carrier;
       return (
         <span className="text-sm text-wrap">
-          {sale?.customer_fullname || "-"}
+          {carrier?.business_name ||
+            (carrier?.names ?? "") +
+              " " +
+              (carrier?.father_surname ?? "") +
+              " " +
+              (carrier?.mother_surname ?? "") ||
+            "-"}
         </span>
       );
     },
   },
   {
-    accessorKey: "modality",
-    header: "Modalidad",
-    cell: ({ getValue }) => {
-      const modality = getValue() as string;
+    accessorKey: "remittent",
+    header: "Remitente",
+    cell: ({ row }) => {
+      const remittent = row.original.remittent;
       return (
-        <Badge variant="outline">
-          {modality === "PUBLICO" ? "Transporte Público" : "Transporte Privado"}
-        </Badge>
+        <span className="text-sm text-wrap">
+          {remittent?.business_name ||
+            (remittent?.names ?? "") +
+              " " +
+              (remittent?.father_surname ?? "") +
+              " " +
+              (remittent?.mother_surname ?? "") ||
+            "-"}
+        </span>
       );
     },
   },
   {
     accessorKey: "driver",
-    header: "Transportista",
-    cell: ({ getValue }) => {
-      const driver = getValue() as Carrier;
+    header: "Conductor",
+    cell: ({ row }) => {
+      const driver = row.original.driver;
       return (
-        <span className="text-sm text-wrap">
-          {driver.names ?? driver.business_name}
-        </span>
+        <span className="text-sm text-wrap">{driver?.full_name || "-"}</span>
       );
+    },
+  },
+  {
+    accessorKey: "vehicle",
+    header: "Vehículo",
+    cell: ({ row }) => {
+      const vehicle = row.original.vehicle;
+      return <span className="text-sm font-mono">{vehicle?.plate || "-"}</span>;
     },
   },
   {
@@ -116,10 +130,9 @@ export const GuideColumns = ({
     cell: ({ getValue }) => {
       const status = getValue() as string;
       const statusVariant = {
-        REGISTRADA: "secondary",
-        ENVIADA: "default",
-        ACEPTADA: "default",
-        RECHAZADA: "destructive",
+        EMITIDA: "secondary",
+        EN_TRANSITO: "default",
+        ENTREGADA: "default",
         ANULADA: "destructive",
       }[status] as "secondary" | "default" | "destructive";
 
@@ -142,15 +155,6 @@ export const GuideColumns = ({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
             Editar
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => onDelete(row.original.id)}
-            className="text-destructive"
-          >
-            Eliminar
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </SelectActions>

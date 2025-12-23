@@ -13,6 +13,7 @@ import {
   updateGuide,
   deleteGuide,
   getGuideMotives,
+  changeGuideStatus,
   type GetGuidesParams,
 } from "./guide.actions";
 import type { GuideSchema } from "./guide.schema";
@@ -44,6 +45,7 @@ interface GuideStore {
   createGuide: (data: GuideSchema) => Promise<void>;
   updateGuide: (id: number, data: Partial<GuideSchema>) => Promise<void>;
   removeGuide: (id: number) => Promise<void>;
+  changeStatus: (id: number, status: string) => Promise<void>;
   resetGuide: () => void;
 }
 
@@ -233,6 +235,18 @@ export const useGuideStore = create<GuideStore>((set) => ({
       set({ isSubmitting: false });
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
+      throw error;
+    }
+  },
+
+  // Change guide status
+  changeStatus: async (id: number, status: string) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      await changeGuideStatus(id, { status });
+      set({ isSubmitting: false });
+    } catch (error) {
+      set({ error: "Error al cambiar el estado", isSubmitting: false });
       throw error;
     }
   },

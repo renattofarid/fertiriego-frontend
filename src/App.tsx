@@ -112,6 +112,17 @@ import GuidePage from "./pages/guide/components/GuidePage";
 import GuideAddPage from "./pages/guide/components/GuideAddPage";
 import GuideEditPage from "./pages/guide/components/GuideEditPage";
 import GuideDetailPage from "./pages/guide/components/GuideDetailPage";
+import { SHIPPING_GUIDE_CARRIER } from "./pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
+import ShippingGuideCarrierPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierPage";
+import ShippingGuideCarrierAddPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierAddPage";
+import ShippingGuideCarrierEditPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierEditPage";
+import ShippingGuideCarrierDetailPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierDetailPage";
+import { ShippingGuideCarrierDetailRoute } from "./pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
+import { PRODUCTION_DOCUMENT } from "./pages/production-document/lib/production-document.interface";
+import ProductionDocumentPage from "./pages/production-document/components/ProductionDocumentPage";
+import ProductionDocumentAddPage from "./pages/production-document/components/ProductionDocumentAddPage";
+import ProductionDocumentEditPage from "./pages/production-document/components/ProductionDocumentEditPage";
+import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -140,6 +151,12 @@ const { ROUTE: DebitNoteRoute } = DEBIT_NOTE;
 const { ROUTE: GuideRoute } = GUIDE;
 const { ROUTE_ADD: GuideAddRoute } = GUIDE;
 const { ROUTE_UPDATE: GuideUpdateRoute } = GUIDE;
+const { ROUTE: ShippingGuideCarrierRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE_ADD: ShippingGuideCarrierAddRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE: ProductionDocumentRoute } = PRODUCTION_DOCUMENT;
+const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
+const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -834,6 +851,80 @@ export default function App() {
             element={
               <ProtectedRoute path={GuideRoute}>
                 <GuideDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Guías de Transportista */}
+          <Route
+            path={ShippingGuideCarrierRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierAddRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierUpdateRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierDetailRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Documentos de Producción */}
+          <Route
+            path={ProductionDocumentRoute}
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionDocumentAddRoute}
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionDocumentUpdateRoute}
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-produccion/:id"
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentDetailPage />
               </ProtectedRoute>
             }
           />
