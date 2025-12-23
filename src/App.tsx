@@ -116,6 +116,8 @@ import { SHIPPING_GUIDE_CARRIER } from "./pages/shipping-guide-carrier/lib/shipp
 import ShippingGuideCarrierPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierPage";
 import ShippingGuideCarrierAddPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierAddPage";
 import ShippingGuideCarrierEditPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierEditPage";
+import ShippingGuideCarrierDetailPage from "./pages/shipping-guide-carrier/components/ShippingGuideCarrierDetailPage";
+import { ShippingGuideCarrierDetailRoute } from "./pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -869,6 +871,15 @@ export default function App() {
             element={
               <ProtectedRoute path={ShippingGuideCarrierRoute}>
                 <ShippingGuideCarrierEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ShippingGuideCarrierDetailRoute}
+            element={
+              <ProtectedRoute path={ShippingGuideCarrierRoute}>
+                <ShippingGuideCarrierDetailPage />
               </ProtectedRoute>
             }
           />
