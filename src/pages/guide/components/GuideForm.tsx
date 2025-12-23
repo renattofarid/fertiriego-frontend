@@ -250,11 +250,7 @@ export const GuideForm = ({
     const hasCurrentDetail =
       currentDetail.product_id && currentDetail.quantity?.trim() !== "";
     const effectiveDetails =
-      details.length > 0
-        ? details
-        : hasCurrentDetail
-        ? [currentDetail]
-        : [];
+      details.length > 0 ? details : hasCurrentDetail ? [currentDetail] : [];
 
     if (effectiveDetails.length === 0) {
       alert("Debe agregar al menos un detalle");
@@ -310,7 +306,9 @@ export const GuideForm = ({
             options={motives.map((motive) => ({
               value: motive.id.toString(),
               label: motive.name,
+              description: motive.code,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -359,7 +357,7 @@ export const GuideForm = ({
         <GroupFormSection
           title="Información Opcional"
           icon={Truck}
-          cols={{ sm: 1, md: 2, lg: 4 }}
+          cols={{ sm: 1, md: 2, lg: 3 }}
         >
           <FormSelect
             control={form.control}
@@ -369,7 +367,9 @@ export const GuideForm = ({
             options={sales.map((sale) => ({
               value: sale.id.toString(),
               label: sale.full_document_number || `Venta #${sale.id}`,
+              description: sale.customer.full_name,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -380,7 +380,9 @@ export const GuideForm = ({
             options={purchases.map((purchase) => ({
               value: purchase.id.toString(),
               label: purchase.document_number || `Compra #${purchase.id}`,
+              description: purchase.supplier_fullname,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -391,7 +393,9 @@ export const GuideForm = ({
             options={warehouseDocuments.map((doc) => ({
               value: doc.id.toString(),
               label: `${doc.document_type} - ${doc.document_number}`,
+              description: doc.warehouse_name,
             }))}
+            withValue
           />
 
           <FormSelect
@@ -416,7 +420,11 @@ export const GuideForm = ({
               label:
                 recipient.business_name ||
                 `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
+              description: recipient.business_name
+                ? ""
+                : `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
             }))}
+            withValue
           />
         </GroupFormSection>
 
@@ -571,30 +579,31 @@ export const GuideForm = ({
                 <div className="space-y-4">
                   {/* Formulario para agregar detalles */}
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium mb-2 block">
-                        Producto
-                      </label>
-                      <SearchableSelect
-                        options={products.map((product) => ({
-                          value: product.id.toString(),
-                          label: product.name,
-                        }))}
-                        value={currentDetail.product_id.toString()}
-                        onChange={(value) => {
-                          const productId = Number(value);
-                          const selected = products.find(
-                            (p) => p.id === productId
-                          );
-                          setCurrentDetail({
-                            ...currentDetail,
-                            product_id: productId,
-                            description: selected?.name || "",
-                          });
-                        }}
-                        placeholder="Selecciona un producto"
-                      />
-                    </div>
+                    <SearchableSelect
+                      label="Producto"
+                      options={products.map((product) => ({
+                        value: product.id.toString(),
+                        label: product.name,
+                        description: product.brand_name,
+                      }))}
+                      withValue
+                      value={currentDetail.product_id.toString()}
+                      onChange={(value) => {
+                        const productId = Number(value);
+                        const selected = products.find(
+                          (p) => p.id === productId
+                        );
+                        setCurrentDetail({
+                          ...currentDetail,
+                          product_id: productId,
+                          description: selected?.name || "",
+                        });
+                      }}
+                      placeholder="Selecciona un producto"
+                      classNameDiv="md:col-span-2"
+                      buttonSize="default"
+                      className="md:w-full"
+                    />
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
@@ -613,25 +622,22 @@ export const GuideForm = ({
                       />
                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Unidad
-                      </label>
-                      <SearchableSelect
-                        options={UNIT_MEASUREMENTS.map((unit) => ({
-                          value: unit.value,
-                          label: unit.label,
-                        }))}
-                        value={currentDetail.unit_measure}
-                        onChange={(value) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            unit_measure: value,
-                          })
-                        }
-                        placeholder="Selecciona unidad"
-                      />
-                    </div>
+                    <SearchableSelect
+                      label="Unidad"
+                      options={UNIT_MEASUREMENTS.map((unit) => ({
+                        value: unit.value,
+                        label: unit.label,
+                      }))}
+                      value={currentDetail.unit_measure}
+                      onChange={(value) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          unit_measure: value,
+                        })
+                      }
+                      buttonSize="default"
+                      placeholder="Selecciona unidad"
+                    />
 
                     <div>
                       <label className="text-sm font-medium mb-2 block">
