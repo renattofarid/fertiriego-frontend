@@ -114,12 +114,15 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           carrier_id: Number(data.carrier_id),
           issue_date: data.issue_date,
           transfer_start_date: data.transfer_start_date,
-          shipping_guide_remittent_id: Number(data.shipping_guide_remittent_id),
+          remittent_id: Number(data.remittent_id),
+          recipient_id: data.recipient_id
+            ? Number(data.recipient_id)
+            : undefined,
           driver_id: Number(data.driver_id),
           vehicle_id: Number(data.vehicle_id),
           secondary_vehicle_id: data.secondary_vehicle_id
             ? Number(data.secondary_vehicle_id)
-            : null,
+            : undefined,
           driver_license: data.driver_license,
           origin_address: data.origin_address,
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
@@ -156,15 +159,18 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           ...(data.transfer_start_date && {
             transfer_start_date: data.transfer_start_date,
           }),
-          ...(data.shipping_guide_remittent_id && {
-            shipping_guide_remittent_id: Number(data.shipping_guide_remittent_id),
+          ...(data.remittent_id && { remittent_id: Number(data.remittent_id) }),
+          ...(data.recipient_id !== undefined && {
+            recipient_id: data.recipient_id
+              ? Number(data.recipient_id)
+              : undefined,
           }),
           ...(data.driver_id && { driver_id: Number(data.driver_id) }),
           ...(data.vehicle_id && { vehicle_id: Number(data.vehicle_id) }),
           ...(data.secondary_vehicle_id !== undefined && {
             secondary_vehicle_id: data.secondary_vehicle_id
               ? Number(data.secondary_vehicle_id)
-              : null,
+              : undefined,
           }),
           ...(data.driver_license && { driver_license: data.driver_license }),
           ...(data.origin_address && { origin_address: data.origin_address }),

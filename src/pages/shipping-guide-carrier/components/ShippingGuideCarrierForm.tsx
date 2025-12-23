@@ -34,13 +34,14 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { toast } from "sonner";
-import type { GuideResource } from "@/pages/guide/lib/guide.interface";
+// Removed GuideResource; remittents/recipients now come from PersonResource
 
 export type ShippingGuideCarrierFormValues = {
   carrier_id: string;
   issue_date: string;
   transfer_start_date: string;
-  shipping_guide_remittent_id: string;
+  remittent_id: string;
+  recipient_id?: string;
   driver_id: string;
   vehicle_id: string;
   secondary_vehicle_id: string | undefined;
@@ -63,7 +64,8 @@ const defaultValues: ShippingGuideCarrierFormValues = {
   carrier_id: "",
   issue_date: "",
   transfer_start_date: "",
-  shipping_guide_remittent_id: "",
+  remittent_id: "",
+  recipient_id: "",
   driver_id: "",
   vehicle_id: "",
   secondary_vehicle_id: "",
@@ -90,7 +92,8 @@ interface ShippingGuideCarrierFormProps {
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
   carriers: PersonResource[];
-  remittents: GuideResource[];
+  remittents: PersonResource[];
+  recipients: PersonResource[];
   drivers: PersonResource[];
   vehicles: VehicleResource[];
   products: ProductResource[];
@@ -103,6 +106,7 @@ export function ShippingGuideCarrierForm({
   initialValues,
   carriers,
   remittents,
+  recipients,
   drivers,
   vehicles,
   products,
@@ -409,13 +413,28 @@ export function ShippingGuideCarrierForm({
 
               <FormSelect
                 control={form.control}
-                name="shipping_guide_remittent_id"
-                label="Guía Remitente"
-                placeholder="Seleccione guía remitente"
-                options={remittents.map((r) => ({
-                  value: r.id.toString(),
-                  label: r.full_guide_number,
-                  description: r.status,
+                name="remittent_id"
+                label="Remitente"
+                placeholder="Seleccione remitente"
+                options={remittents.map((p) => ({
+                  value: p.id.toString(),
+                  label:
+                    p.business_name || `${p.names} ${p.father_surname}`,
+                  description: p.number_document,
+                }))}
+                withValue
+              />
+
+              <FormSelect
+                control={form.control}
+                name="recipient_id"
+                label="Destinatario (Opcional)"
+                placeholder="Seleccione destinatario"
+                options={recipients.map((p) => ({
+                  value: p.id.toString(),
+                  label:
+                    p.business_name || `${p.names} ${p.father_surname}`,
+                  description: p.number_document,
                 }))}
                 withValue
               />

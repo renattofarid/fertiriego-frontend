@@ -21,8 +21,68 @@ export interface ShippingGuideCarrierDetailResource {
   product_code?: string;
   description: string;
   quantity: string;
-  unit_measure?: string;
+  unit?: string;
   weight: string;
+}
+
+interface Remitent {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names?: string;
+  father_surname?: string;
+  mother_surname?: string;
+  gender?: string;
+  birth_date?: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name?: string;
+  commercial_name?: string;
+  user_id?: number;
+  created_at: string;
+  roles: any[];
+}
+
+interface Recipient {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names: string;
+  father_surname: string;
+  mother_surname: string;
+  gender?: string;
+  birth_date?: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name: string;
+  commercial_name?: string;
+  user_id: number;
+  created_at?: string;
+  roles: any[];
+}
+
+interface Carrier {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names: string;
+  father_surname: string;
+  mother_surname: string;
+  gender?: string;
+  birth_date?: string;
+  phone: string;
+  email: string;
+  address: string;
+  business_name: string;
+  commercial_name?: string;
+  user_id: number;
+  created_at?: string;
+  roles: any[];
 }
 
 export interface ShippingGuideCarrierResource {
@@ -39,16 +99,9 @@ export interface ShippingGuideCarrierResource {
   total_packages: number;
   status: ShippingGuideCarrierStatus;
   observations?: string;
-  carrier: {
-    id: number;
-    business_name: string;
-    document_number?: string;
-  };
-  remittent: {
-    id: number;
-    business_name?: string;
-    document_number?: string;
-  };
+  carrier: Carrier;
+  remittent?: Remitent;
+  recipient?: Recipient;
   driver: {
     id: number;
     full_name: string;
@@ -117,10 +170,11 @@ export interface CreateShippingGuideCarrierRequest {
   carrier_id: number;
   issue_date: string;
   transfer_start_date: string;
-  shipping_guide_remittent_id: number;
+  remittent_id?: number;
+  recipient_id?: number;
   driver_id: number;
   vehicle_id: number;
-  secondary_vehicle_id?: number | null;
+  secondary_vehicle_id?: number;
   driver_license: string;
   origin_address: string;
   origin_ubigeo_id: number;
@@ -134,10 +188,11 @@ export interface UpdateShippingGuideCarrierRequest {
   carrier_id?: number;
   issue_date?: string;
   transfer_start_date?: string;
-  shipping_guide_remittent_id?: number;
+  remittent_id?: number;
+  recipient_id?: number;
   driver_id?: number;
   vehicle_id?: number;
-  secondary_vehicle_id?: number | null;
+  secondary_vehicle_id?: number;
   driver_license?: string;
   origin_address?: string;
   origin_ubigeo_id?: number;

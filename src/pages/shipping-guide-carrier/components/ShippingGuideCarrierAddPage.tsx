@@ -16,7 +16,7 @@ import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import PageSkeleton from "@/components/PageSkeleton";
-import { useAllGuides } from "@/pages/guide/lib/guide.hook";
+import { useAllPersons } from "@/pages/person/lib/person.hook";
 
 export default function ShippingGuideCarrierAddPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
@@ -29,14 +29,16 @@ export default function ShippingGuideCarrierAddPage() {
   const workers = useAllWorkers();
   const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
   const { data: products = [], isLoading: loadingProducts } = useAllProducts();
-  const { data: guides = [] } = useAllGuides();
+  const remittents = useAllPersons();
+  const recipients = useAllPersons();
 
   const isLoading =
     loadingSuppliers ||
     loadingVehicles ||
     loadingProducts ||
     !workers ||
-    !guides;
+    !remittents ||
+    !recipients;
 
   const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
     try {
@@ -60,7 +62,8 @@ export default function ShippingGuideCarrierAddPage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       carriers={suppliers || []}
-      remittents={guides || []}
+      remittents={remittents || []}
+      recipients={recipients || []}
       drivers={workers || []}
       vehicles={vehicles || []}
       products={products || []}

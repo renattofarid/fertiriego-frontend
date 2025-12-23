@@ -69,7 +69,13 @@ export const ShippingGuideCarrierColumns = ({
       const carrier = row.original.carrier;
       return (
         <span className="text-sm text-wrap">
-          {carrier?.business_name || "-"}
+          {carrier?.business_name ||
+            (carrier?.names ?? "") +
+              " " +
+              (carrier?.father_surname ?? "") +
+              " " +
+              (carrier?.mother_surname ?? "") ||
+            "-"}
         </span>
       );
     },
@@ -81,7 +87,13 @@ export const ShippingGuideCarrierColumns = ({
       const remittent = row.original.remittent;
       return (
         <span className="text-sm text-wrap">
-          {remittent?.business_name || "-"}
+          {remittent?.business_name ||
+            (remittent?.names ?? "") +
+              " " +
+              (remittent?.father_surname ?? "") +
+              " " +
+              (remittent?.mother_surname ?? "") ||
+            "-"}
         </span>
       );
     },

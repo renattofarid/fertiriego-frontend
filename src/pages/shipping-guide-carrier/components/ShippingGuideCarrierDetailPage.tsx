@@ -1,6 +1,14 @@
 import { useParams } from "react-router-dom";
 import TitleComponent from "@/components/TitleComponent";
-import { FileText, Calendar, Truck, User, Package, FileCheck, Route as RouteIcon } from "lucide-react";
+import {
+  FileText,
+  Calendar,
+  Truck,
+  User,
+  Package,
+  FileCheck,
+  Route as RouteIcon,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
@@ -9,7 +17,10 @@ import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { useShippingGuideCarrierStore } from "../lib/shipping-guide-carrier.store";
-import { SHIPPING_GUIDE_CARRIER, type ShippingGuideCarrierDetailResource } from "../lib/shipping-guide-carrier.interface";
+import {
+  SHIPPING_GUIDE_CARRIER,
+  type ShippingGuideCarrierDetailResource,
+} from "../lib/shipping-guide-carrier.interface";
 
 export default function ShippingGuideCarrierDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +36,10 @@ export default function ShippingGuideCarrierDetailPage() {
     return <FormSkeleton />;
   }
 
-  const statusVariants: Record<string, "default" | "secondary" | "destructive"> = {
+  const statusVariants: Record<
+    string,
+    "default" | "secondary" | "destructive"
+  > = {
     EMITIDA: "secondary",
     EN_TRANSITO: "default",
     ENTREGADA: "default",
@@ -45,7 +59,7 @@ export default function ShippingGuideCarrierDetailPage() {
     { accessorKey: "product_name", header: "Producto" },
     { accessorKey: "description", header: "Descripción" },
     { accessorKey: "quantity", header: "Cantidad" },
-    { accessorKey: "unit_measure", header: "Unidad" },
+    { accessorKey: "unit", header: "Unidad" },
     { accessorKey: "weight", header: "Peso" },
   ];
 
@@ -62,10 +76,17 @@ export default function ShippingGuideCarrierDetailPage() {
 
       <div className="space-y-4">
         {/* Resumen */}
-        <GroupFormSection title="Resumen" icon={FileCheck} cols={{ sm: 2, md: 3 }}>
+        <GroupFormSection
+          title="Resumen"
+          icon={FileCheck}
+          cols={{ sm: 2, md: 3 }}
+        >
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Estado</p>
-            <Badge variant={statusVariants[guide.status] || "default"} className="text-sm">
+            <Badge
+              variant={statusVariants[guide.status] || "default"}
+              className="text-sm"
+            >
               {guide.status}
             </Badge>
           </div>
@@ -80,10 +101,16 @@ export default function ShippingGuideCarrierDetailPage() {
         </GroupFormSection>
 
         {/* Documento */}
-        <GroupFormSection title="Información del Documento" icon={FileText} cols={{ sm: 2, md: 3 }}>
+        <GroupFormSection
+          title="Información del Documento"
+          icon={FileText}
+          cols={{ sm: 2, md: 3 }}
+        >
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Número</p>
-            <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
+            <p className="font-mono font-bold text-lg">
+              {guide.full_guide_number}
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -95,19 +122,32 @@ export default function ShippingGuideCarrierDetailPage() {
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Calendar className="h-3 w-3" /> Inicio Traslado
             </p>
-            <p className="font-medium">{formatDate(guide.transfer_start_date)}</p>
+            <p className="font-medium">
+              {formatDate(guide.transfer_start_date)}
+            </p>
           </div>
         </GroupFormSection>
 
         {/* Participantes */}
-        <GroupFormSection title="Participantes" icon={User} cols={{ sm: 1, md: 3 }}>
+        <GroupFormSection
+          title="Participantes"
+          icon={User}
+          cols={{ sm: 1, md: 3 }}
+        >
           <div>
             <p className="text-xs text-muted-foreground">Transportista</p>
             <p className="font-semibold">{guide.carrier?.business_name}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Remitente</p>
-            <p className="font-semibold">{guide.remittent?.business_name}</p>
+            <p className="font-semibold">
+              {guide.remittent?.business_name ??
+                (guide.remittent?.names ?? "") +
+                  " " +
+                  (guide.remittent?.father_surname ?? "") +
+                  " " +
+                  (guide.remittent?.mother_surname ?? "")}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Conductor</p>
@@ -116,14 +156,20 @@ export default function ShippingGuideCarrierDetailPage() {
         </GroupFormSection>
 
         {/* Vehículos */}
-        <GroupFormSection title="Vehículos" icon={Truck} cols={{ sm: 1, md: 3 }}>
+        <GroupFormSection
+          title="Vehículos"
+          icon={Truck}
+          cols={{ sm: 1, md: 3 }}
+        >
           <div>
             <p className="text-xs text-muted-foreground">Principal</p>
             <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Secundario</p>
-            <p className="font-mono font-semibold">{guide.secondary_vehicle?.plate || "-"}</p>
+            <p className="font-mono font-semibold">
+              {guide.secondary_vehicle?.plate || "-"}
+            </p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Licencia Conductor</p>
@@ -132,7 +178,11 @@ export default function ShippingGuideCarrierDetailPage() {
         </GroupFormSection>
 
         {/* Rutas */}
-        <GroupFormSection title="Rutas" icon={RouteIcon} cols={{ sm: 1, md: 2 }}>
+        <GroupFormSection
+          title="Rutas"
+          icon={RouteIcon}
+          cols={{ sm: 1, md: 2 }}
+        >
           <div className="space-y-2">
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Dirección Origen</p>
@@ -160,12 +210,20 @@ export default function ShippingGuideCarrierDetailPage() {
         </GroupFormSection>
 
         {/* Observaciones */}
-        <GroupFormSection title="Observaciones" icon={FileText} cols={{ sm: 1 }}>
+        <GroupFormSection
+          title="Observaciones"
+          icon={FileText}
+          cols={{ sm: 1 }}
+        >
           <p className="text-sm">{guide.observations || "-"}</p>
         </GroupFormSection>
 
         {/* Detalles */}
-        <GroupFormSection title="Detalles de Productos" icon={Package} cols={{ sm: 1 }}>
+        <GroupFormSection
+          title="Detalles de Productos"
+          icon={Package}
+          cols={{ sm: 1 }}
+        >
           <DataTable columns={detailColumns} data={guide.details || []} />
         </GroupFormSection>
       </div>

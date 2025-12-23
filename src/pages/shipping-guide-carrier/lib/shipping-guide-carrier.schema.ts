@@ -31,7 +31,8 @@ export const shippingGuideCarrierSchema = z.object({
   transfer_start_date: z
     .string()
     .min(1, { message: "La fecha de inicio de traslado es requerida" }),
-  shipping_guide_remittent_id: requiredStringId("Debe seleccionar un remitente"),
+  remittent_id: requiredStringId("Debe seleccionar un remitente"),
+  recipient_id: optionalStringId("Debe seleccionar un destinatario"),
   driver_id: requiredStringId("Debe seleccionar un conductor"),
   vehicle_id: requiredStringId("Debe seleccionar un vehículo"),
   secondary_vehicle_id: optionalStringId("Debe seleccionar un vehículo secundario"),

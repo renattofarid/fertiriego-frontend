@@ -17,7 +17,7 @@ import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import PageSkeleton from "@/components/PageSkeleton";
-import { useAllGuides } from "@/pages/guide/lib/guide.hook";
+import { useAllPersons } from "@/pages/person/lib/person.hook";
 
 export default function ShippingGuideCarrierEditPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
@@ -32,7 +32,8 @@ export default function ShippingGuideCarrierEditPage() {
   const workers = useAllWorkers();
   const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
   const { data: products = [], isLoading: loadingProducts } = useAllProducts();
-  const { data: guides = [] } = useAllGuides();
+  const remittents = useAllPersons();
+  const recipients = useAllPersons();
 
   // Cargar guía al montar
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function ShippingGuideCarrierEditPage() {
     loadingVehicles ||
     loadingProducts ||
     !workers ||
-    !guides ||
+    !remittents ||
+    !recipients ||
     isFinding;
 
   const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
@@ -71,8 +73,9 @@ export default function ShippingGuideCarrierEditPage() {
     carrier_id: guide.carrier.id.toString(),
     issue_date: guide.issue_date,
     transfer_start_date: guide.transfer_start_date,
-    shipping_guide_remittent_id: guide.remittent.id.toString(),
-    driver_id: guide.driver.id.toString(),
+    remittent_id: guide.remittent?.id?.toString() || "",
+    recipient_id: guide.recipient?.id?.toString() || "",
+    driver_id: guide.driver.id.toString(),  
     vehicle_id: guide.vehicle.id.toString(),
     secondary_vehicle_id: guide.secondary_vehicle?.id.toString() || "",
     driver_license: guide.driver_license,
@@ -85,7 +88,7 @@ export default function ShippingGuideCarrierEditPage() {
       product_id: d.product_id.toString(),
       description: d.description,
       quantity: d.quantity,
-      unit: d.unit_measure || "",
+      unit: d.unit || "",
       weight: d.weight,
     })),
   };
@@ -97,7 +100,8 @@ export default function ShippingGuideCarrierEditPage() {
       isSubmitting={isSubmitting}
       initialValues={initialValues}
       carriers={suppliers || []}
-      remittents={guides || []}
+      remittents={remittents || []}
+      recipients={recipients || []}
       drivers={workers || []}
       vehicles={vehicles || []}
       products={products || []}
