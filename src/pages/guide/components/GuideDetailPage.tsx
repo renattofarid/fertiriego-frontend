@@ -292,7 +292,7 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.origin_ubigeo}
+                      {guide.originUbigeo?.cadena || '-'}
                     </Badge>
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.destination_ubigeo}
+                      {guide.destinationUbigeo?.cadena || '-'}
                     </Badge>
                   </div>
                 </div>
