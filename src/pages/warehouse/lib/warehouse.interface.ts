@@ -1,5 +1,6 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
+import type { BranchResource } from "@/pages/branch/lib/branch.interface";
 import { Warehouse } from "lucide-react";
 
 const ROUTE = "/almacen";
@@ -61,6 +62,7 @@ export interface WarehouseResource {
   responsible_id: number;
   responsible_full_name: string;
   branch_id: number;
+  branch?: BranchResource;
   phone: string;
   email: string;
   created_at: string;

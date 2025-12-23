@@ -109,7 +109,7 @@ export default function ClientEditPage() {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-6">
           <BackButton to="/clientes" />
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <TitleFormComponent title={MODEL.name} mode="update" />
         </div>
       </div>
 

@@ -20,7 +20,7 @@ export default function CategoryActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <CategoryModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

@@ -48,6 +48,10 @@ import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
 import { ORDER } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
+import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
+import { GUIDE } from "@/pages/guide/lib/guide.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -199,6 +203,30 @@ const {
   MODEL: { name: AccountsPayableTitle },
 } = ACCOUNTS_PAYABLE;
 
+const {
+  ICON_REACT: VehicleIcon,
+  ROUTE: VehicleRoute,
+  MODEL: { name: VehicleTitle },
+} = VEHICLE;
+
+const {
+  ICON_REACT: CreditNoteIcon,
+  ROUTE: CreditNoteRoute,
+  MODEL: { name: CreditNoteTitle },
+} = CREDIT_NOTE;
+
+const {
+  ICON_REACT: DebitNoteIcon,
+  ROUTE: DebitNoteRoute,
+  MODEL: { name: DebitNoteTitle },
+} = DEBIT_NOTE;
+
+const {
+  ICON_REACT: GuideIcon,
+  ROUTE: GuideRoute,
+  MODEL: { name: GuideTitle },
+} = GUIDE;
+
 const data = {
   navMain: [
     {
@@ -252,6 +280,21 @@ const data = {
           title: SaleTitle,
           url: SaleRoute,
           icon: SaleIcon,
+        },
+        {
+          title: CreditNoteTitle,
+          url: CreditNoteRoute,
+          icon: CreditNoteIcon,
+        },
+        {
+          title: DebitNoteTitle,
+          url: DebitNoteRoute,
+          icon: DebitNoteIcon,
+        },
+        {
+          title: GuideTitle,
+          url: GuideRoute,
+          icon: GuideIcon,
         },
         {
           title: AccountsReceivableTitle,
@@ -370,6 +413,11 @@ const data = {
           title: BoxShiftTitle,
           url: BoxShiftRoute,
           icon: BoxShiftIcon,
+        },
+        {
+          title: VehicleTitle,
+          url: VehicleRoute,
+          icon: VehicleIcon,
         },
       ],
     },

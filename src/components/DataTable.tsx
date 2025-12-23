@@ -21,8 +21,70 @@ import { useState } from "react";
 import type { VisibilityState } from "@tanstack/react-table";
 import DataTableColumnFilter from "./DataTableColumnFilter";
 import FormSkeleton from "./FormSkeleton";
+import { cn } from "@/lib/utils";
+import { cva, type VariantProps } from "class-variance-authority";
 
-interface DataTableProps<TData, TValue> {
+const dataTableVariants = cva("hidden md:block w-full", {
+  variants: {
+    variant: {
+      default: "overflow-hidden rounded-2xl border shadow-xs",
+      simple: "",
+      outline: "border rounded-lg",
+      ghost: "",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const headerVariants = cva("sticky top-0 z-10", {
+  variants: {
+    variant: {
+      default: "bg-muted",
+      simple: "",
+      outline: "bg-muted/50",
+      ghost: "",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const mobileCardVariants = cva("overflow-hidden transition-colors", {
+  variants: {
+    variant: {
+      default: "border-primary/10 hover:border-primary/30 border shadow-sm",
+      simple: "border-transparent",
+      outline: "border hover:border-primary/30",
+      ghost: "border-transparent hover:bg-muted/50 shadow-none",
+    },
+  },
+  defaultVariants: {
+    variant: "default",
+  },
+});
+
+const mobileCardFooterVariants = cva(
+  "border-t px-3 py-1 flex justify-end gap-2",
+  {
+    variants: {
+      variant: {
+        default: "bg-muted/60 border-primary/10",
+        simple: "bg-transparent border-transparent",
+        outline: "bg-muted/30 border-muted",
+        ghost: "bg-muted border-transparent",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+);
+
+interface DataTableProps<TData, TValue>
+  extends VariantProps<typeof dataTableVariants> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   children?: React.ReactNode;
@@ -30,6 +92,7 @@ interface DataTableProps<TData, TValue> {
   initialColumnVisibility?: VisibilityState;
   isVisibleColumnFilter?: boolean;
   mobileCardRender?: (row: TData, index: number) => React.ReactNode;
+  className?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -40,6 +103,8 @@ export function DataTable<TData, TValue>({
   initialColumnVisibility,
   isVisibleColumnFilter = true,
   mobileCardRender,
+  className,
+  variant,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
@@ -71,10 +136,10 @@ export function DataTable<TData, TValue>({
       </div>
 
       {/* Vista de Tabla para pantallas grandes */}
-      <div className="hidden md:block overflow-hidden rounded-2xl border shadow-xs w-full">
+      <div className={cn(dataTableVariants({ variant }), className)}>
         <div className="overflow-x-auto w-full">
           <Table className="text-xs md:text-sm">
-            <TableHeader className="bg-muted sticky top-0 z-10">
+            <TableHeader className={cn(headerVariants({ variant }))}>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="text-nowrap h-10">
                   {headerGroup.headers.map((header) => (
@@ -128,7 +193,7 @@ export function DataTable<TData, TValue>({
       {/* Vista de Cards para móviles */}
       <div className="md:hidden w-full space-y-3">
         {isLoading ? (
-          <Card className="py-0">
+          <Card>
             <CardContent className="pt-6">
               <FormSkeleton />
             </CardContent>
@@ -159,9 +224,9 @@ export function DataTable<TData, TValue>({
             return (
               <Card
                 key={row.id}
-                className={`py-0 gap-0! overflow-hidden border-primary/10 hover:border-primary/30 transition-colors`}
+                className={cn(mobileCardVariants({ variant }))}
               >
-                <CardContent className="py-4 px-2">
+                <CardContent className="p-4">
                   <div className="grid grid-cols-1 gap-2">
                     {contentCells.map((cell) => {
                       const header = cell.column.columnDef.header;
@@ -175,9 +240,9 @@ export function DataTable<TData, TValue>({
                       return (
                         <div
                           key={cell.id}
-                          className="grid grid-cols-3 items-center gap-1"
+                          className="grid grid-cols-3 items-center gap-1 text-wrap"
                         >
-                          <span className="text-xs font-semibold text-primary uppercase">
+                          <span className="text-xs font-medium text-primary">
                             {headerText}
                           </span>
                           <div className="text-xs text-foreground col-span-2">
@@ -192,7 +257,9 @@ export function DataTable<TData, TValue>({
                   </div>
                 </CardContent>
                 {actionCell && (
-                  <CardFooter className="p-1! bg-muted/60 border-t border-primary/10 px-3 flex justify-end gap-2">
+                  <CardFooter
+                    className={cn(mobileCardFooterVariants({ variant }))}
+                  >
                     {flexRender(
                       actionCell.column.columnDef.cell,
                       actionCell.getContext()

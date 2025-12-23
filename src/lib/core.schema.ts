@@ -13,6 +13,22 @@ export const optionalNumericId = (message: string) =>
       .refine((val) => val !== undefined, { message })
   );
 
+export const phoneSchemaRequired = z
+  .string()
+  .max(9, "El teléfono no puede tener más de 9 caracteres")
+  .refine((val) => !val || /^\d+$/.test(val), {
+    message: "El teléfono solo puede contener números",
+  });
+
+export const phoneSchemaOptional = z
+  .string()
+  .max(9, "El teléfono no puede tener más de 9 caracteres")
+  .refine((val) => !val || /^\d+$/.test(val), {
+    message: "El teléfono solo puede contener números",
+  })
+  .optional()
+  .or(z.literal(""));
+
 export const optionalStringId = (message: string) =>
   z.preprocess(
     (val) => (val === "" ? undefined : val),

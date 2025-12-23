@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   branchSchemaCreate,
   branchSchemaUpdate,
@@ -22,6 +21,7 @@ import { Loader } from "lucide-react";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { useAllCompanies } from "@/pages/company/lib/company.hook";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSwitch } from "@/components/FormSwitch";
 import { useEffect } from "react";
 
 interface BranchFormProps {
@@ -52,6 +52,7 @@ export const BranchForm = ({
       phone: "",
       email: "",
       is_invoice: false,
+      has_igv: false,
       responsible_id: 0,
       company_id: "",
       ...defaultValues,
@@ -76,7 +77,7 @@ export const BranchForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg">
           <FormField
             control={form.control}
             name="name"
@@ -84,11 +85,7 @@ export const BranchForm = ({
               <FormItem>
                 <FormLabel>Nombre</FormLabel>
                 <FormControl>
-                  <Input
-                    
-                    placeholder="Ej: Sucursal Lima Centro"
-                    {...field}
-                  />
+                  <Input placeholder="Ej: Sucursal Lima Centro" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -102,11 +99,7 @@ export const BranchForm = ({
               <FormItem>
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <Input
-                    
-                    placeholder="Ej: Av. Abancay 1234"
-                    {...field}
-                  />
+                  <Input placeholder="Ej: Av. Abancay 1234" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -120,12 +113,7 @@ export const BranchForm = ({
               <FormItem>
                 <FormLabel>Teléfono</FormLabel>
                 <FormControl>
-                  <Input
-                    
-                    placeholder="Ej: 987654321"
-                    maxLength={9}
-                    {...field}
-                  />
+                  <Input placeholder="Ej: 987654321" maxLength={9} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -140,7 +128,6 @@ export const BranchForm = ({
                 <FormLabel>Email</FormLabel>
                 <FormControl>
                   <Input
-                    
                     type="email"
                     placeholder="Ej: sucursal.lima@empresa.com"
                     {...field}
@@ -162,27 +149,25 @@ export const BranchForm = ({
             />
           </div>
 
-          <FormField
-            control={form.control}
-            name="is_invoice"
-            render={({ field }) => (
-              <FormItem className="col-span-2 flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>¿Emite factura?</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Marque si esta sucursal puede emitir facturas
-                  </p>
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full">
+            <FormSwitch
+              control={form.control}
+              name="is_invoice"
+              text="¿Emite factura?"
+              textDescription="Indique si esta sucursal puede emitir facturas"
+              autoHeight
+            />
+          </div>
+
+          <div className="col-span-full">
+            <FormSwitch
+              control={form.control}
+              name="has_igv"
+              text="¿Tiene IGV?"
+              textDescription="Indique si esta sucursal maneja IGV en sus operaciones"
+              autoHeight
+            />
+          </div>
         </div>
 
         <div className="flex gap-4 w-full justify-end">

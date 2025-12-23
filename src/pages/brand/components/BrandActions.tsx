@@ -20,7 +20,7 @@ export default function BrandActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <BrandModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

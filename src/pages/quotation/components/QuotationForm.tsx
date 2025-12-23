@@ -12,23 +12,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Loader, Package, Plus, Trash2 } from "lucide-react";
+import { FileText, Loader, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/DataTable";
 import {
   PAYMENT_TYPES,
   CURRENCIES,
@@ -46,9 +40,10 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { useBranchById } from "@/pages/branch/lib/branch.hook";
 
 interface QuotationFormProps {
-  mode?: "create" | "edit";
+  mode?: "create" | "update";
   initialData?: QuotationResource;
   onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
@@ -83,14 +78,22 @@ export const QuotationForm = ({
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
+  const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
+    null
+  );
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const form = useForm({
     defaultValues: {
-      fecha_emision: initialData?.fecha_emision || new Date().toISOString().split("T")[0],
+      fecha_emision:
+        initialData?.fecha_emision || new Date().toISOString().split("T")[0],
       delivery_time: initialData?.delivery_time || "3 días hábiles",
       validity_time: initialData?.validity_time || "10 días",
       currency: initialData?.currency || "PEN",
       payment_type: initialData?.payment_type || "CONTADO",
+      days: initialData?.days?.toString() || "",
       status: initialData?.status || "Pendiente",
       observations: initialData?.observations || "",
       address: initialData?.address || "",
@@ -101,9 +104,136 @@ export const QuotationForm = ({
     },
   });
 
+  const warehouseId = form.watch("warehouse_id");
+  const paymentType = form.watch("payment_type");
+
+  // Obtener datos de la branch solo cuando tengamos un branch_id válido
+  const { data: branchData } = useBranchById(selectedBranchId || 0);
+
+  const handleEditDetail = useCallback(
+    (index: number) => {
+      const detail = details[index];
+      const productDetail: ProductDetail = {
+        product_id: detail.product_id,
+        product_name: detail.product_name || "",
+        is_igv: detail.is_igv,
+        quantity: detail.quantity,
+        unit_price: detail.unit_price,
+        purchase_price: detail.purchase_price,
+        subtotal: detail.subtotal,
+        tax: detail.tax,
+        total: detail.total,
+      };
+      setEditingDetail(productDetail);
+      setEditingIndex(index);
+      setSheetOpen(true);
+    },
+    [details]
+  );
+
+  const handleRemoveDetail = useCallback(
+    (index: number) => {
+      setDetails(details.filter((_, i) => i !== index));
+    },
+    [details]
+  );
+
+  const columns = useMemo<ColumnDef<DetailRow>[]>(
+    () => [
+      {
+        accessorKey: "product_name",
+        header: "Producto",
+      },
+      {
+        accessorKey: "quantity",
+        header: "Cantidad",
+        cell: ({ row }) => (
+          <div className="text-right">{row.original.quantity}</div>
+        ),
+      },
+      {
+        accessorKey: "unit_price",
+        header: "P. Unitario",
+        cell: ({ row }) => (
+          <div className="text-right">
+            {parseFloat(row.original.unit_price).toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "purchase_price",
+        header: "P. Compra",
+        cell: ({ row }) => (
+          <div className="text-right">
+            {parseFloat(row.original.purchase_price).toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "is_igv",
+        header: "IGV",
+        cell: ({ row }) => (
+          <div className="text-center">
+            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
+              {row.original.is_igv ? "Sí" : "No"}
+            </Badge>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "subtotal",
+        header: "Subtotal",
+        cell: ({ row }) => (
+          <div className="text-right">{row.original.subtotal.toFixed(2)}</div>
+        ),
+      },
+      {
+        accessorKey: "tax",
+        header: "IGV",
+        cell: ({ row }) => (
+          <div className="text-right">{row.original.tax.toFixed(2)}</div>
+        ),
+      },
+      {
+        accessorKey: "total",
+        header: "Total",
+        cell: ({ row }) => (
+          <div className="text-right font-semibold">
+            {row.original.total.toFixed(2)}
+          </div>
+        ),
+      },
+      {
+        id: "acciones",
+        header: "Acciones",
+        cell: ({ row }) => (
+          <div className="flex gap-2 justify-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditDetail(row.index)}
+            >
+              <Pencil className="h-4 w-4 text-blue-500" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleRemoveDetail(row.index)}
+            >
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [handleEditDetail, handleRemoveDetail]
+  );
+
   // Cargar detalles iniciales cuando se está editando
   useEffect(() => {
-    if (mode === "edit" && initialData?.quotation_details) {
+    if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => ({
           product_id: detail.product_id.toString(),
@@ -121,6 +251,27 @@ export const QuotationForm = ({
     }
   }, [mode, initialData]);
 
+  // Actualizar el branch_id cuando cambie el warehouse seleccionado
+  useEffect(() => {
+    if (warehouseId) {
+      const selectedWarehouse = warehouses.find(
+        (w) => w.id.toString() === warehouseId
+      );
+      if (selectedWarehouse?.branch_id) {
+        setSelectedBranchId(selectedWarehouse.branch_id);
+      }
+    } else {
+      setSelectedBranchId(null);
+    }
+  }, [warehouseId, warehouses]);
+
+  // Actualizar has_igv cuando se obtengan los datos de la branch
+  useEffect(() => {
+    if (branchData) {
+      setBranchHasIgv(branchData.has_igv === 1);
+    }
+  }, [branchData]);
+
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
       product_id: detail.product_id,
@@ -137,8 +288,30 @@ export const QuotationForm = ({
     setDetails([...details, newDetail]);
   };
 
-  const handleRemoveDetail = (index: number) => {
-    setDetails(details.filter((_, i) => i !== index));
+  const handleUpdateDetail = (detail: ProductDetail, index: number) => {
+    const updatedDetail: DetailRow = {
+      product_id: detail.product_id,
+      product_name: detail.product_name,
+      is_igv: detail.is_igv,
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+      purchase_price: detail.purchase_price,
+      subtotal: detail.subtotal,
+      tax: detail.tax,
+      total: detail.total,
+    };
+
+    const updatedDetails = [...details];
+    updatedDetails[index] = updatedDetail;
+    setDetails(updatedDetails);
+    setEditingDetail(null);
+    setEditingIndex(null);
+  };
+
+  const handleCloseSheet = () => {
+    setSheetOpen(false);
+    setEditingDetail(null);
+    setEditingIndex(null);
   };
 
   const handleSubmitForm = (formData: Record<string, string>) => {
@@ -152,6 +325,9 @@ export const QuotationForm = ({
       validity_time: formData.validity_time,
       currency: formData.currency,
       payment_type: formData.payment_type,
+      ...(formData.payment_type === "CREDITO" && formData.days
+        ? { days: parseInt(formData.days) }
+        : {}),
       observations: formData.observations || "",
       address: formData.address || "",
       reference: formData.reference || "",
@@ -263,6 +439,27 @@ export const QuotationForm = ({
               placeholder="Seleccionar tipo de pago"
             />
 
+            {paymentType === "CREDITO" && (
+              <FormField
+                control={form.control}
+                name="days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Crédito</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        placeholder="Número de días"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormSelect
               control={form.control}
               name="currency"
@@ -337,8 +534,8 @@ export const QuotationForm = ({
         </GroupFormSection>
 
         <GroupFormSection
-          title="Información General"
-          icon={FileText}
+          title="Productos"
+          icon={Package}
           cols={{
             sm: 1,
           }}
@@ -363,78 +560,32 @@ export const QuotationForm = ({
               </EmptyHeader>
             </Empty>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead className="text-right">Cantidad</TableHead>
-                  <TableHead className="text-right">P. Unitario</TableHead>
-                  <TableHead className="text-right">P. Compra</TableHead>
-                  <TableHead className="text-center">IGV</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                  <TableHead className="text-right">IGV</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-center">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {details.map((detail, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{detail.product_name}</TableCell>
-                    <TableCell className="text-right">
-                      {detail.quantity}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {parseFloat(detail.unit_price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {parseFloat(detail.purchase_price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={detail.is_igv ? "default" : "secondary"}>
-                        {detail.is_igv ? "Sí" : "No"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {detail.subtotal.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {detail.tax.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {detail.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveDetail(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell colSpan={7} className="text-right font-bold">
-                    Total General:
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-lg">
-                    {getTotalAmount().toFixed(2)}
-                  </TableCell>
-                  <TableCell />
-                </TableRow>
-              </TableBody>
-            </Table>
+            <div className="space-y-4">
+              <DataTable
+                columns={columns}
+                data={details}
+                isVisibleColumnFilter={false}
+                variant="default"
+              />
+              <div className="flex justify-end items-center gap-4 px-4">
+                <span className="text-sm font-bold">Total General:</span>
+                <span className="text-lg font-bold">
+                  {getTotalAmount().toFixed(2)}
+                </span>
+              </div>
+            </div>
           )}
         </GroupFormSection>
 
         <AddProductSheet
           open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
+          onClose={handleCloseSheet}
           onAdd={handleAddDetail}
           products={products}
+          defaultIsIgv={branchHasIgv}
+          editingDetail={editingDetail}
+          editIndex={editingIndex}
+          onEdit={handleUpdateDetail}
         />
 
         <div className="flex gap-4 justify-end">
@@ -445,7 +596,7 @@ export const QuotationForm = ({
           )}
           <Button type="submit" disabled={isSubmitting || details.length === 0}>
             {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === "edit"
+            {mode === "update"
               ? isSubmitting
                 ? "Actualizando..."
                 : "Actualizar Cotización"

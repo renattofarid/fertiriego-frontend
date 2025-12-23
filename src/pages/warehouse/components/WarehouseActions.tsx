@@ -20,7 +20,7 @@ export default function WarehouseActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <WarehouseModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

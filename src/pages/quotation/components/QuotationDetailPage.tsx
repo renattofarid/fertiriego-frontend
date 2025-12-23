@@ -140,6 +140,12 @@ export default function QuotationDetailPage() {
                   <p className="text-xs text-muted-foreground">Tipo de Pago</p>
                   <Badge variant="secondary">{quotation.payment_type}</Badge>
                 </div>
+                {quotation.payment_type === "CREDITO" && quotation.days && (
+                  <div>
+                    <p className="text-xs text-muted-foreground">Días de Crédito</p>
+                    <p className="font-medium">{quotation.days} días</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Tiempo de Entrega

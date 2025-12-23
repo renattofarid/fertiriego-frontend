@@ -20,7 +20,7 @@ export default function BoxActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <BoxModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

@@ -61,7 +61,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch all sales (no pagination)
   fetchAllSales: async () => {
-    set({ isLoadingAll: true, error: undefined});
+    set({ isLoadingAll: true, error: undefined });
     try {
       const data = await getAllSales();
       set({ allSales: data, isLoadingAll: false });
@@ -73,7 +73,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch sales with pagination
   fetchSales: async (params?: GetSalesParams) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const response = await getSales(params);
       const meta = response.meta;
@@ -86,7 +86,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Fetch single sale by ID
   fetchSale: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const response = await findSaleById(id);
       set({ sale: response.data, isFinding: false });
@@ -98,7 +98,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Create new sale
   createSale: async (data: SaleSchema) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       const request: CreateSaleRequest = {
         customer_id: Number(data.customer_id),
@@ -121,7 +121,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
         installments:
           data.installments.length > 0
             ? data.installments.map((installment) => ({
-                installment_number: Number(installment.installment_number),
                 due_days: Number(installment.due_days),
                 amount: Number(installment.amount),
               }))
@@ -138,7 +137,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Update sale
   updateSale: async (id: number, data: Partial<SaleUpdateSchema>) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       const request: UpdateSaleRequest = {
         ...(data.customer_id && { customer_id: Number(data.customer_id) }),
@@ -161,7 +160,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.installments &&
           data.installments.length > 0 && {
             installments: data.installments.map((installment) => ({
-              installment_number: Number(installment.installment_number),
               due_days: Number(installment.due_days),
               amount: Number(installment.amount),
             })),
@@ -180,7 +178,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Delete sale
   removeSale: async (id: number) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await deleteSale(id);
       set({ isSubmitting: false });
@@ -194,6 +192,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
 
   // Reset sale state
   resetSale: () => {
-    set({ sale: null, error: undefined});
+    set({ sale: null, error: undefined });
   },
 }));

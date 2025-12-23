@@ -20,7 +20,7 @@ interface WarehouseProductStore {
   isFinding: boolean;
   error?: string;
   isSubmitting: boolean;
-  fetchAllWarehouseProducts: () => Promise<void>;
+  fetchAllWarehouseProducts: (params?: Record<string, any>) => Promise<void>;
   fetchWarehouseProducts: (params?: Record<string, any>) => Promise<void>;
   fetchWarehouseProduct: (id: number) => Promise<void>;
   createWarehouseProduct: (data: WarehouseProductSchema) => Promise<void>;
@@ -55,10 +55,10 @@ export const useWarehouseProductStore = create<WarehouseProductStore>(
       }
     },
 
-    fetchAllWarehouseProducts: async () => {
+    fetchAllWarehouseProducts: async (params?: Record<string, any>) => {
       set({ isLoadingAll: true, error: undefined});
       try {
-        const data = await getAllWarehouseProducts();
+        const data = await getAllWarehouseProducts(params);
         set({ allWarehouseProducts: data, isLoadingAll: false });
       } catch (err) {
         set({

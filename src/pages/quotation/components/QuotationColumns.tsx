@@ -87,6 +87,16 @@ export const getQuotationColumns = ({
     ),
   },
   {
+    accessorKey: "days",
+    header: "Días",
+    cell: ({ row }) => {
+      if (row.original.payment_type === "CREDITO" && row.original.days) {
+        return <span>{row.original.days} días</span>;
+      }
+      return <span className="text-muted-foreground">-</span>;
+    },
+  },
+  {
     accessorKey: "currency",
     header: "Moneda",
     cell: ({ row }) => <Badge variant="outline">{row.original.currency}</Badge>,

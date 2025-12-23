@@ -21,7 +21,7 @@ export default function UserBoxAssignmentActions() {
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <UserBoxAssignmentModal
-        title={`Crear ${MODEL.name}`}
+        title={MODEL.name}
         mode="create"
         open={open}
         onClose={() => setOpen(false)}

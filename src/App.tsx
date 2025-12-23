@@ -97,6 +97,21 @@ import {
   OrderDetailPage,
   OrderPage,
 } from "./pages/order/components";
+import { VEHICLE } from "./pages/vehicle/lib/vehicle.interface";
+import VehiclePage from "./pages/vehicle/components/VehiclePage";
+import { CREDIT_NOTE } from "./pages/credit-note/lib/credit-note.interface";
+import CreditNotePage from "./pages/credit-note/components/CreditNotePage";
+import CreditNoteAddPage from "./pages/credit-note/components/CreditNoteAddPage";
+import CreditNoteEditPage from "./pages/credit-note/components/CreditNoteEditPage";
+import { DEBIT_NOTE } from "./pages/debit-note/lib/debit-note.interface";
+import DebitNotePage from "./pages/debit-note/components/DebitNotePage";
+import DebitNoteAddPage from "./pages/debit-note/components/DebitNoteAddPage";
+import DebitNoteEditPage from "./pages/debit-note/components/DebitNoteEditPage";
+import { GUIDE } from "./pages/guide/lib/guide.interface";
+import GuidePage from "./pages/guide/components/GuidePage";
+import GuideAddPage from "./pages/guide/components/GuideAddPage";
+import GuideEditPage from "./pages/guide/components/GuideEditPage";
+import GuideDetailPage from "./pages/guide/components/GuideDetailPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -119,6 +134,12 @@ const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
 const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
 const { ROUTE: QuotationRoute } = QUOTATION;
 const { ROUTE: OrderRoute } = ORDER;
+const { ROUTE: VehicleRoute } = VEHICLE;
+const { ROUTE: CreditNoteRoute } = CREDIT_NOTE;
+const { ROUTE: DebitNoteRoute } = DEBIT_NOTE;
+const { ROUTE: GuideRoute } = GUIDE;
+const { ROUTE_ADD: GuideAddRoute } = GUIDE;
+const { ROUTE_UPDATE: GuideUpdateRoute } = GUIDE;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -710,6 +731,109 @@ export default function App() {
             element={
               <ProtectedRoute path={OrderRoute}>
                 <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Vehículos */}
+          <Route
+            path={VehicleRoute}
+            element={
+              <ProtectedRoute path={VehicleRoute}>
+                <VehiclePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Notas de Crédito */}
+          <Route
+            path={CreditNoteRoute}
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNotePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-credito/agregar"
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNoteAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-credito/actualizar/:id"
+            element={
+              <ProtectedRoute path={CreditNoteRoute}>
+                <CreditNoteEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Notas de Débito */}
+          <Route
+            path={DebitNoteRoute}
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNotePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-debito/agregar"
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNoteAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-debito/actualizar/:id"
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNoteEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Guías de Remisión */}
+          <Route
+            path={GuideRoute}
+            element={
+              <ProtectedRoute path={GuideRoute}>
+                <GuidePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={GuideAddRoute}
+            element={
+              <ProtectedRoute path={GuideRoute}>
+                <GuideAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={GuideUpdateRoute}
+            element={
+              <ProtectedRoute path={GuideRoute}>
+                <GuideEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/guias/:id"
+            element={
+              <ProtectedRoute path={GuideRoute}>
+                <GuideDetailPage />
               </ProtectedRoute>
             }
           />

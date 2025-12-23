@@ -39,6 +39,7 @@ export interface QuotationResource {
   validity_time: string;
   currency: string;
   payment_type: string;
+  days?: number;
   observations: string;
   status: string;
   address: string;
@@ -121,6 +122,7 @@ export interface CreateQuotationRequest {
   validity_time: string;
   currency: string;
   payment_type: string;
+  days?: number;
   observations: string;
   address: string;
   reference: string;
@@ -137,6 +139,7 @@ export interface UpdateQuotationRequest {
   validity_time?: string;
   currency?: string;
   payment_type?: string;
+  days?: number;
   observations?: string;
   status?: string;
   address?: string;

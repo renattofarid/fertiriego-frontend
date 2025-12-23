@@ -94,7 +94,7 @@ export default function TypeUserPage() {
           id={editId}
           open={true}
           onClose={() => setEditId(null)}
-          title={`Editar ${MODEL.name}`}
+          title={MODEL.name}
           mode="update"
         />
       )}

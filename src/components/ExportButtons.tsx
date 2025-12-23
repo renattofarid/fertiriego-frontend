@@ -75,14 +75,14 @@ export default function ExportButtons({
 
   if (variant === "grouped") {
     return (
-      <div className="flex items-center gap-1 bg-gray-50 rounded-lg border">
+      <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
         {excelEndpoint && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className="p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
+                className="p-0 hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
                 onClick={handleExcelDownload}
               >
                 <Sheet className="size-4" />

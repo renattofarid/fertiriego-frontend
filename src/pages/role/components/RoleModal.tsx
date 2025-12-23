@@ -29,7 +29,7 @@ export default function RoleModal({
 }: Props) {
   const { refetch } = useRoles();
   const mode = roleId ? "update" : "create";
-  const title = roleId ? `Editar ${MODEL.name}` : `Crear ${MODEL.name}`;
+  const title = roleId ? MODEL.name : MODEL.name;
 
   const { data: role, isFinding: findingRole } =
     mode === "create"

@@ -14,6 +14,7 @@ export interface User {
   person: Person;
   rol_id: number;
   rol_name: string;
+  boxes: Box[];
 }
 
 export interface Person {
@@ -30,6 +31,10 @@ export interface Person {
   email: string;
   ocupation: string;
   status: string;
+  gender?: string;
+  birth_date?: string;
+  commercial_name?: string;
+  full_name: string;
 }
 
 export interface Access {
@@ -46,4 +51,13 @@ export interface Permission {
   actions: string[];
   routes: string[];
   status: string;
+}
+
+export interface Box {
+  id: number;
+  name: string;
+  status: string;
+  serie: string;
+  branch_id: number;
+  created_at: string;
 }

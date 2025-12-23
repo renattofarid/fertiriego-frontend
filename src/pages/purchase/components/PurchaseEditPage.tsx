@@ -151,7 +151,7 @@ export const PurchaseEditPage = () => {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
+            <TitleFormComponent title="Compra" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -163,7 +163,7 @@ export const PurchaseEditPage = () => {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
+          <TitleFormComponent title="Compra" mode="update" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
@@ -176,7 +176,7 @@ export const PurchaseEditPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
+          <TitleFormComponent title="Compra" mode="update" icon={ICON} />
         </div>
       </div>
 

@@ -32,6 +32,15 @@ import { successToast, errorToast } from "@/lib/core.function";
 import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
 import type { CompanyResource } from "@/pages/company/lib/company.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { Plus } from "lucide-react";
+import UnitModal from "@/pages/unit/components/UnitModal";
+import ProductTypeModal from "@/pages/product-type/components/ProductTypeModal";
+import CategoryModal from "@/pages/category/components/CategoryModal";
+import BrandModal from "@/pages/brand/components/BrandModal";
+import { useUnit } from "@/pages/unit/lib/unit.hook";
+import { useProductType } from "@/pages/product-type/lib/product-type.hook";
+import { useCategory, useAllCategories } from "@/pages/category/lib/category.hook";
+import { useBrand } from "@/pages/brand/lib/brand.hook";
 
 interface ProductFormProps {
   defaultValues: Partial<ProductSchema>;
@@ -68,6 +77,19 @@ export const ProductForm = ({
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteTechnicalSheet } = useProductStore();
+
+  // Modal states
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isProductTypeModalOpen, setIsProductTypeModalOpen] = useState(false);
+  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
+  const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
+
+  // Refetch hooks
+  const { refetch: refetchCategories } = useCategory();
+  const { refetch: refetchAllCategories } = useAllCategories();
+  const { refetch: refetchProductTypes } = useProductType();
+  const { refetch: refetchBrands } = useBrand();
+  const { refetch: refetchUnits } = useUnit();
 
   const form = useForm({
     resolver: zodResolver(
@@ -165,49 +187,101 @@ export const ProductForm = ({
             />
           </div>
 
-          <FormSelect
-            control={form.control}
-            name="category_id"
-            label="Categoría"
-            placeholder="Seleccione una categoría"
-            options={categories.map((category) => ({
-              value: category.id.toString(),
-              label: `${"  ".repeat(category.level - 1)}${category.name}`,
-            }))}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelect
+                control={form.control}
+                name="category_id"
+                label="Categoría"
+                placeholder="Seleccione una categoría"
+                options={categories.map((category) => ({
+                  value: category.id.toString(),
+                  label: `${"  ".repeat(category.level - 1)}${category.name}`,
+                }))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setIsCategoryModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-          <FormSelect
-            control={form.control}
-            name="product_type_id"
-            label="Tipo de Producto"
-            placeholder="Seleccione el tipo"
-            options={productTypes.map((productType) => ({
-              value: productType.id.toString(),
-              label: productType.name,
-            }))}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelect
+                control={form.control}
+                name="product_type_id"
+                label="Tipo de Producto"
+                placeholder="Seleccione el tipo"
+                options={productTypes.map((productType) => ({
+                  value: productType.id.toString(),
+                  label: productType.name,
+                }))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setIsProductTypeModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-          <FormSelect
-            control={form.control}
-            name="brand_id"
-            label="Marca"
-            placeholder="Seleccione una marca"
-            options={brands.map((brand) => ({
-              value: brand.id.toString(),
-              label: brand.name,
-            }))}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelect
+                control={form.control}
+                name="brand_id"
+                label="Marca"
+                placeholder="Seleccione una marca"
+                options={brands.map((brand) => ({
+                  value: brand.id.toString(),
+                  label: brand.name,
+                }))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setIsBrandModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-          <FormSelect
-            control={form.control}
-            name="unit_id"
-            label="Unidad"
-            placeholder="Seleccione una unidad"
-            options={units.map((unit) => ({
-              value: unit.id.toString(),
-              label: unit.name,
-            }))}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelect
+                control={form.control}
+                name="unit_id"
+                label="Unidad"
+                placeholder="Seleccione una unidad"
+                options={units.map((unit) => ({
+                  value: unit.id.toString(),
+                  label: unit.name,
+                }))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setIsUnitModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Precios y Proveedor */}
@@ -264,19 +338,32 @@ export const ProductForm = ({
             text={form.watch("is_igv") ? "Incluye IGV" : "No incluye IGV"}
           />
 
-          <FormSelect
-            control={form.control}
-            name="supplier_id"
-            label="Proveedor"
-            placeholder="Seleccione un proveedor"
-            options={suppliers.map((supplier) => ({
-              value: supplier.id.toString(),
-              label:
-                supplier.type_person === "JURIDICA"
-                  ? supplier.business_name || supplier.commercial_name
-                  : `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-            }))}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelect
+                control={form.control}
+                name="supplier_id"
+                label="Proveedor"
+                placeholder="Seleccione un proveedor"
+                options={suppliers.map((supplier) => ({
+                  value: supplier.id.toString(),
+                  label:
+                    supplier.type_person === "JURIDICA"
+                      ? supplier.business_name || supplier.commercial_name
+                      : `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
+                }))}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => errorToast("El modal de proveedor aún no está implementado. Por favor, use la página de proveedores.")}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
           <div className="md:col-span-2">
             <FormField
@@ -413,6 +500,56 @@ export const ProductForm = ({
           </Button>
         </div>
       </form>
+
+      {/* CRUD Modals */}
+      {isCategoryModalOpen && (
+        <CategoryModal
+          open={isCategoryModalOpen}
+          onClose={() => {
+            setIsCategoryModalOpen(false);
+            refetchCategories();
+            refetchAllCategories();
+          }}
+          title="Nueva Categoría"
+          mode="create"
+        />
+      )}
+
+      {isProductTypeModalOpen && (
+        <ProductTypeModal
+          open={isProductTypeModalOpen}
+          onClose={() => {
+            setIsProductTypeModalOpen(false);
+            refetchProductTypes();
+          }}
+          title="Nuevo Tipo de Producto"
+          mode="create"
+        />
+      )}
+
+      {isBrandModalOpen && (
+        <BrandModal
+          open={isBrandModalOpen}
+          onClose={() => {
+            setIsBrandModalOpen(false);
+            refetchBrands();
+          }}
+          title="Nueva Marca"
+          mode="create"
+        />
+      )}
+
+      {isUnitModalOpen && (
+        <UnitModal
+          open={isUnitModalOpen}
+          onClose={() => {
+            setIsUnitModalOpen(false);
+            refetchUnits();
+          }}
+          title="Nueva Unidad"
+          mode="create"
+        />
+      )}
     </Form>
   );
 };

@@ -37,13 +37,15 @@ export const BRANCH: ModelComplete<BranchResource> = {
     id: 0,
     name: "",
     address: "",
-    is_invoice: false,
+    is_invoice: 0,
     responsible_id: 0,
     responsible_full_name: "",
     phone: "",
     email: "",
     company_id: 0,
     created_at: "",
+    has_igv: 0,
+    company_name: "",
   },
 };
 
@@ -57,12 +59,14 @@ export interface BranchResource {
   id: number;
   name: string;
   address: string;
-  is_invoice: number | boolean;
+  is_invoice: number;
   responsible_id: number;
   responsible_full_name: string;
   phone: string;
   email: string;
+  has_igv: number;
   company_id: number;
+  company_name?: string;
   created_at: string;
 }
 

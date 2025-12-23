@@ -54,8 +54,8 @@ export default function ClientAddPage() {
       navigate("/clientes");
     } catch (error: any) {
       const errorMessage =
-          ((error.response.data.message ?? error.response.data.error) as string)
-          ?? "Error al crear cliente";
+        ((error.response.data.message ??
+          error.response.data.error) as string) ?? "Error al crear cliente";
 
       errorToast(
         errorMessage,
@@ -70,8 +70,8 @@ export default function ClientAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/clientes" /> 
-          <TitleFormComponent title={MODEL.name} mode="edit" />
+          <BackButton to="/clientes" />
+          <TitleFormComponent title={MODEL.name} mode="create" />
         </div>
       </div>
 

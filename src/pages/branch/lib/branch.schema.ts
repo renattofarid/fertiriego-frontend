@@ -1,4 +1,4 @@
-import { requiredStringId } from "@/lib/core.schema";
+import { phoneSchemaRequired, requiredStringId } from "@/lib/core.schema";
 import { z } from "zod";
 
 export const branchSchemaCreate = z.object({
@@ -21,6 +21,9 @@ export const branchSchemaCreate = z.object({
   is_invoice: z.boolean({
     error: "Debe especificar si emite factura",
   }),
+  has_igv: z.boolean({
+    error: "Debe especificar si tiene IGV",
+  }),
   responsible_id: z
     .number({
       error: "El responsable es requerido",
@@ -28,18 +31,10 @@ export const branchSchemaCreate = z.object({
     .min(1, {
       message: "Debe seleccionar un responsable",
     }),
-  phone: z
-    .string()
-    .max(9, {
-      message: "El teléfono no puede tener más de 9 caracteres",
-    })
-    .min(1, {
-      message: "El teléfono es requerido",
-    }),
+  phone: phoneSchemaRequired,
   email: z
-    .string()
     .email({
-      message: "El email debe tener un formato válido",
+      message: "El email no es válido",
     })
     .max(255, {
       message: "El email no puede tener más de 255 caracteres",
