@@ -17,7 +17,7 @@ interface DebitNoteStore {
   allDebitNotes: DebitNoteResource[] | null;
   debitNotes: DebitNoteResource[] | null;
   debitNote: DebitNoteResource | null;
-  allDebitNoteReasons?: DebitNoteReason[];
+  allDebitNoteReasons: DebitNoteReason[] | null;
   meta?: Meta;
   isLoadingAll: boolean;
   isLoadingAllReasons: boolean;
@@ -37,7 +37,7 @@ export const useDebitNoteStore = create<DebitNoteStore>((set) => ({
   allDebitNotes: null,
   debitNote: null,
   debitNotes: null,
-  allDebitNoteReasons: [],
+  allDebitNoteReasons: null,
   meta: undefined,
   isLoadingAll: false,
   isLoadingAllReasons: false,

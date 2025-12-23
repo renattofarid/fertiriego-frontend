@@ -8,6 +8,7 @@ export interface SaleDetailResource {
   id: number;
   sale_id: number;
   product_id: number;
+  concept: string;
   product: Product;
   quantity: number;
   unit_price: number;

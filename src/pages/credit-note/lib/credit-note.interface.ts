@@ -1,6 +1,6 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
-import { FileText } from "lucide-react";
+import { FilePlus } from "lucide-react";
 
 const ROUTE = "/notas-credito";
 const NAME = "Nota de Crédito";
@@ -12,8 +12,8 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
     plural: "Notas de Crédito",
     gender: false,
   },
-  ICON: "FileText",
-  ICON_REACT: FileText,
+  ICON: "FilePlus",
+  ICON_REACT: FilePlus,
   ENDPOINT: "/credit-notes",
   QUERY_KEY: "credit-notes",
   ROUTE,
@@ -142,19 +142,13 @@ export interface getCreditNoteProps {
   params?: Record<string, any>;
 }
 
-export const CREDIT_NOTE_TYPES = [
-  { value: "DEVOLUCION", label: "Devolución" },
-  { value: "DESCUENTO", label: "Descuento" },
-  { value: "ANULACION", label: "Anulación" },
-  { value: "BONIFICACION", label: "Bonificación" },
-] as const;
-
 export interface CreditNoteReason {
   id: number;
   code: string;
   name: string;
   active: number;
 }
+
 interface Detail {
   id: number;
   sale_detail_id: number;

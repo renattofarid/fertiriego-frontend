@@ -1,6 +1,6 @@
 import type { ModelComplete } from "@/lib/core.interface";
 import type { Links, Meta } from "@/lib/pagination.interface";
-import { FileText } from "lucide-react";
+import { FileMinus } from "lucide-react";
 
 const ROUTE = "/notas-debito";
 const NAME = "Nota de Débito";
@@ -12,8 +12,8 @@ export const DEBIT_NOTE: ModelComplete<DebitNoteResource> = {
     plural: "Notas de Débito",
     gender: false,
   },
-  ICON: "FileText",
-  ICON_REACT: FileText,
+  ICON: "FileMinus",
+  ICON_REACT: FileMinus,
   ENDPOINT: "/debit-notes",
   QUERY_KEY: "debit-notes",
   ROUTE,
@@ -37,9 +37,9 @@ export const DEBIT_NOTE: ModelComplete<DebitNoteResource> = {
     id: 0,
     sale_id: 0,
     issue_date: "",
-    debit_note_type: "",
-    reason: "",
-    affects_stock: false,
+    debit_note_motive_id: 0,
+    observations: "",
+    warehouse_id: 0,
     total_amount: 0,
     status: "",
     sale: {
@@ -64,6 +64,7 @@ export interface DebitNoteDetailResource {
   debit_note_id: number;
   sale_detail_id: number;
   product_id: number;
+  concept: string;
   product: {
     id: number;
     name: string;
@@ -81,9 +82,9 @@ export interface DebitNoteResource {
   id: number;
   sale_id: number;
   issue_date: string;
-  debit_note_type: string;
-  reason: string;
-  affects_stock: boolean;
+  debit_note_motive_id: number;
+  observations: string;
+  warehouse_id: number;
   total_amount: number;
   status: string;
   sale: {
@@ -106,5 +107,7 @@ export interface getDebitNoteProps {
 
 export interface DebitNoteReason {
   id: number;
+  code: string;
   name: string;
+  active: number;
 }

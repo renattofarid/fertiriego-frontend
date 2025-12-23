@@ -19,13 +19,11 @@ import {
 } from "../lib/debit-note.schema";
 import { Loader, Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
-import { FormSwitch } from "@/components/FormSwitch";
 import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
 import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { useDebitNoteReasons } from "../lib/debit-note.hook";
-import type { Option } from "@/lib/core.interface";
+import type { DebitNoteReason } from "../lib/debit-note.interface";
 
 interface DebitNoteFormProps {
   defaultValues: Partial<DebitNoteSchema>;
@@ -33,6 +31,7 @@ interface DebitNoteFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
+  debitNoteReasons: DebitNoteReason[];
 }
 
 export const DebitNoteForm = ({
@@ -41,6 +40,7 @@ export const DebitNoteForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
+  debitNoteReasons,
 }: DebitNoteFormProps) => {
   const { data: sales } = useAllSales();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
@@ -52,10 +52,10 @@ export const DebitNoteForm = ({
     resolver: zodResolver(debitNoteSchema),
     defaultValues: {
       sale_id: "",
-      issue_date: new Date().toISOString().split("T")[0],
-      debit_note_type: "",
-      reason: "",
-      affects_stock: true,
+      warehouse_id: "",
+      issue_date: "",
+      debit_note_motive_id: "",
+      observations: "",
       details: [],
       ...defaultValues,
     },
@@ -74,13 +74,6 @@ export const DebitNoteForm = ({
       label: `${sale.full_document_number} - ${sale.customer_fullname}`,
       description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
-
-  const { data: debitNoteReasons = [] } = useDebitNoteReasons();
-
-  const debitNoteTypeOptions: Option[] = debitNoteReasons.map((reason) => ({
-    value: reason.id.toString(),
-    label: reason.name,
-  }));
 
   // Cuando se selecciona una venta, actualizar el estado y cargar detalles
   useEffect(() => {
@@ -103,6 +96,7 @@ export const DebitNoteForm = ({
         selectedSale.details?.map((detail) => ({
           sale_detail_id: detail.id.toString(),
           product_id: detail.product_id,
+          concept: detail.concept,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
         })) || [];
@@ -126,6 +120,7 @@ export const DebitNoteForm = ({
     append({
       sale_detail_id: "",
       product_id: 0,
+      concept: "",
       quantity: 0,
       unit_price: 0,
     });
@@ -159,27 +154,23 @@ export const DebitNoteForm = ({
             name="debit_note_type"
             label="Tipo de Nota de Crédito"
             placeholder="Seleccione el tipo"
-            options={debitNoteTypeOptions}
-            control={form.control}
-          />
-
-          <FormSwitch
-            name="affects_stock"
-            label="Afecta Stock"
-            text="Marque si la nota de crédito debe afectar el inventario"
+            options={debitNoteReasons.map((reason) => ({
+              value: reason.id.toString(),
+              label: reason.name,
+            }))}
             control={form.control}
           />
 
           <div className="md:col-span-2">
             <FormField
               control={form.control}
-              name="reason"
+              name="observations"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Motivo</FormLabel>
+                  <FormLabel>Observaciones</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ingrese el motivo de la nota de crédito"
+                      placeholder="Ingrese las observaciones de la nota de débito"
                       className="resize-none"
                       {...field}
                     />

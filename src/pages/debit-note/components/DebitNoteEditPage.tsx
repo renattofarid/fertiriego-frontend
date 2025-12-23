@@ -6,7 +6,7 @@ import {
 } from "../lib/debit-note.interface";
 import { DebitNoteForm } from "./DebitNoteForm";
 import { useDebitNoteStore } from "../lib/debit-note.store";
-import { useDebitNoteById } from "../lib/debit-note.hook";
+import { useDebitNoteById, useDebitNoteReasons } from "../lib/debit-note.hook";
 import type { DebitNoteSchema } from "../lib/debit-note.schema";
 import {
   errorToast,
@@ -15,6 +15,7 @@ import {
   ERROR_MESSAGE,
 } from "@/lib/core.function";
 import FormSkeleton from "@/components/FormSkeleton";
+import FormWrapper from "@/components/FormWrapper";
 
 const { MODEL, ICON, TITLES } = DEBIT_NOTE;
 
@@ -25,19 +26,21 @@ export default function DebitNoteEditPage() {
 
   const { data: debitNote, isFinding } = useDebitNoteById(debitNoteId);
   const { isSubmitting, updateDebitNote } = useDebitNoteStore();
+  const { data: debitNoteReasons = [], isLoading } = useDebitNoteReasons();
 
   const mapDebitNoteToForm = (
     data: DebitNoteResource
   ): Partial<DebitNoteSchema> => ({
     sale_id: data?.sale_id.toString() || "",
     issue_date: data?.issue_date || new Date().toISOString().split("T")[0],
-    debit_note_type: data?.debit_note_type || "",
-    reason: data?.reason || "",
-    affects_stock: data?.affects_stock ?? true,
+    debit_note_motive_id: data?.debit_note_motive_id.toString() || "",
+    observations: data?.observations || "",
+    warehouse_id: data?.warehouse_id.toString() || "",
     details:
       data?.details?.map((detail) => ({
         sale_detail_id: detail.sale_detail_id.toString(),
         product_id: detail.product_id,
+        concept: detail.concept,
         quantity: detail.quantity,
         unit_price: detail.unit_price,
       })) || [],
@@ -77,35 +80,26 @@ export default function DebitNoteEditPage() {
     );
   }
 
-  if (!debitNote) {
-    return (
-      <div className="space-y-4">
-        <TitleComponent
-          title="Error"
-          subtitle="No se encontró la nota de crédito"
-          icon={ICON}
-        />
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-4">
+    <FormWrapper>
       <TitleComponent
         title={TITLES.update.title}
         subtitle={TITLES.update.subtitle}
         icon={ICON}
       />
 
-      <div className="bg-card rounded-lg border">
+      {isLoading || isSubmitting || !debitNote ? (
+        <FormSkeleton />
+      ) : (
         <DebitNoteForm
           defaultValues={mapDebitNoteToForm(debitNote)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="update"
           onCancel={handleCancel}
+          debitNoteReasons={debitNoteReasons || []}
         />
-      </div>
-    </div>
+      )}
+    </FormWrapper>
   );
 }

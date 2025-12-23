@@ -50,6 +50,7 @@ import { ORDER } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
+import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -213,6 +214,12 @@ const {
   MODEL: { name: CreditNoteTitle },
 } = CREDIT_NOTE;
 
+const {
+  ICON_REACT: DebitNoteIcon,
+  ROUTE: DebitNoteRoute,
+  MODEL: { name: DebitNoteTitle },
+} = DEBIT_NOTE;
+
 const data = {
   navMain: [
     {
@@ -271,6 +278,11 @@ const data = {
           title: CreditNoteTitle,
           url: CreditNoteRoute,
           icon: CreditNoteIcon,
+        },
+        {
+          title: DebitNoteTitle,
+          url: DebitNoteRoute,
+          icon: DebitNoteIcon,
         },
         {
           title: AccountsReceivableTitle,

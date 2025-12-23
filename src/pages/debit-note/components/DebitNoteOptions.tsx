@@ -12,7 +12,7 @@ export default function DebitNoteOptions({
   return (
     <div className="flex items-center justify-between">
       <SearchInput
-        placeholder="Buscar notas de crédito..."
+        placeholder="Buscar notas de débito..."
         value={search}
         onChange={setSearch}
       />

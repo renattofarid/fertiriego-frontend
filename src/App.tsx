@@ -104,6 +104,9 @@ import CreditNotePage from "./pages/credit-note/components/CreditNotePage";
 import CreditNoteAddPage from "./pages/credit-note/components/CreditNoteAddPage";
 import CreditNoteEditPage from "./pages/credit-note/components/CreditNoteEditPage";
 import { DEBIT_NOTE } from "./pages/debit-note/lib/debit-note.interface";
+import DebitNotePage from "./pages/debit-note/components/DebitNotePage";
+import DebitNoteAddPage from "./pages/debit-note/components/DebitNoteAddPage";
+import DebitNoteEditPage from "./pages/debit-note/components/DebitNoteEditPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -758,6 +761,34 @@ export default function App() {
             element={
               <ProtectedRoute path={CreditNoteRoute}>
                 <CreditNoteEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Notas de Débito */}
+          <Route
+            path={DebitNoteRoute}
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNotePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-debito/agregar"
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNoteAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/notas-debito/actualizar/:id"
+            element={
+              <ProtectedRoute path={DebitNoteRoute}>
+                <DebitNoteEditPage />
               </ProtectedRoute>
             }
           />

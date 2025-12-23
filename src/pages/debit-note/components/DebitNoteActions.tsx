@@ -6,7 +6,7 @@ export default function DebitNoteActions() {
   const navigate = useNavigate();
 
   return (
-    <Button onClick={() => navigate("/notas-debito/agregar")}>
+    <Button size="sm" onClick={() => navigate("/notas-debito/agregar")}>
       <Plus className="mr-2 h-4 w-4" />
       Agregar Nota de Crédito
     </Button>

@@ -30,7 +30,7 @@ export const getDebitNoteReasons = async ({
       ...params,
     },
   };
-  const response = await api.get("/debit-note-motives", config);
+  const response = await api.get("/debit-motives", config);
   return response.data;
 };
 

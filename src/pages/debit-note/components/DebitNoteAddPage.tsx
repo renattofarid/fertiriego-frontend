@@ -11,12 +11,15 @@ import {
 import FormWrapper from "@/components/FormWrapper";
 import { DEBIT_NOTE } from "../lib/debit-note.interface";
 import { DebitNoteForm } from "./DebitNoteForm";
+import { useDebitNoteReasons } from "../lib/debit-note.hook";
+import FormSkeleton from "@/components/FormSkeleton";
 
 const { MODEL, ICON, TITLES } = DEBIT_NOTE;
 
 export default function DebitNoteAddPage() {
   const navigate = useNavigate();
   const { isSubmitting, createDebitNote } = useDebitNoteStore();
+  const { data: debitNoteReasons = [], isLoading } = useDebitNoteReasons();
 
   const handleSubmit = async (data: DebitNoteSchema) => {
     await createDebitNote(data)
@@ -45,20 +48,25 @@ export default function DebitNoteAddPage() {
         icon={ICON}
       />
 
-      <DebitNoteForm
-        defaultValues={{
-          sale_id: "",
-          issue_date: "",
-          debit_note_type: "",
-          reason: "",
-          affects_stock: true,
-          details: [],
-        }}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        mode="create"
-        onCancel={handleCancel}
-      />
+      {isLoading || isSubmitting ? (
+        <FormSkeleton />
+      ) : (
+        <DebitNoteForm
+          defaultValues={{
+            sale_id: "",
+            issue_date: "",
+            debit_note_motive_id: "",
+            observations: "",
+            warehouse_id: "",
+            details: [],
+          }}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="create"
+          onCancel={handleCancel}
+          debitNoteReasons={debitNoteReasons || []}
+        />
+      )}
     </FormWrapper>
   );
 }
