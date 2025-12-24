@@ -51,7 +51,7 @@ export interface SaleResource {
   warehouse_id: number;
   user_id: number;
   customer_fullname: string;
-  customer_document?: string | null;
+  customer_document?: string;
   warehouse_name?: string;
   user_name: string;
   document_type: string;
@@ -60,13 +60,13 @@ export interface SaleResource {
   full_document_number: string;
   issue_date: string;
   payment_type: string;
-  order_purchase?: string | null;
-  order_service?: string | null;
-  date_expired?: string | null;
+  order_purchase?: string;
+  order_service?: string;
+  date_expired?: string;
   is_anticipado: boolean;
   is_deduccion: boolean;
   is_retencionigv: boolean;
-  guides?: GuideInfo[] | string | null;
+  guides?: GuideInfo[];
   is_termine_condition: boolean;
   amount_cash: number;
   amount_card: number;
@@ -76,15 +76,15 @@ export interface SaleResource {
   amount_transfer: number;
   amount_other: number;
   total_paid: number;
-  quotation_id?: number | null;
-  order_id?: number | null;
-  order?: Order | null;
-  quotation?: Quotation | null;
+  quotation_id?: string;
+  order_id?: string;
+  order?: Order;
+  quotation?: Quotation;
   total_amount: number;
   current_amount: number;
   currency: string;
   status: string;
-  observations?: string | null;
+  observations?: string;
   customer: Customer;
   warehouse: Warehouse;
   user: User;
@@ -126,9 +126,9 @@ interface Warehouse {
 
 interface Customer {
   id: number;
-  document_type?: string | null;
-  document_number?: string | null;
-  first_name?: string | null;
+  document_type?: string;
+  document_number?: string;
+  first_name?: string;
   father_surname?: string;
   mother_surname?: string;
   business_name: string;
