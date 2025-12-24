@@ -61,7 +61,7 @@ export async function createPerson(
 export async function createPersonWithRole(
   data: CreatePersonRequest,
   roleId: number
-): Promise<{ message: string }> {
+): Promise<{ message: string; data?: PersonResource }> {
   // First create the person
   const createResponse = await createPerson(data);
 
@@ -73,9 +73,20 @@ export async function createPersonWithRole(
     await updatePersonRoles(personId, {
       roles: [{ role_id: roleId, status: true }],
     });
+
+    // Fetch the complete person data
+    const personData = await findPersonById(personId);
+
+    return {
+      message: createResponse.message,
+      data: personData.data,
+    };
   }
 
-  return createResponse;
+  return {
+    message: createResponse.message,
+    data: undefined,
+  };
 }
 
 export async function updatePerson(

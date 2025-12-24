@@ -41,6 +41,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useBranchById } from "@/pages/branch/lib/branch.hook";
+import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -63,6 +64,7 @@ interface DetailRow {
   subtotal: number;
   tax: number;
   total: number;
+  technical_sheet?: string[];
 }
 
 export const QuotationForm = ({
@@ -84,6 +86,15 @@ export const QuotationForm = ({
     null
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [technicalSheetsDialog, setTechnicalSheetsDialog] = useState<{
+    open: boolean;
+    sheets: string[];
+    productName: string;
+  }>({
+    open: false,
+    sheets: [],
+    productName: "",
+  });
 
   const form = useForm({
     defaultValues: {
@@ -134,6 +145,18 @@ export const QuotationForm = ({
   const handleRemoveDetail = useCallback(
     (index: number) => {
       setDetails(details.filter((_, i) => i !== index));
+    },
+    [details]
+  );
+
+  const handleViewTechnicalSheets = useCallback(
+    (index: number) => {
+      const detail = details[index];
+      setTechnicalSheetsDialog({
+        open: true,
+        sheets: detail.technical_sheet || [],
+        productName: detail.product_name || "",
+      });
     },
     [details]
   );
@@ -204,6 +227,39 @@ export const QuotationForm = ({
         ),
       },
       {
+        id: "fichas",
+        header: "Fichas",
+        cell: ({ row }) => (
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewTechnicalSheets(row.index)}
+              disabled={
+                !row.original.technical_sheet ||
+                row.original.technical_sheet.length === 0
+              }
+              title={
+                row.original.technical_sheet &&
+                row.original.technical_sheet.length > 0
+                  ? "Ver fichas técnicas"
+                  : "Sin fichas técnicas"
+              }
+            >
+              <FileText
+                className={`h-4 w-4 ${
+                  row.original.technical_sheet &&
+                  row.original.technical_sheet.length > 0
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              />
+            </Button>
+          </div>
+        ),
+      },
+      {
         id: "acciones",
         header: "Acciones",
         cell: ({ row }) => (
@@ -228,28 +284,36 @@ export const QuotationForm = ({
         ),
       },
     ],
-    [handleEditDetail, handleRemoveDetail]
+    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets]
   );
 
   // Cargar detalles iniciales cuando se está editando
   useEffect(() => {
     if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
-        (detail: QuotationDetailResource) => ({
-          product_id: detail.product_id.toString(),
-          product_name: detail.product?.name || "",
-          is_igv: detail.is_igv,
-          quantity: detail.quantity.toString(),
-          unit_price: detail.unit_price.toString(),
-          purchase_price: detail.purchase_price.toString(),
-          subtotal: parseFloat(detail.subtotal),
-          tax: parseFloat(detail.tax),
-          total: parseFloat(detail.total),
-        })
+        (detail: QuotationDetailResource) => {
+          // Buscar el producto para obtener las fichas técnicas
+          const product = products.find(
+            (p) => p.id === detail.product_id
+          );
+
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product?.name || "",
+            is_igv: detail.is_igv,
+            quantity: detail.quantity.toString(),
+            unit_price: detail.unit_price.toString(),
+            purchase_price: detail.purchase_price.toString(),
+            subtotal: parseFloat(detail.subtotal),
+            tax: parseFloat(detail.tax),
+            total: parseFloat(detail.total),
+            technical_sheet: product?.technical_sheet || [],
+          };
+        }
       );
       setDetails(loadedDetails);
     }
-  }, [mode, initialData]);
+  }, [mode, initialData, products]);
 
   // Actualizar el branch_id cuando cambie el warehouse seleccionado
   useEffect(() => {
@@ -273,6 +337,9 @@ export const QuotationForm = ({
   }, [branchData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
+    // Buscar el producto para obtener las fichas técnicas
+    const product = products.find((p) => p.id.toString() === detail.product_id);
+
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -283,12 +350,16 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
+      technical_sheet: product?.technical_sheet || [],
     };
 
     setDetails([...details, newDetail]);
   };
 
   const handleUpdateDetail = (detail: ProductDetail, index: number) => {
+    // Buscar el producto para obtener las fichas técnicas
+    const product = products.find((p) => p.id.toString() === detail.product_id);
+
     const updatedDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -299,6 +370,7 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
+      technical_sheet: product?.technical_sheet || [],
     };
 
     const updatedDetails = [...details];
@@ -586,6 +658,15 @@ export const QuotationForm = ({
           editingDetail={editingDetail}
           editIndex={editingIndex}
           onEdit={handleUpdateDetail}
+        />
+
+        <TechnicalSheetsDialog
+          open={technicalSheetsDialog.open}
+          onOpenChange={(open) =>
+            setTechnicalSheetsDialog((prev) => ({ ...prev, open }))
+          }
+          technicalSheets={technicalSheetsDialog.sheets}
+          productName={technicalSheetsDialog.productName}
         />
 
         <div className="flex gap-4 justify-end">

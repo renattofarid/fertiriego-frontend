@@ -39,6 +39,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
@@ -116,6 +117,10 @@ export const SaleForm = ({
 
   // Watch para el almacén seleccionado
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
+
+  // Estado para el modal de crear cliente
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [customersList, setCustomersList] = useState<PersonResource[]>(customers);
 
   // Obtener productos del almacén seleccionado
   const { data: warehouseProducts, isLoading: isLoadingWarehouseProducts } =
@@ -204,6 +209,21 @@ export const SaleForm = ({
   const selectedGuideCorrelative = guideTempForm.watch(
     "temp_guide_correlative"
   );
+
+  // Actualizar lista de clientes cuando cambie la prop
+  useEffect(() => {
+    setCustomersList(customers);
+  }, [customers]);
+
+  // Función para manejar la creación de un nuevo cliente
+  const handleClientCreated = (newClient: PersonResource) => {
+    // Agregar el nuevo cliente a la lista
+    setCustomersList((prev) => [...prev, newClient]);
+    // Seleccionar automáticamente el nuevo cliente
+    form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Observers para detalles
   useEffect(() => {
@@ -798,23 +818,39 @@ export const SaleForm = ({
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <FormSelect
-              control={form.control}
-              name="customer_id"
-              label="Cliente"
-              placeholder="Seleccione un cliente"
-              options={customers.map((customer) => ({
-                value: customer.id.toString(),
-                label:
-                  customer.business_name ??
-                  customer.names +
-                    " " +
-                    customer.father_surname +
-                    " " +
-                    customer.mother_surname,
-              }))}
-              disabled={mode === "update"}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelect
+                  control={form.control}
+                  name="customer_id"
+                  label="Cliente"
+                  placeholder="Seleccione un cliente"
+                  options={customersList.map((customer) => ({
+                    value: customer.id.toString(),
+                    label:
+                      customer.business_name ??
+                      customer.names +
+                        " " +
+                        customer.father_surname +
+                        " " +
+                        customer.mother_surname,
+                  }))}
+                  disabled={mode === "update"}
+                />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsClientModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo cliente"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
 
             <FormSelect
               control={form.control}
@@ -1498,6 +1534,13 @@ export const SaleForm = ({
           </Button>
         </div>
       </form>
+
+      {/* Modal para crear nuevo cliente */}
+      <ClientCreateModal
+        open={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
     </Form>
   );
 };
