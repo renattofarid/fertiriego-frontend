@@ -129,7 +129,8 @@ export interface ProductPriceResource {
   product_name: string;
   branch_id: number;
   branch_name: string;
-  category: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  category_id: number;
+  category: string;
   price_soles: string;
   price_usd: string;
   created_at: string;
@@ -148,14 +149,14 @@ export interface ProductPriceResourceById {
 export interface CreateProductPriceRequest {
   product_id: number;
   branch_id: number;
-  category: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  category_id: number;
   price_soles: number;
   price_usd: number;
 }
 
 export interface UpdateProductPriceRequest {
   branch_id?: number;
-  category?: "LISTA 1" | "LISTA 2" | "LISTA 3" | "LISTA 4" | "LISTA 5";
+  category_id?: number;
   price_soles?: number;
   price_usd?: number;
 }

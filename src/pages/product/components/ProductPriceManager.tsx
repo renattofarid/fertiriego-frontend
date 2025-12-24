@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { requiredStringId } from "@/lib/core.schema";
 import { useProductPrices } from "../lib/product-price.hook";
 import { useProductPriceStore } from "../lib/product-price.store";
 import { useAllBranches } from "@/pages/branch/lib/branch.hook";
@@ -43,8 +44,8 @@ interface ProductPriceManagerProps {
 // Schema de validación para el formulario
 const productPriceSchema = z.object({
   product_id: z.number(),
-  branch_id: z.string().min(1, "Debe seleccionar una sucursal"),
-  category: z.string().min(1, "Debe seleccionar una categoría de precio"),
+  branch_id: requiredStringId("Debe seleccionar una sucursal"),
+  category_id: requiredStringId("Debe seleccionar una categoría de precio"),
   price_soles: z
     .number()
     .min(0, "El precio en soles debe ser mayor o igual a 0"),
@@ -69,7 +70,7 @@ export function ProductPriceManager({
     defaultValues: {
       product_id: productId,
       branch_id: "",
-      category: "",
+      category_id: "",
       price_soles: 0,
       price_usd: 0,
     },
@@ -95,7 +96,7 @@ export function ProductPriceManager({
       if (editingPrice) {
         await updateProductPrice(editingPrice.id, {
           branch_id: parseInt(data.branch_id),
-          category: data.category,
+          category_id: parseInt(data.category_id),
           price_soles: data.price_soles,
           price_usd: data.price_usd,
         } as UpdateProductPriceRequest);
@@ -104,6 +105,7 @@ export function ProductPriceManager({
         await createProductPrice({
           ...data,
           branch_id: parseInt(data.branch_id),
+          category_id: parseInt(data.category_id),
         } as CreateProductPriceRequest);
         successToast("Precio creado exitosamente");
       }
@@ -127,7 +129,7 @@ export function ProductPriceManager({
     form.reset({
       product_id: productId,
       branch_id: price.branch_id.toString(),
-      category: price.category,
+      category_id: price.category_id.toString(),
       price_soles: parseFloat(price.price_soles),
       price_usd: parseFloat(price.price_usd),
     });
@@ -156,7 +158,7 @@ export function ProductPriceManager({
     form.reset({
       product_id: productId,
       branch_id: "",
-      category: "LISTA 1",
+      category_id: "",
       price_soles: 0,
       price_usd: 0,
     });
@@ -171,20 +173,6 @@ export function ProductPriceManager({
   const formatPrice = (price: string, currency: string) => {
     const numPrice = parseFloat(price);
     return formatCurrency(numPrice, { currencySymbol: currency, decimals: 2 });
-  };
-
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      "LISTA 1": "bg-blue-100 text-blue-800 border-blue-200",
-      "LISTA 2": "bg-green-100 text-green-800 border-green-200",
-      "LISTA 3": "bg-yellow-100 text-yellow-800 border-yellow-200",
-      "LISTA 4": "bg-purple-100 text-purple-800 border-purple-200",
-      "LISTA 5": "bg-red-100 text-red-800 border-red-200",
-    };
-    return (
-      colors[category as keyof typeof colors] ||
-      "bg-gray-100 text-gray-800 border-gray-200"
-    );
   };
 
   return (
@@ -226,9 +214,7 @@ export function ProductPriceManager({
                         {price.branch_name}
                       </h4>
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded-md border ${getCategoryColor(
-                          price.category
-                        )} shrink-0 w-fit`}
+                        className={`px-2 py-1 text-xs font-medium rounded-md border shrink-0 w-fit`}
                       >
                         {price.category}
                       </span>
@@ -331,12 +317,12 @@ export function ProductPriceManager({
 
                   <FormSelect
                     control={form.control}
-                    name="category"
+                    name="category_id"
                     label="Categoría de Precio"
                     placeholder="Seleccionar categoría"
                     options={
                       priceCategories?.map((category) => ({
-                        value: category.name,
+                        value: category.id.toString(),
                         label: category.name,
                       })) || []
                     }
