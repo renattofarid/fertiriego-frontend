@@ -113,7 +113,7 @@ export const DebitNoteForm = ({
         selectedSale.details?.map((detail) => ({
           sale_detail_id: detail.id.toString(),
           product_id: detail.product_id,
-          concept: detail.concept ?? "",
+          concept: detail.product.name ?? "",
           quantity: detail.quantity,
           unit_price: detail.unit_price,
         })) || [];
