@@ -8,7 +8,6 @@ export interface SaleDetailResource {
   id: number;
   sale_id: number;
   product_id: number;
-  concept: string;
   product: Product;
   quantity: number;
   unit_price: number;
@@ -52,7 +51,7 @@ export interface SaleResource {
   warehouse_id: number;
   user_id: number;
   customer_fullname: string;
-  customer_document?: string;
+  customer_document?: string | null;
   warehouse_name?: string;
   user_name: string;
   document_type: string;
@@ -61,6 +60,14 @@ export interface SaleResource {
   full_document_number: string;
   issue_date: string;
   payment_type: string;
+  order_purchase?: string | null;
+  order_service?: string | null;
+  date_expired?: string | null;
+  is_anticipado: boolean;
+  is_deduccion: boolean;
+  is_retencionigv: boolean;
+  guides?: GuideInfo[] | string | null;
+  is_termine_condition: boolean;
   amount_cash: number;
   amount_card: number;
   amount_yape: number;
@@ -69,13 +76,15 @@ export interface SaleResource {
   amount_transfer: number;
   amount_other: number;
   total_paid: number;
-  quotation_id?: number;
-  order_id?: number;
+  quotation_id?: number | null;
+  order_id?: number | null;
+  order?: Order | null;
+  quotation?: Quotation | null;
   total_amount: number;
   current_amount: number;
   currency: string;
   status: string;
-  observations?: string;
+  observations?: string | null;
   customer: Customer;
   warehouse: Warehouse;
   user: User;
@@ -117,13 +126,28 @@ interface Warehouse {
 
 interface Customer {
   id: number;
-  document_type?: string;
-  document_number?: string;
-  first_name?: string;
+  document_type?: string | null;
+  document_number?: string | null;
+  first_name?: string | null;
   father_surname?: string;
   mother_surname?: string;
   business_name: string;
   full_name: string;
+}
+
+interface Order {
+  id: number;
+  // Agregar campos según la estructura de Order si es necesario
+}
+
+interface Quotation {
+  id: number;
+  // Agregar campos según la estructura de Quotation si es necesario
+}
+
+interface GuideInfo {
+  name: string;
+  correlative: string;
 }
 
 // ===== CREATE/UPDATE REQUESTS =====
