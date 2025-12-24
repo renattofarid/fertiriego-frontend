@@ -123,6 +123,8 @@ import ProductionDocumentPage from "./pages/production-document/components/Produ
 import ProductionDocumentAddPage from "./pages/production-document/components/ProductionDocumentAddPage";
 import ProductionDocumentEditPage from "./pages/production-document/components/ProductionDocumentEditPage";
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
+import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
+import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -157,6 +159,7 @@ const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } = SHIPPING_GUIDE_CARRIER
 const { ROUTE: ProductionDocumentRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
+const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
 
 export const hasAccessToRoute = (access: Access[], route: string): boolean => {
   const transformRoute = route.split("/").pop();
@@ -413,6 +416,15 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductTypeRoute}>
                 <ProductTypePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductPriceCategoryRoute}
+            element={
+              <ProtectedRoute path={ProductPriceCategoryRoute}>
+                <ProductPriceCategoryPage />
               </ProtectedRoute>
             }
           />

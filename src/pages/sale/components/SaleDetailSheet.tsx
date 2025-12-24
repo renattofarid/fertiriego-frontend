@@ -57,7 +57,8 @@ export default function SaleDetailSheet({
       onClose={onClose}
       title={`Venta #${sale.id}`}
       icon={"ShoppingBag"}
-      className="overflow-y-auto p-2 !gap-0 w-full sm:max-w-3xl"
+      className="overflow-y-auto p-2 !gap-0 w-full"
+      size="4xl"
     >
       <div className="space-y-4 p-4">
         {/* Header con totales destacados */}

@@ -139,6 +139,11 @@ export interface CreateSaleInstallmentRequest {
   amount: number;
 }
 
+export interface GuideRequest {
+  name: string;
+  correlative: string;
+}
+
 export interface CreateSaleRequest {
   customer_id: number;
   warehouse_id: number;
@@ -152,6 +157,11 @@ export interface CreateSaleRequest {
   amount_yape: string;
   quotation_id?: number;
   order_id?: number;
+  is_anticipado?: boolean;
+  is_deduccion?: boolean;
+  is_retencionigv?: boolean;
+  is_termine_condition?: boolean;
+  guides?: GuideRequest[];
   details: CreateSaleDetailRequest[];
   installments?: CreateSaleInstallmentRequest[];
 }

@@ -40,6 +40,15 @@ export const saleInstallmentSchema = z.object({
 
 export type SaleInstallmentSchema = z.infer<typeof saleInstallmentSchema>;
 
+// ===== GUIDE SCHEMA =====
+
+export const guideSchema = z.object({
+  name: z.string().min(1, { message: "El nombre de la guía es requerido" }),
+  correlative: z.string().min(1, { message: "El correlativo es requerido" }),
+});
+
+export type GuideSchema = z.infer<typeof guideSchema>;
+
 // ===== MAIN SALE SCHEMA =====
 
 export const saleSchemaCreate = z.object({
@@ -79,6 +88,11 @@ export const saleSchemaCreate = z.object({
     .default("0"),
   quotation_id: z.string().optional(),
   order_id: z.string().optional(),
+  is_anticipado: z.boolean().optional().default(false),
+  is_deduccion: z.boolean().optional().default(false),
+  is_retencionigv: z.boolean().optional().default(false),
+  is_termine_condition: z.boolean().optional().default(false),
+  guides: z.array(guideSchema).optional().default([]),
   details: z
     .array(saleDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),

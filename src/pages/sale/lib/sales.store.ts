@@ -113,6 +113,11 @@ export const useSaleStore = create<SaleStore>((set) => ({
         amount_yape: data.amount_yape || "0",
         quotation_id: data.quotation_id ? Number(data.quotation_id) : undefined,
         order_id: data.order_id ? Number(data.order_id) : undefined,
+        is_anticipado: data.is_anticipado || false,
+        is_deduccion: data.is_deduccion || false,
+        is_retencionigv: data.is_retencionigv || false,
+        is_termine_condition: data.is_termine_condition || false,
+        guides: data.guides && data.guides.length > 0 ? data.guides : undefined,
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
           quantity: Number(detail.quantity),

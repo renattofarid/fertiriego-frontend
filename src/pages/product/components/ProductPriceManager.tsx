@@ -5,6 +5,7 @@ import { z } from "zod";
 import { useProductPrices } from "../lib/product-price.hook";
 import { useProductPriceStore } from "../lib/product-price.store";
 import { useAllBranches } from "@/pages/branch/lib/branch.hook";
+import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -39,19 +40,11 @@ interface ProductPriceManagerProps {
   onPriceChange?: () => void;
 }
 
-const PRICE_CATEGORIES = [
-  "LISTA 1",
-  "LISTA 2",
-  "LISTA 3",
-  "LISTA 4",
-  "LISTA 5",
-] as const;
-
 // Schema de validación para el formulario
 const productPriceSchema = z.object({
   product_id: z.number(),
   branch_id: z.string().min(1, "Debe seleccionar una sucursal"),
-  category: z.enum(["LISTA 1", "LISTA 2", "LISTA 3", "LISTA 4", "LISTA 5"]),
+  category: z.string().min(1, "Debe seleccionar una categoría de precio"),
   price_soles: z
     .number()
     .min(0, "El precio en soles debe ser mayor o igual a 0"),
@@ -76,7 +69,7 @@ export function ProductPriceManager({
     defaultValues: {
       product_id: productId,
       branch_id: "",
-      category: "LISTA 1",
+      category: "",
       price_soles: 0,
       price_usd: 0,
     },
@@ -88,6 +81,7 @@ export function ProductPriceManager({
   });
 
   const { data: branches } = useAllBranches();
+  const { data: priceCategories } = useAllProductPriceCategories();
 
   const {
     createProductPrice,
@@ -340,10 +334,12 @@ export function ProductPriceManager({
                     name="category"
                     label="Categoría de Precio"
                     placeholder="Seleccionar categoría"
-                    options={PRICE_CATEGORIES.map((category) => ({
-                      value: category,
-                      label: category,
-                    }))}
+                    options={
+                      priceCategories?.map((category) => ({
+                        value: category.name,
+                        label: category.name,
+                      })) || []
+                    }
                   />
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
