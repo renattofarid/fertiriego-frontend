@@ -54,6 +54,7 @@ import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 import { GUIDE } from "@/pages/guide/lib/guide.interface";
 import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
+import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -241,6 +242,12 @@ const {
   MODEL: { plural: ProductionDocumentTitle },
 } = PRODUCTION_DOCUMENT;
 
+const {
+  ICON_REACT: ProductPriceCategoryIcon,
+  ROUTE: ProductPriceCategoryRoute,
+  MODEL: { name: ProductPriceCategoryTitle },
+} = PRODUCT_PRICE_CATEGORY;
+
 const data = {
   navMain: [
     {
@@ -341,6 +348,11 @@ const data = {
           title: ProductTypeTitle,
           url: ProductTypeRoute,
           icon: ProductTypeIcon,
+        },
+        {
+          title: ProductPriceCategoryTitle,
+          url: ProductPriceCategoryRoute,
+          icon: ProductPriceCategoryIcon,
         },
         {
           title: WarehouseProductTitle,

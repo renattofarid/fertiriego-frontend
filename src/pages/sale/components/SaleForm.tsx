@@ -29,6 +29,7 @@ import {
   ListChecks,
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSwitch } from "@/components/FormSwitch";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
@@ -36,6 +37,9 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useState, useEffect, useMemo } from "react";
 import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import { useAllGuides } from "@/pages/guide/lib/guide.hook";
+import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
@@ -91,6 +95,11 @@ interface InstallmentRow {
   amount: string;
 }
 
+interface GuideRow {
+  name: string;
+  correlative: string;
+}
+
 export const SaleForm = ({
   onCancel,
   defaultValues,
@@ -109,11 +118,23 @@ export const SaleForm = ({
   // Watch para el almacén seleccionado
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
 
+  // Estado para el modal de crear cliente
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [customersList, setCustomersList] = useState<PersonResource[]>(customers);
+
   // Obtener productos del almacén seleccionado
   const { data: warehouseProducts, isLoading: isLoadingWarehouseProducts } =
     useAllWarehouseProducts(
       selectedWarehouseId ? { warehouse_id: selectedWarehouseId } : undefined
     );
+
+  // Obtener guías de remisión
+  const { data: guidesRemision, isLoading: isLoadingGuidesRemision } =
+    useAllGuides();
+
+  // Obtener guías de transportista
+  const { data: guidesCarrier, isLoading: isLoadingGuidesCarrier } =
+    useAllShippingGuideCarriers();
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
@@ -137,6 +158,16 @@ export const SaleForm = ({
     amount: "",
   });
 
+  // Estados para guías
+  const [guides, setGuides] = useState<GuideRow[]>([]);
+  const [editingGuideIndex, setEditingGuideIndex] = useState<number | null>(
+    null
+  );
+  const [currentGuide, setCurrentGuide] = useState<GuideRow>({
+    name: "",
+    correlative: "",
+  });
+
   // Formularios temporales
   const detailTempForm = useForm({
     defaultValues: {
@@ -153,6 +184,15 @@ export const SaleForm = ({
     },
   });
 
+  const guideTempForm = useForm({
+    defaultValues: {
+      temp_guide_type: "",
+      temp_guide_id: "",
+      temp_guide_name: currentGuide.name,
+      temp_guide_correlative: currentGuide.correlative,
+    },
+  });
+
   // Watchers para detalles
   const selectedProductId = detailTempForm.watch("temp_product_id");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
@@ -161,6 +201,29 @@ export const SaleForm = ({
   // Watchers para cuotas
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
   const selectedAmount = installmentTempForm.watch("temp_amount");
+
+  // Watchers para guías
+  const selectedGuideType = guideTempForm.watch("temp_guide_type");
+  const selectedGuideId = guideTempForm.watch("temp_guide_id");
+  const selectedGuideName = guideTempForm.watch("temp_guide_name");
+  const selectedGuideCorrelative = guideTempForm.watch(
+    "temp_guide_correlative"
+  );
+
+  // Actualizar lista de clientes cuando cambie la prop
+  useEffect(() => {
+    setCustomersList(customers);
+  }, [customers]);
+
+  // Función para manejar la creación de un nuevo cliente
+  const handleClientCreated = (newClient: PersonResource) => {
+    // Agregar el nuevo cliente a la lista
+    setCustomersList((prev) => [...prev, newClient]);
+    // Seleccionar automáticamente el nuevo cliente
+    form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Observers para detalles
   useEffect(() => {
@@ -214,6 +277,62 @@ export const SaleForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAmount]);
 
+  // Observers para guías - Cuando se selecciona una guía específica
+  useEffect(() => {
+    if (selectedGuideType && selectedGuideId) {
+      let guideName = "";
+      let guideCorrelative = "";
+
+      if (selectedGuideType === "remision" && guidesRemision) {
+        const guide = guidesRemision.find(
+          (g) => g.id.toString() === selectedGuideId
+        );
+        if (guide) {
+          guideName = "Guía de Remisión";
+          guideCorrelative = guide.full_guide_number;
+        }
+      } else if (selectedGuideType === "transportista" && guidesCarrier) {
+        const guide = guidesCarrier.find(
+          (g) => g.id.toString() === selectedGuideId
+        );
+        if (guide) {
+          guideName = "Guía de Transportista";
+          guideCorrelative = guide.full_guide_number;
+        }
+      }
+
+      if (guideName && guideCorrelative) {
+        setCurrentGuide({
+          name: guideName,
+          correlative: guideCorrelative,
+        });
+        guideTempForm.setValue("temp_guide_name", guideName);
+        guideTempForm.setValue("temp_guide_correlative", guideCorrelative);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGuideType, selectedGuideId]);
+
+  useEffect(() => {
+    if (selectedGuideName !== currentGuide.name) {
+      setCurrentGuide((prev) => ({
+        ...prev,
+        name: selectedGuideName || "",
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGuideName]);
+
+  useEffect(() => {
+    if (selectedGuideCorrelative !== currentGuide.correlative) {
+      setCurrentGuide((prev) => ({
+        ...prev,
+        correlative: selectedGuideCorrelative || "",
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGuideCorrelative]);
+
   const form = useForm({
     resolver: zodResolver(
       mode === "create" ? saleSchemaCreate : saleSchemaUpdate
@@ -222,6 +341,11 @@ export const SaleForm = ({
       ...defaultValues,
       details: details.length > 0 ? details : [],
       installments: installments.length > 0 ? installments : [],
+      guides: guides.length > 0 ? guides : [],
+      is_anticipado: defaultValues.is_anticipado || false,
+      is_deduccion: defaultValues.is_deduccion || false,
+      is_retencionigv: defaultValues.is_retencionigv || false,
+      is_termine_condition: defaultValues.is_termine_condition || false,
     },
     mode: "onChange",
   });
@@ -559,6 +683,50 @@ export const SaleForm = ({
     return Math.abs(saleTotal - installmentsTotal) < 0.000001;
   };
 
+  // Funciones para guías
+  const handleAddGuide = () => {
+    if (!currentGuide.name || !currentGuide.correlative) {
+      return;
+    }
+
+    const newGuide: GuideRow = { ...currentGuide };
+
+    if (editingGuideIndex !== null) {
+      const updatedGuides = [...guides];
+      updatedGuides[editingGuideIndex] = newGuide;
+      setGuides(updatedGuides);
+      form.setValue("guides", updatedGuides);
+      setEditingGuideIndex(null);
+    } else {
+      const updatedGuides = [...guides, newGuide];
+      setGuides(updatedGuides);
+      form.setValue("guides", updatedGuides);
+    }
+
+    setCurrentGuide({
+      name: "",
+      correlative: "",
+    });
+    guideTempForm.setValue("temp_guide_type", "");
+    guideTempForm.setValue("temp_guide_id", "");
+    guideTempForm.setValue("temp_guide_name", "");
+    guideTempForm.setValue("temp_guide_correlative", "");
+  };
+
+  const handleEditGuide = (index: number) => {
+    const guide = guides[index];
+    setCurrentGuide(guide);
+    guideTempForm.setValue("temp_guide_name", guide.name);
+    guideTempForm.setValue("temp_guide_correlative", guide.correlative);
+    setEditingGuideIndex(index);
+  };
+
+  const handleRemoveGuide = (index: number) => {
+    const updatedGuides = guides.filter((_, i) => i !== index);
+    setGuides(updatedGuides);
+    form.setValue("guides", updatedGuides);
+  };
+
   // Funciones para montos de pago
   const calculatePaymentTotal = () => {
     const cash = parseFloat(form.watch("amount_cash") || "0");
@@ -629,6 +797,7 @@ export const SaleForm = ({
       ...data,
       details,
       installments: validInstallments,
+      guides: guides.length > 0 ? guides : undefined,
       order_id: data.order_id ? parseInt(data.order_id) : undefined,
       quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
     });
@@ -649,23 +818,39 @@ export const SaleForm = ({
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <FormSelect
-              control={form.control}
-              name="customer_id"
-              label="Cliente"
-              placeholder="Seleccione un cliente"
-              options={customers.map((customer) => ({
-                value: customer.id.toString(),
-                label:
-                  customer.business_name ??
-                  customer.names +
-                    " " +
-                    customer.father_surname +
-                    " " +
-                    customer.mother_surname,
-              }))}
-              disabled={mode === "update"}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelect
+                  control={form.control}
+                  name="customer_id"
+                  label="Cliente"
+                  placeholder="Seleccione un cliente"
+                  options={customersList.map((customer) => ({
+                    value: customer.id.toString(),
+                    label:
+                      customer.business_name ??
+                      customer.names +
+                        " " +
+                        customer.father_surname +
+                        " " +
+                        customer.mother_surname,
+                  }))}
+                  disabled={mode === "update"}
+                />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsClientModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo cliente"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
 
             <FormSelect
               control={form.control}
@@ -743,6 +928,172 @@ export const SaleForm = ({
               />
             </div>
           </div>
+        </GroupFormSection>
+
+        {/* Opciones Adicionales */}
+        <GroupFormSection
+          title="Opciones Adicionales"
+          icon={ListChecks}
+          cols={{
+            sm: 1,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormSwitch
+              control={form.control}
+              name="is_anticipado"
+              text="Anticipado"
+              textDescription="Marque si es una venta anticipada"
+              autoHeight
+            />
+
+            <FormSwitch
+              control={form.control}
+              name="is_deduccion"
+              text="Deducción"
+              textDescription="Marque si aplica deducción"
+              autoHeight
+            />
+
+            <FormSwitch
+              control={form.control}
+              name="is_retencionigv"
+              text="Retención IGV"
+              textDescription="Marque si aplica retención de IGV"
+              autoHeight
+            />
+
+            <FormSwitch
+              control={form.control}
+              name="is_termine_condition"
+              text="Condición de Término"
+              textDescription="Marque si tiene condición de término"
+              autoHeight
+            />
+          </div>
+        </GroupFormSection>
+
+        {/* Guías */}
+        <GroupFormSection
+          title="Guías de Remisión/Transporte"
+          icon={FileText}
+          cols={{
+            sm: 1,
+          }}
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
+            <Form {...guideTempForm}>
+              <FormSelect
+                control={guideTempForm.control}
+                name="temp_guide_type"
+                label="Tipo de Guía"
+                placeholder="Seleccione tipo"
+                options={[
+                  { value: "remision", label: "Guía de Remisión" },
+                  { value: "transportista", label: "Guía de Transportista" },
+                ]}
+              />
+            </Form>
+
+            {selectedGuideType && (
+              <Form {...guideTempForm}>
+                <FormSelect
+                  control={guideTempForm.control}
+                  name="temp_guide_id"
+                  label={
+                    selectedGuideType === "remision"
+                      ? "Guía de Remisión"
+                      : "Guía de Transportista"
+                  }
+                  placeholder="Seleccione guía"
+                  options={
+                    selectedGuideType === "remision"
+                      ? (guidesRemision || []).map((guide) => ({
+                          value: guide.id.toString(),
+                          label: guide.full_guide_number,
+                        }))
+                      : (guidesCarrier || []).map((guide) => ({
+                          value: guide.id.toString(),
+                          label: guide.full_guide_number,
+                        }))
+                  }
+                  disabled={
+                    selectedGuideType === "remision"
+                      ? isLoadingGuidesRemision
+                      : isLoadingGuidesCarrier
+                  }
+                />
+              </Form>
+            )}
+
+            <div className="flex items-end">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleAddGuide}
+                disabled={!currentGuide.name || !currentGuide.correlative}
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {editingGuideIndex !== null ? "Actualizar" : "Agregar"}
+              </Button>
+            </div>
+          </div>
+
+          {guides.length > 0 ? (
+            <div className="border rounded-lg overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    <TableHead>Correlativo</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {guides.map((guide, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{guide.name}</TableCell>
+                      <TableCell>{guide.correlative}</TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditGuide(index)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveGuide(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <Empty className="border border-dashed">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <FileText />
+                </EmptyMedia>
+                <EmptyTitle>No hay guías agregadas</EmptyTitle>
+                <EmptyDescription>
+                  Agregue guías de remisión o transporte utilizando el
+                  formulario de arriba.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          )}
         </GroupFormSection>
 
         {/* Detalles */}
@@ -1183,6 +1534,13 @@ export const SaleForm = ({
           </Button>
         </div>
       </form>
+
+      {/* Modal para crear nuevo cliente */}
+      <ClientCreateModal
+        open={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
     </Form>
   );
 };

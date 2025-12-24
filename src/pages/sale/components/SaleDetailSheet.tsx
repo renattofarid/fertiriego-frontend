@@ -11,6 +11,10 @@ import {
   Package,
   Receipt,
   Clock,
+  ShoppingCart,
+  FileCheck,
+  AlertCircle,
+  Truck,
 } from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
 import TraceabilityTimeline from "@/components/TraceabilityTimeline";
@@ -57,7 +61,8 @@ export default function SaleDetailSheet({
       onClose={onClose}
       title={`Venta #${sale.id}`}
       icon={"ShoppingBag"}
-      className="overflow-y-auto p-2 !gap-0 w-full sm:max-w-3xl"
+      className="overflow-y-auto p-2 !gap-0 w-full"
+      size="4xl"
     >
       <div className="space-y-4 p-4">
         {/* Header con totales destacados */}
@@ -205,8 +210,129 @@ export default function SaleDetailSheet({
                 </Badge>
               </div>
             </div>
+
+            {/* Ordenes y fechas adicionales */}
+            {(sale.order_purchase || sale.order_service || sale.date_expired) && (
+              <div className="pt-2 border-t space-y-2">
+                {sale.order_purchase && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <ShoppingCart className="h-3 w-3" />
+                      Orden de Compra
+                    </p>
+                    <p className="font-medium">{sale.order_purchase}</p>
+                  </div>
+                )}
+                {sale.order_service && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <FileCheck className="h-3 w-3" />
+                      Orden de Servicio
+                    </p>
+                    <p className="font-medium">{sale.order_service}</p>
+                  </div>
+                )}
+                {sale.date_expired && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Fecha de Vencimiento
+                    </p>
+                    <p className="font-medium">{formatDate(sale.date_expired)}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Flags especiales */}
+            {(sale.is_anticipado || sale.is_deduccion || sale.is_retencionigv || sale.is_termine_condition) && (
+              <div className="pt-2 border-t">
+                <div className="flex flex-wrap gap-2">
+                  {sale.is_anticipado && (
+                    <Badge variant="outline" className="text-xs">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Anticipado
+                    </Badge>
+                  )}
+                  {sale.is_deduccion && (
+                    <Badge variant="outline" className="text-xs">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Con Deducción
+                    </Badge>
+                  )}
+                  {sale.is_retencionigv && (
+                    <Badge variant="outline" className="text-xs">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Retención IGV
+                    </Badge>
+                  )}
+                  {sale.is_termine_condition && (
+                    <Badge variant="outline" className="text-xs">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Condición Térmica
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Guías */}
+            {sale.guides && (
+              <div className="pt-2 border-t space-y-2">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Truck className="h-3 w-3" />
+                  Guías de Remisión
+                </p>
+                {typeof sale.guides === 'string' ? (
+                  <p className="font-medium">{sale.guides}</p>
+                ) : Array.isArray(sale.guides) ? (
+                  <div className="space-y-1">
+                    {sale.guides.map((guide, index) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <Badge variant="secondary" className="font-mono text-xs">
+                          {guide.name}
+                        </Badge>
+                        <span className="font-medium">{guide.correlative}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Referencias a Cotización y Pedido */}
+        {(sale.quotation || sale.order) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {sale.quotation && (
+              <Card className="!gap-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Cotización Origen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-semibold">Cotización #{sale.quotation.id}</p>
+                </CardContent>
+              </Card>
+            )}
+            {sale.order && (
+              <Card className="!gap-0">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    Pedido Origen
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-semibold">Pedido #{sale.order.id}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Cliente */}
         <Card className="!gap-0">

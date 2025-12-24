@@ -8,7 +8,6 @@ export interface SaleDetailResource {
   id: number;
   sale_id: number;
   product_id: number;
-  concept: string;
   product: Product;
   quantity: number;
   unit_price: number;
@@ -61,6 +60,14 @@ export interface SaleResource {
   full_document_number: string;
   issue_date: string;
   payment_type: string;
+  order_purchase?: string;
+  order_service?: string;
+  date_expired?: string;
+  is_anticipado: boolean;
+  is_deduccion: boolean;
+  is_retencionigv: boolean;
+  guides?: GuideInfo[];
+  is_termine_condition: boolean;
   amount_cash: number;
   amount_card: number;
   amount_yape: number;
@@ -69,8 +76,10 @@ export interface SaleResource {
   amount_transfer: number;
   amount_other: number;
   total_paid: number;
-  quotation_id?: number;
-  order_id?: number;
+  quotation_id?: string;
+  order_id?: string;
+  order?: Order;
+  quotation?: Quotation;
   total_amount: number;
   current_amount: number;
   currency: string;
@@ -126,6 +135,21 @@ interface Customer {
   full_name: string;
 }
 
+interface Order {
+  id: number;
+  // Agregar campos según la estructura de Order si es necesario
+}
+
+interface Quotation {
+  id: number;
+  // Agregar campos según la estructura de Quotation si es necesario
+}
+
+interface GuideInfo {
+  name: string;
+  correlative: string;
+}
+
 // ===== CREATE/UPDATE REQUESTS =====
 
 export interface CreateSaleDetailRequest {
@@ -137,6 +161,11 @@ export interface CreateSaleDetailRequest {
 export interface CreateSaleInstallmentRequest {
   due_days: number;
   amount: number;
+}
+
+export interface GuideRequest {
+  name: string;
+  correlative: string;
 }
 
 export interface CreateSaleRequest {
@@ -152,6 +181,11 @@ export interface CreateSaleRequest {
   amount_yape: string;
   quotation_id?: number;
   order_id?: number;
+  is_anticipado?: boolean;
+  is_deduccion?: boolean;
+  is_retencionigv?: boolean;
+  is_termine_condition?: boolean;
+  guides?: GuideRequest[];
   details: CreateSaleDetailRequest[];
   installments?: CreateSaleInstallmentRequest[];
 }
