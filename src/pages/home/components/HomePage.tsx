@@ -45,24 +45,24 @@ function MetricCard({
   variant: "blue" | "orange" | "gray" | "green";
 }) {
   const variantStyles = {
-    blue: "bg-blue-50",
-    orange: "bg-orange-50",
-    gray: "bg-gray-50",
-    green: "bg-emerald-50",
+    blue: "bg-blue-50 dark:bg-blue-900/10",
+    orange: "bg-orange-50 dark:bg-orange-900/10",
+    gray: "bg-gray-50 dark:bg-gray-900/10",
+    green: "bg-emerald-50 dark:bg-emerald-900/10",
   };
 
   const iconBgStyles = {
-    blue: "bg-blue-100",
-    orange: "bg-orange-100",
-    gray: "bg-gray-100",
-    green: "bg-emerald-100",
+    blue: "bg-blue-100 dark:bg-blue-800",
+    orange: "bg-orange-100 dark:bg-orange-800",
+    gray: "bg-gray-100 dark:bg-gray-800",
+    green: "bg-emerald-100 dark:bg-emerald-800",
   };
 
   const textStyles = {
-    blue: "text-blue-700",
-    orange: "text-orange-700",
-    gray: "text-gray-700",
-    green: "text-emerald-700",
+    blue: "text-blue-700 dark:text-blue-400",
+    orange: "text-orange-700 dark:text-orange-400",
+    gray: "text-gray-700 dark:text-gray-400",
+    green: "text-emerald-700 dark:text-emerald-400",
   };
 
   return (
@@ -72,7 +72,9 @@ function MetricCard({
           <Icon className={cn("h-5 w-5", textStyles[variant])} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-0.5">{title}</p>
+          <p className="text-xs font-medium text-muted-foreground mb-0.5">
+            {title}
+          </p>
           <p className={cn("text-xl font-bold mb-0.5", textStyles[variant])}>
             {value}
           </p>
@@ -136,14 +138,22 @@ export default function HomePage() {
       const balance = totalSaleAmount - totalPurchaseAmount;
 
       // Calcular promedios
-      const averageTicketSale = sales.length > 0 ? totalSaleAmount / sales.length : 0;
-      const averageTicketPurchase = purchases.length > 0 ? totalPurchaseAmount / purchases.length : 0;
+      const averageTicketSale =
+        sales.length > 0 ? totalSaleAmount / sales.length : 0;
+      const averageTicketPurchase =
+        purchases.length > 0 ? totalPurchaseAmount / purchases.length : 0;
 
       // Calcular porcentajes de métodos de pago
-      const cashSales = sales.filter(s => s.payment_type === "CONTADO").length;
-      const creditSales = sales.filter(s => s.payment_type === "CREDITO").length;
-      const cashSalesPercentage = sales.length > 0 ? (cashSales / sales.length) * 100 : 0;
-      const creditSalesPercentage = sales.length > 0 ? (creditSales / sales.length) * 100 : 0;
+      const cashSales = sales.filter(
+        (s) => s.payment_type === "CONTADO"
+      ).length;
+      const creditSales = sales.filter(
+        (s) => s.payment_type === "CREDITO"
+      ).length;
+      const cashSalesPercentage =
+        sales.length > 0 ? (cashSales / sales.length) * 100 : 0;
+      const creditSalesPercentage =
+        sales.length > 0 ? (creditSales / sales.length) * 100 : 0;
 
       setStats({
         totalPurchases: purchases.length,
@@ -287,7 +297,11 @@ export default function HomePage() {
           <MetricCard
             title="Balance Neto"
             value={`S/ ${formatCurrency(stats.balance)}`}
-            description={`Margen: ${stats.totalSaleAmount > 0 ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1) : 0}%`}
+            description={`Margen: ${
+              stats.totalSaleAmount > 0
+                ? ((stats.balance / stats.totalSaleAmount) * 100).toFixed(1)
+                : 0
+            }%`}
             icon={DollarSign}
             variant={stats.balance >= 0 ? "green" : "orange"}
           />
@@ -295,7 +309,10 @@ export default function HomePage() {
           <MetricCard
             title="Cuentas por Cobrar"
             value={`S/ ${formatCurrency(stats.salePendingAmount)}`}
-            description={`${((stats.salePendingAmount / stats.totalSaleAmount) * 100).toFixed(0)}% del total de ventas`}
+            description={`${(
+              (stats.salePendingAmount / stats.totalSaleAmount) *
+              100
+            ).toFixed(0)}% del total de ventas`}
             icon={TrendingUp}
             variant="blue"
           />
@@ -303,7 +320,10 @@ export default function HomePage() {
           <MetricCard
             title="Cuentas por Pagar"
             value={`S/ ${formatCurrency(stats.purchasePendingAmount)}`}
-            description={`${((stats.purchasePendingAmount / stats.totalPurchaseAmount) * 100).toFixed(0)}% del total de compras`}
+            description={`${(
+              (stats.purchasePendingAmount / stats.totalPurchaseAmount) *
+              100
+            ).toFixed(0)}% del total de compras`}
             icon={TrendingDown}
             variant="orange"
           />
@@ -311,7 +331,9 @@ export default function HomePage() {
           <MetricCard
             title="Productos en Catálogo"
             value={stats.totalProducts.toString()}
-            description={`Ticket promedio: S/ ${formatCurrency(stats.averageTicketSale)}`}
+            description={`Ticket promedio: S/ ${formatCurrency(
+              stats.averageTicketSale
+            )}`}
             icon={Package}
             variant="gray"
           />
