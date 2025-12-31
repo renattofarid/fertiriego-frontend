@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash2, Eye, Pencil, FileText } from "lucide-react";
+import { MoreVertical, Trash2, Eye, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { QuotationResource } from "../lib/quotation.interface";
 import ExportButtons from "@/components/ExportButtons";
@@ -15,14 +15,12 @@ interface QuotationColumnsProps {
   onEdit: (quotation: QuotationResource) => void;
   onDelete: (id: number) => void;
   onViewDetails: (quotation: QuotationResource) => void;
-  onGenerateSale: (quotation: QuotationResource) => void;
 }
 
 export const getQuotationColumns = ({
   onEdit,
   onDelete,
   onViewDetails,
-  onGenerateSale,
 }: QuotationColumnsProps): ColumnDef<QuotationResource>[] => [
   {
     accessorKey: "id",
@@ -167,13 +165,6 @@ export const getQuotationColumns = ({
             >
               <Eye className="mr-2 h-4 w-4" />
               Ver Detalles
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onGenerateSale(row.original)}
-              className="cursor-pointer"
-            >
-              <FileText className="mr-2 h-4 w-4" />
-              Generar Venta
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onEdit(row.original)}

@@ -25,6 +25,7 @@ export interface QuotationDetailResource {
   quantity: string;
   unit_price: string;
   purchase_price: string;
+  description?: string;
   subtotal: string;
   tax: string;
   total: string;
@@ -45,6 +46,8 @@ export interface QuotationResource {
   address: string;
   reference: string;
   account_number: string;
+  order_purchase?: string;
+  order_service?: string;
   warehouse_id: number;
   warehouse: {
     id: number;
@@ -114,6 +117,7 @@ export interface CreateQuotationDetailRequest {
   quantity: number;
   unit_price: number;
   purchase_price: number;
+  description?: string;
 }
 
 export interface CreateQuotationRequest {
@@ -126,7 +130,8 @@ export interface CreateQuotationRequest {
   observations: string;
   address: string;
   reference: string;
-  account_number: string;
+  order_purchase?: string;
+  order_service?: string;
   warehouse_id: number;
   customer_id: number;
   user_id: number;
@@ -144,7 +149,8 @@ export interface UpdateQuotationRequest {
   status?: string;
   address?: string;
   reference?: string;
-  account_number?: string;
+  order_purchase?: string;
+  order_service?: string;
   warehouse_id?: number;
   customer_id?: number;
   user_id?: number;

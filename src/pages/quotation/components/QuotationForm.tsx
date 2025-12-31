@@ -61,6 +61,7 @@ interface DetailRow {
   quantity: string;
   unit_price: string;
   purchase_price: string;
+  description?: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -109,7 +110,8 @@ export const QuotationForm = ({
       observations: initialData?.observations || "",
       address: initialData?.address || "",
       reference: initialData?.reference || "",
-      account_number: initialData?.account_number || "",
+      order_purchase: initialData?.order_purchase || "",
+      order_service: initialData?.order_service || "",
       warehouse_id: initialData?.warehouse_id?.toString() || "",
       customer_id: initialData?.customer_id?.toString() || "",
     },
@@ -131,6 +133,7 @@ export const QuotationForm = ({
         quantity: detail.quantity,
         unit_price: detail.unit_price,
         purchase_price: detail.purchase_price,
+        description: detail.description || "",
         subtotal: detail.subtotal,
         tax: detail.tax,
         total: detail.total,
@@ -304,6 +307,7 @@ export const QuotationForm = ({
             quantity: detail.quantity.toString(),
             unit_price: detail.unit_price.toString(),
             purchase_price: detail.purchase_price.toString(),
+            description: detail.description || "",
             subtotal: parseFloat(detail.subtotal),
             tax: parseFloat(detail.tax),
             total: parseFloat(detail.total),
@@ -347,6 +351,7 @@ export const QuotationForm = ({
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       purchase_price: detail.purchase_price,
+      description: detail.description || "",
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
@@ -367,6 +372,7 @@ export const QuotationForm = ({
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       purchase_price: detail.purchase_price,
+      description: detail.description || "",
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
@@ -403,7 +409,8 @@ export const QuotationForm = ({
       observations: formData.observations || "",
       address: formData.address || "",
       reference: formData.reference || "",
-      account_number: formData.account_number || "",
+      order_purchase: formData.order_purchase || "",
+      order_service: formData.order_service || "",
       warehouse_id: parseInt(formData.warehouse_id),
       customer_id: parseInt(formData.customer_id),
       user_id: user?.id || 1,
@@ -413,6 +420,7 @@ export const QuotationForm = ({
         quantity: parseFloat(detail.quantity),
         unit_price: parseFloat(detail.unit_price),
         purchase_price: parseFloat(detail.purchase_price),
+        description: detail.description || "",
       })),
     };
 
@@ -573,12 +581,26 @@ export const QuotationForm = ({
 
             <FormField
               control={form.control}
-              name="account_number"
+              name="order_purchase"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Número de Cuenta</FormLabel>
+                  <FormLabel>Orden de Compra</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="Número de cuenta bancaria" />
+                    <Input {...field} placeholder="Número de orden de compra" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="order_service"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Orden de Servicio</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Número de orden de servicio" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

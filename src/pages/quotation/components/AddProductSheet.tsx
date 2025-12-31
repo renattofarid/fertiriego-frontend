@@ -26,6 +26,7 @@ export interface ProductDetail {
   quantity: string;
   unit_price: string;
   purchase_price: string;
+  description?: string;
   subtotal: number;
   tax: number;
   total: number;
@@ -49,6 +50,7 @@ export const AddProductSheet = ({
       quantity: "",
       unit_price: "",
       purchase_price: "",
+      description: "",
       is_igv: defaultIsIgv,
     },
   });
@@ -72,6 +74,7 @@ export const AddProductSheet = ({
         quantity: editingDetail.quantity,
         unit_price: editingDetail.unit_price,
         purchase_price: editingDetail.purchase_price,
+        description: editingDetail.description || "",
         is_igv: editingDetail.is_igv,
       });
     } else {
@@ -80,6 +83,7 @@ export const AddProductSheet = ({
         quantity: "",
         unit_price: "",
         purchase_price: "",
+        description: "",
         is_igv: defaultIsIgv,
       });
     }
@@ -98,14 +102,16 @@ export const AddProductSheet = ({
 
     if (qty > 0 && price > 0) {
       if (isIgv) {
-        const subtotal = qty * price;
-        const tax = subtotal * 0.18;
-        const total = subtotal + tax;
-        setCalculatedValues({ subtotal, tax, total });
-      } else {
+        // El precio incluye IGV: desglosar el IGV
         const total = qty * price;
         const subtotal = total / 1.18;
         const tax = total - subtotal;
+        setCalculatedValues({ subtotal, tax, total });
+      } else {
+        // El precio NO incluye IGV: calcular el IGV
+        const subtotal = qty * price;
+        const tax = subtotal * 0.18;
+        const total = subtotal + tax;
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
@@ -119,8 +125,7 @@ export const AddProductSheet = ({
     if (
       !formData.product_id ||
       !formData.quantity ||
-      !formData.unit_price ||
-      !formData.purchase_price
+      !formData.unit_price
     ) {
       return;
     }
@@ -138,6 +143,7 @@ export const AddProductSheet = ({
       quantity: formData.quantity,
       unit_price: formData.unit_price,
       purchase_price: formData.purchase_price,
+      description: formData.description || "",
       subtotal: calculatedValues.subtotal,
       tax: calculatedValues.tax,
       total: calculatedValues.total,
@@ -204,6 +210,15 @@ export const AddProductSheet = ({
               placeholder="0.00"
             />
           </div>
+
+          <div className="col-span-2">
+            <FormInput
+              control={form.control}
+              name="description"
+              label="Descripción"
+              placeholder="Descripción del producto (opcional)"
+            />
+          </div>
         </div>
 
         <FormSwitch
@@ -244,8 +259,7 @@ export const AddProductSheet = ({
             disabled={
               !productId ||
               !quantity ||
-              !unitPrice ||
-              !form.watch("purchase_price")
+              !unitPrice
             }
           >
             <Plus className="h-4 w-4 mr-2" />

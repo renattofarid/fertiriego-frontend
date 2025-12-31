@@ -62,10 +62,6 @@ export default function QuotationPage() {
     navigate(`/cotizaciones/${quotation.id}`);
   };
 
-  const handleGenerateSale = (quotation: QuotationResource) => {
-    navigate(`/ventas/agregar?quotation_id=${quotation.id}`);
-  };
-
   const confirmDelete = async () => {
     if (quotationToDelete) {
       try {
@@ -85,7 +81,6 @@ export default function QuotationPage() {
     onEdit: handleEdit,
     onDelete: handleDelete,
     onViewDetails: handleViewDetails,
-    onGenerateSale: handleGenerateSale,
   });
 
   return (
