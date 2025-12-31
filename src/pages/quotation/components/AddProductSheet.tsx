@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
+import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
+import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -42,11 +44,20 @@ export const AddProductSheet = ({
   editIndex = null,
   onEdit,
 }: AddProductSheetProps) => {
+  console.log('[AddProductSheet] Component render:', {
+    open,
+    defaultIsIgv,
+    editingDetail,
+    editIndex,
+    productsCount: products.length
+  });
+
   const isEditMode = editingDetail !== null && editIndex !== null;
 
   const form = useForm({
     defaultValues: {
       product_id: "",
+      price_category_id: "",
       quantity: "",
       unit_price: "",
       purchase_price: "",
@@ -62,43 +73,96 @@ export const AddProductSheet = ({
   });
 
   const productId = form.watch("product_id");
+  const priceCategoryId = form.watch("price_category_id");
   const quantity = form.watch("quantity");
   const unitPrice = form.watch("unit_price");
   const isIgv = form.watch("is_igv");
 
-  // Cargar datos cuando se está editando
-  useEffect(() => {
-    if (editingDetail) {
-      form.reset({
-        product_id: editingDetail.product_id,
-        quantity: editingDetail.quantity,
-        unit_price: editingDetail.unit_price,
-        purchase_price: editingDetail.purchase_price,
-        description: editingDetail.description || "",
-        is_igv: editingDetail.is_igv,
-      });
-    } else {
-      form.reset({
-        product_id: "",
-        quantity: "",
-        unit_price: "",
-        purchase_price: "",
-        description: "",
-        is_igv: defaultIsIgv,
-      });
-    }
-  }, [editingDetail, defaultIsIgv, form]);
+  // Cargar categorías de precio
+  const { data: priceCategories } = useAllProductPriceCategories();
 
-  // Actualizar is_igv cuando cambie defaultIsIgv (solo si no está editando)
+  // Cargar precios del producto seleccionado
+  const { data: productPricesData } = useProductPrices({
+    productId: parseInt(productId) || 0,
+  });
+
+  // Autocompletar precio cuando se selecciona categoría de precio
   useEffect(() => {
-    if (!editingDetail) {
-      form.setValue("is_igv", defaultIsIgv);
+    console.log('[AddProductSheet] Price category effect triggered:', {
+      priceCategoryId,
+      hasData: !!productPricesData?.data,
+      dataLength: productPricesData?.data?.length,
+      allPrices: productPricesData?.data
+    });
+
+    if (priceCategoryId && productPricesData?.data) {
+      const selectedPrice = productPricesData.data.find(
+        (price) => price.category_id === parseInt(priceCategoryId)
+      );
+
+      console.log('[AddProductSheet] Selected price:', {
+        priceCategoryId,
+        selectedPrice,
+        willSetValue: !!selectedPrice
+      });
+
+      if (selectedPrice) {
+        // Asumimos que usamos price_soles por defecto
+        console.log('[AddProductSheet] Setting unit_price to:', selectedPrice.price_soles);
+        form.setValue("unit_price", selectedPrice.price_soles);
+      }
     }
-  }, [defaultIsIgv, form, editingDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceCategoryId, productPricesData]);
+
+  // Cargar datos cuando se abre el sheet
+  useEffect(() => {
+    console.log('[AddProductSheet] Open effect triggered:', {
+      open,
+      isEditMode,
+      editingDetail,
+      defaultIsIgv
+    });
+
+    if (open) {
+      if (editingDetail) {
+        console.log('[AddProductSheet] Resetting form with editing detail');
+        form.reset({
+          product_id: editingDetail.product_id,
+          price_category_id: "",
+          quantity: editingDetail.quantity,
+          unit_price: editingDetail.unit_price,
+          purchase_price: editingDetail.purchase_price,
+          description: editingDetail.description || "",
+          is_igv: editingDetail.is_igv,
+        });
+      } else {
+        console.log('[AddProductSheet] Resetting form to defaults');
+        form.reset({
+          product_id: "",
+          price_category_id: "",
+          quantity: "",
+          unit_price: "",
+          purchase_price: "",
+          description: "",
+          is_igv: defaultIsIgv,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
     const price = parseFloat(unitPrice) || 0;
+
+    console.log('[AddProductSheet] Calculation effect triggered:', {
+      quantity,
+      unitPrice,
+      isIgv,
+      qty,
+      price
+    });
 
     if (qty > 0 && price > 0) {
       if (isIgv) {
@@ -106,15 +170,18 @@ export const AddProductSheet = ({
         const total = qty * price;
         const subtotal = total / 1.18;
         const tax = total - subtotal;
+        console.log('[AddProductSheet] Calculated with IGV:', { subtotal, tax, total });
         setCalculatedValues({ subtotal, tax, total });
       } else {
         // El precio NO incluye IGV: calcular el IGV
         const subtotal = qty * price;
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
+        console.log('[AddProductSheet] Calculated without IGV:', { subtotal, tax, total });
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
+      console.log('[AddProductSheet] Resetting calculated values to 0');
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
   }, [quantity, unitPrice, isIgv]);
@@ -122,11 +189,7 @@ export const AddProductSheet = ({
   const handleSave = () => {
     const formData = form.getValues();
 
-    if (
-      !formData.product_id ||
-      !formData.quantity ||
-      !formData.unit_price
-    ) {
+    if (!formData.product_id || !formData.quantity || !formData.unit_price) {
       return;
     }
 
@@ -180,6 +243,19 @@ export const AddProductSheet = ({
           }))}
           placeholder="Seleccionar producto"
         />
+
+        {productId && priceCategories && priceCategories.length > 0 && (
+          <FormSelect
+            control={form.control}
+            name="price_category_id"
+            label="Categoría de Precio"
+            options={priceCategories.map((cat) => ({
+              value: cat.id.toString(),
+              label: cat.name,
+            }))}
+            placeholder="Seleccionar categoría de precio (opcional)"
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormInput
@@ -256,11 +332,7 @@ export const AddProductSheet = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={
-              !productId ||
-              !quantity ||
-              !unitPrice
-            }
+            disabled={!productId || !quantity || !unitPrice}
           >
             <Plus className="h-4 w-4 mr-2" />
             {isEditMode ? "Actualizar Producto" : "Agregar Producto"}

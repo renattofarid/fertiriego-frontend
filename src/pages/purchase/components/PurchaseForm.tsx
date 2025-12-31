@@ -28,7 +28,6 @@ import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-
 import { useState, useEffect } from "react";
 import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -37,7 +36,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DOCUMENT_TYPES,
   PAYMENT_TYPES,
@@ -45,6 +43,16 @@ import {
 } from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
 import { format } from "date-fns";
+import { GroupFormSection } from "@/components/GroupFormSection";
+import {
+  FileText,
+  Package,
+  CalendarDays,
+  ShoppingCart
+} from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import GeneralSheet from "@/components/GeneralSheet";
+import { FormSwitch } from "@/components/FormSwitch";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -90,6 +98,7 @@ export const PurchaseForm = ({
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [includeIgv, setIncludeIgv] = useState<boolean>(false);
+  const [isAddDetailSheetOpen, setIsAddDetailSheetOpen] = useState(false);
 
   const IGV_RATE = 0.18;
 
@@ -121,6 +130,7 @@ export const PurchaseForm = ({
       temp_product_id: currentDetail.product_id,
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
+      temp_include_igv: includeIgv,
     },
   });
 
@@ -135,6 +145,7 @@ export const PurchaseForm = ({
   const selectedProductId = detailTempForm.watch("temp_product_id");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
+  const selectedIncludeIgv = detailTempForm.watch("temp_include_igv");
 
   // Watchers para cuotas
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
@@ -170,6 +181,13 @@ export const PurchaseForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
+
+  useEffect(() => {
+    if (selectedIncludeIgv !== includeIgv) {
+      setIncludeIgv(selectedIncludeIgv);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIncludeIgv]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -324,7 +342,11 @@ export const PurchaseForm = ({
       temp_product_id: "",
       temp_quantity: "",
       temp_unit_price: "",
+      temp_include_igv: false,
     });
+
+    // Cerrar el sheet
+    setIsAddDetailSheetOpen(false);
   };
 
   const handleEditDetail = (index: number) => {
@@ -335,6 +357,7 @@ export const PurchaseForm = ({
     detailTempForm.setValue("temp_quantity", detail.quantity);
     detailTempForm.setValue("temp_unit_price", detail.unit_price);
     setEditingDetailIndex(index);
+    setIsAddDetailSheetOpen(true);
   };
 
   const handleRemoveDetail = (index: number) => {
@@ -536,328 +559,257 @@ export const PurchaseForm = ({
         className="space-y-6 w-full"
       >
         {/* Información General */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="md:col-span-2 lg:col-span-3">
-                <FormSelect
-                  control={form.control}
-                  name="purchase_order_id"
-                  label="Orden de Compra (Opcional - Auto-llena los datos)"
-                  placeholder="Seleccione una orden de compra"
-                  options={[
-                    { value: "", label: "Ninguna - Llenar manualmente" },
-                    ...purchaseOrders.map((po) => ({
-                      value: po.id.toString(),
-                      label: `${po.correlativo} (${po.supplier_fullname})`,
-                    })),
-                  ]}
-                />
-              </div>
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{ sm: 1, md: 2, lg: 3 }}
+        >
+          <div className="md:col-span-2 lg:col-span-3">
+            <FormSelect
+              control={form.control}
+              name="purchase_order_id"
+              label="Orden de Compra (Opcional - Auto-llena los datos)"
+              placeholder="Seleccione una orden de compra"
+              options={[
+                { value: "", label: "Ninguna - Llenar manualmente" },
+                ...purchaseOrders.map((po) => ({
+                  value: po.id.toString(),
+                  label: `${po.correlativo} (${po.supplier_fullname})`,
+                })),
+              ]}
+            />
+          </div>
 
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.business_name ??
-                    supplier.names +
-                      " " +
-                      supplier.father_surname +
-                      " " +
-                      supplier.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+          <FormSelect
+            control={form.control}
+            name="supplier_id"
+            label="Proveedor"
+            placeholder="Seleccione un proveedor"
+            options={suppliers.map((supplier) => ({
+              value: supplier.id.toString(),
+              label:
+                supplier.business_name ??
+                supplier.names +
+                  " " +
+                  supplier.father_surname +
+                  " " +
+                  supplier.mother_surname,
+            }))}
+            disabled={mode === "update"}
+          />
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+          <FormSelect
+            control={form.control}
+            name="warehouse_id"
+            label="Almacén"
+            placeholder="Seleccione un almacén"
+            options={warehouses.map((warehouse) => ({
+              value: warehouse.id.toString(),
+              label: warehouse.name,
+            }))}
+            disabled={mode === "update"}
+          />
 
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
+          <FormSelect
+            control={form.control}
+            name="document_type"
+            label="Tipo de Documento"
+            placeholder="Seleccione tipo"
+            options={DOCUMENT_TYPES.map((dt) => ({
+              value: dt.value,
+              label: dt.label,
+            }))}
+          />
 
-              <FormField
-                control={form.control}
-                name="document_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Documento</FormLabel>
-                    <FormControl>
-                      <Input
-                        
-                        placeholder="Ej: F001-001245"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="document_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número de Documento</FormLabel>
+                <FormControl>
+                  <Input
 
-              <FormSelect
-                control={form.control}
-                name="payment_type"
-                label="Tipo de Pago"
-                placeholder="Seleccione tipo"
-                options={PAYMENT_TYPES.map((pt) => ({
-                  value: pt.value,
-                  label: pt.label,
-                }))}
-              />
+                    placeholder="Ej: F001-001245"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormSelect
-                control={form.control}
-                name="currency"
-                label="Moneda"
-                placeholder="Seleccione moneda"
-                options={CURRENCIES.map((c) => ({
-                  value: c.value,
-                  label: c.label,
-                }))}
-              />
+          <FormSelect
+            control={form.control}
+            name="payment_type"
+            label="Tipo de Pago"
+            placeholder="Seleccione tipo"
+            options={PAYMENT_TYPES.map((pt) => ({
+              value: pt.value,
+              label: pt.label,
+            }))}
+          />
 
-              <div className="md:col-span-2 lg:col-span-3">
-                <FormField
-                  control={form.control}
-                  name="observations"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Observaciones</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Ingrese observaciones adicionales"
-                          className="resize-none"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <FormSelect
+            control={form.control}
+            name="currency"
+            label="Moneda"
+            placeholder="Seleccione moneda"
+            options={CURRENCIES.map((c) => ({
+              value: c.value,
+              label: c.label,
+            }))}
+          />
+
+          <div className="md:col-span-2 lg:col-span-3">
+            <FormField
+              control={form.control}
+              name="observations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observaciones</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Ingrese observaciones adicionales"
+                      className="resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </GroupFormSection>
 
         {/* Detalles */}
         {mode === "create" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la Compra</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <div className="md:col-span-2">
-                  <Form {...detailTempForm}>
-                    <FormSelect
-                      control={detailTempForm.control}
-                      name="temp_product_id"
-                      label="Producto"
-                      placeholder="Seleccione"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                      }))}
-                    />
-                  </Form>
-                </div>
+          <GroupFormSection
+            title="Detalles de la Compra"
+            icon={Package}
+            cols={{ sm: 1 }}
+            headerExtra={
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  setEditingDetailIndex(null);
+                  setIsAddDetailSheetOpen(true);
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Producto
+              </Button>
+            }
+          >
+            {details.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Producto</TableHead>
+                      <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">P. Unit.</TableHead>
+                      <TableHead className="text-right">Subtotal</TableHead>
+                      <TableHead className="text-right">Impuesto</TableHead>
+                      <TableHead className="text-right">Total</TableHead>
+                      <TableHead className="text-center">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {details.map((detail, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{detail.product_name}</TableCell>
+                        <TableCell className="text-right">
+                          {detail.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {isNaN(parseFloat(detail.unit_price))
+                            ? detail.unit_price
+                            : formatNumber(parseFloat(detail.unit_price))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(detail.subtotal)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(parseFloat(detail.tax || "0"))}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-primary">
+                          {formatNumber(detail.total)}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditDetail(index)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveDetail(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-right font-bold">
+                        SUBTOTAL:
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatNumber(calculateSubtotalTotal())}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
 
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          
-                          placeholder="0"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-right font-bold">
+                        IGV (18%):
+                      </TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatNumber(calculateTaxTotal())}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
 
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_unit_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Precio Unit.</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.000001"
-                          
-                          placeholder="0.000000"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div className="md:col-span-4 flex items-center justify-between">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={includeIgv}
-                      onChange={(e) => setIncludeIgv(e.target.checked)}
-                      className="accent-primary"
-                    />
-                    <span className="text-sm">Incluir IGV (18%)</span>
-                  </label>
-
-                  <div>
-                    <Button
-                      type="button"
-                      variant="default"
-                      onClick={handleAddDetail}
-                      disabled={
-                        !currentDetail.product_id ||
-                        !currentDetail.quantity ||
-                        !currentDetail.unit_price
-                      }
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
-                    </Button>
-                  </div>
-                </div>
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-right font-bold">
+                        TOTAL:
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-lg text-primary">
+                        {formatNumber(calculateDetailsTotal())}
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
               </div>
-
-              {details.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">P. Unit.</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                        <TableHead className="text-right">Impuesto</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-center">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {details.map((detail, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{detail.product_name}</TableCell>
-                          <TableCell className="text-right">
-                            {detail.quantity}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isNaN(parseFloat(detail.unit_price))
-                              ? detail.unit_price
-                              : formatNumber(parseFloat(detail.unit_price))}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(detail.subtotal)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(parseFloat(detail.tax || "0"))}
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-primary">
-                            {formatNumber(detail.total)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditDetail(index)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveDetail(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          SUBTOTAL:
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatNumber(calculateSubtotalTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          IGV (18%):
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatNumber(calculateTaxTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          TOTAL:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-primary">
-                          {formatNumber(calculateDetailsTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay detalles agregados
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            ) : (
+              <EmptyState
+                title="No hay detalles agregados"
+                description="Agregue productos a la compra usando el botón 'Agregar Producto'"
+                icon={ShoppingCart}
+              />
+            )}
+          </GroupFormSection>
         )}
 
         {/* Cuotas - Solo mostrar si es a crédito */}
         {mode === "create" && selectedPaymentType === "CREDITO" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cuotas (Obligatorio)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <GroupFormSection
+            title="Cuotas (Obligatorio)"
+            icon={CalendarDays}
+            cols={{ sm: 1 }}
+          >
+            <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
                 <FormField
                   control={installmentTempForm.control}
@@ -868,7 +820,7 @@ export const PurchaseForm = ({
                       <FormControl>
                         <Input
                           type="number"
-                          
+
                           placeholder="0"
                           {...field}
                         />
@@ -887,7 +839,7 @@ export const PurchaseForm = ({
                         <Input
                           type="number"
                           step="0.01"
-                          
+
                           placeholder="0.00"
                           {...field}
                         />
@@ -993,14 +945,14 @@ export const PurchaseForm = ({
                   )}
                 </>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay cuotas agregadas
-                  </Badge>
-                </div>
+                <EmptyState
+                  title="No hay cuotas agregadas"
+                  description="Agregue las cuotas de pago para esta compra a crédito"
+                  icon={CalendarDays}
+                />
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </GroupFormSection>
         )}
 
         {/* Botones */}
@@ -1029,6 +981,120 @@ export const PurchaseForm = ({
             {isSubmitting ? "Guardando..." : "Guardar"}
           </Button>
         </div>
+
+        {/* Sheet para agregar/editar detalles */}
+        <GeneralSheet
+          open={isAddDetailSheetOpen}
+          onClose={() => {
+            setIsAddDetailSheetOpen(false);
+            setEditingDetailIndex(null);
+            const emptyDetail = {
+              product_id: "",
+              quantity: "",
+              unit_price: "",
+              tax: "",
+              subtotal: 0,
+              total: 0,
+            };
+            setCurrentDetail(emptyDetail);
+            detailTempForm.reset({
+              temp_product_id: "",
+              temp_quantity: "",
+              temp_unit_price: "",
+              temp_include_igv: false,
+            });
+          }}
+          title={editingDetailIndex !== null ? "Editar Producto" : "Agregar Producto"}
+          subtitle="Complete los datos del producto"
+          icon="Package"
+          size="lg"
+        >
+          <div className="flex flex-col gap-4">
+            <div className="md:col-span-2">
+              <Form {...detailTempForm}>
+                <FormSelect
+                  control={detailTempForm.control}
+                  name="temp_product_id"
+                  label="Producto"
+                  placeholder="Seleccione"
+                  options={products.map((product) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                  }))}
+                />
+              </Form>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={detailTempForm.control}
+                name="temp_quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cantidad</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="0"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={detailTempForm.control}
+                name="temp_unit_price"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Precio Unit.</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.000001"
+                        placeholder="0.000000"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormSwitch
+              control={detailTempForm.control}
+              name="temp_include_igv"
+              text="Incluye IGV"
+              textDescription="El precio unitario incluye el IGV (18%)"
+            />
+
+            <div className="flex gap-4 justify-end pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setIsAddDetailSheetOpen(false);
+                  setEditingDetailIndex(null);
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                onClick={handleAddDetail}
+                disabled={
+                  !currentDetail.product_id ||
+                  !currentDetail.quantity ||
+                  !currentDetail.unit_price
+                }
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {editingDetailIndex !== null ? "Actualizar Producto" : "Agregar Producto"}
+              </Button>
+            </div>
+          </div>
+        </GeneralSheet>
       </form>
     </Form>
   );

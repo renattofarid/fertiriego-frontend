@@ -26,6 +26,8 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 export default function SalePage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -153,11 +155,18 @@ export default function SalePage() {
           subtitle="Administrar todas las ventas registradas en el sistema"
           icon={ICON}
         />
-        <SaleActions />
+        <SaleActions startDate={startDate} endDate={endDate} />
       </div>
 
       <SaleTable columns={columns} data={sales || []} isLoading={isLoading}>
-        <SaleOptions search={search} setSearch={setSearch} />
+        <SaleOptions
+          search={search}
+          setSearch={setSearch}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+        />
       </SaleTable>
 
       <DataTablePagination
