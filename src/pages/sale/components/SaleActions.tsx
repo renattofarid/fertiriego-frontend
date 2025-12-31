@@ -5,25 +5,36 @@ import { Plus } from "lucide-react";
 import { SALE } from "../lib/sale.interface";
 import { useNavigate } from "react-router-dom";
 import ExportButtons from "@/components/ExportButtons";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function SaleActions() {
   const navigate = useNavigate();
   const { MODEL } = SALE;
+  const { access, user } = useAuthStore();
+
+  const canAddSale =
+    user?.rol_id === 1 ||
+    access?.find((perm) =>
+      perm.permissions.some((p) => p.routes.some((r) => r === "agregar-venta"))
+    );
 
   return (
     <div className="flex items-center gap-2">
       <ExportButtons
-        excelEndpoint="/sales/export"
+        excelEndpoint="/sale/excel"
         excelFileName="ventas.xlsx"
         variant="grouped"
       />
-      <Button
-        size="sm"
-        className="ml-auto"
-        onClick={() => navigate("/ventas/agregar")}
-      >
-        <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
-      </Button>
+
+      {canAddSale && (
+        <Button
+          size="sm"
+          className="ml-auto"
+          onClick={() => navigate("/ventas/agregar")}
+        >
+          <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
+        </Button>
+      )}
     </div>
   );
 }
