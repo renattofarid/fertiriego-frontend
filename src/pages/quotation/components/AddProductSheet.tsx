@@ -72,6 +72,8 @@ export const AddProductSheet = ({
     total: 0,
   });
 
+  const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
   const quantity = form.watch("quantity");
@@ -92,7 +94,8 @@ export const AddProductSheet = ({
       priceCategoryId,
       hasData: !!productPricesData?.data,
       dataLength: productPricesData?.data?.length,
-      allPrices: productPricesData?.data
+      allPrices: productPricesData?.data,
+      lastSetPrice
     });
 
     if (priceCategoryId && productPricesData?.data) {
@@ -103,13 +106,17 @@ export const AddProductSheet = ({
       console.log('[AddProductSheet] Selected price:', {
         priceCategoryId,
         selectedPrice,
-        willSetValue: !!selectedPrice
+        willSetValue: !!selectedPrice,
+        priceValue: selectedPrice?.price_soles,
+        lastSetPrice,
+        shouldUpdate: selectedPrice && selectedPrice.price_soles !== lastSetPrice
       });
 
-      if (selectedPrice) {
+      if (selectedPrice && selectedPrice.price_soles !== lastSetPrice) {
         // Asumimos que usamos price_soles por defecto
         console.log('[AddProductSheet] Setting unit_price to:', selectedPrice.price_soles);
         form.setValue("unit_price", selectedPrice.price_soles);
+        setLastSetPrice(selectedPrice.price_soles);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,6 +132,9 @@ export const AddProductSheet = ({
     });
 
     if (open) {
+      // Reset lastSetPrice cuando se abre el sheet
+      setLastSetPrice(null);
+
       if (editingDetail) {
         console.log('[AddProductSheet] Resetting form with editing detail');
         form.reset({
@@ -151,6 +161,12 @@ export const AddProductSheet = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Reset lastSetPrice cuando cambia el producto
+  useEffect(() => {
+    console.log('[AddProductSheet] Product changed, resetting lastSetPrice');
+    setLastSetPrice(null);
+  }, [productId]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
