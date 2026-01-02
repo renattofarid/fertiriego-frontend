@@ -377,12 +377,11 @@ export const PurchaseOrderForm = ({
             </GroupFormSection>
 
             {/* Detalles */}
-            {mode === "create" && (
-              <GroupFormSection
-                title="Detalles de la Orden"
-                icon={ListCheck}
-                cols={{ sm: 1 }}
-              >
+            <GroupFormSection
+              title="Detalles de la Orden"
+              icon={ListCheck}
+              cols={{ sm: 1 }}
+            >
                 {/* Formulario de agregar/editar en una fila */}
                 <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
                   <div className="col-span-6">
@@ -539,7 +538,6 @@ export const PurchaseOrderForm = ({
                   />
                 )}
               </GroupFormSection>
-            )}
           </div>
 
           {/* Columna derecha: Resumen - sticky */}

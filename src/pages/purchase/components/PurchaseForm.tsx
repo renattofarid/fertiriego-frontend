@@ -256,10 +256,13 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
-    // Setear el include_igv según el apply_igv de la orden (castear 1/0 a boolean)
+    // Setear el include_igv según el apply_igv de la orden
+    // Si apply_igv = true → se le aplicó IGV → los precios NO incluyen IGV → include_igv = false
+    // Si apply_igv = false → no se le aplicó IGV → los precios ya incluyen IGV → include_igv = true
     const applyIgvBoolean = Boolean(selectedPO.apply_igv);
-    igvForm.setValue("include_igv", applyIgvBoolean);
-    setIncludeIgv(applyIgvBoolean);
+    const includeIgvValue = !applyIgvBoolean; // Lógica inversa
+    igvForm.setValue("include_igv", includeIgvValue);
+    setIncludeIgv(includeIgvValue);
 
     // Auto-llenar detalles de la orden de compra
     if (selectedPO.details && selectedPO.details.length > 0) {
@@ -270,7 +273,7 @@ export const PurchaseForm = ({
         let tax = 0;
         let total = 0;
 
-        if (applyIgvBoolean) {
+        if (includeIgvValue) {
           // unitPrice incluye IGV: descomponer (truncando resultados)
           const totalIncl = truncDecimal(quantity * unitPrice, 6);
           subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
