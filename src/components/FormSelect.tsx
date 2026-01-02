@@ -122,7 +122,8 @@ export function FormSelect({
                     disabled={disabled}
                     className={cn(
                       "w-full justify-between min-h-7 flex",
-                      !field.value && "text-muted-foreground"
+                      !field.value && "text-muted-foreground",
+                      field.value && "bg-muted"
                     )}
                   >
                     <span className="!text-nowrap line-clamp-1">
