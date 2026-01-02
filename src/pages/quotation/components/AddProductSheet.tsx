@@ -44,12 +44,12 @@ export const AddProductSheet = ({
   editIndex = null,
   onEdit,
 }: AddProductSheetProps) => {
-  console.log('[AddProductSheet] Component render:', {
+  console.log("[AddProductSheet] Component render:", {
     open,
     defaultIsIgv,
     editingDetail,
     editIndex,
-    productsCount: products.length
+    productsCount: products.length,
   });
 
   const isEditMode = editingDetail !== null && editIndex !== null;
@@ -90,12 +90,12 @@ export const AddProductSheet = ({
 
   // Autocompletar precio cuando se selecciona categoría de precio
   useEffect(() => {
-    console.log('[AddProductSheet] Price category effect triggered:', {
+    console.log("[AddProductSheet] Price category effect triggered:", {
       priceCategoryId,
       hasData: !!productPricesData?.data,
       dataLength: productPricesData?.data?.length,
       allPrices: productPricesData?.data,
-      lastSetPrice
+      lastSetPrice,
     });
 
     if (priceCategoryId && productPricesData?.data) {
@@ -103,18 +103,22 @@ export const AddProductSheet = ({
         (price) => price.category_id === parseInt(priceCategoryId)
       );
 
-      console.log('[AddProductSheet] Selected price:', {
+      console.log("[AddProductSheet] Selected price:", {
         priceCategoryId,
         selectedPrice,
         willSetValue: !!selectedPrice,
         priceValue: selectedPrice?.price_soles,
         lastSetPrice,
-        shouldUpdate: selectedPrice && selectedPrice.price_soles !== lastSetPrice
+        shouldUpdate:
+          selectedPrice && selectedPrice.price_soles !== lastSetPrice,
       });
 
       if (selectedPrice && selectedPrice.price_soles !== lastSetPrice) {
         // Asumimos que usamos price_soles por defecto
-        console.log('[AddProductSheet] Setting unit_price to:', selectedPrice.price_soles);
+        console.log(
+          "[AddProductSheet] Setting unit_price to:",
+          selectedPrice.price_soles
+        );
         form.setValue("unit_price", selectedPrice.price_soles);
         setLastSetPrice(selectedPrice.price_soles);
       }
@@ -124,11 +128,11 @@ export const AddProductSheet = ({
 
   // Cargar datos cuando se abre el sheet
   useEffect(() => {
-    console.log('[AddProductSheet] Open effect triggered:', {
+    console.log("[AddProductSheet] Open effect triggered:", {
       open,
       isEditMode,
       editingDetail,
-      defaultIsIgv
+      defaultIsIgv,
     });
 
     if (open) {
@@ -136,7 +140,7 @@ export const AddProductSheet = ({
       setLastSetPrice(null);
 
       if (editingDetail) {
-        console.log('[AddProductSheet] Resetting form with editing detail');
+        console.log("[AddProductSheet] Resetting form with editing detail");
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
@@ -147,7 +151,7 @@ export const AddProductSheet = ({
           is_igv: editingDetail.is_igv,
         });
       } else {
-        console.log('[AddProductSheet] Resetting form to defaults');
+        console.log("[AddProductSheet] Resetting form to defaults");
         form.reset({
           product_id: "",
           price_category_id: "",
@@ -164,7 +168,7 @@ export const AddProductSheet = ({
 
   // Reset lastSetPrice cuando cambia el producto
   useEffect(() => {
-    console.log('[AddProductSheet] Product changed, resetting lastSetPrice');
+    console.log("[AddProductSheet] Product changed, resetting lastSetPrice");
     setLastSetPrice(null);
   }, [productId]);
 
@@ -172,12 +176,12 @@ export const AddProductSheet = ({
     const qty = parseFloat(quantity) || 0;
     const price = parseFloat(unitPrice) || 0;
 
-    console.log('[AddProductSheet] Calculation effect triggered:', {
+    console.log("[AddProductSheet] Calculation effect triggered:", {
       quantity,
       unitPrice,
       isIgv,
       qty,
-      price
+      price,
     });
 
     if (qty > 0 && price > 0) {
@@ -186,18 +190,26 @@ export const AddProductSheet = ({
         const total = qty * price;
         const subtotal = total / 1.18;
         const tax = total - subtotal;
-        console.log('[AddProductSheet] Calculated with IGV:', { subtotal, tax, total });
+        console.log("[AddProductSheet] Calculated with IGV:", {
+          subtotal,
+          tax,
+          total,
+        });
         setCalculatedValues({ subtotal, tax, total });
       } else {
         // El precio NO incluye IGV: calcular el IGV
         const subtotal = qty * price;
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
-        console.log('[AddProductSheet] Calculated without IGV:', { subtotal, tax, total });
+        console.log("[AddProductSheet] Calculated without IGV:", {
+          subtotal,
+          tax,
+          total,
+        });
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
-      console.log('[AddProductSheet] Resetting calculated values to 0');
+      console.log("[AddProductSheet] Resetting calculated values to 0");
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
   }, [quantity, unitPrice, isIgv]);
@@ -318,6 +330,7 @@ export const AddProductSheet = ({
           name="is_igv"
           text="Incluye IGV"
           textDescription="El precio unitario incluye el IGV"
+          autoHeight
         />
 
         {calculatedValues.total > 0 && (
@@ -348,7 +361,12 @@ export const AddProductSheet = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!productId || !quantity || !unitPrice}
+            disabled={
+              !productId ||
+              !quantity ||
+              !unitPrice ||
+              !form.watch("purchase_price")
+            }
           >
             <Plus className="h-4 w-4 mr-2" />
             {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
