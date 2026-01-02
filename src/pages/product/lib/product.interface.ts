@@ -126,20 +126,26 @@ export interface GetProductImagesProps {
 export interface ProductPriceResource {
   id: number;
   product_id: number;
-  product_name: string;
   branch_id: number;
-  branch_name: string;
   category_id: number;
-  category: string;
-  price_soles: string;
-  price_usd: string;
+  prices?: Prices;
+  formatted_prices?: FormattedPrices;
+  price_soles?: number;
+  price_usd?: number;
+  price_euro?: number;
   created_at: string;
 }
 
-export interface ProductPriceResponse {
-  data: ProductPriceResource[];
-  links: Links;
-  meta: Meta;
+interface FormattedPrices {
+  PEN?: string;
+  USD?: string;
+  EUR?: string;
+}
+
+interface Prices {
+  PEN?: number;
+  USD?: number;
+  EUR?: number;
 }
 
 export interface ProductPriceResourceById {

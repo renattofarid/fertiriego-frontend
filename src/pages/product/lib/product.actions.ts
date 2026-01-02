@@ -10,7 +10,6 @@ import {
   type ProductImageResourceById,
   type CreateProductImageRequest,
   type GetProductImagesProps,
-  type ProductPriceResponse,
   type ProductPriceResourceById,
   type CreateProductPriceRequest,
   type UpdateProductPriceRequest,
@@ -20,6 +19,7 @@ import {
   type CreateProductComponentRequest,
   type UpdateProductComponentRequest,
   type GetProductComponentsProps,
+  type ProductPriceResource,
 } from "./product.interface";
 import type { AxiosRequestConfig } from "axios";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -156,15 +156,16 @@ export async function deleteProductImage(
 export async function getProductPrices({
   productId,
   params,
-}: GetProductPricesProps): Promise<ProductPriceResponse> {
+}: GetProductPricesProps): Promise<ProductPriceResource[]> {
   const config: AxiosRequestConfig = {
     params: {
       ...params,
-      per_page: DEFAULT_PER_PAGE,
+      all: true,
+      product_id: productId,
     },
   };
-  const { data } = await api.get<ProductPriceResponse>(
-    `/productprice?product_id=${productId}`,
+  const { data } = await api.get<ProductPriceResource[]>(
+    `/productprice`,
     config
   );
   return data;

@@ -3,13 +3,8 @@ import { useProductPriceStore } from "./product-price.store";
 import type { GetProductPricesProps } from "./product.interface";
 
 export function useProductPrices(params: GetProductPricesProps) {
-  const {
-    productPrices,
-    meta,
-    isLoading,
-    error,
-    fetchProductPrices,
-  } = useProductPriceStore();
+  const { productPrices, isLoading, error, fetchProductPrices } =
+    useProductPriceStore();
 
   useEffect(() => {
     if (params.productId && params.productId > 0) {
@@ -19,7 +14,7 @@ export function useProductPrices(params: GetProductPricesProps) {
   }, [params.productId, fetchProductPrices]);
 
   return {
-    data: productPrices ? { data: productPrices, meta } : null,
+    data: productPrices ? productPrices : null,
     isLoading,
     error,
     refetch: () => fetchProductPrices(params),
@@ -27,12 +22,8 @@ export function useProductPrices(params: GetProductPricesProps) {
 }
 
 export function useProductPriceById(id: number) {
-  const {
-    productPrice,
-    isFinding,
-    error,
-    fetchProductPriceById,
-  } = useProductPriceStore();
+  const { productPrice, isFinding, error, fetchProductPriceById } =
+    useProductPriceStore();
 
   useEffect(() => {
     if (id) {

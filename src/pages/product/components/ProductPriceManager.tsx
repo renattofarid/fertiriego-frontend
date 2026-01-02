@@ -78,7 +78,6 @@ export function ProductPriceManager({
 
   const { data: productPrices, refetch } = useProductPrices({
     productId,
-    params: {},
   });
 
   const { data: branches } = useAllBranches();
@@ -130,8 +129,8 @@ export function ProductPriceManager({
       product_id: productId,
       branch_id: price.branch_id.toString(),
       category_id: price.category_id.toString(),
-      price_soles: parseFloat(price.price_soles),
-      price_usd: parseFloat(price.price_usd),
+      price_soles: price.price_soles ?? 0,
+      price_usd: price.price_usd ?? 0,
     });
     setShowPriceForm(true);
   };
@@ -180,7 +179,7 @@ export function ProductPriceManager({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <p className="text-muted-foreground text-sm">
-          {productPrices?.data.length || 0} precio(s) configurado(s)
+          {productPrices?.length || 0} precio(s) configurado(s)
         </p>
         <Button
           variant="outline"
@@ -194,9 +193,9 @@ export function ProductPriceManager({
       </div>
 
       {/* Prices List */}
-      {productPrices?.data && productPrices.data.length > 0 ? (
+      {productPrices && productPrices.length > 0 ? (
         <div className="space-y-3 w-full max-w-full">
-          {productPrices.data.map((price) => (
+          {productPrices.map((price) => (
             <Card key={price.id} className="p-3 sm:p-4 overflow-hidden">
               <div className="flex flex-col gap-3">
                 {/* Header de la card - Información principal */}
@@ -211,12 +210,12 @@ export function ProductPriceManager({
                     {/* Nombre de sucursal y categoría */}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <h4 className="font-medium text-sm sm:text-base truncate min-w-0 max-w-full">
-                        {price.branch_name}
+                        {branches?.find((b) => b.id === price.branch_id)?.name || "N/A"}
                       </h4>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-md border shrink-0 w-fit`}
                       >
-                        {price.category}
+                        {priceCategories?.find((c) => c.id === price.category_id)?.name || "N/A"}
                       </span>
                     </div>
 
@@ -224,10 +223,10 @@ export function ProductPriceManager({
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 min-w-0 flex-1">
                         <span className="font-medium text-foreground truncate">
-                          {formatPrice(price.price_soles, "S/.")}
+                          {formatPrice((price.price_soles ?? 0).toString(), "S/.")}
                         </span>
                         <span className="font-medium text-foreground truncate">
-                          {formatPrice(price.price_usd, "$")}
+                          {formatPrice((price.price_usd ?? 0).toString(), "$")}
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground shrink-0">

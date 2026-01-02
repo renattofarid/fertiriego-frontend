@@ -25,7 +25,10 @@ interface ProductPriceStore {
   fetchProductPrices: (params: GetProductPricesProps) => Promise<void>;
   fetchProductPriceById: (id: number) => Promise<void>;
   createProductPrice: (data: CreateProductPriceRequest) => Promise<void>;
-  updateProductPrice: (id: number, data: UpdateProductPriceRequest) => Promise<void>;
+  updateProductPrice: (
+    id: number,
+    data: UpdateProductPriceRequest
+  ) => Promise<void>;
   deleteProductPrice: (id: number) => Promise<void>;
   clearState: () => void;
 }
@@ -43,17 +46,20 @@ export const useProductPriceStore = create<ProductPriceStore>((set) => ({
     const state = useProductPriceStore.getState();
     if (state.isLoading) return; // Prevent duplicate calls
 
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
-      const { data, meta } = await getProductPrices(params);
-      set({ productPrices: data, meta: meta, isLoading: false });
+      const data = await getProductPrices(params);
+      set({ productPrices: data, isLoading: false });
     } catch {
-      set({ error: "Error al cargar los precios del producto", isLoading: false });
+      set({
+        error: "Error al cargar los precios del producto",
+        isLoading: false,
+      });
     }
   },
 
   fetchProductPriceById: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const { data } = await getProductPriceById(id);
       set({ productPrice: data, isFinding: false });
@@ -63,7 +69,7 @@ export const useProductPriceStore = create<ProductPriceStore>((set) => ({
   },
 
   createProductPrice: async (data: CreateProductPriceRequest) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await createProductPrice(data);
     } catch (err) {
@@ -75,7 +81,7 @@ export const useProductPriceStore = create<ProductPriceStore>((set) => ({
   },
 
   updateProductPrice: async (id: number, data: UpdateProductPriceRequest) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await updateProductPrice(id, data);
     } catch (err) {
@@ -87,7 +93,7 @@ export const useProductPriceStore = create<ProductPriceStore>((set) => ({
   },
 
   deleteProductPrice: async (id: number) => {
-    set({ error: undefined});
+    set({ error: undefined });
     try {
       await deleteProductPrice(id);
     } catch (err) {
