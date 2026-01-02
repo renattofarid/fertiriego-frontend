@@ -5,59 +5,47 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import { formatNumber } from "@/lib/formatCurrency";
+import { formatCurrency } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
 
 interface DetailRow {
   product_id: string;
   product_name?: string;
-  quantity: string;
-  unit_price: string;
-  tax: string;
+  quantity_requested: string;
+  unit_price_estimated: string;
   subtotal: number;
-  total: number;
+  subtotal_estimated?: number;
 }
 
-interface InstallmentRow {
-  due_days: string;
-  amount: string;
-}
-
-interface PurchaseSummaryProps {
+interface PurchaseOrderSummaryProps {
   form: UseFormReturn<any>;
   mode: "create" | "update";
   isSubmitting: boolean;
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   details: DetailRow[];
-  installments?: InstallmentRow[];
-  calculateSubtotalTotal: () => number;
-  calculateTaxTotal: () => number;
-  calculateDetailsTotal: () => number;
-  installmentsMatchTotal?: () => boolean;
+  subtotalBase: number;
+  igvAmount: number;
+  totalWithIgv: number;
+  applyIgv: boolean;
   onCancel?: () => void;
-  selectedPaymentType?: string;
 }
 
-export function PurchaseSummary({
+export function PurchaseOrderSummary({
   form,
   mode,
   isSubmitting,
   suppliers,
   warehouses,
   details,
-  installments = [],
-  calculateSubtotalTotal,
-  calculateTaxTotal,
-  calculateDetailsTotal,
-  installmentsMatchTotal,
+  subtotalBase,
+  igvAmount,
+  totalWithIgv,
+  applyIgv,
   onCancel,
-  selectedPaymentType,
-}: PurchaseSummaryProps) {
+}: PurchaseOrderSummaryProps) {
   const supplierWatch = form.watch("supplier_id");
   const warehouseWatch = form.watch("warehouse_id");
-  const documentTypeWatch = form.watch("document_type");
-  const currencyWatch = form.watch("currency");
 
   // Obtener el proveedor seleccionado
   const selectedSupplier = supplierWatch
@@ -76,22 +64,6 @@ export function PurchaseSummary({
 
   const warehouseName = selectedWarehouse?.name ?? "Sin seleccionar";
 
-  // Obtener el símbolo de moneda
-  const getCurrencySymbol = () => {
-    switch (currencyWatch) {
-      case "USD":
-        return "$";
-      case "PEN":
-        return "S/";
-      case "EUR":
-        return "€";
-      default:
-        return "S/";
-    }
-  };
-
-  const currencySymbol = getCurrencySymbol();
-
   return (
     <div className="xl:col-span-1 xl:row-start-1 xl:col-start-3 h-full">
       <Card className="h-full sticky top-6 bg-linear-to-br from-primary/5 via-background to-muted/20 border-primary/20">
@@ -108,14 +80,7 @@ export function PurchaseSummary({
               {mode === "update" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {documentTypeWatch ?? "Compra"}
-          </p>
-          {selectedPaymentType && (
-            <Badge variant="secondary" className="w-fit">
-              {selectedPaymentType}
-            </Badge>
-          )}
+          <p className="text-xs text-muted-foreground">Orden de Compra</p>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -194,16 +159,21 @@ export function PurchaseSummary({
                         {detail.product_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {detail.quantity} x {currencySymbol}{" "}
-                        {parseFloat(detail.unit_price).toLocaleString("es-PE", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {detail.quantity_requested} x S/.{" "}
+                        {parseFloat(detail.unit_price_estimated).toLocaleString(
+                          "es-PE",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 6,
+                          }
+                        )}
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      {currencySymbol}{" "}
-                      {detail.total.toLocaleString("es-PE", {
+                      S/.{" "}
+                      {detail.subtotal.toLocaleString("es-PE", {
                         minimumFractionDigits: 2,
+                        maximumFractionDigits: 6,
                       })}
                     </p>
                   </div>
@@ -219,33 +189,41 @@ export function PurchaseSummary({
             <div className="flex justify-between items-center text-sm">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateSubtotalTotal())}
+                {formatCurrency(subtotalBase, {
+                  currencySymbol: "S/.",
+                  decimals: 6,
+                })}
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">IGV (18%)</span>
-              <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateTaxTotal())}
-              </span>
-            </div>
+            {applyIgv && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">IGV (18%)</span>
+                <span className="font-medium">
+                  {formatCurrency(igvAmount, {
+                    currencySymbol: "S/.",
+                    decimals: 6,
+                  })}
+                </span>
+              </div>
+            )}
 
             <Separator className="bg-primary/20" />
 
             <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary/30">
               <span className="text-base font-semibold text-primary">
-                Total
+                Total {applyIgv ? "(con IGV)" : ""}
               </span>
               <span className="text-xl font-bold text-primary">
-                {currencySymbol} {formatNumber(calculateDetailsTotal())}
+                {formatCurrency(applyIgv ? totalWithIgv : subtotalBase, {
+                  currencySymbol: "S/.",
+                  decimals: 6,
+                })}
               </span>
             </div>
-            {selectedPaymentType && (
-              <p className="text-xs text-center text-muted-foreground">
-                Tipo de pago:{" "}
-                <span className="font-semibold">{selectedPaymentType}</span>
-              </p>
-            )}
+            <p className="text-xs text-center text-muted-foreground">
+              Monto estimado
+            </p>
           </div>
 
           <Separator className="bg-muted-foreground/20" />
@@ -259,22 +237,15 @@ export function PurchaseSummary({
               disabled={
                 isSubmitting ||
                 !form.formState.isValid ||
-                (mode === "create" && details.length === 0) ||
-                (mode === "create" &&
-                  selectedPaymentType === "CREDITO" &&
-                  installments.length === 0) ||
-                (mode === "create" &&
-                  installments.length > 0 &&
-                  installmentsMatchTotal &&
-                  !installmentsMatchTotal())
+                (mode === "create" && details.length === 0)
               }
             >
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
                 : mode === "update"
-                ? "Actualizar Compra"
-                : "Guardar Compra"}
+                ? "Actualizar Orden"
+                : "Guardar Orden"}
             </Button>
             <Button
               type="button"
@@ -299,6 +270,18 @@ export function PurchaseSummary({
                   })
                 : "Sin fecha de emisión"}
             </p>
+            {form.watch("expected_date") && (
+              <p className="text-xs text-center text-muted-foreground mt-1">
+                <span className="font-semibold">Fecha esperada:</span>{" "}
+                {new Date(
+                  form.watch("expected_date") + "T00:00:00"
+                ).toLocaleDateString("es-PE", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

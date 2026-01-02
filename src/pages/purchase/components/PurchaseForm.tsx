@@ -166,6 +166,38 @@ export const PurchaseForm = ({
   useEffect(() => {
     if (watchIncludeIgv !== includeIgv) {
       setIncludeIgv(watchIncludeIgv);
+
+      // Si hay detalles, recalcular todos los precios
+      if (details.length > 0) {
+        const updatedDetails = details.map((detail) => {
+          const quantity = parseFloat(detail.quantity);
+          const unitPrice = parseFloat(detail.unit_price);
+          let subtotal = truncDecimal(quantity * unitPrice, 6);
+          let tax = 0;
+          let total = 0;
+
+          if (watchIncludeIgv) {
+            // unitPrice incluye IGV: descomponer (truncando resultados)
+            const totalIncl = truncDecimal(quantity * unitPrice, 6);
+            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+            tax = truncDecimal(totalIncl - subtotal, 6);
+            total = totalIncl;
+          } else {
+            tax = truncDecimal(subtotal * IGV_RATE, 6); // Calcular impuesto automáticamente (18%)
+            total = truncDecimal(subtotal + tax, 6);
+          }
+
+          return {
+            ...detail,
+            tax: formatDecimalTrunc(tax, 6),
+            subtotal,
+            total,
+          };
+        });
+
+        setDetails(updatedDetails);
+        form.setValue("details", updatedDetails);
+      }
     }
   }, [watchIncludeIgv, includeIgv]);
 
@@ -206,6 +238,10 @@ export const PurchaseForm = ({
 
   // Auto-llenar datos cuando se selecciona una orden de compra
   useEffect(() => {
+    // Limpiar detalles siempre que cambie la orden de compra seleccionada
+    setDetails([]);
+    form.setValue("details", []);
+
     if (!selectedPurchaseOrderId || selectedPurchaseOrderId === "") {
       return;
     }
@@ -220,15 +256,30 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
+    // Setear el include_igv según el apply_igv de la orden (castear 1/0 a boolean)
+    const applyIgvBoolean = Boolean(selectedPO.apply_igv);
+    igvForm.setValue("include_igv", applyIgvBoolean);
+    setIncludeIgv(applyIgvBoolean);
+
     // Auto-llenar detalles de la orden de compra
     if (selectedPO.details && selectedPO.details.length > 0) {
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const unitPrice = parseFloat(detail.unit_price_estimated);
-        // calcular con truncación a 6 decimales
-        const subtotal = truncDecimal(quantity * unitPrice, 6);
-        const tax = truncDecimal(subtotal * IGV_RATE, 6);
-        const total = truncDecimal(subtotal + tax, 6);
+        let subtotal = truncDecimal(quantity * unitPrice, 6);
+        let tax = 0;
+        let total = 0;
+
+        if (applyIgvBoolean) {
+          // unitPrice incluye IGV: descomponer (truncando resultados)
+          const totalIncl = truncDecimal(quantity * unitPrice, 6);
+          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+          tax = truncDecimal(totalIncl - subtotal, 6);
+          total = totalIncl;
+        } else {
+          tax = truncDecimal(subtotal * IGV_RATE, 6);
+          total = truncDecimal(subtotal + tax, 6);
+        }
 
         return {
           product_id: detail.product_id.toString(),
@@ -244,7 +295,7 @@ export const PurchaseForm = ({
       setDetails(poDetails);
       form.setValue("details", poDetails);
     }
-  }, [selectedPurchaseOrderId, purchaseOrders, form]);
+  }, [selectedPurchaseOrderId, purchaseOrders, form, igvForm]);
 
   // Funciones para detalles
   const handleAddDetail = () => {
