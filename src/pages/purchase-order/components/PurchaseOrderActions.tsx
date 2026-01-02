@@ -8,7 +8,7 @@ interface Props {
 export default function PurchaseOrderActions({ onCreatePurchaseOrder }: Props) {
   return (
     <div className="flex gap-2">
-      <Button onClick={onCreatePurchaseOrder}>
+      <Button size="sm" onClick={onCreatePurchaseOrder}>
         <Plus className="mr-2 h-4 w-4" />
         Crear Orden de Compra
       </Button>

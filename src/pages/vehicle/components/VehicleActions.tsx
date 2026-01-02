@@ -11,7 +11,7 @@ export default function VehicleActions() {
 
   return (
     <>
-      <Button onClick={() => setIsCreateModalOpen(true)}>
+      <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
         <Plus className="mr-2 h-4 w-4" />
         Agregar Vehículo
       </Button>

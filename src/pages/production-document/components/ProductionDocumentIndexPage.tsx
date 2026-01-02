@@ -50,7 +50,7 @@ export default function ProductionDocumentIndexPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <Button onClick={() => navigate(ROUTE_ADD)}>
+        <Button size="sm" onClick={() => navigate(ROUTE_ADD)}>
           <Plus className="h-4 w-4 mr-2" />
           Nuevo Documento
         </Button>

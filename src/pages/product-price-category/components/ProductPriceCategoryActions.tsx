@@ -12,11 +12,7 @@ export default function ProductPriceCategoryActions() {
   const { MODEL } = PRODUCT_PRICE_CATEGORY;
   return (
     <div className="flex items-center gap-2">
-      <Button
-        size="sm"
-        className="ml-auto"
-        onClick={() => setOpen(true)}
-      >
+      <Button size="sm" className="ml-auto" onClick={() => setOpen(true)}>
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
       <ProductPriceCategoryModal
