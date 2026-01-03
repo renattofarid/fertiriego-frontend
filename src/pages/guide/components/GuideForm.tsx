@@ -169,7 +169,6 @@ export const GuideForm = ({
   });
 
   // Estado para pedido seleccionado
-  const [selectedOrder, setSelectedOrder] = useState<OrderResource | null>(null);
   const [loadingOrder, setLoadingOrder] = useState(false);
 
   // Estado local para ubigeos de origen
@@ -238,7 +237,6 @@ export const GuideForm = ({
         setLoadingOrder(true);
         try {
           const response = await findOrderById(Number(orderId));
-          setSelectedOrder(response.data);
 
           // Llenar automáticamente los detalles con los productos del pedido
           if (response.data && response.data.order_details) {
@@ -260,12 +258,10 @@ export const GuideForm = ({
           }
         } catch (error) {
           console.error("Error loading order:", error);
-          setSelectedOrder(null);
         } finally {
           setLoadingOrder(false);
         }
       } else {
-        setSelectedOrder(null);
         // Si se deselecciona el pedido, limpiar los detalles
         if (mode === "create") {
           setDetails([]);
@@ -593,11 +589,6 @@ export const GuideForm = ({
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
-          {/* Personal de Transporte */}
-          <div className="col-span-full">
-            <h4 className="text-sm font-semibold mb-2 text-primary">Personal de Transporte</h4>
-          </div>
-
           <FormSelect
             control={form.control}
             name="carrier_id"
@@ -657,10 +648,6 @@ export const GuideForm = ({
 
           {transportModality === "PRIVADO" && (
             <>
-              {/* Información de Vehículos Adicionales */}
-              <div className="col-span-full mt-4">
-                <h4 className="text-sm font-semibold mb-2 text-primary">Información Adicional del Vehículo</h4>
-              </div>
 
               <FormSelect
                 control={form.control}
@@ -752,17 +739,12 @@ export const GuideForm = ({
             </>
           )}
 
-          {/* Direcciones */}
-          <div className="col-span-full mt-6">
-            <h4 className="text-sm font-semibold mb-2 text-primary">Dirección de Origen</h4>
-          </div>
-
           <FormField
             control={form.control}
             name="origin_address"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Dirección</FormLabel>
+                <FormLabel>Dirección de Origen</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Ingrese la dirección de origen"
@@ -779,7 +761,7 @@ export const GuideForm = ({
           <SelectSearchForm
             control={form.control}
             name="origin_ubigeo_id"
-            label="Ubigeo"
+            label="Ubigeo de Origen"
             placeholder="Buscar ubigeo..."
             isSearching={isSearchingOrigin}
             items={originUbigeos}
@@ -788,16 +770,12 @@ export const GuideForm = ({
             getItemId={(ubigeo) => ubigeo.id}
           />
 
-          <div className="col-span-full mt-4">
-            <h4 className="text-sm font-semibold mb-2 text-primary">Dirección de Destino</h4>
-          </div>
-
           <FormField
             control={form.control}
             name="destination_address"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Dirección</FormLabel>
+                <FormLabel>Dirección de Destino</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="Ingrese la dirección de destino"
@@ -814,7 +792,7 @@ export const GuideForm = ({
           <SelectSearchForm
             control={form.control}
             name="destination_ubigeo_id"
-            label="Ubigeo"
+            label="Ubigeo de Destino"
             placeholder="Buscar ubigeo..."
             isSearching={isSearchingDestination}
             items={destinationUbigeos}
