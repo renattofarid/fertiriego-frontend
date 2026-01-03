@@ -28,6 +28,9 @@ import SupplierEditPage from "./pages/supplier/components/SupplierEditPage";
 import WorkerPage from "./pages/worker/components/WorkerPage";
 import WorkerAddPage from "./pages/worker/components/WorkerAddPage";
 import WorkerEditPage from "./pages/worker/components/WorkerEditPage";
+import DriverPage from "./pages/driver/components/DriverPage";
+import DriverAddPage from "./pages/driver/components/DriverAddPage";
+import DriverEditPage from "./pages/driver/components/DriverEditPage";
 import { TYPE_USER } from "./pages/type-users/lib/typeUser.interface";
 import { USER } from "./pages/users/lib/User.interface";
 import { COMPANY } from "./pages/company/lib/company.interface";
@@ -42,6 +45,7 @@ import { ROLE } from "./pages/role/lib/role.interface";
 import { CLIENT } from "./pages/client/lib/client.interface";
 import { SUPPLIER } from "./pages/supplier/lib/supplier.interface";
 import { WORKER } from "./pages/worker/lib/worker.interface";
+import { DRIVER } from "./pages/driver/lib/driver.interface";
 import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
 import { PRODUCT_TYPE } from "./pages/product-type/lib/product-type.interface";
@@ -141,6 +145,7 @@ const { ROUTE: RoleRoute } = ROLE;
 const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
+const { ROUTE: DriverRoute } = DRIVER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
@@ -452,6 +457,33 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={DriverRoute}
+            element={
+              <ProtectedRoute path={DriverRoute}>
+                <DriverPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/conductores/agregar"
+            element={
+              <ProtectedRoute path={DriverRoute}>
+                <DriverAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/conductores/editar/:id"
+            element={
+              <ProtectedRoute path={DriverRoute}>
+                <DriverEditPage />
               </ProtectedRoute>
             }
           />
