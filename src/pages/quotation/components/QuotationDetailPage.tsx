@@ -247,6 +247,11 @@ export default function QuotationDetailPage() {
                     >
                       <div className="flex-1">
                         <p className="font-semibold">{detail.product.name}</p>
+                        {detail.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {detail.description}
+                          </p>
+                        )}
                         <div className="flex gap-4 mt-1 text-sm text-muted-foreground">
                           <span>Cantidad: {detail.quantity}</span>
                           <span>
