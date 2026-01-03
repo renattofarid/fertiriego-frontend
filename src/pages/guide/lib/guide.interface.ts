@@ -38,8 +38,8 @@ export interface GuideResource {
   purchase: Purchase;
   warehouse_document: Warehousedocument;
   carrier: Carrier;
-  driver: Carrier;
-  vehicle: Vehicle;
+  driver?: Carrier;
+  vehicle?: Vehicle;
   originUbigeo: UbigeoGuide;
   destinationUbigeo: UbigeoGuide;
   destination_warehouse: Warehouse;

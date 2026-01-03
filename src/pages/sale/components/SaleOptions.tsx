@@ -1,8 +1,7 @@
 "use client";
 
 import SearchInput from "@/components/SearchInput";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import DatePicker from "@/components/DatePicker";
 
 export default function SaleOptions({
   search,
@@ -19,6 +18,18 @@ export default function SaleOptions({
   endDate?: string;
   setEndDate?: (value: string) => void;
 }) {
+  const handleStartDateChange = (date: Date | undefined) => {
+    if (setStartDate) {
+      setStartDate(date ? date.toISOString().split("T")[0] : "");
+    }
+  };
+
+  const handleEndDateChange = (date: Date | undefined) => {
+    if (setEndDate) {
+      setEndDate(date ? date.toISOString().split("T")[0] : "");
+    }
+  };
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <SearchInput
@@ -28,29 +39,21 @@ export default function SaleOptions({
       />
 
       {setStartDate && (
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="start-date" className="text-xs">Fecha Inicio</Label>
-          <Input
-            id="start-date"
-            type="date"
-            value={startDate || ""}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="w-40"
-          />
-        </div>
+        <DatePicker
+          value={startDate}
+          onChange={handleStartDateChange}
+          placeholder="Fecha Inicio (from)"
+          className="w-52"
+        />
       )}
 
       {setEndDate && (
-        <div className="flex flex-col gap-1">
-          <Label htmlFor="end-date" className="text-xs">Fecha Fin</Label>
-          <Input
-            id="end-date"
-            type="date"
-            value={endDate || ""}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="w-40"
-          />
-        </div>
+        <DatePicker
+          value={endDate}
+          onChange={handleEndDateChange}
+          placeholder="Fecha Fin (to)"
+          className="w-52"
+        />
       )}
     </div>
   );

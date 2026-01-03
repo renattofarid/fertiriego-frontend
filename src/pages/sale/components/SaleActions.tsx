@@ -26,8 +26,8 @@ export default function SaleActions({
 
   // Construir query params para el Excel
   const excelParams = new URLSearchParams();
-  if (startDate) excelParams.append("start_date", startDate);
-  if (endDate) excelParams.append("end_date", endDate);
+  if (startDate) excelParams.append("from", startDate);
+  if (endDate) excelParams.append("to", endDate);
   const excelQuery = excelParams.toString();
   const excelEndpoint = `/sale/excel${excelQuery ? `?${excelQuery}` : ""}`;
 

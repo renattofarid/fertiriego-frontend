@@ -47,6 +47,8 @@ export default function SalePage() {
     search,
     page,
     per_page,
+    from: startDate,
+    to: endDate,
   });
 
   useEffect(() => {
@@ -54,8 +56,10 @@ export default function SalePage() {
       page,
       per_page,
       search,
+      from: startDate,
+      to: endDate,
     });
-  }, [page, per_page, search]);
+  }, [page, per_page, search, startDate, endDate]);
 
   const { removeSale } = useSaleStore();
 
@@ -115,6 +119,8 @@ export default function SalePage() {
       page,
       per_page,
       search,
+      from: startDate,
+      to: endDate,
     });
     setOpenPaymentSheet(false);
     setSelectedInstallment(null);
@@ -128,6 +134,8 @@ export default function SalePage() {
           page,
           per_page,
           search,
+          from: startDate,
+          to: endDate,
         });
         setOpenDelete(false);
         setSaleToDelete(null);

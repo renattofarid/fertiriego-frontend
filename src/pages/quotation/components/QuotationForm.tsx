@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Loader, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { FileText, Package, Pencil, Plus, Trash2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -43,6 +43,8 @@ import {
 import { useBranchById } from "@/pages/branch/lib/branch.hook";
 import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 import { QuotationSummary } from "./QuotationSummary";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -98,6 +100,14 @@ export const QuotationForm = ({
     productName: "",
   });
 
+  // Estados para modales
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [customersList, setCustomersList] =
+    useState<PersonResource[]>(customers);
+  const [warehousesList, setWarehousesList] =
+    useState<WarehouseResource[]>(warehouses);
+
   const form = useForm({
     defaultValues: {
       fecha_emision:
@@ -121,6 +131,30 @@ export const QuotationForm = ({
   const warehouseId = form.watch("warehouse_id");
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setCustomersList(customers);
+  }, [customers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleClientCreated = (newClient: PersonResource) => {
+    setCustomersList((prev) => [...prev, newClient]);
+    form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Obtener datos de la branch solo cuando tengamos un branch_id válido
   const { data: branchData } = useBranchById(selectedBranchId || 0);
@@ -298,9 +332,7 @@ export const QuotationForm = ({
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => {
           // Buscar el producto para obtener las fichas técnicas
-          const product = products.find(
-            (p) => p.id === detail.product_id
-          );
+          const product = products.find((p) => p.id === detail.product_id);
 
           return {
             product_id: detail.product_id.toString(),
@@ -452,260 +484,302 @@ export const QuotationForm = ({
         className="grid xl:grid-cols-3 gap-6"
       >
         <div className="xl:col-span-2 space-y-6">
-        <GroupFormSection
-          title="Información General"
-          icon={FileText}
-          cols={{
-            sm: 1,
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormSelect
-              control={form.control}
-              name="customer_id"
-              label="Cliente"
-              options={customers.map((c) => ({
-                value: c.id.toString(),
-                label:
-                  c.business_name ||
-                  c.names +
-                    " " +
-                    c.father_surname +
-                    " " +
-                    (c.mother_surname || ""),
-              }))}
-              placeholder="Seleccionar cliente"
-            />
+          <GroupFormSection
+            title="Información General"
+            icon={FileText}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="customer_id"
+                    label="Cliente"
+                    options={customersList.map((c) => ({
+                      value: c.id.toString(),
+                      label:
+                        c.business_name ||
+                        c.names +
+                          " " +
+                          c.father_surname +
+                          " " +
+                          (c.mother_surname || ""),
+                    }))}
+                    placeholder="Seleccionar cliente"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsClientModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo cliente"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            <FormSelect
-              control={form.control}
-              name="warehouse_id"
-              label="Almacén"
-              options={warehouses.map((w) => ({
-                value: w.id.toString(),
-                label: w.name,
-              }))}
-              placeholder="Seleccionar almacén"
-            />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    options={warehousesList.map((w) => ({
+                      value: w.id.toString(),
+                      label: w.name,
+                    }))}
+                    placeholder="Seleccionar almacén"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            <DatePickerFormField
-              control={form.control}
-              name="fecha_emision"
-              label="Fecha de Emisión"
-              placeholder="Seleccionar fecha"
-            />
+              <DatePickerFormField
+                control={form.control}
+                name="fecha_emision"
+                label="Fecha de Emisión"
+                placeholder="Seleccionar fecha"
+              />
 
-            <FormField
-              control={form.control}
-              name="delivery_time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tiempo de Entrega</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ej: 3 días hábiles" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="validity_time"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tiempo de Vigencia</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ej: 10 días" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormSelect
-              control={form.control}
-              name="payment_type"
-              label="Tipo de Pago"
-              options={PAYMENT_TYPES.map((type) => ({
-                value: type.value,
-                label: type.label,
-              }))}
-              placeholder="Seleccionar tipo de pago"
-            />
-
-            {paymentType === "CREDITO" && (
               <FormField
                 control={form.control}
-                name="days"
+                name="delivery_time"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Días de Crédito</FormLabel>
+                    <FormLabel>Tiempo de Entrega</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ej: 3 días hábiles" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="validity_time"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tiempo de Vigencia</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Ej: 10 días" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormSelect
+                control={form.control}
+                name="payment_type"
+                label="Tipo de Pago"
+                options={PAYMENT_TYPES.map((type) => ({
+                  value: type.value,
+                  label: type.label,
+                }))}
+                placeholder="Seleccionar tipo de pago"
+              />
+
+              {paymentType === "CREDITO" && (
+                <FormField
+                  control={form.control}
+                  name="days"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Días de Crédito</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          placeholder="Número de días"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <FormSelect
+                control={form.control}
+                name="currency"
+                label="Moneda"
+                options={CURRENCIES.map((currency) => ({
+                  value: currency.value,
+                  label: currency.label,
+                }))}
+                placeholder="Seleccionar moneda"
+              />
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dirección</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Dirección de entrega" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="reference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Referencia</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Referencia de ubicación" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="order_purchase"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Orden de Compra</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        type="number"
-                        min="0"
-                        placeholder="Número de días"
+                        placeholder="Número de orden de compra"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-            )}
 
-            <FormSelect
-              control={form.control}
-              name="currency"
-              label="Moneda"
-              options={CURRENCIES.map((currency) => ({
-                value: currency.value,
-                label: currency.label,
-              }))}
-              placeholder="Seleccionar moneda"
-            />
-
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Dirección de entrega" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="reference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Referencia</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Referencia de ubicación" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="order_purchase"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Orden de Compra</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Número de orden de compra" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="order_service"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Orden de Servicio</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Número de orden de servicio" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="observations"
-              render={({ field }) => (
-                <FormItem className="md:col-span-3">
-                  <FormLabel>Observaciones</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Observaciones adicionales"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </GroupFormSection>
-
-        <GroupFormSection
-          title="Productos"
-          icon={Package}
-          cols={{
-            sm: 1,
-          }}
-        >
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => setSheetOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Producto
-            </Button>
-          </div>
-          {details.length === 0 ? (
-            <Empty className="border border-dashed">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Package />
-                </EmptyMedia>
-                <EmptyTitle>No hay productos agregados</EmptyTitle>
-                <EmptyDescription>
-                  Haz clic en "Agregar Producto" para añadir productos a la
-                  cotización.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <div className="space-y-4">
-              <DataTable
-                columns={columns}
-                data={details}
-                isVisibleColumnFilter={false}
-                variant="default"
+              <FormField
+                control={form.control}
+                name="order_service"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Orden de Servicio</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="Número de orden de servicio"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <div className="flex justify-end items-center gap-4 px-4">
-                <span className="text-sm font-bold">Total General:</span>
-                <span className="text-lg font-bold">
-                  {getTotalAmount().toFixed(2)}
-                </span>
-              </div>
+
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Observaciones adicionales"
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          )}
-        </GroupFormSection>
+          </GroupFormSection>
 
-        <AddProductSheet
-          open={sheetOpen}
-          onClose={handleCloseSheet}
-          onAdd={handleAddDetail}
-          products={products}
-          defaultIsIgv={branchHasIgv}
-          editingDetail={editingDetail}
-          editIndex={editingIndex}
-          onEdit={handleUpdateDetail}
-          currency={currency}
-        />
+          <GroupFormSection
+            title="Productos"
+            icon={Package}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={() => setSheetOpen(true)}
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Producto
+              </Button>
+            </div>
+            {details.length === 0 ? (
+              <Empty className="border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Package />
+                  </EmptyMedia>
+                  <EmptyTitle>No hay productos agregados</EmptyTitle>
+                  <EmptyDescription>
+                    Haz clic en "Agregar Producto" para añadir productos a la
+                    cotización.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <div className="space-y-4">
+                <DataTable
+                  columns={columns}
+                  data={details}
+                  isVisibleColumnFilter={false}
+                  variant="default"
+                />
+                <div className="flex justify-end items-center gap-4 px-4">
+                  <span className="text-sm font-bold">Total General:</span>
+                  <span className="text-lg font-bold">
+                    {getTotalAmount().toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </GroupFormSection>
 
-        <TechnicalSheetsDialog
-          open={technicalSheetsDialog.open}
-          onOpenChange={(open) =>
-            setTechnicalSheetsDialog((prev) => ({ ...prev, open }))
-          }
-          technicalSheets={technicalSheetsDialog.sheets}
-          productName={technicalSheetsDialog.productName}
-        />
+          <AddProductSheet
+            open={sheetOpen}
+            onClose={handleCloseSheet}
+            onAdd={handleAddDetail}
+            products={products}
+            defaultIsIgv={branchHasIgv}
+            editingDetail={editingDetail}
+            editIndex={editingIndex}
+            onEdit={handleUpdateDetail}
+            currency={currency}
+          />
+
+          <TechnicalSheetsDialog
+            open={technicalSheetsDialog.open}
+            onOpenChange={(open) =>
+              setTechnicalSheetsDialog((prev) => ({ ...prev, open }))
+            }
+            technicalSheets={technicalSheetsDialog.sheets}
+            productName={technicalSheetsDialog.productName}
+          />
         </div>
 
         <QuotationSummary
@@ -722,6 +796,20 @@ export const QuotationForm = ({
           selectedPaymentType={paymentType}
         />
       </form>
+
+      {/* Modal para crear nuevo cliente */}
+      <ClientCreateModal
+        open={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

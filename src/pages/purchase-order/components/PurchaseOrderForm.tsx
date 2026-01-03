@@ -332,35 +332,67 @@ export const PurchaseOrderForm = ({
               icon={FileText}
               cols={{ sm: 1, md: 2 }}
             >
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.business_name ??
-                    supplier.names +
-                      " " +
-                      supplier.father_surname +
-                      " " +
-                      supplier.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="supplier_id"
+                    label="Proveedor"
+                    placeholder="Seleccione un proveedor"
+                    options={suppliersList.map((supplier) => ({
+                      value: supplier.id.toString(),
+                      label:
+                        supplier.business_name ??
+                        supplier.names +
+                          " " +
+                          supplier.father_surname +
+                          " " +
+                          supplier.mother_surname,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsSupplierModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo proveedor"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    placeholder="Seleccione un almacén"
+                    options={warehousesList.map((warehouse) => ({
+                      value: warehouse.id.toString(),
+                      label: warehouse.name,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
               <DatePickerFormField
                 control={form.control}
@@ -589,6 +621,20 @@ export const PurchaseOrderForm = ({
           />
         </div>
       </form>
+
+      {/* Modal para crear nuevo proveedor */}
+      <SupplierCreateModal
+        open={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSupplierCreated={handleSupplierCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

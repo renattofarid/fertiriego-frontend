@@ -41,6 +41,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { OrderSummary } from "./OrderSummary";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 
 interface OrderFormProps {
   onSubmit: (data: CreateOrderRequest) => void;
@@ -89,6 +91,12 @@ export const OrderForm = ({
     undefined
   );
 
+  // Estados para modales
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [customersList, setCustomersList] = useState<PersonResource[]>(customers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+
   const form = useForm<any>({
     defaultValues: defaultValues || {
       order_date: new Date().toISOString().split("T")[0],
@@ -105,6 +113,30 @@ export const OrderForm = ({
   });
 
   const quotationId = form.watch("quotation_id");
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setCustomersList(customers);
+  }, [customers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleClientCreated = (newClient: PersonResource) => {
+    setCustomersList((prev) => [...prev, newClient]);
+    form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Load order details when in edit mode
   useEffect(() => {
@@ -287,34 +319,66 @@ export const OrderForm = ({
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormSelect
-                control={form.control}
-                name="customer_id"
-                label="Cliente"
-                options={customers.map((c) => ({
-                  value: c.id.toString(),
-                  label:
-                    c.business_name ||
-                    c.names +
-                      " " +
-                      (c.father_surname || "") +
-                      " " +
-                      (c.mother_surname || ""),
-                }))}
-                placeholder="Seleccionar cliente"
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="customer_id"
+                    label="Cliente"
+                    options={customersList.map((c) => ({
+                      value: c.id.toString(),
+                      label:
+                        c.business_name ||
+                        c.names +
+                          " " +
+                          (c.father_surname || "") +
+                          " " +
+                          (c.mother_surname || ""),
+                    }))}
+                    placeholder="Seleccionar cliente"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsClientModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo cliente"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                options={warehouses.map((w) => ({
-                  value: w.id.toString(),
-                  label: w.name,
-                  description: w.address,
-                }))}
-                placeholder="Seleccionar almacén"
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    options={warehousesList.map((w) => ({
+                      value: w.id.toString(),
+                      label: w.name,
+                      description: w.address,
+                    }))}
+                    placeholder="Seleccionar almacén"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
               {quotations && quotations.length > 0 && (
                 <FormSelect
@@ -529,6 +593,20 @@ export const OrderForm = ({
           onCancel={onCancel}
         />
       </form>
+
+      {/* Modal para crear nuevo cliente */}
+      <ClientCreateModal
+        open={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

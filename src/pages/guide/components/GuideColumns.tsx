@@ -91,13 +91,13 @@ export const GuideColumns = ({
     },
   },
   {
-    accessorKey: "driver",
-    header: "Transportista",
-    cell: ({ getValue }) => {
-      const driver = getValue() as Carrier;
-      return (
-        <span className="text-sm text-wrap">
-          {driver.names ?? driver.business_name}
+    accessorKey: "carrier",
+      header: "Transportista",
+      cell: ({ getValue }) => {
+        const carrier = getValue() as Carrier;
+        return (
+          <span className="text-sm text-wrap">
+            {carrier?.names ?? carrier?.business_name}
         </span>
       );
     },
