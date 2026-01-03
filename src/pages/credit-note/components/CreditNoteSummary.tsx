@@ -106,7 +106,7 @@ export function CreditNoteSummary({
               <>
                 <div className="text-xs text-muted-foreground">
                   <span className="font-semibold">Total de la Venta:</span>{" "}
-                  {currencySymbol} {formatNumber(parseFloat(selectedSale.total_amount))}
+                  {currencySymbol} {formatNumber(selectedSale.total_amount)}
                 </div>
               </>
             )}

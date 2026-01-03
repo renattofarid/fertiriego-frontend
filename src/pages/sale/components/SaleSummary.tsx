@@ -52,7 +52,7 @@ export function SaleSummary({
   calculateDetailsSubtotal,
   calculateDetailsIGV,
   calculateDetailsTotal,
-  calculatePaymentTotal,
+  calculatePaymentTotal: _calculatePaymentTotal,
   installmentsMatchTotal,
   paymentAmountsMatchTotal,
   onCancel,

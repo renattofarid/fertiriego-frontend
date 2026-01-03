@@ -17,7 +17,7 @@ import {
   debitNoteSchema,
   type DebitNoteSchema,
 } from "../lib/debit-note.schema";
-import { Loader, Trash2, Plus, Info } from "lucide-react";
+import { Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
@@ -145,7 +145,7 @@ export const DebitNoteForm = ({
   };
 
   const calculateSubtotal = () => {
-    return fields.reduce((sum, field, index) => {
+    return fields.reduce((sum, _field, index) => {
       const quantity = form.watch(`details.${index}.quantity`) || 0;
       const unitPrice = form.watch(`details.${index}.unit_price`) || 0;
       return sum + (quantity * unitPrice);
@@ -353,7 +353,7 @@ export const DebitNoteForm = ({
           form={form}
           mode={mode}
           isSubmitting={isSubmitting}
-          selectedSale={selectedSale}
+          selectedSale={selectedSale || undefined}
           warehouses={warehouses || []}
           debitNoteReasons={debitNoteReasons}
           details={fields}
