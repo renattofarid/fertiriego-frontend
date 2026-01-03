@@ -140,12 +140,26 @@ interface FormattedPrices {
   PEN?: string;
   USD?: string;
   EUR?: string;
+  GBP?: string;
+  JPY?: string;
+  BRL?: string;
+  ARS?: string;
+  CLP?: string;
+  MXN?: string;
+  [key: string]: string | undefined;
 }
 
 interface Prices {
   PEN?: number;
   USD?: number;
   EUR?: number;
+  GBP?: number;
+  JPY?: number;
+  BRL?: number;
+  ARS?: number;
+  CLP?: number;
+  MXN?: number;
+  [key: string]: number | undefined;
 }
 
 export interface ProductPriceResourceById {
@@ -156,15 +170,23 @@ export interface CreateProductPriceRequest {
   product_id: number;
   branch_id: number;
   category_id: number;
-  price_soles: number;
-  price_usd: number;
+  prices: {
+    PEN: number;
+    USD: number;
+    EUR: number;
+    [key: string]: number;
+  };
 }
 
 export interface UpdateProductPriceRequest {
   branch_id?: number;
   category_id?: number;
-  price_soles?: number;
-  price_usd?: number;
+  prices?: {
+    PEN?: number;
+    USD?: number;
+    EUR?: number;
+    [key: string]: number | undefined;
+  };
 }
 
 export interface GetProductPricesProps {

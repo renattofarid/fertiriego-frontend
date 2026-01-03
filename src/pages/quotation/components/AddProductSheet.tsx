@@ -19,6 +19,7 @@ interface AddProductSheetProps {
   editingDetail?: ProductDetail | null;
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
+  currency: string;
 }
 
 export interface ProductDetail {
@@ -32,6 +33,7 @@ export interface ProductDetail {
   subtotal: number;
   tax: number;
   total: number;
+  currency?: string;
 }
 
 export const AddProductSheet = ({
@@ -43,15 +45,8 @@ export const AddProductSheet = ({
   editingDetail = null,
   editIndex = null,
   onEdit,
+  currency,
 }: AddProductSheetProps) => {
-  console.log("[AddProductSheet] Component render:", {
-    open,
-    defaultIsIgv,
-    editingDetail,
-    editIndex,
-    productsCount: products.length,
-  });
-
   const isEditMode = editingDetail !== null && editIndex !== null;
 
   const form = useForm({
@@ -88,59 +83,37 @@ export const AddProductSheet = ({
     productId: parseInt(productId) || 0,
   });
 
-  // Autocompletar precio cuando se selecciona categoría de precio
+  // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
-    console.log("[AddProductSheet] Price category effect triggered:", {
-      priceCategoryId,
-      hasData: !!productPricesData?.data,
-      dataLength: productPricesData?.data?.length,
-      allPrices: productPricesData?.data,
-      lastSetPrice,
-    });
-
-    if (priceCategoryId && productPricesData?.data) {
-      const selectedPrice = productPricesData.data.find(
+    if (priceCategoryId && productPricesData && currency) {
+      const selectedPrice = productPricesData.find(
         (price) => price.category_id === parseInt(priceCategoryId)
       );
 
-      console.log("[AddProductSheet] Selected price:", {
-        priceCategoryId,
-        selectedPrice,
-        willSetValue: !!selectedPrice,
-        priceValue: selectedPrice?.price_soles,
-        lastSetPrice,
-        shouldUpdate:
-          selectedPrice && selectedPrice.price_soles !== lastSetPrice,
-      });
+      if (selectedPrice) {
+        let priceValue: number = 0;
 
-      if (selectedPrice && selectedPrice.price_soles !== lastSetPrice) {
-        // Asumimos que usamos price_soles por defecto
-        console.log(
-          "[AddProductSheet] Setting unit_price to:",
-          selectedPrice.price_soles
-        );
-        form.setValue("unit_price", selectedPrice.price_soles);
-        setLastSetPrice(selectedPrice.price_soles);
+        // Seleccionar el precio según la moneda (usar 0 si no existe)
+        if (selectedPrice.prices) {
+          priceValue = selectedPrice.prices[currency] ?? 0;
+        }
+
+        if (priceValue.toString() !== lastSetPrice) {
+          form.setValue("unit_price", priceValue.toString());
+          setLastSetPrice(priceValue.toString());
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priceCategoryId, productPricesData]);
+  }, [priceCategoryId, currency, productPricesData]);
 
   // Cargar datos cuando se abre el sheet
   useEffect(() => {
-    console.log("[AddProductSheet] Open effect triggered:", {
-      open,
-      isEditMode,
-      editingDetail,
-      defaultIsIgv,
-    });
-
     if (open) {
       // Reset lastSetPrice cuando se abre el sheet
       setLastSetPrice(null);
 
       if (editingDetail) {
-        console.log("[AddProductSheet] Resetting form with editing detail");
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
@@ -151,7 +124,6 @@ export const AddProductSheet = ({
           is_igv: editingDetail.is_igv,
         });
       } else {
-        console.log("[AddProductSheet] Resetting form to defaults");
         form.reset({
           product_id: "",
           price_category_id: "",
@@ -168,7 +140,6 @@ export const AddProductSheet = ({
 
   // Reset lastSetPrice cuando cambia el producto
   useEffect(() => {
-    console.log("[AddProductSheet] Product changed, resetting lastSetPrice");
     setLastSetPrice(null);
   }, [productId]);
 
@@ -176,40 +147,21 @@ export const AddProductSheet = ({
     const qty = parseFloat(quantity) || 0;
     const price = parseFloat(unitPrice) || 0;
 
-    console.log("[AddProductSheet] Calculation effect triggered:", {
-      quantity,
-      unitPrice,
-      isIgv,
-      qty,
-      price,
-    });
-
     if (qty > 0 && price > 0) {
       if (isIgv) {
         // El precio incluye IGV: desglosar el IGV
         const total = qty * price;
         const subtotal = total / 1.18;
         const tax = total - subtotal;
-        console.log("[AddProductSheet] Calculated with IGV:", {
-          subtotal,
-          tax,
-          total,
-        });
         setCalculatedValues({ subtotal, tax, total });
       } else {
         // El precio NO incluye IGV: calcular el IGV
         const subtotal = qty * price;
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
-        console.log("[AddProductSheet] Calculated without IGV:", {
-          subtotal,
-          tax,
-          total,
-        });
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
-      console.log("[AddProductSheet] Resetting calculated values to 0");
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
   }, [quantity, unitPrice, isIgv]);
@@ -238,6 +190,7 @@ export const AddProductSheet = ({
       subtotal: calculatedValues.subtotal,
       tax: calculatedValues.tax,
       total: calculatedValues.total,
+      currency: currency,
     };
 
     if (isEditMode && onEdit && editIndex !== null) {
@@ -272,17 +225,21 @@ export const AddProductSheet = ({
           placeholder="Seleccionar producto"
         />
 
-        {productId && priceCategories && priceCategories.length > 0 && (
-          <FormSelect
-            control={form.control}
-            name="price_category_id"
-            label="Categoría de Precio"
-            options={priceCategories.map((cat) => ({
-              value: cat.id.toString(),
-              label: cat.name,
-            }))}
-            placeholder="Seleccionar categoría de precio (opcional)"
-          />
+        {productId && (
+          <>
+            {priceCategories && priceCategories.length > 0 && (
+              <FormSelect
+                control={form.control}
+                name="price_category_id"
+                label="Categoría de Precio"
+                options={priceCategories.map((cat) => ({
+                  value: cat.id.toString(),
+                  label: cat.name,
+                }))}
+                placeholder="Seleccionar categoría de precio (opcional)"
+              />
+            )}
+          </>
         )}
 
         <div className="grid grid-cols-2 gap-4">
@@ -338,18 +295,23 @@ export const AddProductSheet = ({
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
               <span className="font-medium">
-                S/. {calculatedValues.subtotal.toFixed(2)}
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.subtotal.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span>IGV (18%):</span>
               <span className="font-medium">
-                S/. {calculatedValues.tax.toFixed(2)}
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.tax.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
-              <span>S/. {calculatedValues.total.toFixed(2)}</span>
+              <span>
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.total.toFixed(2)}
+              </span>
             </div>
           </div>
         )}

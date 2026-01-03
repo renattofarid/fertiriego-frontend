@@ -4,7 +4,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Plus } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 
@@ -13,6 +13,9 @@ interface AddProductSheetProps {
   onClose: () => void;
   onAdd: (detail: ProductDetail) => void;
   products: ProductResource[];
+  editingDetail?: ProductDetail | null;
+  editingIndex?: number;
+  onEdit?: (detail: ProductDetail, index: number) => void;
 }
 
 export interface ProductDetail {
@@ -32,7 +35,11 @@ export const AddProductSheet = ({
   onClose,
   onAdd,
   products,
+  editingDetail = null,
+  editingIndex,
+  onEdit,
 }: AddProductSheetProps) => {
+  const isEditMode = editingDetail !== null;
   const form = useForm({
     defaultValues: {
       product_id: "",
@@ -53,6 +60,28 @@ export const AddProductSheet = ({
   const quantity = form.watch("quantity");
   const unitPrice = form.watch("unit_price");
   const isIgv = form.watch("is_igv");
+
+  // Load editing data when editingDetail changes
+  useEffect(() => {
+    if (editingDetail && open) {
+      form.reset({
+        product_id: editingDetail.product_id,
+        quantity: editingDetail.quantity,
+        unit_price: editingDetail.unit_price,
+        purchase_price: editingDetail.purchase_price,
+        is_igv: editingDetail.is_igv,
+      });
+    } else if (!open) {
+      form.reset({
+        product_id: "",
+        quantity: "",
+        unit_price: "",
+        purchase_price: "",
+        is_igv: true,
+      });
+      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+    }
+  }, [editingDetail, open, form]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
@@ -105,7 +134,12 @@ export const AddProductSheet = ({
       total: calculatedValues.total,
     };
 
-    onAdd(detail);
+    if (isEditMode && onEdit && editingIndex !== undefined) {
+      onEdit(detail, editingIndex);
+    } else {
+      onAdd(detail);
+    }
+
     form.reset();
     setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     onClose();
@@ -115,8 +149,12 @@ export const AddProductSheet = ({
     <GeneralSheet
       open={open}
       onClose={onClose}
-      title="Agregar Producto"
-      subtitle="Complete los datos del producto"
+      title={isEditMode ? "Editar Producto" : "Agregar Producto"}
+      subtitle={
+        isEditMode
+          ? "Modifique los datos del producto"
+          : "Complete los datos del producto"
+      }
       icon="Package"
       size="lg"
     >
@@ -206,8 +244,17 @@ export const AddProductSheet = ({
               !form.watch("purchase_price")
             }
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Producto
+            {isEditMode ? (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Guardar Cambios
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Producto
+              </>
+            )}
           </Button>
         </div>
       </div>

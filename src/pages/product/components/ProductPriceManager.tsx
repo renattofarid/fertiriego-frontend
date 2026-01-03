@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { requiredStringId } from "@/lib/core.schema";
@@ -24,12 +24,13 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { FormSelect } from "@/components/FormSelect";
-import { Plus, Trash2, Pencil, DollarSign } from "lucide-react";
+import { Plus, Trash2, Pencil, DollarSign, X } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import { formatCurrency } from "@/lib/formatCurrency";
+import { GeneralModal } from "@/components/GeneralModal";
 import type {
   CreateProductPriceRequest,
   UpdateProductPriceRequest,
@@ -46,10 +47,13 @@ const productPriceSchema = z.object({
   product_id: z.number(),
   branch_id: requiredStringId("Debe seleccionar una sucursal"),
   category_id: requiredStringId("Debe seleccionar una categoría de precio"),
-  price_soles: z
-    .number()
-    .min(0, "El precio en soles debe ser mayor o igual a 0"),
-  price_usd: z.number().min(0, "El precio en USD debe ser mayor o igual a 0"),
+  PEN: z.number().min(0, "El precio en PEN debe ser mayor o igual a 0"),
+  USD: z.number().min(0, "El precio en USD debe ser mayor o igual a 0"),
+  EUR: z.number().min(0, "El precio en EUR debe ser mayor o igual a 0"),
+  additionalCurrencies: z.array(z.object({
+    currency: z.string().min(1, "Código de moneda requerido").max(3, "Máximo 3 caracteres"),
+    amount: z.number().min(0, "El monto debe ser mayor o igual a 0"),
+  })).optional(),
 });
 
 type ProductPriceFormData = z.infer<typeof productPriceSchema>;
@@ -71,9 +75,16 @@ export function ProductPriceManager({
       product_id: productId,
       branch_id: "",
       category_id: "",
-      price_soles: 0,
-      price_usd: 0,
+      PEN: 0,
+      USD: 0,
+      EUR: 0,
+      additionalCurrencies: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "additionalCurrencies",
   });
 
   const { data: productPrices, refetch } = useProductPrices({
@@ -92,20 +103,34 @@ export function ProductPriceManager({
 
   const handleSubmit = async (data: ProductPriceFormData) => {
     try {
+      // Construir el objeto prices con las monedas obligatorias y adicionales
+      const prices: Record<string, number> = {
+        PEN: data.PEN,
+        USD: data.USD,
+        EUR: data.EUR,
+      };
+
+      // Agregar monedas adicionales si existen
+      if (data.additionalCurrencies && data.additionalCurrencies.length > 0) {
+        data.additionalCurrencies.forEach((curr) => {
+          prices[curr.currency.toUpperCase()] = curr.amount;
+        });
+      }
+
       if (editingPrice) {
         await updateProductPrice(editingPrice.id, {
           branch_id: parseInt(data.branch_id),
           category_id: parseInt(data.category_id),
-          price_soles: data.price_soles,
-          price_usd: data.price_usd,
+          prices: prices,
         } as UpdateProductPriceRequest);
         successToast("Precio actualizado exitosamente");
       } else {
         await createProductPrice({
-          ...data,
+          product_id: data.product_id,
           branch_id: parseInt(data.branch_id),
           category_id: parseInt(data.category_id),
-        } as CreateProductPriceRequest);
+          prices: prices as CreateProductPriceRequest["prices"],
+        });
         successToast("Precio creado exitosamente");
       }
 
@@ -116,8 +141,8 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-        error.response.data.message ??
-        error.response.data.error ??
+        error.response?.data?.message ??
+        error.response?.data?.error ??
         `Error al ${editingPrice ? "actualizar" : "crear"} el precio`;
       errorToast(errorMessage);
     }
@@ -125,12 +150,25 @@ export function ProductPriceManager({
 
   const handleEdit = (price: ProductPriceResource) => {
     setEditingPrice(price);
+
+    // Extraer precios adicionales (que no sean PEN, USD, EUR)
+    const additionalCurrencies: { currency: string; amount: number }[] = [];
+    if (price.prices) {
+      Object.entries(price.prices).forEach(([currency, amount]) => {
+        if (!["PEN", "USD", "EUR"].includes(currency) && amount !== undefined) {
+          additionalCurrencies.push({ currency, amount });
+        }
+      });
+    }
+
     form.reset({
       product_id: productId,
       branch_id: price.branch_id.toString(),
       category_id: price.category_id.toString(),
-      price_soles: price.price_soles ?? 0,
-      price_usd: price.price_usd ?? 0,
+      PEN: price.prices?.PEN ?? 0,
+      USD: price.prices?.USD ?? 0,
+      EUR: price.prices?.EUR ?? 0,
+      additionalCurrencies,
     });
     setShowPriceForm(true);
   };
@@ -144,8 +182,8 @@ export function ProductPriceManager({
       onPriceChange?.();
     } catch (error: any) {
       const errorMessage =
-        error.response.data.message ??
-        error.response.data.error ??
+        error.response?.data?.message ??
+        error.response?.data?.error ??
         "Error al eliminar el precio";
       errorToast(errorMessage);
     } finally {
@@ -158,8 +196,10 @@ export function ProductPriceManager({
       product_id: productId,
       branch_id: "",
       category_id: "",
-      price_soles: 0,
-      price_usd: 0,
+      PEN: 0,
+      USD: 0,
+      EUR: 0,
+      additionalCurrencies: [],
     });
   };
 
@@ -169,10 +209,33 @@ export function ProductPriceManager({
     resetForm();
   };
 
-  const formatPrice = (price: string, currency: string) => {
-    const numPrice = parseFloat(price);
-    return formatCurrency(numPrice, { currencySymbol: currency, decimals: 2 });
+  const formatPrice = (price: number, currency: string) => {
+    return formatCurrency(price, { currencySymbol: currency, decimals: 2 });
   };
+
+  const getCurrencySymbol = (currency: string): string => {
+    const symbols: Record<string, string> = {
+      PEN: "S/.",
+      USD: "$",
+      EUR: "€",
+      GBP: "£",
+      JPY: "¥",
+      BRL: "R$",
+      ARS: "$",
+      CLP: "$",
+      MXN: "$",
+    };
+    return symbols[currency] || currency;
+  };
+
+  const additionalCurrencyOptions = [
+    { value: "GBP", label: "GBP - Libra Esterlina (£)" },
+    { value: "JPY", label: "JPY - Yen Japonés (¥)" },
+    { value: "BRL", label: "BRL - Real Brasileño (R$)" },
+    { value: "ARS", label: "ARS - Peso Argentino ($)" },
+    { value: "CLP", label: "CLP - Peso Chileno ($)" },
+    { value: "MXN", label: "MXN - Peso Mexicano ($)" },
+  ];
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
@@ -219,17 +282,16 @@ export function ProductPriceManager({
                       </span>
                     </div>
 
-                    {/* Precios y fecha */}
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm">
-                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 min-w-0 flex-1">
-                        <span className="font-medium text-foreground truncate">
-                          {formatPrice((price.price_soles ?? 0).toString(), "S/.")}
-                        </span>
-                        <span className="font-medium text-foreground truncate">
-                          {formatPrice((price.price_usd ?? 0).toString(), "$")}
-                        </span>
-                      </div>
-                      <span className="text-xs text-muted-foreground shrink-0">
+                    {/* Precios */}
+                    <div className="flex flex-wrap gap-2 text-sm">
+                      {price.prices && Object.entries(price.prices).map(([currency, amount]) => (
+                        amount !== undefined && (
+                          <span key={currency} className="font-medium text-foreground">
+                            {formatPrice(amount, getCurrencySymbol(currency))}
+                          </span>
+                        )
+                      ))}
+                      <span className="text-xs text-muted-foreground shrink-0 ml-auto">
                         {new Date(price.created_at).toLocaleDateString("es-ES")}
                       </span>
                     </div>
@@ -287,121 +349,203 @@ export function ProductPriceManager({
       )}
 
       {/* Price Form Modal */}
-      {showPriceForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-lg">
-                {editingPrice ? "Editar Precio" : "Agregar Nuevo Precio"}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleSubmit)}
-                  className="space-y-4"
+      <GeneralModal
+        open={showPriceForm}
+        onClose={handleCancel}
+        title={editingPrice ? "Editar Precio" : "Agregar Nuevo Precio"}
+        subtitle="Complete los campos para configurar el precio del producto"
+        icon="DollarSign"
+        size="lg"
+      >
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <FormSelect
+              control={form.control}
+              name="branch_id"
+              label="Sucursal"
+              placeholder="Seleccionar sucursal"
+              options={
+                branches?.map((branch) => ({
+                  value: branch.id.toString(),
+                  label: branch.name,
+                })) || []
+              }
+            />
+
+            <FormSelect
+              control={form.control}
+              name="category_id"
+              label="Categoría de Precio"
+              placeholder="Seleccionar categoría"
+              options={
+                priceCategories?.map((category) => ({
+                  value: category.id.toString(),
+                  label: category.name,
+                })) || []
+              }
+            />
+
+            {/* Precios obligatorios */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium">Precios (obligatorios)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <FormField
+                  control={form.control}
+                  name="PEN"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>PEN (S/.)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="USD"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>USD ($)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="EUR"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>EUR (€)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00"
+                          {...field}
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Precios adicionales */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Precios adicionales (opcional)</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => append({ currency: "", amount: 0 })}
+                  className="gap-1"
                 >
-                  <FormSelect
-                    control={form.control}
-                    name="branch_id"
-                    label="Sucursal"
-                    placeholder="Seleccionar sucursal"
-                    options={
-                      branches?.map((branch) => ({
-                        value: branch.id.toString(),
-                        label: branch.name,
-                      })) || []
-                    }
-                  />
+                  <Plus className="h-3 w-3" />
+                  Agregar
+                </Button>
+              </div>
 
-                  <FormSelect
-                    control={form.control}
-                    name="category_id"
-                    label="Categoría de Precio"
-                    placeholder="Seleccionar categoría"
-                    options={
-                      priceCategories?.map((category) => ({
-                        value: category.id.toString(),
-                        label: category.name,
-                      })) || []
-                    }
-                  />
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <FormField
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <FormSelect
                       control={form.control}
-                      name="price_soles"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Precio en Soles</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              placeholder="0.00"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="price_usd"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Precio en USD</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              placeholder="0.00"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                      name={`additionalCurrencies.${index}.currency`}
+                      label="Moneda"
+                      placeholder="Seleccionar moneda"
+                      options={additionalCurrencyOptions}
                     />
                   </div>
+                  <FormField
+                    control={form.control}
+                    name={`additionalCurrencies.${index}.amount`}
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Monto</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove(index)}
+                    className="shrink-0 mb-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
 
-                  <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleCancel}
-                      className="w-full sm:w-auto"
-                    >
-                      Cancelar
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="gap-2 w-full sm:w-auto"
-                    >
-                      <DollarSign className="h-4 w-4" />
-                      {isSubmitting
-                        ? editingPrice
-                          ? "Actualizando..."
-                          : "Creando..."
-                        : editingPrice
-                        ? "Actualizar"
-                        : "Crear"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                className="w-full sm:w-auto"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="gap-2 w-full sm:w-auto"
+              >
+                <DollarSign className="h-4 w-4" />
+                {isSubmitting
+                  ? editingPrice
+                    ? "Actualizando..."
+                    : "Creando..."
+                  : editingPrice
+                  ? "Actualizar"
+                  : "Crear"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </GeneralModal>
 
       {/* Delete Dialog */}
       {deletePriceId !== null && (

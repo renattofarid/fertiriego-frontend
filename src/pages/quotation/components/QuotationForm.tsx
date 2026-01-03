@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/empty";
 import { useBranchById } from "@/pages/branch/lib/branch.hook";
 import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
+import { QuotationSummary } from "./QuotationSummary";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -119,6 +120,7 @@ export const QuotationForm = ({
 
   const warehouseId = form.watch("warehouse_id");
   const paymentType = form.watch("payment_type");
+  const currency = form.watch("currency");
 
   // Obtener datos de la branch solo cuando tengamos un branch_id válido
   const { data: branchData } = useBranchById(selectedBranchId || 0);
@@ -431,12 +433,25 @@ export const QuotationForm = ({
     return details.reduce((sum, detail) => sum + detail.total, 0);
   };
 
+  const calculateSubtotalTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+  };
+
+  const calculateTaxTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.tax, 0);
+  };
+
+  const calculateDetailsTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.total, 0);
+  };
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmitForm)}
-        className="space-y-6"
+        className="grid xl:grid-cols-3 gap-6"
       >
+        <div className="xl:col-span-2 space-y-6">
         <GroupFormSection
           title="Información General"
           icon={FileText}
@@ -680,6 +695,7 @@ export const QuotationForm = ({
           editingDetail={editingDetail}
           editIndex={editingIndex}
           onEdit={handleUpdateDetail}
+          currency={currency}
         />
 
         <TechnicalSheetsDialog
@@ -690,24 +706,21 @@ export const QuotationForm = ({
           technicalSheets={technicalSheetsDialog.sheets}
           productName={technicalSheetsDialog.productName}
         />
-
-        <div className="flex gap-4 justify-end">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting || details.length === 0}>
-            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === "update"
-              ? isSubmitting
-                ? "Actualizando..."
-                : "Actualizar Cotización"
-              : isSubmitting
-              ? "Creando..."
-              : "Crear Cotización"}
-          </Button>
         </div>
+
+        <QuotationSummary
+          form={form}
+          mode={mode}
+          isSubmitting={isSubmitting}
+          customers={customers}
+          warehouses={warehouses}
+          details={details}
+          calculateSubtotalTotal={calculateSubtotalTotal}
+          calculateTaxTotal={calculateTaxTotal}
+          calculateDetailsTotal={calculateDetailsTotal}
+          onCancel={onCancel}
+          selectedPaymentType={paymentType}
+        />
       </form>
     </Form>
   );

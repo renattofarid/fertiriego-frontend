@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Loader, Package, Plus, Trash2 } from "lucide-react";
+import { FileText, Loader, Package, Plus, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -40,6 +40,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { OrderSummary } from "./OrderSummary";
 
 interface OrderFormProps {
   onSubmit: (data: CreateOrderRequest) => void;
@@ -81,6 +82,8 @@ export const OrderForm = ({
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | undefined>(undefined);
 
   const form = useForm<any>({
     defaultValues: defaultValues || {
@@ -176,6 +179,48 @@ export const OrderForm = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
+  const handleEditDetail = (index: number) => {
+    const detail = details[index];
+    const productDetail: ProductDetail = {
+      product_id: detail.product_id,
+      product_name: detail.product_name || "",
+      is_igv: detail.is_igv,
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+      purchase_price: detail.purchase_price,
+      subtotal: detail.subtotal,
+      tax: detail.tax,
+      total: detail.total,
+    };
+    setEditingDetail(productDetail);
+    setEditingIndex(index);
+    setSheetOpen(true);
+  };
+
+  const handleUpdateDetail = (detail: ProductDetail, index: number) => {
+    const newDetail: DetailRow = {
+      product_id: detail.product_id,
+      product_name: detail.product_name,
+      is_igv: detail.is_igv,
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+      purchase_price: detail.purchase_price,
+      subtotal: detail.subtotal,
+      tax: detail.tax,
+      total: detail.total,
+    };
+
+    const updatedDetails = [...details];
+    updatedDetails[index] = newDetail;
+    setDetails(updatedDetails);
+  };
+
+  const handleCloseSheet = () => {
+    setSheetOpen(false);
+    setEditingDetail(null);
+    setEditingIndex(undefined);
+  };
+
   const handleSubmitForm = (formData: any) => {
     if (details.length === 0) {
       return;
@@ -211,12 +256,25 @@ export const OrderForm = ({
     return details.reduce((sum, detail) => sum + detail.total, 0);
   };
 
+  const calculateSubtotalTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+  };
+
+  const calculateTaxTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.tax, 0);
+  };
+
+  const calculateDetailsTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.total, 0);
+  };
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmitForm)}
-        className="space-y-6"
+        className="grid xl:grid-cols-3 gap-6"
       >
+        <div className="xl:col-span-2 space-y-6">
         <GroupFormSection
           title="Información General"
           icon={FileText}
@@ -402,14 +460,24 @@ export const OrderForm = ({
                       {detail.total.toFixed(2)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveDetail(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
+                      <div className="flex gap-1 justify-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditDetail(index)}
+                        >
+                          <Pencil className="h-4 w-4 text-blue-500" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveDetail(index)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -429,28 +497,27 @@ export const OrderForm = ({
 
         <AddProductSheet
           open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
+          onClose={handleCloseSheet}
           onAdd={handleAddDetail}
+          onEdit={handleUpdateDetail}
           products={products}
+          editingDetail={editingDetail}
+          editingIndex={editingIndex}
         />
-
-        <div className="flex gap-4 justify-end">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting || details.length === 0}>
-            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting
-              ? mode === "update"
-                ? "Actualizando..."
-                : "Creando..."
-              : mode === "update"
-              ? "Actualizar Pedido"
-              : "Crear Pedido"}
-          </Button>
         </div>
+
+        <OrderSummary
+          form={form}
+          mode={mode}
+          isSubmitting={isSubmitting}
+          customers={customers}
+          warehouses={warehouses}
+          details={details}
+          calculateSubtotalTotal={calculateSubtotalTotal}
+          calculateTaxTotal={calculateTaxTotal}
+          calculateDetailsTotal={calculateDetailsTotal}
+          onCancel={onCancel}
+        />
       </form>
     </Form>
   );
