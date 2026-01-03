@@ -57,9 +57,9 @@ export const guideSchema = z
     // ===============================
     transport_modality: z.string().min(1, { message: "La modalidad de transporte es requerida" }),
     carrier_id: requiredStringId("Debe seleccionar un transportista"),
-    driver_id: requiredStringId("Debe seleccionar un conductor"),
-    driver_license: z.string().min(1, { message: "La licencia del conductor es requerida" }).max(20),
-    vehicle_id: requiredStringId("Debe seleccionar un vehículo"),
+    driver_id: optionalStringId("Debe seleccionar un conductor"),
+    driver_license: z.string().max(20).optional(),
+    vehicle_id: optionalStringId("Debe seleccionar un vehículo"),
     secondary_vehicle_id: optionalStringId("Debe seleccionar un vehículo secundario"),
     vehicle_plate: z.string().max(20).optional(),
     vehicle_brand: z.string().max(50).optional(),
@@ -83,6 +83,42 @@ export const guideSchema = z
   // ===============================
   // VALIDACIONES CONDICIONALES
   // ===============================
+  .refine(
+    (data) => {
+      if (data.transport_modality === "PRIVADO") {
+        return data.driver_id && data.driver_id.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "El conductor es requerido para transporte privado",
+      path: ["driver_id"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.transport_modality === "PRIVADO") {
+        return data.driver_license && data.driver_license.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "La licencia del conductor es requerida para transporte privado",
+      path: ["driver_license"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.transport_modality === "PRIVADO") {
+        return data.vehicle_id && data.vehicle_id.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "El vehículo es requerido para transporte privado",
+      path: ["vehicle_id"],
+    }
+  )
   .refine(
     (data) => {
       if (data.transport_modality === "PRIVADO") {

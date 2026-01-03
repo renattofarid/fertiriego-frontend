@@ -602,52 +602,51 @@ export const GuideForm = ({
             }))}
           />
 
-          <FormSelect
-            control={form.control}
-            name="driver_id"
-            label="Conductor"
-            placeholder="Seleccione un conductor"
-            options={drivers.map((driver) => ({
-              value: driver.id.toString(),
-              label:
-                driver.business_name ||
-                `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-            }))}
-          />
-
-          <FormSelect
-            control={form.control}
-            name="vehicle_id"
-            label="Vehículo"
-            placeholder="Seleccione un vehículo"
-            options={vehicles.map((vehicle) => ({
-              value: vehicle.id.toString(),
-              label: vehicle.plate,
-              description: `${vehicle.brand} ${vehicle.model}`,
-            }))}
-          />
-
-          <FormField
-            control={form.control}
-            name="driver_license"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Licencia del Conductor</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ej: B12345678"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={20}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {transportModality === "PRIVADO" && (
             <>
+              <FormSelect
+                control={form.control}
+                name="driver_id"
+                label="Conductor"
+                placeholder="Seleccione un conductor"
+                options={drivers.map((driver) => ({
+                  value: driver.id.toString(),
+                  label:
+                    driver.business_name ||
+                    `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
+                }))}
+              />
+
+              <FormSelect
+                control={form.control}
+                name="vehicle_id"
+                label="Vehículo"
+                placeholder="Seleccione un vehículo"
+                options={vehicles.map((vehicle) => ({
+                  value: vehicle.id.toString(),
+                  label: vehicle.plate,
+                  description: `${vehicle.brand} ${vehicle.model}`,
+                }))}
+              />
+
+              <FormField
+                control={form.control}
+                name="driver_license"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Licencia del Conductor</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: B12345678"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={20}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormSelect
                 control={form.control}
@@ -935,11 +934,11 @@ export const GuideForm = ({
             />
         </GroupFormSection>
 
-        <pre>
+        {/* <pre>
           <code>
             {JSON.stringify(form.formState.errors, null, 2)}
           </code>
-        </pre>
+        </pre> */}
 
         {/* Botones de Acción */}
         <div className="flex justify-end gap-4">

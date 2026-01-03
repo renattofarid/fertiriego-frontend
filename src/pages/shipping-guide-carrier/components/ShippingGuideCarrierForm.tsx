@@ -33,8 +33,8 @@ import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
+import type { GuideResource } from "@/pages/guide/lib/guide.interface";
 import { toast } from "sonner";
-// Removed GuideResource; remittents/recipients now come from PersonResource
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -111,6 +111,7 @@ interface ShippingGuideCarrierFormProps {
   drivers: PersonResource[];
   vehicles: VehicleResource[];
   products: ProductResource[];
+  guides: GuideResource[];
 }
 
 export function ShippingGuideCarrierForm({
@@ -124,6 +125,7 @@ export function ShippingGuideCarrierForm({
   drivers,
   vehicles,
   products,
+  guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
   const navigate = useNavigate();
@@ -435,6 +437,19 @@ export function ShippingGuideCarrierForm({
                   label:
                     p.business_name || `${p.names} ${p.father_surname}`,
                   description: p.number_document,
+                }))}
+                withValue
+              />
+
+              <FormSelect
+                control={form.control}
+                name="shipping_guide_remittent_id"
+                label="Guía de Remisión Remitente (GRR)"
+                placeholder="Seleccione GRR (Opcional)"
+                options={guides.map((g) => ({
+                  value: g.id.toString(),
+                  label: g.full_guide_number,
+                  description: `${g.issue_date} - ${g.status}`,
                 }))}
                 withValue
               />
