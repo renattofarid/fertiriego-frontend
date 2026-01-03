@@ -19,6 +19,7 @@ import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
 import type { GuideSchema } from "../lib/guide.schema";
+import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
 
 export default function GuideEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,16 +33,16 @@ export default function GuideEditPage() {
   const carriers = useAllPersons({
     role_names: ["TRANSPORTISTA"],
   });
-  const drivers = useAllPersons({
-    role_names: ["CHOFER"],
-  });
+  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const recipients = useAllPersons();
   const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
-  const { data: orders, isLoading: ordersLoading } = useOrder({ per_page: 1000 });
+  const { data: orders, isLoading: ordersLoading } = useOrder({
+    per_page: 1000,
+  });
 
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
 
@@ -85,19 +86,23 @@ export default function GuideEditPage() {
       warehouse_document_id: data.warehouse_document?.id
         ? data.warehouse_document.id.toString()
         : undefined,
-      order_id: (data as any).order?.id ? (data as any).order.id.toString() : undefined,
+      order_id: (data as any).order?.id
+        ? (data as any).order.id.toString()
+        : undefined,
       transport_modality: data.transport_modality,
       carrier_id: data.carrier?.id?.toString() || "",
       driver_id: data.driver?.id?.toString() || "",
       vehicle_id: data.vehicle?.id?.toString() || "",
-      secondary_vehicle_id: (data as any).secondary_vehicle?.id?.toString() || undefined,
+      secondary_vehicle_id:
+        (data as any).secondary_vehicle?.id?.toString() || undefined,
       driver_license: data.driver_license,
       vehicle_plate: (data as any).vehicle_plate,
       vehicle_brand: (data as any).vehicle_brand,
       vehicle_model: (data as any).vehicle_model,
       vehicle_mtc: (data as any).vehicle_mtc,
       remittent_id: (data as any).remittent?.id?.toString() || "",
-      shipping_guide_remittent_id: (data as any).shipping_guide_remittent?.id?.toString() || undefined,
+      shipping_guide_remittent_id:
+        (data as any).shipping_guide_remittent?.id?.toString() || undefined,
       origin_address: data.origin_address,
       origin_ubigeo_id: data.originUbigeo.id.toString(),
       destination_address: data.destination_address,

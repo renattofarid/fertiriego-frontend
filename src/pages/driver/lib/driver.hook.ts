@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { usePersonStore } from "@/pages/person/lib/person.store";
+import { useDriverStore } from "./driver.store";
 import { DRIVER_ROLE_CODE } from "./driver.interface";
 
 export function useDrivers(params?: Record<string, unknown>) {
@@ -32,15 +33,11 @@ export function useDrivers(params?: Record<string, unknown>) {
 }
 
 export function useAllDrivers(params?: Record<string, unknown>) {
-  const { allPersons, fetchAllPersons } = usePersonStore();
+  const { allDrivers, fetchAllDrivers } = useDriverStore();
   useEffect(() => {
-    if (!allPersons) {
-      const driverParams = {
-        ...params,
-        role_names: [DRIVER_ROLE_CODE],
-      };
-      fetchAllPersons({ params: driverParams });
+    if (!allDrivers) {
+      fetchAllDrivers(params);
     }
-  }, [allPersons, fetchAllPersons]);
-  return allPersons;
+  }, [allDrivers, fetchAllDrivers, params]);
+  return allDrivers;
 }
