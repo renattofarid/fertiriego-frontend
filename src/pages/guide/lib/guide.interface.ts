@@ -93,11 +93,15 @@ export interface CreateGuideRequest {
   // Campos para TRANSPORTE PRIVADO
   driver_id?: number | null;
   vehicle_id?: number | null;
+  secondary_vehicle_id?: number | null;
   vehicle_plate?: string;
   vehicle_brand?: string;
   vehicle_model?: string;
   vehicle_mtc?: string;
   driver_license?: string;
+  // Personas
+  remittent_id: number;
+  shipping_guide_remittent_id?: number | null;
   // Direcciones (ahora se pueden digitar manualmente)
   origin_address: string;
   origin_ubigeo_id: number;
@@ -124,11 +128,15 @@ export interface UpdateGuideRequest {
   // Campos para TRANSPORTE PRIVADO
   driver_id?: number | null;
   vehicle_id?: number | null;
+  secondary_vehicle_id?: number | null;
   vehicle_plate?: string;
   vehicle_brand?: string;
   vehicle_model?: string;
   vehicle_mtc?: string;
   driver_license?: string;
+  // Personas
+  remittent_id?: number;
+  shipping_guide_remittent_id?: number | null;
   // Direcciones
   origin_address?: string;
   origin_ubigeo_id?: number;

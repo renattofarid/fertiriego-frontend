@@ -40,6 +40,7 @@ export default function GuideEditPage() {
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const recipients = useAllPersons();
+  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({ per_page: 1000 });
 
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
@@ -84,11 +85,19 @@ export default function GuideEditPage() {
       warehouse_document_id: data.warehouse_document?.id
         ? data.warehouse_document.id.toString()
         : undefined,
+      order_id: data.order?.id ? data.order.id.toString() : undefined,
       transport_modality: data.transport_modality,
       carrier_id: data.carrier?.id?.toString() || "",
       driver_id: data.driver?.id?.toString() || "",
       vehicle_id: data.vehicle?.id?.toString() || "",
+      secondary_vehicle_id: (data as any).secondary_vehicle?.id?.toString() || undefined,
       driver_license: data.driver_license,
+      vehicle_plate: data.vehicle_plate,
+      vehicle_brand: data.vehicle_brand,
+      vehicle_model: data.vehicle_model,
+      vehicle_mtc: data.vehicle_mtc,
+      remittent_id: (data as any).remittent?.id?.toString() || "",
+      shipping_guide_remittent_id: (data as any).shipping_guide_remittent?.id?.toString() || undefined,
       origin_address: data.origin_address,
       origin_ubigeo_id: data.originUbigeo.id.toString(),
       destination_address: data.destination_address,
@@ -183,6 +192,7 @@ export default function GuideEditPage() {
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             recipients={recipients}
+            remittents={remittents || []}
             orders={orders || []}
           />
         )}

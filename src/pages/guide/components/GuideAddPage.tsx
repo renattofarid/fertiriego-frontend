@@ -42,6 +42,7 @@ export default function GuideAddPage() {
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } = useWarehouseDocuments();
   const recipients = useAllPersons();
+  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({ per_page: 1000 });
 
   const { createGuide } = useGuideStore();
@@ -75,11 +76,19 @@ export default function GuideAddPage() {
     sale_id: "",
     purchase_id: "",
     warehouse_document_id: "",
+    order_id: "",
     transport_modality: "PUBLICO",
     carrier_id: "",
     driver_id: "",
     vehicle_id: "",
+    secondary_vehicle_id: "",
     driver_license: "",
+    vehicle_plate: "",
+    vehicle_brand: "",
+    vehicle_model: "",
+    vehicle_mtc: "",
+    remittent_id: "",
+    shipping_guide_remittent_id: "",
     origin_address: "",
     origin_ubigeo_id: "",
     destination_address: "",
@@ -156,6 +165,7 @@ export default function GuideAddPage() {
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             recipients={recipients}
+            remittents={remittents || []}
             orders={orders || []}
           />
         )}

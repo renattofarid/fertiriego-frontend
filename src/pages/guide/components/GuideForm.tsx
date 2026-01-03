@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Plus, Trash2, Pencil, Truck, MapPin, Package2 } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Truck, Package2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -53,6 +53,7 @@ interface GuideFormProps {
   purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
   recipients: PersonResource[];
+  remittents: PersonResource[];
   orders: OrderResource[];
 }
 
@@ -152,6 +153,7 @@ export const GuideForm = ({
   purchases,
   warehouseDocuments,
   recipients,
+  remittents,
   orders,
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -249,6 +251,12 @@ export const GuideForm = ({
               weight: "0",
             }));
             setDetails(orderDetails);
+
+            // Si el pedido tiene driver_id, establecerlo en el formulario
+            const orderData = response.data as any;
+            if (orderData.driver_id) {
+              form.setValue("driver_id", orderData.driver_id.toString());
+            }
           }
         } catch (error) {
           console.error("Error loading order:", error);
@@ -470,40 +478,46 @@ export const GuideForm = ({
           />
         </GroupFormSection>
 
-        {/* Selección de Pedido (Nuevo) */}
+        {/* Referencias Documentales */}
         <GroupFormSection
-          title="Selección de Pedido (Opcional)"
+          title="Referencias Documentales (Opcional)"
           icon={Package2}
-          cols={{ sm: 1 }}
+          cols={{ sm: 1, md: 2, lg: 3 }}
         >
           <FormSelect
             control={form.control}
-            name="order_id"
-            label="Pedido"
-            placeholder="Seleccione un pedido"
-            options={orders.map((order) => ({
-              value: order.id.toString(),
-              label: `#${order.order_number} - ${order.customer.full_name}`,
-              description: `Fecha: ${order.order_date}`,
+            name="remittent_id"
+            label="Remitente"
+            placeholder="Seleccione un remitente"
+            options={remittents.map((remittent) => ({
+              value: remittent.id.toString(),
+              label:
+                remittent.business_name ||
+                `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
+              description: remittent.number_document,
             }))}
             withValue
           />
 
-          {loadingOrder && <div>Cargando productos del pedido...</div>}
-
-          {loadingOrder && (
-            <div className="col-span-full text-center text-muted-foreground">
-              Cargando productos del pedido...
-            </div>
-          )}
-        </GroupFormSection>
-
-        {/* Información Opcional */}
-        <GroupFormSection
-          title="Información Opcional"
-          icon={Truck}
-          cols={{ sm: 1, md: 2, lg: 3 }}
-        >
+          <div className="relative">
+            <FormSelect
+              control={form.control}
+              name="order_id"
+              label="Pedido"
+              placeholder="Seleccione un pedido"
+              options={orders.map((order) => ({
+                value: order.id.toString(),
+                label: `#${order.order_number} - ${order.customer.full_name}`,
+                description: `Fecha: ${order.order_date}`,
+              }))}
+              withValue
+            />
+            {loadingOrder && (
+              <div className="absolute right-2 top-9">
+                <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
           <FormSelect
             control={form.control}
             name="sale_id"
@@ -573,65 +587,86 @@ export const GuideForm = ({
           />
         </GroupFormSection>
 
-        {/* Información de Transporte - Condicional según modalidad */}
+        {/* Transporte y Direcciones */}
         <GroupFormSection
-          title="Información de Transporte"
+          title="Transporte y Direcciones"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
-          {transportModality === "PUBLICO" && (
-            <FormSelect
-              control={form.control}
-              name="carrier_id"
-              label="Transportista"
-              placeholder="Seleccione un transportista"
-              options={carriers.map((carrier) => ({
-                value: carrier.id.toString(),
-                label:
-                  carrier.business_name ||
-                  `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-              }))}
-            />
-          )}
+          {/* Personal de Transporte */}
+          <div className="col-span-full">
+            <h4 className="text-sm font-semibold mb-2 text-primary">Personal de Transporte</h4>
+          </div>
+
+          <FormSelect
+            control={form.control}
+            name="carrier_id"
+            label="Transportista"
+            placeholder="Seleccione un transportista"
+            options={carriers.map((carrier) => ({
+              value: carrier.id.toString(),
+              label:
+                carrier.business_name ||
+                `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+            }))}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="driver_id"
+            label="Conductor"
+            placeholder="Seleccione un conductor"
+            options={drivers.map((driver) => ({
+              value: driver.id.toString(),
+              label:
+                driver.business_name ||
+                `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
+            }))}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="vehicle_id"
+            label="Vehículo"
+            placeholder="Seleccione un vehículo"
+            options={vehicles.map((vehicle) => ({
+              value: vehicle.id.toString(),
+              label: vehicle.plate,
+              description: `${vehicle.brand} ${vehicle.model}`,
+            }))}
+          />
+
+          <FormField
+            control={form.control}
+            name="driver_license"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Licencia del Conductor</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ej: B12345678"
+                    {...field}
+                    value={field.value || ""}
+                    maxLength={20}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {transportModality === "PRIVADO" && (
             <>
-              <FormSelect
-                control={form.control}
-                name="driver_id"
-                label="Conductor"
-                placeholder="Seleccione un conductor"
-                options={drivers.map((driver) => ({
-                  value: driver.id.toString(),
-                  label:
-                    driver.business_name ||
-                    `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-                }))}
-              />
-
-              <FormField
-                control={form.control}
-                name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: B12345678"
-                        {...field}
-                        value={field.value || ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Información de Vehículos Adicionales */}
+              <div className="col-span-full mt-4">
+                <h4 className="text-sm font-semibold mb-2 text-primary">Información Adicional del Vehículo</h4>
+              </div>
 
               <FormSelect
                 control={form.control}
-                name="vehicle_id"
-                label="Vehículo"
-                placeholder="Seleccione un vehículo"
+                name="secondary_vehicle_id"
+                label="Vehículo Secundario (Opcional)"
+                placeholder="Seleccione un vehículo secundario"
                 options={vehicles.map((vehicle) => ({
                   value: vehicle.id.toString(),
                   label: vehicle.plate,
@@ -716,23 +751,21 @@ export const GuideForm = ({
               />
             </>
           )}
-        </GroupFormSection>
 
-        {/* Información de Origen */}
-        <GroupFormSection
-          title="Información de Origen"
-          icon={MapPin}
-          cols={{ sm: 1, md: 2 }}
-        >
+          {/* Direcciones */}
+          <div className="col-span-full mt-6">
+            <h4 className="text-sm font-semibold mb-2 text-primary">Dirección de Origen</h4>
+          </div>
+
           <FormField
             control={form.control}
             name="origin_address"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Origen</FormLabel>
+              <FormItem className="md:col-span-2">
+                <FormLabel>Dirección</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Dirección de origen"
+                    placeholder="Ingrese la dirección de origen"
                     {...field}
                     value={field.value || ""}
                     maxLength={500}
@@ -746,7 +779,7 @@ export const GuideForm = ({
           <SelectSearchForm
             control={form.control}
             name="origin_ubigeo_id"
-            label="Ubigeo de Origen"
+            label="Ubigeo"
             placeholder="Buscar ubigeo..."
             isSearching={isSearchingOrigin}
             items={originUbigeos}
@@ -754,23 +787,20 @@ export const GuideForm = ({
             formatLabel={formatUbigeoLabel}
             getItemId={(ubigeo) => ubigeo.id}
           />
-        </GroupFormSection>
 
-        {/* Información de Destino */}
-        <GroupFormSection
-          title="Información de Destino"
-          icon={MapPin}
-          cols={{ sm: 1, md: 2 }}
-        >
+          <div className="col-span-full mt-4">
+            <h4 className="text-sm font-semibold mb-2 text-primary">Dirección de Destino</h4>
+          </div>
+
           <FormField
             control={form.control}
             name="destination_address"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Destino</FormLabel>
+              <FormItem className="md:col-span-2">
+                <FormLabel>Dirección</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Dirección de destino"
+                    placeholder="Ingrese la dirección de destino"
                     {...field}
                     value={field.value || ""}
                     maxLength={500}
@@ -784,7 +814,7 @@ export const GuideForm = ({
           <SelectSearchForm
             control={form.control}
             name="destination_ubigeo_id"
-            label="Ubigeo de Destino"
+            label="Ubigeo"
             placeholder="Buscar ubigeo..."
             isSearching={isSearchingDestination}
             items={destinationUbigeos}
