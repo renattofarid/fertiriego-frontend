@@ -25,6 +25,7 @@ import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
+import { useOrder } from "@/pages/order/lib/order.hook";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
@@ -41,6 +42,7 @@ export default function GuideAddPage() {
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } = useWarehouseDocuments();
   const recipients = useAllPersons();
+  const { data: orders, isLoading: ordersLoading } = useOrder({ per_page: 1000 });
 
   const { createGuide } = useGuideStore();
 
@@ -53,6 +55,7 @@ export default function GuideAddPage() {
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
+    ordersLoading ||
     !warehouses ||
     !products ||
     !motives ||
@@ -153,6 +156,7 @@ export default function GuideAddPage() {
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             recipients={recipients}
+            orders={orders || []}
           />
         )}
     </FormWrapper>

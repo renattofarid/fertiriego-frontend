@@ -129,11 +129,31 @@ export const useGuideStore = create<GuideStore>((set) => ({
         warehouse_document_id: data.warehouse_document_id
           ? Number(data.warehouse_document_id)
           : null,
+        order_id: data.order_id ? Number(data.order_id) : null,
         transport_modality: data.transport_modality,
-        carrier_id: Number(data.carrier_id),
-        driver_id: Number(data.driver_id),
-        vehicle_id: Number(data.vehicle_id),
-        driver_license: data.driver_license,
+        // Campos condicionales según modalidad
+        carrier_id:
+          data.transport_modality === "PUBLICO" && data.carrier_id
+            ? Number(data.carrier_id)
+            : null,
+        driver_id:
+          data.transport_modality === "PRIVADO" && data.driver_id
+            ? Number(data.driver_id)
+            : null,
+        vehicle_id:
+          data.transport_modality === "PRIVADO" && data.vehicle_id
+            ? Number(data.vehicle_id)
+            : null,
+        vehicle_plate:
+          data.transport_modality === "PRIVADO" ? data.vehicle_plate : undefined,
+        vehicle_brand:
+          data.transport_modality === "PRIVADO" ? data.vehicle_brand : undefined,
+        vehicle_model:
+          data.transport_modality === "PRIVADO" ? data.vehicle_model : undefined,
+        vehicle_mtc:
+          data.transport_modality === "PRIVADO" ? data.vehicle_mtc : undefined,
+        driver_license:
+          data.transport_modality === "PRIVADO" ? data.driver_license : undefined,
         origin_address: data.origin_address,
         origin_ubigeo_id: Number(data.origin_ubigeo_id),
         destination_address: data.destination_address,
@@ -180,13 +200,45 @@ export const useGuideStore = create<GuideStore>((set) => ({
             ? Number(data.warehouse_document_id)
             : null,
         }),
+        ...(data.order_id !== undefined && {
+          order_id: data.order_id ? Number(data.order_id) : null,
+        }),
         ...(data.transport_modality && {
           transport_modality: data.transport_modality,
         }),
-        ...(data.carrier_id && { carrier_id: Number(data.carrier_id) }),
-        ...(data.driver_id && { driver_id: Number(data.driver_id) }),
-        ...(data.vehicle_id && { vehicle_id: Number(data.vehicle_id) }),
-        ...(data.driver_license && { driver_license: data.driver_license }),
+        ...(data.carrier_id !== undefined && {
+          carrier_id:
+            data.transport_modality === "PUBLICO" && data.carrier_id
+              ? Number(data.carrier_id)
+              : null,
+        }),
+        ...(data.driver_id !== undefined && {
+          driver_id:
+            data.transport_modality === "PRIVADO" && data.driver_id
+              ? Number(data.driver_id)
+              : null,
+        }),
+        ...(data.vehicle_id !== undefined && {
+          vehicle_id:
+            data.transport_modality === "PRIVADO" && data.vehicle_id
+              ? Number(data.vehicle_id)
+              : null,
+        }),
+        ...(data.vehicle_plate !== undefined && {
+          vehicle_plate: data.vehicle_plate,
+        }),
+        ...(data.vehicle_brand !== undefined && {
+          vehicle_brand: data.vehicle_brand,
+        }),
+        ...(data.vehicle_model !== undefined && {
+          vehicle_model: data.vehicle_model,
+        }),
+        ...(data.vehicle_mtc !== undefined && {
+          vehicle_mtc: data.vehicle_mtc,
+        }),
+        ...(data.driver_license !== undefined && {
+          driver_license: data.driver_license,
+        }),
         ...(data.origin_address && { origin_address: data.origin_address }),
         ...(data.origin_ubigeo_id && {
           origin_ubigeo_id: Number(data.origin_ubigeo_id),

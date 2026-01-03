@@ -12,6 +12,7 @@ import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
+import { useOrder } from "@/pages/order/lib/order.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
@@ -39,6 +40,7 @@ export default function GuideEditPage() {
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const recipients = useAllPersons();
+  const { data: orders, isLoading: ordersLoading } = useOrder({ per_page: 1000 });
 
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
 
@@ -50,6 +52,7 @@ export default function GuideEditPage() {
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
+    ordersLoading ||
     !warehouses ||
     !products ||
     !motives ||
@@ -180,6 +183,7 @@ export default function GuideEditPage() {
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             recipients={recipients}
+            orders={orders || []}
           />
         )}
     </FormWrapper>

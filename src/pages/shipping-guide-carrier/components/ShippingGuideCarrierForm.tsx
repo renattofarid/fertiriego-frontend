@@ -37,15 +37,22 @@ import { toast } from "sonner";
 // Removed GuideResource; remittents/recipients now come from PersonResource
 
 export type ShippingGuideCarrierFormValues = {
-  carrier_id: string;
+  transport_modality: string;
+  carrier_id?: string;
+  driver_id?: string;
+  vehicle_id?: string;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
+  driver_license?: string;
   issue_date: string;
   transfer_start_date: string;
   remittent_id: string;
   recipient_id?: string;
-  driver_id: string;
-  vehicle_id: string;
-  secondary_vehicle_id: string | undefined;
-  driver_license: string;
+  secondary_vehicle_id?: string;
+  order_id?: string;
+  shipping_guide_remittent_id?: string;
   origin_address: string;
   origin_ubigeo_id: string;
   destination_address: string;
@@ -61,15 +68,22 @@ export type ShippingGuideCarrierFormValues = {
 };
 
 const defaultValues: ShippingGuideCarrierFormValues = {
+  transport_modality: "PRIVADO",
   carrier_id: "",
+  driver_id: "",
+  vehicle_id: "",
+  vehicle_plate: "",
+  vehicle_brand: "",
+  vehicle_model: "",
+  vehicle_mtc: "",
+  driver_license: "",
   issue_date: "",
   transfer_start_date: "",
   remittent_id: "",
   recipient_id: "",
-  driver_id: "",
-  vehicle_id: "",
   secondary_vehicle_id: "",
-  driver_license: "",
+  order_id: "",
+  shipping_guide_remittent_id: "",
   origin_address: "",
   origin_ubigeo_id: "",
   destination_address: "",

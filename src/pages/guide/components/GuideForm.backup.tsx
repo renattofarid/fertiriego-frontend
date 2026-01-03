@@ -35,6 +35,7 @@ import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
+import { OrderProductSelector } from "./OrderProductSelector";
 import { findOrderById } from "@/pages/order/lib/order.actions";
 
 interface GuideFormProps {
@@ -229,7 +230,7 @@ export const GuideForm = ({
   const transportModality = form.watch("transport_modality");
   const orderId = form.watch("order_id");
 
-  // Cargar orden cuando se selecciona y llenar detalles automáticamente
+  // Cargar orden cuando se selecciona
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
@@ -237,19 +238,6 @@ export const GuideForm = ({
         try {
           const response = await findOrderById(Number(orderId));
           setSelectedOrder(response.data);
-
-          // Llenar automáticamente los detalles con los productos del pedido
-          if (response.data && response.data.order_details) {
-            const orderDetails: DetailRow[] = response.data.order_details.map((detail: any) => ({
-              product_id: detail.product_id,
-              product_name: detail.product?.name || "Producto",
-              description: detail.product?.name || "Producto",
-              quantity: detail.quantity.toString(),
-              unit_measure: "UND",
-              weight: "0",
-            }));
-            setDetails(orderDetails);
-          }
         } catch (error) {
           console.error("Error loading order:", error);
           setSelectedOrder(null);
@@ -258,15 +246,11 @@ export const GuideForm = ({
         }
       } else {
         setSelectedOrder(null);
-        // Si se deselecciona el pedido, limpiar los detalles
-        if (mode === "create") {
-          setDetails([]);
-        }
       }
     };
 
     loadOrder();
-  }, [orderId, mode]);
+  }, [orderId]);
 
   // Establecer fechas automáticamente
   useEffect(() => {
@@ -295,30 +279,18 @@ export const GuideForm = ({
     }
   }, []);
 
-  // Sincronizar details con el form cuando cambien
-  useEffect(() => {
-    if (details.length > 0) {
-      const formatted = details.map((detail) => ({
-        product_id: detail.product_id.toString(),
-        description:
-          detail.description ||
-          products.find((p) => p.id === detail.product_id)?.name ||
-          "",
-        quantity: Number(detail.quantity),
-        unit_measure: detail.unit_measure,
-        weight: Number(detail.weight || 0),
-      }));
-
-      // Solo actualizar si realmente hay cambios
-      const currentFormDetails = form.getValues("details") || [];
-      if (JSON.stringify(currentFormDetails) !== JSON.stringify(formatted)) {
-        form.setValue("details", formatted as any, { shouldValidate: false });
-      }
-    } else {
-      // Si no hay details, limpiar el form
-      form.setValue("details", [], { shouldValidate: false });
-    }
-  }, [details, products, form]);
+  // Manejar selección de productos desde el pedido
+  const handleOrderProductsSelected = (selections: any[]) => {
+    const orderDetails: DetailRow[] = selections.map((sel) => ({
+      product_id: sel.product_id,
+      product_name: sel.product_name,
+      description: sel.product_name,
+      quantity: sel.quantity_to_ship.toString(),
+      unit_measure: "UND",
+      weight: "0",
+    }));
+    setDetails(orderDetails);
+  };
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
@@ -361,6 +333,20 @@ export const GuideForm = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
+  useEffect(() => {
+    const formatted = details.map((detail) => ({
+      product_id: detail.product_id.toString(),
+      description:
+        detail.description ||
+        products.find((p) => p.id === detail.product_id)?.name ||
+        "",
+      quantity: Number(detail.quantity),
+      unit_measure: detail.unit_measure,
+      weight: Number(detail.weight || 0),
+    }));
+    form.setValue("details", formatted as any, { shouldValidate: true });
+  }, [details, form, products]);
+
   const handleFormSubmit = (data: any) => {
     const hasCurrentDetail =
       currentDetail.product_id && currentDetail.quantity?.trim() !== "";
@@ -386,8 +372,6 @@ export const GuideForm = ({
     };
 
     console.log("✅ Payload siendo enviado:", payload);
-    console.log("✅ Details state:", details);
-    console.log("✅ Form details value:", form.getValues("details"));
     onSubmit(payload);
   };
 
@@ -491,9 +475,12 @@ export const GuideForm = ({
 
           {loadingOrder && <div>Cargando productos del pedido...</div>}
 
-          {loadingOrder && (
-            <div className="col-span-full text-center text-muted-foreground">
-              Cargando productos del pedido...
+          {selectedOrder && !loadingOrder && (
+            <div className="col-span-full">
+              <OrderProductSelector
+                order={selectedOrder}
+                onProductsSelected={handleOrderProductsSelected}
+              />
             </div>
           )}
         </GroupFormSection>
@@ -794,12 +781,13 @@ export const GuideForm = ({
           />
         </GroupFormSection>
 
-        {/* Detalles de Productos */}
-        <GroupFormSection
-          title="Detalles de Productos"
-          icon={Truck}
-          cols={{ sm: 1, md: 3 }}
-        >
+        {/* Detalles de Productos - Solo si no hay pedido seleccionado */}
+        {!selectedOrder && (
+          <GroupFormSection
+            title="Detalles de Productos"
+            icon={Truck}
+            cols={{ sm: 1, md: 3 }}
+          >
             <FormField
               control={form.control}
               name="details"
@@ -925,13 +913,8 @@ export const GuideForm = ({
                 </FormItem>
               )}
             />
-        </GroupFormSection>
-
-        <pre>
-          <code>
-            {JSON.stringify(form.formState.errors, null, 2)}
-          </code>
-        </pre>
+          </GroupFormSection>
+        )}
 
         {/* Botones de Acción */}
         <div className="flex justify-end gap-4">
