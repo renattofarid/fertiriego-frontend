@@ -47,6 +47,8 @@ import { GroupFormSection } from "@/components/GroupFormSection";
 import EmptyState from "@/components/EmptyState";
 import { FormInput } from "@/components/FormInput";
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -101,6 +103,13 @@ export const PurchaseOrderForm = ({
         }))
       : []
   );
+
+  // Estados para modales
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -142,6 +151,30 @@ export const PurchaseOrderForm = ({
   const watchTempProductId = detailTempForm.watch("temp_product_id");
   const watchTempQuantity = detailTempForm.watch("temp_quantity_requested");
   const watchTempUnitPrice = detailTempForm.watch("temp_unit_price_estimated");
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setSuppliersList(suppliers);
+  }, [suppliers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    setSuppliersList((prev) => [...prev, newSupplier]);
+    form.setValue("supplier_id", newSupplier.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Sincronizar los campos temporales con currentDetail
   useEffect(() => {

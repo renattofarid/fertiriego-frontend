@@ -26,6 +26,8 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { useState, useEffect } from "react";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import {
@@ -96,6 +98,12 @@ export const PurchaseForm = ({
   const [includeIgv, setIncludeIgv] = useState<boolean>(false);
 
   const IGV_RATE = 0.18;
+
+  // Estado para modales
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
@@ -228,6 +236,30 @@ export const PurchaseForm = ({
       }));
     }
   }, [watchTempUnitPrice, currentDetail.unit_price]);
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setSuppliersList(suppliers);
+  }, [suppliers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    setSuppliersList((prev) => [...prev, newSupplier]);
+    form.setValue("supplier_id", newSupplier.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Establecer fecha de emisión automáticamente al cargar el formulario
   useEffect(() => {
@@ -555,35 +587,67 @@ export const PurchaseForm = ({
                 />
               </div>
 
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.business_name ??
-                    supplier.names +
-                      " " +
-                      supplier.father_surname +
-                      " " +
-                      supplier.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="supplier_id"
+                    label="Proveedor"
+                    placeholder="Seleccione un proveedor"
+                    options={suppliersList.map((supplier) => ({
+                      value: supplier.id.toString(),
+                      label:
+                        supplier.business_name ??
+                        supplier.names +
+                          " " +
+                          supplier.father_surname +
+                          " " +
+                          supplier.mother_surname,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsSupplierModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo proveedor"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    placeholder="Seleccione un almacén"
+                    options={warehousesList.map((warehouse) => ({
+                      value: warehouse.id.toString(),
+                      label: warehouse.name,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
               <FormSelect
                 control={form.control}
@@ -1019,6 +1083,20 @@ export const PurchaseForm = ({
           />
         </div>
       </form>
+
+      {/* Modal para crear nuevo proveedor */}
+      <SupplierCreateModal
+        open={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSupplierCreated={handleSupplierCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };
