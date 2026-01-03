@@ -99,6 +99,19 @@ export const shippingGuideCarrierSchema = z
   )
   .refine(
     (data) => {
+      // Si es PRIVADO, vehicle_id es requerido
+      if (data.transport_modality === "PRIVADO") {
+        return data.vehicle_id && data.vehicle_id.trim() !== "";
+      }
+      return true;
+    },
+    {
+      message: "El vehículo es requerido para transporte privado",
+      path: ["vehicle_id"],
+    }
+  )
+  .refine(
+    (data) => {
       // Si es PRIVADO, driver_license es requerido
       if (data.transport_modality === "PRIVADO") {
         return data.driver_license && data.driver_license.trim() !== "";

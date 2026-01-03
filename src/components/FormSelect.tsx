@@ -121,7 +121,7 @@ export function FormSelect({
                     role="combobox"
                     disabled={disabled}
                     className={cn(
-                      "w-full justify-between min-h-7 flex",
+                      "w-full justify-between min-h-7 flex min-w-0",
                       !field.value && "text-muted-foreground",
                       field.value && "bg-muted"
                     )}

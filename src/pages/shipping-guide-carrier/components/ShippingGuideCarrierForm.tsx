@@ -9,6 +9,7 @@ import {
   SHIPPING_GUIDE_CARRIER,
   UNIT_MEASUREMENTS,
 } from "../lib/shipping-guide-carrier.interface";
+import { MODALITIES } from "@/pages/guide/lib/guide.interface";
 import { shippingGuideCarrierSchema } from "../lib/shipping-guide-carrier.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -169,6 +170,8 @@ export function ShippingGuideCarrierForm({
       details: [],
     },
   });
+
+  const transportModality = form.watch("transport_modality");
 
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
@@ -416,16 +419,29 @@ export function ShippingGuideCarrierForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormSelect
                 control={form.control}
-                name="carrier_id"
-                label="Transportista"
-                placeholder="Seleccione transportista"
-                options={carriers.map((c) => ({
-                  value: c.id.toString(),
-                  label: c.business_name || `${c.names} ${c.father_surname}`,
-                  description: c.number_document,
+                name="transport_modality"
+                label="Modalidad de Transporte"
+                placeholder="Seleccione modalidad"
+                options={MODALITIES.map((mod) => ({
+                  value: mod.value,
+                  label: mod.label,
                 }))}
-                withValue
               />
+
+              {transportModality === "PUBLICO" && (
+                <FormSelect
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione transportista"
+                  options={carriers.map((c) => ({
+                    value: c.id.toString(),
+                    label: c.business_name || `${c.names} ${c.father_surname}`,
+                    description: c.number_document,
+                  }))}
+                  withValue
+                />
+              )}
 
               <FormSelect
                 control={form.control}
@@ -468,58 +484,118 @@ export function ShippingGuideCarrierForm({
                 withValue
               />
 
-              <FormSelect
-                control={form.control}
-                name="driver_id"
-                label="Conductor"
-                placeholder="Seleccione conductor"
-                options={drivers.map((d) => ({
-                  value: d.id.toString(),
-                  label: `${d.names} ${d.father_surname}`,
-                  description: d.number_document,
-                }))}
-                withValue
-              />
+              {transportModality === "PRIVADO" && (
+                <>
+                  <FormSelect
+                    control={form.control}
+                    name="driver_id"
+                    label="Conductor"
+                    placeholder="Seleccione conductor"
+                    options={drivers.map((d) => ({
+                      value: d.id.toString(),
+                      label: `${d.names} ${d.father_surname}`,
+                      description: d.number_document,
+                    }))}
+                    withValue
+                  />
 
-              <FormSelect
-                control={form.control}
-                name="vehicle_id"
-                label="Vehículo"
-                placeholder="Seleccione vehículo"
-                options={vehicles.map((v) => ({
-                  value: v.id.toString(),
-                  label: v.plate,
-                  description: `${v.brand} ${v.model}`,
-                }))}
-                withValue
-              />
+                  <FormSelect
+                    control={form.control}
+                    name="vehicle_id"
+                    label="Vehículo"
+                    placeholder="Seleccione vehículo"
+                    options={vehicles.map((v) => ({
+                      value: v.id.toString(),
+                      label: v.plate,
+                      description: `${v.brand} ${v.model}`,
+                    }))}
+                    withValue
+                  />
 
-              <FormSelect
-                control={form.control}
-                name="secondary_vehicle_id"
-                label="Vehículo Secundario (Opcional)"
-                placeholder="Seleccione vehículo secundario"
-                options={vehicles.map((v) => ({
-                  value: v.id.toString(),
-                  label: v.plate,
-                  description: `${v.brand} ${v.model}`,
-                }))}
-                withValue
-              />
+                  <FormSelect
+                    control={form.control}
+                    name="secondary_vehicle_id"
+                    label="Vehículo Secundario (Opcional)"
+                    placeholder="Seleccione vehículo secundario"
+                    options={vehicles.map((v) => ({
+                      value: v.id.toString(),
+                      label: v.plate,
+                      description: `${v.brand} ${v.model}`,
+                    }))}
+                    withValue
+                  />
 
-              <FormField
-                control={form.control}
-                name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: B12345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="driver_license"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Licencia del Conductor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: B12345678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_plate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Placa del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: ABC-123" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_brand"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Marca del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Toyota" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_model"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Modelo del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Hilux" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_mtc"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Certificado MTC</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: MTC123456" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
           </GroupFormSection>
 

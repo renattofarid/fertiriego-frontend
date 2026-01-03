@@ -382,162 +382,162 @@ export const PurchaseOrderForm = ({
               icon={ListCheck}
               cols={{ sm: 1 }}
             >
-                {/* Formulario de agregar/editar en una fila */}
-                <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
-                  <div className="col-span-6">
-                    <FormSelect
-                      control={detailTempForm.control}
-                      name="temp_product_id"
-                      label="Producto"
-                      placeholder="Seleccione"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                      }))}
-                    />
-                  </div>
+              {/* Formulario de agregar/editar en una fila */}
+              <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
+                <div className="col-span-6">
+                  <FormSelect
+                    control={detailTempForm.control}
+                    name="temp_product_id"
+                    label="Producto"
+                    placeholder="Seleccione"
+                    options={products.map((product) => ({
+                      value: product.id.toString(),
+                      label: product.name,
+                    }))}
+                  />
+                </div>
 
-                  <div className="col-span-2">
-                    <FormInput
-                      control={detailTempForm.control}
-                      name="temp_quantity_requested"
-                      label="Cantidad"
-                      type="number"
-                      placeholder="0"
-                      className="h-9"
-                    />
-                  </div>
+                <div className="col-span-2">
+                  <FormInput
+                    control={detailTempForm.control}
+                    name="temp_quantity_requested"
+                    label="Cantidad"
+                    type="number"
+                    placeholder="0"
+                    className="h-9"
+                  />
+                </div>
 
-                  <div className="col-span-2">
-                    <FormInput
-                      control={detailTempForm.control}
-                      name="temp_unit_price_estimated"
-                      label="P. Unit."
-                      type="number"
-                      step="0.000001"
-                      placeholder="0.000000"
-                      className="h-9"
-                    />
-                  </div>
+                <div className="col-span-2">
+                  <FormInput
+                    control={detailTempForm.control}
+                    name="temp_unit_price_estimated"
+                    label="P. Unit."
+                    type="number"
+                    step="0.000001"
+                    placeholder="0.000000"
+                    className="h-9"
+                  />
+                </div>
 
-                  <div className="col-span-2 flex gap-1">
+                <div className="col-span-2 flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddDetail}
+                    disabled={
+                      !currentDetail.product_id ||
+                      !currentDetail.quantity_requested ||
+                      !currentDetail.unit_price_estimated
+                    }
+                    className="h-9 flex-1 px-2"
+                  >
+                    {editingDetailIndex !== null ? (
+                      <>
+                        <Pencil className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Actualizar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Agregar</span>
+                      </>
+                    )}
+                  </Button>
+                  {editingDetailIndex !== null && (
                     <Button
                       type="button"
                       size="sm"
-                      onClick={handleAddDetail}
-                      disabled={
-                        !currentDetail.product_id ||
-                        !currentDetail.quantity_requested ||
-                        !currentDetail.unit_price_estimated
-                      }
-                      className="h-9 flex-1 px-2"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingDetailIndex(null);
+                        setCurrentDetail({
+                          product_id: "",
+                          quantity_requested: "",
+                          unit_price_estimated: "",
+                          subtotal: 0,
+                        });
+                        detailTempForm.reset({
+                          temp_product_id: "",
+                          temp_quantity_requested: "",
+                          temp_unit_price_estimated: "",
+                        });
+                      }}
+                      className="h-9 px-2"
                     >
-                      {editingDetailIndex !== null ? (
-                        <>
-                          <Pencil className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Act.</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Agr.</span>
-                        </>
-                      )}
+                      <span className="text-xs">X</span>
                     </Button>
-                    {editingDetailIndex !== null && (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditingDetailIndex(null);
-                          setCurrentDetail({
-                            product_id: "",
-                            quantity_requested: "",
-                            unit_price_estimated: "",
-                            subtotal: 0,
-                          });
-                          detailTempForm.reset({
-                            temp_product_id: "",
-                            temp_quantity_requested: "",
-                            temp_unit_price_estimated: "",
-                          });
-                        }}
-                        className="h-9 px-2"
-                      >
-                        <span className="text-xs">X</span>
-                      </Button>
-                    )}
-                  </div>
+                  )}
                 </div>
+              </div>
 
-                {/* Tabla de detalles */}
-                {details.length > 0 ? (
-                  <div className="border rounded-lg overflow-hidden mt-4">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Producto</TableHead>
-                          <TableHead className="text-right">Cantidad</TableHead>
-                          <TableHead className="text-right">P. Unit.</TableHead>
-                          <TableHead className="text-right">Subtotal</TableHead>
-                          <TableHead className="w-16"></TableHead>
+              {/* Tabla de detalles */}
+              {details.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Cantidad</TableHead>
+                        <TableHead className="text-right">P. Unit.</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead className="w-16"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {details.map((detail, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{detail.product_name}</TableCell>
+                          <TableCell className="text-right">
+                            {detail.quantity_requested}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(
+                              parseFloat(detail.unit_price_estimated),
+                              { currencySymbol: "S/.", decimals: 6 }
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-primary">
+                            {formatCurrency(detail.subtotal, {
+                              currencySymbol: "S/.",
+                              decimals: 6,
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditDetail(index)}
+                                className="h-7 w-7"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveDetail(index)}
+                                className="h-7 w-7"
+                              >
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {details.map((detail, index) => (
-                          <TableRow key={index}>
-                            <TableCell>{detail.product_name}</TableCell>
-                            <TableCell className="text-right">
-                              {detail.quantity_requested}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {formatCurrency(
-                                parseFloat(detail.unit_price_estimated),
-                                { currencySymbol: "S/.", decimals: 6 }
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-primary">
-                              {formatCurrency(detail.subtotal, {
-                                currencySymbol: "S/.",
-                                decimals: 6,
-                              })}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleEditDetail(index)}
-                                  className="h-7 w-7"
-                                >
-                                  <Pencil className="h-3 w-3" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => handleRemoveDetail(index)}
-                                  className="h-7 w-7"
-                                >
-                                  <Trash2 className="h-3 w-3 text-red-500" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="No hay detalles agregados"
-                    description="Complete el formulario arriba para agregar productos"
-                    icon={ShoppingCart}
-                  />
-                )}
-              </GroupFormSection>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <EmptyState
+                  title="No hay detalles agregados"
+                  description="Complete el formulario arriba para agregar productos"
+                  icon={ShoppingCart}
+                />
+              )}
+            </GroupFormSection>
           </div>
 
           {/* Columna derecha: Resumen - sticky */}

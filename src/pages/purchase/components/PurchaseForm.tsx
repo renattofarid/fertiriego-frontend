@@ -723,12 +723,12 @@ export const PurchaseForm = ({
                       {editingDetailIndex !== null ? (
                         <>
                           <Pencil className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Act.</span>
+                          <span className="text-xs">Actualizar</span>
                         </>
                       ) : (
                         <>
                           <Plus className="h-3 w-3 mr-1" />
-                          <span className="text-xs">Agr.</span>
+                          <span className="text-xs">Agregar</span>
                         </>
                       )}
                     </Button>

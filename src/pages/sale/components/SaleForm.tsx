@@ -39,6 +39,7 @@ import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
@@ -122,6 +123,11 @@ export const SaleForm = ({
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [customersList, setCustomersList] =
     useState<PersonResource[]>(customers);
+
+  // Estado para el modal de crear almacén
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [warehousesList, setWarehousesList] =
+    useState<WarehouseResource[]>(warehouses);
 
   // Obtener productos del almacén seleccionado
   const { data: warehouseProducts, isLoading: isLoadingWarehouseProducts } =
@@ -216,12 +222,27 @@ export const SaleForm = ({
     setCustomersList(customers);
   }, [customers]);
 
+  // Actualizar lista de almacenes cuando cambie la prop
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
   // Función para manejar la creación de un nuevo cliente
   const handleClientCreated = (newClient: PersonResource) => {
     // Agregar el nuevo cliente a la lista
     setCustomersList((prev) => [...prev, newClient]);
     // Seleccionar automáticamente el nuevo cliente
     form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  // Función para manejar la creación de un nuevo almacén
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    // Agregar el nuevo almacén a la lista
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    // Seleccionar automáticamente el nuevo almacén
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
       shouldValidate: true,
     });
   };
@@ -854,17 +875,33 @@ export const SaleForm = ({
                 )}
               </div>
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    placeholder="Seleccione un almacén"
+                    options={warehousesList.map((warehouse) => ({
+                      value: warehouse.id.toString(),
+                      label: warehouse.name,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
               <FormSelect
                 control={form.control}
@@ -1527,6 +1564,13 @@ export const SaleForm = ({
         open={isClientModalOpen}
         onClose={() => setIsClientModalOpen(false)}
         onClientCreated={handleClientCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
       />
     </Form>
   );
