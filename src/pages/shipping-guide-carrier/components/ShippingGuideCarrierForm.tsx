@@ -35,6 +35,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { GuideResource } from "@/pages/guide/lib/guide.interface";
+import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import { toast } from "sonner";
 
 export type ShippingGuideCarrierFormValues = {
@@ -172,6 +173,7 @@ export function ShippingGuideCarrierForm({
   });
 
   const transportModality = form.watch("transport_modality");
+  const selectedGuideId = form.watch("shipping_guide_remittent_id");
 
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
@@ -191,6 +193,46 @@ export function ShippingGuideCarrierForm({
       setDetails(mappedDetails);
     }
   }, [initialValues, products]);
+
+  // Cargar detalles cuando se selecciona una guía de remisión
+  useEffect(() => {
+    const loadGuideDetails = async () => {
+      if (!selectedGuideId || selectedGuideId === "") {
+        return;
+      }
+
+      try {
+        const response = await findGuideById(parseInt(selectedGuideId));
+        const guide = response.data;
+
+        if (guide.details && guide.details.length > 0) {
+          const mappedDetails: DetailRow[] = guide.details.map((detail) => {
+            const product = products.find(
+              (p) => p.id === detail.product_id
+            );
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product_name || product?.name || "Producto desconocido",
+              brand_name: product?.brand_name,
+              description: detail.description || "",
+              quantity: parseFloat(detail.quantity) || 0,
+              unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
+              weight: parseFloat(detail.weight) || 0,
+            };
+          });
+          setDetails(mappedDetails);
+          toast.success(`Se cargaron ${mappedDetails.length} detalles de la guía ${guide.full_guide_number}`);
+        } else {
+          toast.info("La guía seleccionada no tiene detalles");
+        }
+      } catch (error) {
+        console.error("Error loading guide details:", error);
+        toast.error("Error al cargar los detalles de la guía");
+      }
+    };
+
+    loadGuideDetails();
+  }, [selectedGuideId, products]);
 
   // Buscar ubigeos origen
   const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
