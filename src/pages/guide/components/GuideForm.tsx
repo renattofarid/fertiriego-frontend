@@ -854,7 +854,6 @@ export const GuideForm = ({
                       placeholder="Selecciona un producto"
                       classNameDiv="md:col-span-2"
                       buttonSize="default"
-                      className="md:w-full"
                     />
 
                     <div>

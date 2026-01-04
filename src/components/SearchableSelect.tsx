@@ -157,24 +157,24 @@ export function SearchableSelect({
       size={buttonSize}
       disabled={disabled}
       className={cn(
-        "flex md:w-fit w-full items-center justify-between rounded-md border px-3 text-xs md:text-sm",
+        "flex w-full items-center justify-between rounded-md border px-3 text-xs md:text-sm overflow-hidden",
         selected && "bg-muted text-muted-foreground",
         className
       )}
     >
-      <span className="text-nowrap! line-clamp-1">
+      <span className="truncate min-w-0 flex-1 text-left block">
         {selected
           ? typeof selected.label === "function"
             ? selected.label()
             : selected.label
           : placeholder}
       </span>
-      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+      <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50 shrink-0" />
     </Button>
   );
 
   return (
-    <div className={cn("flex flex-col gap-2", classNameDiv)}>
+    <div className={cn("flex flex-col gap-2 min-w-0", classNameDiv)}>
       {label && <label className="text-sm font-medium">{label}</label>}
       {isMobile ? (
         <Drawer
@@ -207,7 +207,7 @@ export function SearchableSelect({
         >
           <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
           <PopoverContent
-            className="p-0 w-(--radix-popover-trigger-width)!"
+            className="p-0 min-w-(--radix-popover-trigger-width)!"
             onWheel={(e) => e.stopPropagation()}
             onWheelCapture={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
