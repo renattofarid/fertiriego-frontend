@@ -37,6 +37,7 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
 import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
+import { errorToast } from "@/lib/core.function";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -339,7 +340,7 @@ export const GuideForm = ({
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
-      alert("Seleccione producto y cantidad");
+      errorToast("Seleccione producto y cantidad");
       return;
     }
 
@@ -913,6 +914,9 @@ export const GuideForm = ({
                         onClick={handleAddDetail}
                         size="sm"
                         className="w-full"
+                        disabled={
+                          !currentDetail.product_id || !currentDetail.quantity
+                        }
                       >
                         {editingDetailIndex !== null ? (
                           <>

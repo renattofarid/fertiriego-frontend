@@ -15,7 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Plus, Trash2, Pencil, Truck, MapPin, Package2 } from "lucide-react";
+import {
+  Loader,
+  Plus,
+  Trash2,
+  Pencil,
+  Truck,
+  MapPin,
+  Package2,
+} from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -37,6 +45,7 @@ import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
 import { OrderProductSelector } from "./OrderProductSelector";
 import { findOrderById } from "@/pages/order/lib/order.actions";
+import { errorToast } from "@/lib/core.function";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -168,7 +177,9 @@ export const GuideForm = ({
   });
 
   // Estado para pedido seleccionado
-  const [selectedOrder, setSelectedOrder] = useState<OrderResource | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderResource | null>(
+    null
+  );
   const [loadingOrder, setLoadingOrder] = useState(false);
 
   // Estado local para ubigeos de origen
@@ -294,7 +305,7 @@ export const GuideForm = ({
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
-      alert("Seleccione producto y cantidad");
+      errorToast("Seleccione producto y cantidad");
       return;
     }
 
