@@ -5,6 +5,7 @@ import type {
   OrderResourceById,
   CreateOrderRequest,
   UpdateOrderRequest,
+  PendingDetailsResponse,
 } from "./order.interface";
 import { ORDER_ENDPOINT } from "./order.interface";
 
@@ -74,6 +75,15 @@ export const deleteOrder = async (
 ): Promise<{ message: string }> => {
   const response = await api.delete<{ message: string }>(
     `${ORDER_ENDPOINT}/${id}`
+  );
+  return response.data;
+};
+
+export const getPendingOrderDetails = async (
+  id: number
+): Promise<PendingDetailsResponse> => {
+  const response = await api.get<PendingDetailsResponse>(
+    `${ORDER_ENDPOINT}/${id}/pending-details`
   );
   return response.data;
 };
