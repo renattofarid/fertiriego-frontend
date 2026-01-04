@@ -22,22 +22,46 @@ const badgeVariants = cva(
           "border-transparent bg-ghost text-ghost-foreground hover:bg-ghost/80",
         orange:
           "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-950 dark:text-orange-200 dark:border-orange-800",
+        "orange-outline":
+          "bg-transparent text-orange-600 border-orange-600 dark:text-orange-300 dark:border-orange-300",
         green:
           "bg-green-100 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-200 dark:border-green-800",
+        "green-outline":
+          "bg-transparent text-green-600 border-green-600 dark:text-green-300 dark:border-green-300",
         blue: "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-950 dark:text-blue-200 dark:border-blue-800",
+        "blue-outline":
+          "bg-transparent text-blue-600 border-blue-600 dark:text-blue-300 dark:border-blue-300",
         red: "bg-red-100 text-red-700 border-red-300 dark:bg-red-950 dark:text-red-200 dark:border-red-800",
+        "red-outline":
+          "bg-transparent text-red-600 border-red-600 dark:text-red-300 dark:border-red-300",
         yellow:
           "bg-yellow-100 text-yellow-700 border-yellow-300 dark:bg-yellow-950 dark:text-yellow-200 dark:border-yellow-800",
+        "yellow-outline":
+          "bg-transparent text-yellow-600 border-yellow-600 dark:text-yellow-300 dark:border-yellow-300",
         purple:
           "bg-purple-100 text-purple-700 border-purple-300 dark:bg-purple-950 dark:text-purple-200 dark:border-purple-800",
+        "purple-outline":
+          "bg-transparent text-purple-600 border-purple-600 dark:text-purple-300 dark:border-purple-300",
         pink: "bg-pink-100 text-pink-700 border-pink-300 dark:bg-pink-950 dark:text-pink-200 dark:border-pink-800",
+        "pink-outline":
+          "bg-transparent text-pink-600 border-pink-600 dark:text-pink-300 dark:border-pink-300",
         indigo:
           "bg-indigo-100 text-indigo-700 border-indigo-300 dark:bg-indigo-950 dark:text-indigo-200 dark:border-indigo-800",
+        "indigo-outline":
+          "bg-transparent text-indigo-600 border-indigo-600 dark:text-indigo-300 dark:border-indigo-300",
         teal: "bg-teal-100 text-teal-700 border-teal-300 dark:bg-teal-950 dark:text-teal-200 dark:border-teal-800",
+        "teal-outline":
+          "bg-transparent text-teal-600 border-teal-600 dark:text-teal-300 dark:border-teal-300",
         cyan: "bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-950 dark:text-cyan-200 dark:border-cyan-800",
+        "cyan-outline":
+          "bg-transparent text-cyan-600 border-cyan-600 dark:text-cyan-300 dark:border-cyan-300",
         gray: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-950 dark:text-gray-200 dark:border-gray-800",
+        "gray-outline":
+          "bg-transparent text-gray-600 border-gray-600 dark:text-gray-300 dark:border-gray-300",
         amber:
           "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-800",
+        "amber-outline":
+          "bg-transparent text-amber-600 border-amber-600 dark:text-amber-300 dark:border-amber-300",
       },
       size: {
         default: "px-2.5 py-0.5 text-xs",

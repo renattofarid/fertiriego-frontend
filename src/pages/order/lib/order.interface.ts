@@ -99,6 +99,56 @@ export interface OrderResourceById {
   data: OrderResource;
 }
 
+// ===== PENDING DETAILS =====
+
+export interface PendingDetailResource {
+  id: number;
+  product_id: number;
+  product_name: string;
+  product_code: string;
+  quantity_total: string;
+  quantity_shipped: string;
+  quantity_pending: number;
+  unit_price: string;
+  purchase_price: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+  is_igv: boolean;
+}
+
+export interface ShippingProgress {
+  total_quantity: number;
+  shipped_quantity: number;
+  pending_quantity: number;
+  progress_percentage: number;
+  is_fully_shipped: boolean;
+}
+
+export interface PendingDetailsResponse {
+  message: string;
+  data: {
+    order: {
+      id: number;
+      order_number: string;
+      order_date: string;
+      status: string;
+      customer: {
+        id: number;
+        name: string;
+        document_number: string;
+      };
+      warehouse: {
+        id: number;
+        name: string;
+      };
+    };
+    pending_details: PendingDetailResource[];
+    shipping_progress: ShippingProgress;
+    has_pending_items: boolean;
+  };
+}
+
 // ===== API RESPONSES =====
 
 export interface OrderResponse {

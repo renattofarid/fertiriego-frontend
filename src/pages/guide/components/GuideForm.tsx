@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Loader, Plus, Trash2, Pencil, Truck, Package2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -35,7 +36,8 @@ import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
-import { findOrderById } from "@/pages/order/lib/order.actions";
+import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
+import { errorToast } from "@/lib/core.function";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -170,6 +172,7 @@ export const GuideForm = ({
 
   // Estado para pedido seleccionado
   const [loadingOrder, setLoadingOrder] = useState(false);
+  const [hasNoPendingDetails, setHasNoPendingDetails] = useState(false);
 
   // Estado local para ubigeos de origen
   const [originUbigeos, setOriginUbigeos] = useState<UbigeoResource[]>([]);
@@ -230,39 +233,50 @@ export const GuideForm = ({
   const transportModality = form.watch("transport_modality");
   const orderId = form.watch("order_id");
 
-  // Cargar orden cuando se selecciona y llenar detalles automáticamente
+  // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
         setLoadingOrder(true);
+        setHasNoPendingDetails(false);
         try {
-          const response = await findOrderById(Number(orderId));
+          const response = await getPendingOrderDetails(Number(orderId));
 
-          // Llenar automáticamente los detalles con los productos del pedido
-          if (response.data && response.data.order_details) {
-            const orderDetails: DetailRow[] = response.data.order_details.map((detail: any) => ({
-              product_id: detail.product_id,
-              product_name: detail.product?.name || "Producto",
-              description: detail.product?.name || "Producto",
-              quantity: detail.quantity.toString(),
-              unit_measure: "UND",
-              weight: "0",
-            }));
-            setDetails(orderDetails);
+          // Llenar automáticamente los detalles con los productos pendientes del pedido
+          if (response.data && response.data.pending_details) {
+            // Verificar si hay detalles pendientes
+            if (response.data.pending_details.length === 0) {
+              setHasNoPendingDetails(true);
+              setDetails([]);
+            } else {
+              setHasNoPendingDetails(false);
+              const orderDetails: DetailRow[] =
+                response.data.pending_details.map((detail) => ({
+                  product_id: detail.product_id,
+                  product_name: detail.product_name,
+                  description: detail.product_name,
+                  quantity: detail.quantity_pending.toString(),
+                  unit_measure: "UND",
+                  weight: "0",
+                }));
+              setDetails(orderDetails);
+            }
 
-            // Si el pedido tiene driver_id, establecerlo en el formulario
-            const orderData = response.data as any;
+            // Si el pedido tiene driver_id en el objeto order, establecerlo
+            const orderData = response.data.order as any;
             if (orderData.driver_id) {
               form.setValue("driver_id", orderData.driver_id.toString());
             }
           }
         } catch (error) {
-          console.error("Error loading order:", error);
+          console.error("Error loading order pending details:", error);
+          setHasNoPendingDetails(false);
         } finally {
           setLoadingOrder(false);
         }
       } else {
         // Si se deselecciona el pedido, limpiar los detalles
+        setHasNoPendingDetails(false);
         if (mode === "create") {
           setDetails([]);
         }
@@ -326,7 +340,7 @@ export const GuideForm = ({
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
-      alert("Seleccione producto y cantidad");
+      errorToast("Seleccione producto y cantidad");
       return;
     }
 
@@ -512,6 +526,9 @@ export const GuideForm = ({
               <div className="absolute right-2 top-9">
                 <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
+            )}
+            {hasNoPendingDetails && orderId && (
+              <Badge variant="amber-outline">Sin productos pendientes</Badge>
             )}
           </div>
           <FormSelect
@@ -807,131 +824,133 @@ export const GuideForm = ({
           icon={Truck}
           cols={{ sm: 1, md: 3 }}
         >
-            <FormField
-              control={form.control}
-              name="details"
-              render={() => (
-                <FormItem className="col-span-full">
-                  <div className="space-y-4">
-                    {/* Formulario para agregar detalles */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
-                      <SearchableSelect
-                        label="Producto"
-                        options={products.map((product) => ({
-                          value: product.id.toString(),
-                          label: product.name,
-                          description: product.brand_name,
-                        }))}
-                        withValue
-                        value={currentDetail.product_id.toString()}
-                        onChange={(value) => {
-                          const productId = Number(value);
-                          const selected = products.find(
-                            (p) => p.id === productId
-                          );
+          <FormField
+            control={form.control}
+            name="details"
+            render={() => (
+              <FormItem className="col-span-full">
+                <div className="space-y-4">
+                  {/* Formulario para agregar detalles */}
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
+                    <SearchableSelect
+                      label="Producto"
+                      options={products.map((product) => ({
+                        value: product.id.toString(),
+                        label: product.name,
+                        description: product.brand_name,
+                      }))}
+                      withValue
+                      value={currentDetail.product_id.toString()}
+                      onChange={(value) => {
+                        const productId = Number(value);
+                        const selected = products.find(
+                          (p) => p.id === productId
+                        );
+                        setCurrentDetail({
+                          ...currentDetail,
+                          product_id: productId,
+                          description: selected?.name || "",
+                        });
+                      }}
+                      placeholder="Selecciona un producto"
+                      classNameDiv="md:col-span-2"
+                      buttonSize="default"
+                    />
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Cantidad
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="Cantidad"
+                        value={currentDetail.quantity}
+                        onChange={(e) =>
                           setCurrentDetail({
                             ...currentDetail,
-                            product_id: productId,
-                            description: selected?.name || "",
-                          });
-                        }}
-                        placeholder="Selecciona un producto"
-                        classNameDiv="md:col-span-2"
-                        buttonSize="default"
-                        className="md:w-full"
-                      />
-
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Cantidad
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="Cantidad"
-                          value={currentDetail.quantity}
-                          onChange={(e) =>
-                            setCurrentDetail({
-                              ...currentDetail,
-                              quantity: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <SearchableSelect
-                        label="Unidad"
-                        options={UNIT_MEASUREMENTS.map((unit) => ({
-                          value: unit.value,
-                          label: unit.label,
-                        }))}
-                        value={currentDetail.unit_measure}
-                        onChange={(value) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            unit_measure: value,
+                            quantity: e.target.value,
                           })
                         }
-                        buttonSize="default"
-                        placeholder="Selecciona unidad"
                       />
-
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Peso
-                        </label>
-                        <Input
-                          type="number"
-                          placeholder="Peso"
-                          value={currentDetail.weight}
-                          onChange={(e) =>
-                            setCurrentDetail({
-                              ...currentDetail,
-                              weight: e.target.value,
-                            })
-                          }
-                        />
-                      </div>
-
-                      <div className="flex items-end">
-                        <Button
-                          type="button"
-                          onClick={handleAddDetail}
-                          size="sm"
-                          className="w-full"
-                        >
-                          {editingDetailIndex !== null ? (
-                            <>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Actualizar
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="mr-2 h-4 w-4" />
-                              Agregar
-                            </>
-                          )}
-                        </Button>
-                      </div>
                     </div>
 
-                    {/* Tabla de detalles */}
-                    {details.length > 0 && (
-                      <DataTable
-                        columns={createDetailColumns(
-                          products,
-                          handleEditDetail,
-                          handleDeleteDetail
-                        )}
-                        data={details}
-                        isLoading={false}
-                        variant="ghost"
+                    <SearchableSelect
+                      label="Unidad"
+                      options={UNIT_MEASUREMENTS.map((unit) => ({
+                        value: unit.value,
+                        label: unit.label,
+                      }))}
+                      value={currentDetail.unit_measure}
+                      onChange={(value) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          unit_measure: value,
+                        })
+                      }
+                      buttonSize="default"
+                      placeholder="Selecciona unidad"
+                    />
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">
+                        Peso
+                      </label>
+                      <Input
+                        type="number"
+                        placeholder="Peso"
+                        value={currentDetail.weight}
+                        onChange={(e) =>
+                          setCurrentDetail({
+                            ...currentDetail,
+                            weight: e.target.value,
+                          })
+                        }
                       />
-                    )}
+                    </div>
+
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        onClick={handleAddDetail}
+                        size="sm"
+                        className="w-full"
+                        disabled={
+                          !currentDetail.product_id || !currentDetail.quantity
+                        }
+                      >
+                        {editingDetailIndex !== null ? (
+                          <>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Actualizar
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Agregar
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+                  {/* Tabla de detalles */}
+                  {details.length > 0 && (
+                    <DataTable
+                      columns={createDetailColumns(
+                        products,
+                        handleEditDetail,
+                        handleDeleteDetail
+                      )}
+                      data={details}
+                      isLoading={false}
+                      variant="ghost"
+                    />
+                  )}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </GroupFormSection>
 
         {/* <pre>
