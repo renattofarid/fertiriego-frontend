@@ -18,6 +18,7 @@ import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
+import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 
 export default function ShippingGuideCarrierEditPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
@@ -34,6 +35,7 @@ export default function ShippingGuideCarrierEditPage() {
   const { data: products = [], isLoading: loadingProducts } = useAllProducts();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
+  const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
 
   // Cargar guía al montar
   useEffect(() => {
@@ -46,6 +48,7 @@ export default function ShippingGuideCarrierEditPage() {
     loadingSuppliers ||
     loadingVehicles ||
     loadingProducts ||
+    loadingGuides ||
     !workers ||
     !remittents ||
     !recipients ||
@@ -70,12 +73,14 @@ export default function ShippingGuideCarrierEditPage() {
 
   // Mapear datos de la guía a initialValues
   const initialValues: ShippingGuideCarrierFormValues = {
+    transport_modality: "PRIVADO",
     carrier_id: guide.carrier.id.toString(),
     issue_date: guide.issue_date,
     transfer_start_date: guide.transfer_start_date,
     remittent_id: guide.remittent?.id?.toString() || "",
     recipient_id: guide.recipient?.id?.toString() || "",
-    driver_id: guide.driver.id.toString(),  
+    shipping_guide_remittent_id: "",
+    driver_id: guide.driver.id.toString(),
     vehicle_id: guide.vehicle.id.toString(),
     secondary_vehicle_id: guide.secondary_vehicle?.id.toString() || "",
     driver_license: guide.driver_license,
@@ -105,6 +110,7 @@ export default function ShippingGuideCarrierEditPage() {
       drivers={workers || []}
       vehicles={vehicles || []}
       products={products || []}
+      guides={guides || []}
     />
   );
 }

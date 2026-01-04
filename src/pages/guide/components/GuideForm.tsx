@@ -15,14 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader, Plus, Trash2, Pencil, Truck, MapPin } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Truck, Package2 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { guideSchema, type GuideSchema } from "../lib/guide.schema";
 import { searchUbigeos } from "../lib/ubigeo.actions";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
-import { type GuideMotiveResource } from "../lib/guide.interface";
+import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -30,10 +30,12 @@ import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/warehouse-document.interface";
+import type { OrderResource } from "@/pages/order/lib/order.interface";
 import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
+import { findOrderById } from "@/pages/order/lib/order.actions";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -51,6 +53,8 @@ interface GuideFormProps {
   purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
   recipients: PersonResource[];
+  remittents: PersonResource[];
+  orders: OrderResource[];
 }
 
 interface DetailRow {
@@ -126,11 +130,6 @@ const createDetailColumns = (
   },
 ];
 
-const MODALITIES = [
-  { value: "PUBLICO", label: "Transporte Público" },
-  { value: "PRIVADO", label: "Transporte Privado" },
-];
-
 const UNIT_MEASUREMENTS = [
   { value: "KGM", label: "Kilogramos (KGM)" },
   { value: "TNE", label: "Toneladas (TNE)" },
@@ -154,6 +153,8 @@ export const GuideForm = ({
   purchases,
   warehouseDocuments,
   recipients,
+  remittents,
+  orders,
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
@@ -166,6 +167,9 @@ export const GuideForm = ({
     unit_measure: "UND",
     weight: "",
   });
+
+  // Estado para pedido seleccionado
+  const [loadingOrder, setLoadingOrder] = useState(false);
 
   // Estado local para ubigeos de origen
   const [originUbigeos, setOriginUbigeos] = useState<UbigeoResource[]>([]);
@@ -218,9 +222,55 @@ export const GuideForm = ({
     resolver: zodResolver(guideSchema) as any,
     defaultValues: {
       ...defaultValues,
+      transport_modality: defaultValues.transport_modality || "PRIVADO",
     },
     mode: "onChange",
   });
+
+  const transportModality = form.watch("transport_modality");
+  const orderId = form.watch("order_id");
+
+  // Cargar orden cuando se selecciona y llenar detalles automáticamente
+  useEffect(() => {
+    const loadOrder = async () => {
+      if (orderId && orderId !== "") {
+        setLoadingOrder(true);
+        try {
+          const response = await findOrderById(Number(orderId));
+
+          // Llenar automáticamente los detalles con los productos del pedido
+          if (response.data && response.data.order_details) {
+            const orderDetails: DetailRow[] = response.data.order_details.map((detail: any) => ({
+              product_id: detail.product_id,
+              product_name: detail.product?.name || "Producto",
+              description: detail.product?.name || "Producto",
+              quantity: detail.quantity.toString(),
+              unit_measure: "UND",
+              weight: "0",
+            }));
+            setDetails(orderDetails);
+
+            // Si el pedido tiene driver_id, establecerlo en el formulario
+            const orderData = response.data as any;
+            if (orderData.driver_id) {
+              form.setValue("driver_id", orderData.driver_id.toString());
+            }
+          }
+        } catch (error) {
+          console.error("Error loading order:", error);
+        } finally {
+          setLoadingOrder(false);
+        }
+      } else {
+        // Si se deselecciona el pedido, limpiar los detalles
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadOrder();
+  }, [orderId, mode]);
 
   // Establecer fechas automáticamente
   useEffect(() => {
@@ -248,6 +298,31 @@ export const GuideForm = ({
       setDetails(formattedDetails);
     }
   }, []);
+
+  // Sincronizar details con el form cuando cambien
+  useEffect(() => {
+    if (details.length > 0) {
+      const formatted = details.map((detail) => ({
+        product_id: detail.product_id.toString(),
+        description:
+          detail.description ||
+          products.find((p) => p.id === detail.product_id)?.name ||
+          "",
+        quantity: Number(detail.quantity),
+        unit_measure: detail.unit_measure,
+        weight: Number(detail.weight || 0),
+      }));
+
+      // Solo actualizar si realmente hay cambios
+      const currentFormDetails = form.getValues("details") || [];
+      if (JSON.stringify(currentFormDetails) !== JSON.stringify(formatted)) {
+        form.setValue("details", formatted as any, { shouldValidate: false });
+      }
+    } else {
+      // Si no hay details, limpiar el form
+      form.setValue("details", [], { shouldValidate: false });
+    }
+  }, [details, products, form]);
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
@@ -290,20 +365,6 @@ export const GuideForm = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
-  useEffect(() => {
-    const formatted = details.map((detail) => ({
-      product_id: detail.product_id.toString(),
-      description:
-        detail.description ||
-        products.find((p) => p.id === detail.product_id)?.name ||
-        "",
-      quantity: Number(detail.quantity),
-      unit_measure: detail.unit_measure,
-      weight: Number(detail.weight || 0),
-    }));
-    form.setValue("details", formatted as any, { shouldValidate: true });
-  }, [details, form, products]);
-
   const handleFormSubmit = (data: any) => {
     const hasCurrentDetail =
       currentDetail.product_id && currentDetail.quantity?.trim() !== "";
@@ -329,6 +390,8 @@ export const GuideForm = ({
     };
 
     console.log("✅ Payload siendo enviado:", payload);
+    console.log("✅ Details state:", details);
+    console.log("✅ Form details value:", form.getValues("details"));
     onSubmit(payload);
   };
 
@@ -411,12 +474,46 @@ export const GuideForm = ({
           />
         </GroupFormSection>
 
-        {/* Información Opcional */}
+        {/* Referencias Documentales */}
         <GroupFormSection
-          title="Información Opcional"
-          icon={Truck}
+          title="Referencias Documentales (Opcional)"
+          icon={Package2}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
+          <FormSelect
+            control={form.control}
+            name="remittent_id"
+            label="Remitente"
+            placeholder="Seleccione un remitente"
+            options={remittents.map((remittent) => ({
+              value: remittent.id.toString(),
+              label:
+                remittent.business_name ||
+                `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
+              description: remittent.number_document,
+            }))}
+            withValue
+          />
+
+          <div className="relative">
+            <FormSelect
+              control={form.control}
+              name="order_id"
+              label="Pedido"
+              placeholder="Seleccione un pedido"
+              options={orders.map((order) => ({
+                value: order.id.toString(),
+                label: `#${order.order_number} - ${order.customer.full_name}`,
+                description: `Fecha: ${order.order_date}`,
+              }))}
+              withValue
+            />
+            {loadingOrder && (
+              <div className="absolute right-2 top-9">
+                <Loader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
           <FormSelect
             control={form.control}
             name="sale_id"
@@ -486,9 +583,9 @@ export const GuideForm = ({
           />
         </GroupFormSection>
 
-        {/* Información de Transporte */}
+        {/* Transporte y Direcciones */}
         <GroupFormSection
-          title="Información de Transporte"
+          title="Transporte y Direcciones"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
@@ -505,67 +602,154 @@ export const GuideForm = ({
             }))}
           />
 
-          <FormSelect
-            control={form.control}
-            name="driver_id"
-            label="Conductor"
-            placeholder="Seleccione un conductor"
-            options={drivers.map((driver) => ({
-              value: driver.id.toString(),
-              label:
-                driver.business_name ||
-                `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-            }))}
-          />
+          {transportModality === "PRIVADO" && (
+            <>
+              <FormSelect
+                control={form.control}
+                name="driver_id"
+                label="Conductor"
+                placeholder="Seleccione un conductor"
+                options={drivers.map((driver) => ({
+                  value: driver.id.toString(),
+                  label:
+                    driver.business_name ||
+                    `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
+                }))}
+              />
 
-          <FormSelect
-            control={form.control}
-            name="vehicle_id"
-            label="Vehículo"
-            placeholder="Seleccione un vehículo"
-            options={vehicles.map((vehicle) => ({
-              value: vehicle.id.toString(),
-              label: vehicle.plate,
-              description: `${vehicle.brand} ${vehicle.model}`,
-            }))}
-          />
+              <FormSelect
+                control={form.control}
+                name="vehicle_id"
+                label="Vehículo"
+                placeholder="Seleccione un vehículo"
+                options={vehicles.map((vehicle) => ({
+                  value: vehicle.id.toString(),
+                  label: vehicle.plate,
+                  description: `${vehicle.brand} ${vehicle.model}`,
+                }))}
+              />
 
-          <FormField
-            control={form.control}
-            name="driver_license"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Licencia del Conductor</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ej: B12345678"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </GroupFormSection>
+              <FormField
+                control={form.control}
+                name="driver_license"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Licencia del Conductor</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: B12345678"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={20}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-        {/* Información de Origen */}
-        <GroupFormSection
-          title="Información de Origen"
-          icon={MapPin}
-          cols={{ sm: 1, md: 2 }}
-        >
+              <FormSelect
+                control={form.control}
+                name="secondary_vehicle_id"
+                label="Vehículo Secundario (Opcional)"
+                placeholder="Seleccione un vehículo secundario"
+                options={vehicles.map((vehicle) => ({
+                  value: vehicle.id.toString(),
+                  label: vehicle.plate,
+                  description: `${vehicle.brand} ${vehicle.model}`,
+                }))}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_plate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Placa del Vehículo</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: ABC-123"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={20}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_brand"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Marca del Vehículo</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Toyota"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={100}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_model"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Modelo del Vehículo</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Hilux"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={100}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vehicle_mtc"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Certificado MTC</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: MTC123456"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={50}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+
           <FormField
             control={form.control}
             name="origin_address"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Dirección de Origen</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Dirección de origen"
+                    placeholder="Ingrese la dirección de origen"
                     {...field}
                     value={field.value || ""}
+                    maxLength={500}
                   />
                 </FormControl>
                 <FormMessage />
@@ -584,25 +768,19 @@ export const GuideForm = ({
             formatLabel={formatUbigeoLabel}
             getItemId={(ubigeo) => ubigeo.id}
           />
-        </GroupFormSection>
 
-        {/* Información de Destino */}
-        <GroupFormSection
-          title="Información de Destino"
-          icon={MapPin}
-          cols={{ sm: 1, md: 2 }}
-        >
           <FormField
             control={form.control}
             name="destination_address"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Dirección de Destino</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Dirección de destino"
+                    placeholder="Ingrese la dirección de destino"
                     {...field}
                     value={field.value || ""}
+                    maxLength={500}
                   />
                 </FormControl>
                 <FormMessage />
@@ -629,132 +807,138 @@ export const GuideForm = ({
           icon={Truck}
           cols={{ sm: 1, md: 3 }}
         >
-          <FormField
-            control={form.control}
-            name="details"
-            render={() => (
-              <FormItem className="col-span-full">
-                <div className="space-y-4">
-                  {/* Formulario para agregar detalles */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
-                    <SearchableSelect
-                      label="Producto"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                        description: product.brand_name,
-                      }))}
-                      withValue
-                      value={currentDetail.product_id.toString()}
-                      onChange={(value) => {
-                        const productId = Number(value);
-                        const selected = products.find(
-                          (p) => p.id === productId
-                        );
-                        setCurrentDetail({
-                          ...currentDetail,
-                          product_id: productId,
-                          description: selected?.name || "",
-                        });
-                      }}
-                      placeholder="Selecciona un producto"
-                      classNameDiv="md:col-span-2"
-                      buttonSize="default"
-                      className="md:w-full"
-                    />
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Cantidad
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Cantidad"
-                        value={currentDetail.quantity}
-                        onChange={(e) =>
+            <FormField
+              control={form.control}
+              name="details"
+              render={() => (
+                <FormItem className="col-span-full">
+                  <div className="space-y-4">
+                    {/* Formulario para agregar detalles */}
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
+                      <SearchableSelect
+                        label="Producto"
+                        options={products.map((product) => ({
+                          value: product.id.toString(),
+                          label: product.name,
+                          description: product.brand_name,
+                        }))}
+                        withValue
+                        value={currentDetail.product_id.toString()}
+                        onChange={(value) => {
+                          const productId = Number(value);
+                          const selected = products.find(
+                            (p) => p.id === productId
+                          );
                           setCurrentDetail({
                             ...currentDetail,
-                            quantity: e.target.value,
-                          })
-                        }
+                            product_id: productId,
+                            description: selected?.name || "",
+                          });
+                        }}
+                        placeholder="Selecciona un producto"
+                        classNameDiv="md:col-span-2"
+                        buttonSize="default"
+                        className="md:w-full"
                       />
-                    </div>
 
-                    <SearchableSelect
-                      label="Unidad"
-                      options={UNIT_MEASUREMENTS.map((unit) => ({
-                        value: unit.value,
-                        label: unit.label,
-                      }))}
-                      value={currentDetail.unit_measure}
-                      onChange={(value) =>
-                        setCurrentDetail({
-                          ...currentDetail,
-                          unit_measure: value,
-                        })
-                      }
-                      buttonSize="default"
-                      placeholder="Selecciona unidad"
-                    />
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Cantidad
+                        </label>
+                        <Input
+                          type="number"
+                          placeholder="Cantidad"
+                          value={currentDetail.quantity}
+                          onChange={(e) =>
+                            setCurrentDetail({
+                              ...currentDetail,
+                              quantity: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Peso
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Peso"
-                        value={currentDetail.weight}
-                        onChange={(e) =>
+                      <SearchableSelect
+                        label="Unidad"
+                        options={UNIT_MEASUREMENTS.map((unit) => ({
+                          value: unit.value,
+                          label: unit.label,
+                        }))}
+                        value={currentDetail.unit_measure}
+                        onChange={(value) =>
                           setCurrentDetail({
                             ...currentDetail,
-                            weight: e.target.value,
+                            unit_measure: value,
                           })
                         }
+                        buttonSize="default"
+                        placeholder="Selecciona unidad"
                       />
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Peso
+                        </label>
+                        <Input
+                          type="number"
+                          placeholder="Peso"
+                          value={currentDetail.weight}
+                          onChange={(e) =>
+                            setCurrentDetail({
+                              ...currentDetail,
+                              weight: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          onClick={handleAddDetail}
+                          size="sm"
+                          className="w-full"
+                        >
+                          {editingDetailIndex !== null ? (
+                            <>
+                              <Pencil className="mr-2 h-4 w-4" />
+                              Actualizar
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Agregar
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </div>
 
-                    <div className="flex items-end">
-                      <Button
-                        type="button"
-                        onClick={handleAddDetail}
-                        size="sm"
-                        className="w-full"
-                      >
-                        {editingDetailIndex !== null ? (
-                          <>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Actualizar
-                          </>
-                        ) : (
-                          <>
-                            <Plus className="mr-2 h-4 w-4" />
-                            Agregar
-                          </>
+                    {/* Tabla de detalles */}
+                    {details.length > 0 && (
+                      <DataTable
+                        columns={createDetailColumns(
+                          products,
+                          handleEditDetail,
+                          handleDeleteDetail
                         )}
-                      </Button>
-                    </div>
+                        data={details}
+                        isLoading={false}
+                        variant="ghost"
+                      />
+                    )}
                   </div>
-
-                  {/* Tabla de detalles */}
-                  {details.length > 0 && (
-                    <DataTable
-                      columns={createDetailColumns(
-                        products,
-                        handleEditDetail,
-                        handleDeleteDetail
-                      )}
-                      data={details}
-                      isLoading={false}
-                      variant="ghost"
-                    />
-                  )}
-                </div>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
         </GroupFormSection>
+
+        {/* <pre>
+          <code>
+            {JSON.stringify(form.formState.errors, null, 2)}
+          </code>
+        </pre> */}
 
         {/* Botones de Acción */}
         <div className="flex justify-end gap-4">

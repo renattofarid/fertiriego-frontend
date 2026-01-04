@@ -111,19 +111,27 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
       set({ isSubmitting: true, error: null });
       try {
         const request: CreateShippingGuideCarrierRequest = {
-          carrier_id: Number(data.carrier_id),
+          transport_modality: data.transport_modality,
+          carrier_id: data.carrier_id ? Number(data.carrier_id) : undefined,
           issue_date: data.issue_date,
           transfer_start_date: data.transfer_start_date,
           remittent_id: Number(data.remittent_id),
           recipient_id: data.recipient_id
             ? Number(data.recipient_id)
             : undefined,
-          driver_id: Number(data.driver_id),
-          vehicle_id: Number(data.vehicle_id),
+          driver_id: data.driver_id ? Number(data.driver_id) : undefined,
+          vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : undefined,
+          vehicle_plate: data.vehicle_plate,
+          vehicle_brand: data.vehicle_brand,
+          vehicle_model: data.vehicle_model,
+          vehicle_mtc: data.vehicle_mtc,
           secondary_vehicle_id: data.secondary_vehicle_id
             ? Number(data.secondary_vehicle_id)
             : undefined,
           driver_license: data.driver_license,
+          shipping_guide_remittent_id: data.shipping_guide_remittent_id
+            ? Number(data.shipping_guide_remittent_id)
+            : undefined,
           origin_address: data.origin_address,
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
           destination_address: data.destination_address,
@@ -154,7 +162,12 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
       set({ isSubmitting: true, error: null });
       try {
         const request: UpdateShippingGuideCarrierRequest = {
-          ...(data.carrier_id && { carrier_id: Number(data.carrier_id) }),
+          ...(data.transport_modality && {
+            transport_modality: data.transport_modality,
+          }),
+          ...(data.carrier_id !== undefined && {
+            carrier_id: data.carrier_id ? Number(data.carrier_id) : undefined,
+          }),
           ...(data.issue_date && { issue_date: data.issue_date }),
           ...(data.transfer_start_date && {
             transfer_start_date: data.transfer_start_date,
@@ -165,14 +178,27 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
               ? Number(data.recipient_id)
               : undefined,
           }),
-          ...(data.driver_id && { driver_id: Number(data.driver_id) }),
-          ...(data.vehicle_id && { vehicle_id: Number(data.vehicle_id) }),
+          ...(data.driver_id !== undefined && {
+            driver_id: data.driver_id ? Number(data.driver_id) : undefined,
+          }),
+          ...(data.vehicle_id !== undefined && {
+            vehicle_id: data.vehicle_id ? Number(data.vehicle_id) : undefined,
+          }),
+          ...(data.vehicle_plate && { vehicle_plate: data.vehicle_plate }),
+          ...(data.vehicle_brand && { vehicle_brand: data.vehicle_brand }),
+          ...(data.vehicle_model && { vehicle_model: data.vehicle_model }),
+          ...(data.vehicle_mtc && { vehicle_mtc: data.vehicle_mtc }),
           ...(data.secondary_vehicle_id !== undefined && {
             secondary_vehicle_id: data.secondary_vehicle_id
               ? Number(data.secondary_vehicle_id)
               : undefined,
           }),
           ...(data.driver_license && { driver_license: data.driver_license }),
+          ...(data.shipping_guide_remittent_id !== undefined && {
+            shipping_guide_remittent_id: data.shipping_guide_remittent_id
+              ? Number(data.shipping_guide_remittent_id)
+              : undefined,
+          }),
           ...(data.origin_address && { origin_address: data.origin_address }),
           ...(data.origin_ubigeo_id && {
             origin_ubigeo_id: Number(data.origin_ubigeo_id),

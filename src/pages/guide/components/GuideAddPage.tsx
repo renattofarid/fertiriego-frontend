@@ -20,11 +20,12 @@ import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
+import { useOrder } from "@/pages/order/lib/order.hook";
+import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
@@ -36,11 +37,16 @@ export default function GuideAddPage() {
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
   const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
   const { data: carriers, isLoading: carriersLoading } = useAllSuppliers();
-  const drivers = useAllWorkers();
+  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
-  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } = useWarehouseDocuments();
+  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
+    useWarehouseDocuments();
   const recipients = useAllPersons();
+  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
+  const { data: orders, isLoading: ordersLoading } = useOrder({
+    per_page: 1000,
+  });
 
   const { createGuide } = useGuideStore();
 
@@ -53,6 +59,7 @@ export default function GuideAddPage() {
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
+    ordersLoading ||
     !warehouses ||
     !products ||
     !motives ||
@@ -72,11 +79,19 @@ export default function GuideAddPage() {
     sale_id: "",
     purchase_id: "",
     warehouse_document_id: "",
+    order_id: "",
     transport_modality: "PUBLICO",
     carrier_id: "",
     driver_id: "",
     vehicle_id: "",
+    secondary_vehicle_id: "",
     driver_license: "",
+    vehicle_plate: "",
+    vehicle_brand: "",
+    vehicle_model: "",
+    vehicle_mtc: "",
+    remittent_id: "",
+    shipping_guide_remittent_id: "",
     origin_address: "",
     origin_ubigeo_id: "",
     destination_address: "",
@@ -153,6 +168,8 @@ export default function GuideAddPage() {
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             recipients={recipients}
+            remittents={remittents || []}
+            orders={orders || []}
           />
         )}
     </FormWrapper>

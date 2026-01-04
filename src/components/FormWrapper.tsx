@@ -12,10 +12,16 @@ interface Props {
 export default function FormWrapper({
   children,
   className,
-  maxWidth = "max-w-(--breakpoint-xl)",
+  maxWidth = "max-w-(--breakpoint-2xl)",
 }: Props) {
   return (
-    <div className={cn("w-full mx-auto md:p-4 space-y-4", className, maxWidth)}>
+    <div
+      className={cn(
+        "w-full mx-auto md:p-4 md:pt-0 space-y-4",
+        className,
+        maxWidth
+      )}
+    >
       {children}
     </div>
   );

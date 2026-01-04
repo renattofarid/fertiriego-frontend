@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
@@ -21,20 +21,12 @@ import {
 } from "../lib/purchase-order.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { PurchaseOrderDetailModal } from "./PurchaseOrderDetailModal";
-import { PurchaseOrderDetailTable } from "./PurchaseOrderDetailTable";
-import { usePurchaseOrderDetailStore } from "../lib/purchase-order-detail.store";
 
 export default function PurchaseOrderEditPage() {
   const { MODEL, ICON } = PURCHASE_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
@@ -48,8 +40,6 @@ export default function PurchaseOrderEditPage() {
     isSubmitting,
   } = usePurchaseOrderStore();
 
-  const { fetchDetails, details } = usePurchaseOrderDetailStore();
-
   const isLoading =
     suppliersLoading || warehousesLoading || productsLoading || isFinding;
 
@@ -61,12 +51,6 @@ export default function PurchaseOrderEditPage() {
 
     fetchPurchaseOrder(Number(id));
   }, [id, navigate, fetchPurchaseOrder]);
-
-  useEffect(() => {
-    if (id) {
-      fetchDetails(Number(id));
-    }
-  }, [id, fetchDetails]);
 
   const mapPurchaseOrderToForm = (
     data: PurchaseOrderResource
@@ -105,25 +89,6 @@ export default function PurchaseOrderEditPage() {
     }
   };
 
-  const handleAddDetail = () => {
-    setEditingDetailId(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditDetail = (detailId: number) => {
-    setEditingDetailId(detailId);
-    setIsModalOpen(true);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setEditingDetailId(null);
-    if (id) {
-      fetchDetails(Number(id));
-      fetchPurchaseOrder(Number(id));
-    }
-  };
-
   if (isLoading) {
     return (
       <FormWrapper>
@@ -158,55 +123,24 @@ export default function PurchaseOrderEditPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {suppliers &&
-          suppliers.length > 0 &&
-          warehouses &&
-          warehouses.length > 0 &&
-          products &&
-          products.length > 0 && (
-            <PurchaseOrderForm
-              defaultValues={mapPurchaseOrderToForm(purchaseOrder)}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode="update"
-              suppliers={suppliers}
-              warehouses={warehouses}
-              products={products}
-              purchaseOrder={purchaseOrder}
-              onCancel={() => navigate("/ordenes-compra")}
-            />
-          )}
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Detalles de la Orden</CardTitle>
-            <Button onClick={handleAddDetail}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Detalle
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <PurchaseOrderDetailTable
-              details={details || []}
-              onEdit={handleEditDetail}
-              onRefresh={() => id && fetchDetails(Number(id))}
-              totalEstimated={purchaseOrder?.total_estimated}
-              applyIgv={Boolean((purchaseOrder as any)?.apply_igv ?? false)}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      {isModalOpen && products && (
-        <PurchaseOrderDetailModal
-          open={isModalOpen}
-          onClose={handleModalClose}
-          purchaseOrderId={Number(id)}
-          products={products}
-          detailId={editingDetailId}
-        />
-      )}
+      {suppliers &&
+        suppliers.length > 0 &&
+        warehouses &&
+        warehouses.length > 0 &&
+        products &&
+        products.length > 0 && (
+          <PurchaseOrderForm
+            defaultValues={mapPurchaseOrderToForm(purchaseOrder)}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            mode="update"
+            suppliers={suppliers}
+            warehouses={warehouses}
+            products={products}
+            purchaseOrder={purchaseOrder}
+            onCancel={() => navigate("/ordenes-compra")}
+          />
+        )}
     </FormWrapper>
   );
 }

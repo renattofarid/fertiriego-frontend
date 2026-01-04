@@ -18,7 +18,7 @@ import {
   purchaseSchemaUpdate,
   type PurchaseSchema,
 } from "../lib/purchase.schema";
-import { Loader, Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import type { PurchaseResource } from "../lib/purchase.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
@@ -26,9 +26,10 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { useState, useEffect } from "react";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -37,7 +38,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DOCUMENT_TYPES,
   PAYMENT_TYPES,
@@ -45,6 +45,12 @@ import {
 } from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
 import { format } from "date-fns";
+import { GroupFormSection } from "@/components/GroupFormSection";
+import { FileText, Package, CalendarDays, ShoppingCart } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import { FormSwitch } from "@/components/FormSwitch";
+import { FormInput } from "@/components/FormInput";
+import { PurchaseSummary } from "./PurchaseSummary";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -93,6 +99,12 @@ export const PurchaseForm = ({
 
   const IGV_RATE = 0.18;
 
+  // Estado para modales
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -115,83 +127,6 @@ export const PurchaseForm = ({
     amount: "",
   });
 
-  // Formularios temporales
-  const detailTempForm = useForm({
-    defaultValues: {
-      temp_product_id: currentDetail.product_id,
-      temp_quantity: currentDetail.quantity,
-      temp_unit_price: currentDetail.unit_price,
-    },
-  });
-
-  const installmentTempForm = useForm({
-    defaultValues: {
-      temp_due_days: currentInstallment.due_days,
-      temp_amount: currentInstallment.amount,
-    },
-  });
-
-  // Watchers para detalles
-  const selectedProductId = detailTempForm.watch("temp_product_id");
-  const selectedQuantity = detailTempForm.watch("temp_quantity");
-  const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
-
-  // Watchers para cuotas
-  const selectedDueDays = installmentTempForm.watch("temp_due_days");
-  const selectedAmount = installmentTempForm.watch("temp_amount");
-
-  // Observers para detalles
-  useEffect(() => {
-    if (selectedProductId !== currentDetail.product_id) {
-      setCurrentDetail((prev) => ({
-        ...prev,
-        product_id: selectedProductId || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedProductId]);
-
-  useEffect(() => {
-    if (selectedQuantity !== currentDetail.quantity) {
-      setCurrentDetail((prev) => ({
-        ...prev,
-        quantity: selectedQuantity || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedQuantity]);
-
-  useEffect(() => {
-    if (selectedUnitPrice !== currentDetail.unit_price) {
-      setCurrentDetail((prev) => ({
-        ...prev,
-        unit_price: selectedUnitPrice || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUnitPrice]);
-
-  // Observers para cuotas
-  useEffect(() => {
-    if (selectedDueDays !== currentInstallment.due_days) {
-      setCurrentInstallment((prev) => ({
-        ...prev,
-        due_days: selectedDueDays || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDueDays]);
-
-  useEffect(() => {
-    if (selectedAmount !== currentInstallment.amount) {
-      setCurrentInstallment((prev) => ({
-        ...prev,
-        amount: selectedAmount || "",
-      }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedAmount]);
-
   const form = useForm({
     resolver: zodResolver(
       mode === "create" ? purchaseSchemaCreate : purchaseSchemaUpdate
@@ -205,11 +140,126 @@ export const PurchaseForm = ({
     mode: "onChange",
   });
 
+  // Formulario separado para el switch de IGV
+  const igvForm = useForm({
+    defaultValues: {
+      include_igv: includeIgv,
+    },
+  });
+
+  // Formulario separado para los campos temporales de detalle
+  const detailTempForm = useForm({
+    defaultValues: {
+      temp_product_id: currentDetail.product_id,
+      temp_quantity: currentDetail.quantity,
+      temp_unit_price: currentDetail.unit_price,
+    },
+  });
+
   // Watch para la orden de compra seleccionada
   const selectedPurchaseOrderId = form.watch("purchase_order_id");
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+
+  // Watch para el switch de IGV
+  const watchIncludeIgv = igvForm.watch("include_igv");
+
+  // Watch para los campos temporales de detalle
+  const watchTempProductId = detailTempForm.watch("temp_product_id");
+  const watchTempQuantity = detailTempForm.watch("temp_quantity");
+  const watchTempUnitPrice = detailTempForm.watch("temp_unit_price");
+
+  // Sincronizar el estado includeIgv con el campo del formulario
+  useEffect(() => {
+    if (watchIncludeIgv !== includeIgv) {
+      setIncludeIgv(watchIncludeIgv);
+
+      // Si hay detalles, recalcular todos los precios
+      if (details.length > 0) {
+        const updatedDetails = details.map((detail) => {
+          const quantity = parseFloat(detail.quantity);
+          const unitPrice = parseFloat(detail.unit_price);
+          let subtotal = truncDecimal(quantity * unitPrice, 6);
+          let tax = 0;
+          let total = 0;
+
+          if (watchIncludeIgv) {
+            // unitPrice incluye IGV: descomponer (truncando resultados)
+            const totalIncl = truncDecimal(quantity * unitPrice, 6);
+            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+            tax = truncDecimal(totalIncl - subtotal, 6);
+            total = totalIncl;
+          } else {
+            tax = truncDecimal(subtotal * IGV_RATE, 6); // Calcular impuesto automáticamente (18%)
+            total = truncDecimal(subtotal + tax, 6);
+          }
+
+          return {
+            ...detail,
+            tax: formatDecimalTrunc(tax, 6),
+            subtotal,
+            total,
+          };
+        });
+
+        setDetails(updatedDetails);
+        form.setValue("details", updatedDetails);
+      }
+    }
+  }, [watchIncludeIgv, includeIgv]);
+
+  // Sincronizar los campos temporales con currentDetail
+  useEffect(() => {
+    if (watchTempProductId !== currentDetail.product_id) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        product_id: watchTempProductId || "",
+      }));
+    }
+  }, [watchTempProductId, currentDetail.product_id]);
+
+  useEffect(() => {
+    if (watchTempQuantity !== currentDetail.quantity) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        quantity: watchTempQuantity || "",
+      }));
+    }
+  }, [watchTempQuantity, currentDetail.quantity]);
+
+  useEffect(() => {
+    if (watchTempUnitPrice !== currentDetail.unit_price) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        unit_price: watchTempUnitPrice || "",
+      }));
+    }
+  }, [watchTempUnitPrice, currentDetail.unit_price]);
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setSuppliersList(suppliers);
+  }, [suppliers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    setSuppliersList((prev) => [...prev, newSupplier]);
+    form.setValue("supplier_id", newSupplier.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Establecer fecha de emisión automáticamente al cargar el formulario
   useEffect(() => {
@@ -220,6 +270,10 @@ export const PurchaseForm = ({
 
   // Auto-llenar datos cuando se selecciona una orden de compra
   useEffect(() => {
+    // Limpiar detalles siempre que cambie la orden de compra seleccionada
+    setDetails([]);
+    form.setValue("details", []);
+
     if (!selectedPurchaseOrderId || selectedPurchaseOrderId === "") {
       return;
     }
@@ -234,15 +288,33 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
+    // Setear el include_igv según el apply_igv de la orden
+    // Si apply_igv = true → se le aplicó IGV → los precios NO incluyen IGV → include_igv = false
+    // Si apply_igv = false → no se le aplicó IGV → los precios ya incluyen IGV → include_igv = true
+    const applyIgvBoolean = Boolean(selectedPO.apply_igv);
+    const includeIgvValue = !applyIgvBoolean; // Lógica inversa
+    igvForm.setValue("include_igv", includeIgvValue);
+    setIncludeIgv(includeIgvValue);
+
     // Auto-llenar detalles de la orden de compra
     if (selectedPO.details && selectedPO.details.length > 0) {
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const unitPrice = parseFloat(detail.unit_price_estimated);
-        // calcular con truncación a 6 decimales
-        const subtotal = truncDecimal(quantity * unitPrice, 6);
-        const tax = truncDecimal(subtotal * IGV_RATE, 6);
-        const total = truncDecimal(subtotal + tax, 6);
+        let subtotal = truncDecimal(quantity * unitPrice, 6);
+        let tax = 0;
+        let total = 0;
+
+        if (includeIgvValue) {
+          // unitPrice incluye IGV: descomponer (truncando resultados)
+          const totalIncl = truncDecimal(quantity * unitPrice, 6);
+          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
+          tax = truncDecimal(totalIncl - subtotal, 6);
+          total = totalIncl;
+        } else {
+          tax = truncDecimal(subtotal * IGV_RATE, 6);
+          total = truncDecimal(subtotal + tax, 6);
+        }
 
         return {
           product_id: detail.product_id.toString(),
@@ -258,7 +330,7 @@ export const PurchaseForm = ({
       setDetails(poDetails);
       form.setValue("details", poDetails);
     }
-  }, [selectedPurchaseOrderId, purchaseOrders, form]);
+  }, [selectedPurchaseOrderId, purchaseOrders, form, igvForm]);
 
   // Funciones para detalles
   const handleAddDetail = () => {
@@ -311,15 +383,14 @@ export const PurchaseForm = ({
     }
 
     // Limpiar formulario y estado
-    const emptyDetail = {
+    setCurrentDetail({
       product_id: "",
       quantity: "",
       unit_price: "",
       tax: "",
       subtotal: 0,
       total: 0,
-    };
-    setCurrentDetail(emptyDetail);
+    });
     detailTempForm.reset({
       temp_product_id: "",
       temp_quantity: "",
@@ -330,11 +401,10 @@ export const PurchaseForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
-    // Actualizar formulario temporal manualmente
+    setEditingDetailIndex(index);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     detailTempForm.setValue("temp_unit_price", detail.unit_price);
-    setEditingDetailIndex(index);
   };
 
   const handleRemoveDetail = (index: number) => {
@@ -364,41 +434,6 @@ export const PurchaseForm = ({
     );
     return truncDecimal(sum, 6);
   };
-
-  // Recalcular detalles cuando cambie el modo de interpretación de precios (incluye IGV o no)
-  useEffect(() => {
-    if (!details || details.length === 0) return;
-
-    const recalculated = details.map((d) => {
-      const q = parseFloat(d.quantity || "0");
-      const up = parseFloat(d.unit_price || "0");
-      let subtotal = 0;
-      let tax = 0;
-      let total = 0;
-
-      if (includeIgv) {
-        const totalIncl = truncDecimal(q * up, 6);
-        subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
-        tax = truncDecimal(totalIncl - subtotal, 6);
-        total = totalIncl;
-      } else {
-        subtotal = truncDecimal(q * up, 6);
-        tax = truncDecimal(subtotal * IGV_RATE, 6);
-        total = truncDecimal(subtotal + tax, 6);
-      }
-
-      return {
-        ...d,
-        subtotal,
-        total,
-        tax: formatDecimalTrunc(tax, 6),
-      };
-    });
-
-    setDetails(recalculated);
-    form.setValue("details", recalculated);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [includeIgv]);
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
@@ -446,16 +481,11 @@ export const PurchaseForm = ({
       due_days: "",
       amount: "",
     });
-    installmentTempForm.setValue("temp_due_days", "");
-    installmentTempForm.setValue("temp_amount", "");
   };
 
   const handleEditInstallment = (index: number) => {
     const inst = installments[index];
     setCurrentInstallment(inst);
-    // Actualizar formulario temporal manualmente
-    installmentTempForm.setValue("temp_due_days", inst.due_days);
-    installmentTempForm.setValue("temp_amount", inst.amount);
     setEditingInstallmentIndex(index);
   };
 
@@ -531,17 +561,16 @@ export const PurchaseForm = ({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="space-y-6 w-full"
-      >
-        {/* Información General */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Columna izquierda: Formulario (2 cols) */}
+          <div className="md:col-span-2 space-y-6">
+            {/* Información General */}
+            <GroupFormSection
+              title="Información General"
+              icon={FileText}
+              cols={{ sm: 1, md: 2, lg: 3 }}
+            >
               <div className="md:col-span-2 lg:col-span-3">
                 <FormSelect
                   control={form.control}
@@ -558,35 +587,67 @@ export const PurchaseForm = ({
                 />
               </div>
 
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.business_name ??
-                    supplier.names +
-                      " " +
-                      supplier.father_surname +
-                      " " +
-                      supplier.mother_surname,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="supplier_id"
+                    label="Proveedor"
+                    placeholder="Seleccione un proveedor"
+                    options={suppliersList.map((supplier) => ({
+                      value: supplier.id.toString(),
+                      label:
+                        supplier.business_name ??
+                        supplier.names +
+                          " " +
+                          supplier.father_surname +
+                          " " +
+                          supplier.mother_surname,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsSupplierModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo proveedor"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-              <FormSelect
-                control={form.control}
-                name="warehouse_id"
-                label="Almacén"
-                placeholder="Seleccione un almacén"
-                options={warehouses.map((warehouse) => ({
-                  value: warehouse.id.toString(),
-                  label: warehouse.name,
-                }))}
-                disabled={mode === "update"}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    placeholder="Seleccione un almacén"
+                    options={warehousesList.map((warehouse) => ({
+                      value: warehouse.id.toString(),
+                      label: warehouse.name,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
               <FormSelect
                 control={form.control}
@@ -606,11 +667,7 @@ export const PurchaseForm = ({
                   <FormItem>
                     <FormLabel>Número de Documento</FormLabel>
                     <FormControl>
-                      <Input
-                        
-                        placeholder="Ej: F001-001245"
-                        {...field}
-                      />
+                      <Input placeholder="Ej: F001-001245" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -639,6 +696,16 @@ export const PurchaseForm = ({
                 }))}
               />
 
+              <div className="lg:col-span-2">
+                <FormSwitch
+                  control={igvForm.control}
+                  name="include_igv"
+                  text="Los precios incluyen IGV"
+                  textDescription="El precio unitario de los productos incluye el IGV (18%)"
+                  autoHeight
+                />
+              </div>
+
               <div className="md:col-span-2 lg:col-span-3">
                 <FormField
                   control={form.control}
@@ -658,20 +725,18 @@ export const PurchaseForm = ({
                   )}
                 />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </GroupFormSection>
 
-        {/* Detalles */}
-        {mode === "create" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Detalles de la Compra</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <div className="md:col-span-2">
-                  <Form {...detailTempForm}>
+            {/* Detalles */}
+            {mode === "create" && (
+              <GroupFormSection
+                title="Detalles de la Compra"
+                icon={Package}
+                cols={{ sm: 1 }}
+              >
+                {/* Formulario de agregar/editar en una fila */}
+                <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
+                  <div className="col-span-6">
                     <FormSelect
                       control={detailTempForm.control}
                       name="temp_product_id"
@@ -682,354 +747,356 @@ export const PurchaseForm = ({
                         label: product.name,
                       }))}
                     />
-                  </Form>
-                </div>
+                  </div>
 
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          
-                          placeholder="0"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={detailTempForm.control}
-                  name="temp_unit_price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Precio Unit.</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.000001"
-                          
-                          placeholder="0.000000"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <div className="md:col-span-4 flex items-center justify-between">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={includeIgv}
-                      onChange={(e) => setIncludeIgv(e.target.checked)}
-                      className="accent-primary"
+                  <div className="col-span-2">
+                    <FormInput
+                      control={detailTempForm.control}
+                      name="temp_quantity"
+                      label="Cantidad"
+                      type="number"
+                      placeholder="0"
+                      className="h-9"
                     />
-                    <span className="text-sm">Incluir IGV (18%)</span>
-                  </label>
+                  </div>
 
-                  <div>
+                  <div className="col-span-2">
+                    <FormInput
+                      control={detailTempForm.control}
+                      name="temp_unit_price"
+                      label="P. Unit."
+                      type="number"
+                      step="0.000001"
+                      placeholder="0.000000"
+                      className="h-9"
+                    />
+                  </div>
+
+                  <div className="col-span-2 flex gap-1">
                     <Button
                       type="button"
-                      variant="default"
+                      size="sm"
                       onClick={handleAddDetail}
                       disabled={
                         !currentDetail.product_id ||
                         !currentDetail.quantity ||
                         !currentDetail.unit_price
                       }
+                      className="h-9 flex-1 px-2"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+                      {editingDetailIndex !== null ? (
+                        <>
+                          <Pencil className="h-3 w-3 mr-1" />
+                          <span className="text-xs">Actualizar</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-3 w-3 mr-1" />
+                          <span className="text-xs">Agregar</span>
+                        </>
+                      )}
                     </Button>
+                    {editingDetailIndex !== null && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingDetailIndex(null);
+                          setCurrentDetail({
+                            product_id: "",
+                            quantity: "",
+                            unit_price: "",
+                            tax: "",
+                            subtotal: 0,
+                            total: 0,
+                          });
+                          detailTempForm.reset({
+                            temp_product_id: "",
+                            temp_quantity: "",
+                            temp_unit_price: "",
+                          });
+                        }}
+                        className="h-9 px-2"
+                      >
+                        <span className="text-xs">X</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
-              </div>
 
-              {details.length > 0 ? (
-                <div className="border rounded-lg overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Producto</TableHead>
-                        <TableHead className="text-right">Cantidad</TableHead>
-                        <TableHead className="text-right">P. Unit.</TableHead>
-                        <TableHead className="text-right">Subtotal</TableHead>
-                        <TableHead className="text-right">Impuesto</TableHead>
-                        <TableHead className="text-right">Total</TableHead>
-                        <TableHead className="text-center">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {details.map((detail, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{detail.product_name}</TableCell>
-                          <TableCell className="text-right">
-                            {detail.quantity}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {isNaN(parseFloat(detail.unit_price))
-                              ? detail.unit_price
-                              : formatNumber(parseFloat(detail.unit_price))}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(detail.subtotal)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(parseFloat(detail.tax || "0"))}
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-primary">
-                            {formatNumber(detail.total)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditDetail(index)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveDetail(index)}
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                {/* Tabla de detalles */}
+                {details.length > 0 ? (
+                  <div className="border rounded-lg overflow-hidden mt-4">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Producto</TableHead>
+                          <TableHead className="text-right">Cantidad</TableHead>
+                          <TableHead className="text-right">P. Unit.</TableHead>
+                          <TableHead className="text-right">Subtotal</TableHead>
+                          <TableHead className="text-right">Impuesto</TableHead>
+                          <TableHead className="text-right">Total</TableHead>
+                          <TableHead className="w-16"></TableHead>
                         </TableRow>
-                      ))}
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          SUBTOTAL:
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatNumber(calculateSubtotalTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {details.map((detail, index) => (
+                          <TableRow key={index}>
+                            <TableCell>{detail.product_name}</TableCell>
+                            <TableCell className="text-right">
+                              {detail.quantity}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {isNaN(parseFloat(detail.unit_price))
+                                ? detail.unit_price
+                                : formatNumber(parseFloat(detail.unit_price))}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(detail.subtotal)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {formatNumber(parseFloat(detail.tax || "0"))}
+                            </TableCell>
+                            <TableCell className="text-right font-bold text-primary">
+                              {formatNumber(detail.total)}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleEditDetail(index)}
+                                  className="h-7 w-7"
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleRemoveDetail(index)}
+                                  className="h-7 w-7"
+                                >
+                                  <Trash2 className="h-3 w-3 text-red-500" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <EmptyState
+                    title="No hay detalles agregados"
+                    description="Complete el formulario arriba para agregar productos"
+                    icon={ShoppingCart}
+                  />
+                )}
+              </GroupFormSection>
+            )}
 
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          IGV (18%):
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatNumber(calculateTaxTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-right font-bold">
-                          TOTAL:
-                        </TableCell>
-                        <TableCell className="text-right font-bold text-lg text-primary">
-                          {formatNumber(calculateDetailsTotal())}
-                        </TableCell>
-                        <TableCell></TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay detalles agregados
-                  </Badge>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Cuotas - Solo mostrar si es a crédito */}
-        {mode === "create" && selectedPaymentType === "CREDITO" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cuotas (Obligatorio)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
-                <FormField
-                  control={installmentTempForm.control}
-                  name="temp_due_days"
-                  render={({ field }) => (
+            {/* Cuotas - Solo mostrar si es a crédito */}
+            {mode === "create" && selectedPaymentType === "CREDITO" && (
+              <GroupFormSection
+                title="Cuotas (Obligatorio)"
+                icon={CalendarDays}
+                cols={{ sm: 1 }}
+              >
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
                     <FormItem>
                       <FormLabel>Días de Vencimiento</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
-                          
                           placeholder="0"
-                          {...field}
+                          value={currentInstallment.due_days}
+                          onChange={(e) =>
+                            setCurrentInstallment((prev) => ({
+                              ...prev,
+                              due_days: e.target.value,
+                            }))
+                          }
                         />
                       </FormControl>
                     </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={installmentTempForm.control}
-                  name="temp_amount"
-                  render={({ field }) => (
                     <FormItem>
                       <FormLabel>Monto</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           step="0.01"
-                          
                           placeholder="0.00"
-                          {...field}
+                          value={currentInstallment.amount}
+                          onChange={(e) =>
+                            setCurrentInstallment((prev) => ({
+                              ...prev,
+                              amount: e.target.value,
+                            }))
+                          }
                         />
                       </FormControl>
                     </FormItem>
-                  )}
-                />
 
-                <div className="flex items-end">
-                  <Button
-                    type="button"
-                    variant="default"
-                    onClick={handleAddInstallment}
-                    disabled={
-                      !currentInstallment.due_days || !currentInstallment.amount
-                    }
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {editingInstallmentIndex !== null
-                      ? "Actualizar"
-                      : "Agregar"}
-                  </Button>
-                </div>
-              </div>
+                    <div className="flex items-end">
+                      <Button
+                        type="button"
+                        variant="default"
+                        onClick={handleAddInstallment}
+                        disabled={
+                          !currentInstallment.due_days ||
+                          !currentInstallment.amount
+                        }
+                        className="w-full"
+                      >
+                        {editingInstallmentIndex !== null ? (
+                          <Pencil className="h-4 w-4 mr-2" />
+                        ) : (
+                          <Plus className="h-4 w-4 mr-2" />
+                        )}
 
-              {installments.length > 0 ? (
-                <>
-                  <div className="border rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Cuota #</TableHead>
-                          <TableHead className="text-right">
-                            Días Vencimiento
-                          </TableHead>
-                          <TableHead className="text-right">Monto</TableHead>
-                          <TableHead className="text-center">
-                            Acciones
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {installments.map((inst, index) => (
-                          <TableRow key={index}>
-                            <TableCell>Cuota {index + 1}</TableCell>
-                            <TableCell className="text-right">
-                              {inst.due_days} días
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatDecimalTrunc(parseFloat(inst.amount), 6)}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div className="flex justify-center gap-2">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleEditInstallment(index)}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveInstallment(index)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        <TableRow>
-                          <TableCell
-                            colSpan={2}
-                            className="text-right font-bold"
-                          >
-                            TOTAL CUOTAS:
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(
-                              calculateInstallmentsTotal(),
-                              6
-                            )}
-                          </TableCell>
-                          <TableCell></TableCell>
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </div>
-                  {/* Advertencia de validación */}
-                  {!installmentsMatchTotal() && (
-                    <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                      <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                        ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal())}) debe ser
-                        igual al total de la compra (
-                        {formatNumber(calculateDetailsTotal())})
-                      </p>
+                        {editingInstallmentIndex !== null
+                          ? "Actualizar"
+                          : "Agregar"}
+                      </Button>
                     </div>
+                  </div>
+
+                  {installments.length > 0 ? (
+                    <>
+                      <div className="border rounded-lg overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Cuota #</TableHead>
+                              <TableHead className="text-right">
+                                Días Vencimiento
+                              </TableHead>
+                              <TableHead className="text-right">
+                                Monto
+                              </TableHead>
+                              <TableHead className="text-center">
+                                Acciones
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {installments.map((inst, index) => (
+                              <TableRow key={index}>
+                                <TableCell>Cuota {index + 1}</TableCell>
+                                <TableCell className="text-right">
+                                  {inst.due_days} días
+                                </TableCell>
+                                <TableCell className="text-right font-semibold">
+                                  {formatDecimalTrunc(
+                                    parseFloat(inst.amount),
+                                    6
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  <div className="flex justify-center gap-2">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleEditInstallment(index)
+                                      }
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleRemoveInstallment(index)
+                                      }
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow>
+                              <TableCell
+                                colSpan={2}
+                                className="text-right font-bold"
+                              >
+                                TOTAL CUOTAS:
+                              </TableCell>
+                              <TableCell className="text-right font-bold text-lg text-blue-600">
+                                {formatDecimalTrunc(
+                                  calculateInstallmentsTotal(),
+                                  6
+                                )}
+                              </TableCell>
+                              <TableCell></TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                      {/* Advertencia de validación */}
+                      {!installmentsMatchTotal() && (
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                            ⚠️ El total de cuotas (
+                            {formatNumber(calculateInstallmentsTotal())}) debe
+                            ser igual al total de la compra (
+                            {formatNumber(calculateDetailsTotal())})
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <EmptyState
+                      title="No hay cuotas agregadas"
+                      description="Agregue las cuotas de pago para esta compra a crédito"
+                      icon={CalendarDays}
+                    />
                   )}
-                </>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Badge variant="outline" className="text-lg p-3">
-                    No hay cuotas agregadas
-                  </Badge>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
+              </GroupFormSection>
+            )}
+          </div>
 
-        {/* Botones */}
-        <div className="flex gap-4 w-full justify-end">
-          <Button type="button" variant="neutral" onClick={onCancel}>
-            Cancelar
-          </Button>
-
-          <Button
-            type="submit"
-            disabled={
-              isSubmitting ||
-              !form.formState.isValid ||
-              (mode === "create" && details.length === 0) ||
-              (mode === "create" &&
-                selectedPaymentType === "CREDITO" &&
-                installments.length === 0) ||
-              (mode === "create" &&
-                installments.length > 0 &&
-                !installmentsMatchTotal())
-            }
-          >
-            <Loader
-              className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`}
-            />
-            {isSubmitting ? "Guardando..." : "Guardar"}
-          </Button>
+          {/* Columna derecha: Resumen - sticky */}
+          <PurchaseSummary
+            form={form}
+            mode={mode}
+            isSubmitting={isSubmitting}
+            suppliers={suppliers}
+            warehouses={warehouses}
+            details={details}
+            installments={installments}
+            calculateSubtotalTotal={calculateSubtotalTotal}
+            calculateTaxTotal={calculateTaxTotal}
+            calculateDetailsTotal={calculateDetailsTotal}
+            installmentsMatchTotal={installmentsMatchTotal}
+            onCancel={onCancel}
+            selectedPaymentType={selectedPaymentType}
+          />
         </div>
       </form>
+
+      {/* Modal para crear nuevo proveedor */}
+      <SupplierCreateModal
+        open={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSupplierCreated={handleSupplierCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

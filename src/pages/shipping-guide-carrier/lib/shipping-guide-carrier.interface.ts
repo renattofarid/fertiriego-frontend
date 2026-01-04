@@ -167,15 +167,26 @@ export interface CreateShippingGuideCarrierDetailRequest {
 }
 
 export interface CreateShippingGuideCarrierRequest {
-  carrier_id: number;
+  transport_modality: string;
+  // Campos para TRANSPORTE PÚBLICO
+  carrier_id?: number | null;
+  // Campos para TRANSPORTE PRIVADO
+  driver_id?: number | null;
+  vehicle_id?: number | null;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
+  driver_license?: string;
+  // Otros campos
   issue_date: string;
   transfer_start_date: string;
   remittent_id?: number;
   recipient_id?: number;
-  driver_id: number;
-  vehicle_id: number;
   secondary_vehicle_id?: number;
-  driver_license: string;
+  order_id?: number | null;
+  shipping_guide_remittent_id?: number | null;
+  // Direcciones (pueden digitarse manualmente)
   origin_address: string;
   origin_ubigeo_id: number;
   destination_address: string;
@@ -185,15 +196,26 @@ export interface CreateShippingGuideCarrierRequest {
 }
 
 export interface UpdateShippingGuideCarrierRequest {
-  carrier_id?: number;
+  transport_modality?: string;
+  // Campos para TRANSPORTE PÚBLICO
+  carrier_id?: number | null;
+  // Campos para TRANSPORTE PRIVADO
+  driver_id?: number | null;
+  vehicle_id?: number | null;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
+  driver_license?: string;
+  // Otros campos
   issue_date?: string;
   transfer_start_date?: string;
   remittent_id?: number;
   recipient_id?: number;
-  driver_id?: number;
-  vehicle_id?: number;
   secondary_vehicle_id?: number;
-  driver_license?: string;
+  order_id?: number | null;
+  shipping_guide_remittent_id?: number | null;
+  // Direcciones
   origin_address?: string;
   origin_ubigeo_id?: number;
   destination_address?: string;

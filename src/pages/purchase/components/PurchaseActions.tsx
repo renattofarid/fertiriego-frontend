@@ -14,7 +14,7 @@ export const PurchaseActions = ({ onCreatePurchase }: PurchaseActionsProps) => {
         excelFileName="compras.xlsx"
         variant="grouped"
       />
-      <Button onClick={onCreatePurchase}>
+      <Button size="sm" onClick={onCreatePurchase}>
         <Plus className="mr-2 h-4 w-4" />
         Crear Compra
       </Button>

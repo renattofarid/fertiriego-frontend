@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Loader, Package, Plus, Trash2 } from "lucide-react";
+import { FileText, Package, Plus, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -40,6 +40,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { OrderSummary } from "./OrderSummary";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 
 interface OrderFormProps {
   onSubmit: (data: CreateOrderRequest) => void;
@@ -81,6 +84,18 @@ export const OrderForm = ({
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
+    null
+  );
+  const [editingIndex, setEditingIndex] = useState<number | undefined>(
+    undefined
+  );
+
+  // Estados para modales
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [customersList, setCustomersList] = useState<PersonResource[]>(customers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
 
   const form = useForm<any>({
     defaultValues: defaultValues || {
@@ -98,6 +113,30 @@ export const OrderForm = ({
   });
 
   const quotationId = form.watch("quotation_id");
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setCustomersList(customers);
+  }, [customers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleClientCreated = (newClient: PersonResource) => {
+    setCustomersList((prev) => [...prev, newClient]);
+    form.setValue("customer_id", newClient.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
 
   // Load order details when in edit mode
   useEffect(() => {
@@ -176,6 +215,48 @@ export const OrderForm = ({
     setDetails(details.filter((_, i) => i !== index));
   };
 
+  const handleEditDetail = (index: number) => {
+    const detail = details[index];
+    const productDetail: ProductDetail = {
+      product_id: detail.product_id,
+      product_name: detail.product_name || "",
+      is_igv: detail.is_igv,
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+      purchase_price: detail.purchase_price,
+      subtotal: detail.subtotal,
+      tax: detail.tax,
+      total: detail.total,
+    };
+    setEditingDetail(productDetail);
+    setEditingIndex(index);
+    setSheetOpen(true);
+  };
+
+  const handleUpdateDetail = (detail: ProductDetail, index: number) => {
+    const newDetail: DetailRow = {
+      product_id: detail.product_id,
+      product_name: detail.product_name,
+      is_igv: detail.is_igv,
+      quantity: detail.quantity,
+      unit_price: detail.unit_price,
+      purchase_price: detail.purchase_price,
+      subtotal: detail.subtotal,
+      tax: detail.tax,
+      total: detail.total,
+    };
+
+    const updatedDetails = [...details];
+    updatedDetails[index] = newDetail;
+    setDetails(updatedDetails);
+  };
+
+  const handleCloseSheet = () => {
+    setSheetOpen(false);
+    setEditingDetail(null);
+    setEditingIndex(undefined);
+  };
+
   const handleSubmitForm = (formData: any) => {
     if (details.length === 0) {
       return;
@@ -211,247 +292,321 @@ export const OrderForm = ({
     return details.reduce((sum, detail) => sum + detail.total, 0);
   };
 
+  const calculateSubtotalTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+  };
+
+  const calculateTaxTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.tax, 0);
+  };
+
+  const calculateDetailsTotal = () => {
+    return details.reduce((sum, detail) => sum + detail.total, 0);
+  };
+
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleSubmitForm)}
-        className="space-y-6"
+        className="grid xl:grid-cols-3 gap-6"
       >
-        <GroupFormSection
-          title="Información General"
-          icon={FileText}
-          cols={{
-            sm: 1,
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormSelect
-              control={form.control}
-              name="customer_id"
-              label="Cliente"
-              options={customers.map((c) => ({
-                value: c.id.toString(),
-                label:
-                  c.business_name ||
-                  c.names +
-                    " " +
-                    (c.father_surname || "") +
-                    " " +
-                    (c.mother_surname || ""),
-              }))}
-              placeholder="Seleccionar cliente"
-            />
+        <div className="xl:col-span-2 space-y-6">
+          <GroupFormSection
+            title="Información General"
+            icon={FileText}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="customer_id"
+                    label="Cliente"
+                    options={customersList.map((c) => ({
+                      value: c.id.toString(),
+                      label:
+                        c.business_name ||
+                        c.names +
+                          " " +
+                          (c.father_surname || "") +
+                          " " +
+                          (c.mother_surname || ""),
+                    }))}
+                    placeholder="Seleccionar cliente"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsClientModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo cliente"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            <FormSelect
-              control={form.control}
-              name="warehouse_id"
-              label="Almacén"
-              options={warehouses.map((w) => ({
-                value: w.id.toString(),
-                label: w.name,
-                description: w.address,
-              }))}
-              placeholder="Seleccionar almacén"
-            />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    options={warehousesList.map((w) => ({
+                      value: w.id.toString(),
+                      label: w.name,
+                      description: w.address,
+                    }))}
+                    placeholder="Seleccionar almacén"
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-            {quotations && quotations.length > 0 && (
+              {quotations && quotations.length > 0 && (
+                <FormSelect
+                  control={form.control}
+                  name="quotation_id"
+                  label="Cotización"
+                  options={quotations.map((q) => ({
+                    value: q.id.toString(),
+                    label: `#${q.id} - ${q.quotation_number}`,
+                  }))}
+                  placeholder="Seleccionar cotización"
+                />
+              )}
+
+              <DatePickerFormField
+                control={form.control}
+                name="order_date"
+                label="Fecha de Pedido"
+                placeholder="Seleccionar fecha"
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="order_delivery_date"
+                label="Fecha de Entrega"
+                placeholder="Seleccionar fecha"
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="order_expiry_date"
+                label="Fecha de Vencimiento"
+                placeholder="Seleccionar fecha"
+              />
+
               <FormSelect
                 control={form.control}
-                name="quotation_id"
-                label="Cotización"
-                options={quotations.map((q) => ({
-                  value: q.id.toString(),
-                  label: `#${q.id} - ${q.quotation_number}`,
+                name="currency"
+                label="Moneda"
+                options={CURRENCIES.map((c) => ({
+                  value: c.value,
+                  label: c.label,
                 }))}
-                placeholder="Seleccionar cotización"
+                placeholder="Seleccionar moneda"
               />
-            )}
 
-            <DatePickerFormField
-              control={form.control}
-              name="order_date"
-              label="Fecha de Pedido"
-              placeholder="Seleccionar fecha"
-            />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
+                    <FormLabel>Dirección de Entrega</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Dirección de entrega" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DatePickerFormField
-              control={form.control}
-              name="order_delivery_date"
-              label="Fecha de Entrega"
-              placeholder="Seleccionar fecha"
-            />
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-3">
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Observaciones adicionales"
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </GroupFormSection>
 
-            <DatePickerFormField
-              control={form.control}
-              name="order_expiry_date"
-              label="Fecha de Vencimiento"
-              placeholder="Seleccionar fecha"
-            />
-
-            <FormSelect
-              control={form.control}
-              name="currency"
-              label="Moneda"
-              options={CURRENCIES.map((c) => ({
-                value: c.value,
-                label: c.label,
-              }))}
-              placeholder="Seleccionar moneda"
-            />
-
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem className="md:col-span-3">
-                  <FormLabel>Dirección de Entrega</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Dirección de entrega" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="observations"
-              render={({ field }) => (
-                <FormItem className="md:col-span-3">
-                  <FormLabel>Observaciones</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Observaciones adicionales"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        </GroupFormSection>
-
-        <GroupFormSection
-          title="Detalles del Pedido"
-          icon={Package}
-          cols={{
-            sm: 1,
-          }}
-        >
-          <div className="flex justify-end">
-            <Button type="button" onClick={() => setSheetOpen(true)} size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Producto
-            </Button>
-          </div>
-          {details.length === 0 ? (
-            <Empty className="border border-dashed">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Package />
-                </EmptyMedia>
-                <EmptyTitle>No hay productos agregados</EmptyTitle>
-                <EmptyDescription>
-                  Haz clic en "Agregar Producto" para añadir productos al
-                  pedido.
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead className="text-right">Cantidad</TableHead>
-                  <TableHead className="text-right">P. Unitario</TableHead>
-                  <TableHead className="text-right">P. Compra</TableHead>
-                  <TableHead className="text-center">IGV</TableHead>
-                  <TableHead className="text-right">Subtotal</TableHead>
-                  <TableHead className="text-right">IGV</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-center">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {details.map((detail, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{detail.product_name}</TableCell>
-                    <TableCell className="text-right">
-                      {detail.quantity}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {parseFloat(detail.unit_price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {parseFloat(detail.purchase_price).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge variant={detail.is_igv ? "default" : "secondary"}>
-                        {detail.is_igv ? "Sí" : "No"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {detail.subtotal.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {detail.tax.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-right font-semibold">
-                      {detail.total.toFixed(2)}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveDetail(index)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    </TableCell>
+          <GroupFormSection
+            title="Detalles del Pedido"
+            icon={Package}
+            cols={{
+              sm: 1,
+            }}
+          >
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                onClick={() => setSheetOpen(true)}
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Agregar Producto
+              </Button>
+            </div>
+            {details.length === 0 ? (
+              <Empty className="border border-dashed">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <Package />
+                  </EmptyMedia>
+                  <EmptyTitle>No hay productos agregados</EmptyTitle>
+                  <EmptyDescription>
+                    Haz clic en "Agregar Producto" para añadir productos al
+                    pedido.
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">P. Unitario</TableHead>
+                    <TableHead className="text-right">P. Compra</TableHead>
+                    <TableHead className="text-center">IGV</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead className="text-right">IGV</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
-                ))}
-                <TableRow>
-                  <TableCell colSpan={7} className="text-right font-bold">
-                    Total General:
-                  </TableCell>
-                  <TableCell className="text-right font-bold text-lg">
-                    {getTotalAmount().toFixed(2)}
-                  </TableCell>
-                  <TableCell />
-                </TableRow>
-              </TableBody>
-            </Table>
-          )}
-        </GroupFormSection>
+                </TableHeader>
+                <TableBody>
+                  {details.map((detail, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{detail.product_name}</TableCell>
+                      <TableCell className="text-right">
+                        {detail.quantity}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {parseFloat(detail.unit_price).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {parseFloat(detail.purchase_price).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={detail.is_igv ? "default" : "secondary"}
+                        >
+                          {detail.is_igv ? "Sí" : "No"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {detail.subtotal.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {detail.tax.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        {detail.total.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex gap-1 justify-center">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditDetail(index)}
+                          >
+                            <Pencil className="h-4 w-4 text-blue-500" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveDetail(index)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-right font-bold">
+                      Total General:
+                    </TableCell>
+                    <TableCell className="text-right font-bold text-lg">
+                      {getTotalAmount().toFixed(2)}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableBody>
+              </Table>
+            )}
+          </GroupFormSection>
 
-        <AddProductSheet
-          open={sheetOpen}
-          onClose={() => setSheetOpen(false)}
-          onAdd={handleAddDetail}
-          products={products}
-        />
-
-        <div className="flex gap-4 justify-end">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting || details.length === 0}>
-            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting
-              ? mode === "update"
-                ? "Actualizando..."
-                : "Creando..."
-              : mode === "update"
-              ? "Actualizar Pedido"
-              : "Crear Pedido"}
-          </Button>
+          <AddProductSheet
+            open={sheetOpen}
+            onClose={handleCloseSheet}
+            onAdd={handleAddDetail}
+            onEdit={handleUpdateDetail}
+            products={products}
+            editingDetail={editingDetail}
+            editingIndex={editingIndex}
+          />
         </div>
+
+        <OrderSummary
+          form={form}
+          mode={mode}
+          isSubmitting={isSubmitting}
+          customers={customers}
+          warehouses={warehouses}
+          details={details}
+          calculateSubtotalTotal={calculateSubtotalTotal}
+          calculateTaxTotal={calculateTaxTotal}
+          calculateDetailsTotal={calculateDetailsTotal}
+          onCancel={onCancel}
+        />
       </form>
+
+      {/* Modal para crear nuevo cliente */}
+      <ClientCreateModal
+        open={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={handleClientCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

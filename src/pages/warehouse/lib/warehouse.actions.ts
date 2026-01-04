@@ -41,16 +41,16 @@ export async function findWarehouseById(
   return response.data;
 }
 
-export async function storeWarehouse(data: any): Promise<WarehouseResponse> {
-  const response = await api.post<WarehouseResponse>(ENDPOINT, data);
+export async function storeWarehouse(data: any): Promise<WarehouseResourceById> {
+  const response = await api.post<WarehouseResourceById>(ENDPOINT, data);
   return response.data;
 }
 
 export async function updateWarehouse(
   id: number,
   data: any
-): Promise<WarehouseResponse> {
-  const response = await api.put<WarehouseResponse>(`${ENDPOINT}/${id}`, data);
+): Promise<WarehouseResourceById> {
+  const response = await api.put<WarehouseResourceById>(`${ENDPOINT}/${id}`, data);
   return response.data;
 }
 

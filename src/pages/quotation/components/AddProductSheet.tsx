@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
+import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
+import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -17,6 +19,7 @@ interface AddProductSheetProps {
   editingDetail?: ProductDetail | null;
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
+  currency: string;
 }
 
 export interface ProductDetail {
@@ -26,9 +29,11 @@ export interface ProductDetail {
   quantity: string;
   unit_price: string;
   purchase_price: string;
+  description?: string;
   subtotal: number;
   tax: number;
   total: number;
+  currency?: string;
 }
 
 export const AddProductSheet = ({
@@ -40,15 +45,18 @@ export const AddProductSheet = ({
   editingDetail = null,
   editIndex = null,
   onEdit,
+  currency,
 }: AddProductSheetProps) => {
   const isEditMode = editingDetail !== null && editIndex !== null;
 
   const form = useForm({
     defaultValues: {
       product_id: "",
+      price_category_id: "",
       quantity: "",
       unit_price: "",
       purchase_price: "",
+      description: "",
       is_igv: defaultIsIgv,
     },
   });
@@ -59,38 +67,81 @@ export const AddProductSheet = ({
     total: 0,
   });
 
+  const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+
   const productId = form.watch("product_id");
+  const priceCategoryId = form.watch("price_category_id");
   const quantity = form.watch("quantity");
   const unitPrice = form.watch("unit_price");
   const isIgv = form.watch("is_igv");
 
-  // Cargar datos cuando se está editando
-  useEffect(() => {
-    if (editingDetail) {
-      form.reset({
-        product_id: editingDetail.product_id,
-        quantity: editingDetail.quantity,
-        unit_price: editingDetail.unit_price,
-        purchase_price: editingDetail.purchase_price,
-        is_igv: editingDetail.is_igv,
-      });
-    } else {
-      form.reset({
-        product_id: "",
-        quantity: "",
-        unit_price: "",
-        purchase_price: "",
-        is_igv: defaultIsIgv,
-      });
-    }
-  }, [editingDetail, defaultIsIgv, form]);
+  // Cargar categorías de precio
+  const { data: priceCategories } = useAllProductPriceCategories();
 
-  // Actualizar is_igv cuando cambie defaultIsIgv (solo si no está editando)
+  // Cargar precios del producto seleccionado
+  const { data: productPricesData } = useProductPrices({
+    productId: parseInt(productId) || 0,
+  });
+
+  // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
-    if (!editingDetail) {
-      form.setValue("is_igv", defaultIsIgv);
+    if (priceCategoryId && productPricesData && currency) {
+      const selectedPrice = productPricesData.find(
+        (price) => price.category_id === parseInt(priceCategoryId)
+      );
+
+      if (selectedPrice) {
+        let priceValue: number = 0;
+
+        // Seleccionar el precio según la moneda (usar 0 si no existe)
+        if (selectedPrice.prices) {
+          priceValue = selectedPrice.prices[currency] ?? 0;
+        }
+
+        if (priceValue.toString() !== lastSetPrice) {
+          form.setValue("unit_price", priceValue.toString());
+          setLastSetPrice(priceValue.toString());
+        }
+      }
     }
-  }, [defaultIsIgv, form, editingDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceCategoryId, currency, productPricesData]);
+
+  // Cargar datos cuando se abre el sheet
+  useEffect(() => {
+    if (open) {
+      // Reset lastSetPrice cuando se abre el sheet
+      setLastSetPrice(null);
+
+      if (editingDetail) {
+        form.reset({
+          product_id: editingDetail.product_id,
+          price_category_id: "",
+          quantity: editingDetail.quantity,
+          unit_price: editingDetail.unit_price,
+          purchase_price: editingDetail.purchase_price,
+          description: editingDetail.description || "",
+          is_igv: editingDetail.is_igv,
+        });
+      } else {
+        form.reset({
+          product_id: "",
+          price_category_id: "",
+          quantity: "",
+          unit_price: "",
+          purchase_price: "",
+          description: "",
+          is_igv: defaultIsIgv,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Reset lastSetPrice cuando cambia el producto
+  useEffect(() => {
+    setLastSetPrice(null);
+  }, [productId]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
@@ -98,14 +149,16 @@ export const AddProductSheet = ({
 
     if (qty > 0 && price > 0) {
       if (isIgv) {
-        const subtotal = qty * price;
-        const tax = subtotal * 0.18;
-        const total = subtotal + tax;
-        setCalculatedValues({ subtotal, tax, total });
-      } else {
+        // El precio incluye IGV: desglosar el IGV
         const total = qty * price;
         const subtotal = total / 1.18;
         const tax = total - subtotal;
+        setCalculatedValues({ subtotal, tax, total });
+      } else {
+        // El precio NO incluye IGV: calcular el IGV
+        const subtotal = qty * price;
+        const tax = subtotal * 0.18;
+        const total = subtotal + tax;
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
@@ -116,12 +169,7 @@ export const AddProductSheet = ({
   const handleSave = () => {
     const formData = form.getValues();
 
-    if (
-      !formData.product_id ||
-      !formData.quantity ||
-      !formData.unit_price ||
-      !formData.purchase_price
-    ) {
+    if (!formData.product_id || !formData.quantity || !formData.unit_price) {
       return;
     }
 
@@ -138,9 +186,11 @@ export const AddProductSheet = ({
       quantity: formData.quantity,
       unit_price: formData.unit_price,
       purchase_price: formData.purchase_price,
+      description: formData.description || "",
       subtotal: calculatedValues.subtotal,
       tax: calculatedValues.tax,
       total: calculatedValues.total,
+      currency: currency,
     };
 
     if (isEditMode && onEdit && editIndex !== null) {
@@ -175,6 +225,23 @@ export const AddProductSheet = ({
           placeholder="Seleccionar producto"
         />
 
+        {productId && (
+          <>
+            {priceCategories && priceCategories.length > 0 && (
+              <FormSelect
+                control={form.control}
+                name="price_category_id"
+                label="Categoría de Precio"
+                options={priceCategories.map((cat) => ({
+                  value: cat.id.toString(),
+                  label: cat.name,
+                }))}
+                placeholder="Seleccionar categoría de precio (opcional)"
+              />
+            )}
+          </>
+        )}
+
         <div className="grid grid-cols-2 gap-4">
           <FormInput
             control={form.control}
@@ -204,6 +271,15 @@ export const AddProductSheet = ({
               placeholder="0.00"
             />
           </div>
+
+          <div className="col-span-2">
+            <FormInput
+              control={form.control}
+              name="description"
+              label="Descripción"
+              placeholder="Descripción del producto (opcional)"
+            />
+          </div>
         </div>
 
         <FormSwitch
@@ -211,6 +287,7 @@ export const AddProductSheet = ({
           name="is_igv"
           text="Incluye IGV"
           textDescription="El precio unitario incluye el IGV"
+          autoHeight
         />
 
         {calculatedValues.total > 0 && (
@@ -218,18 +295,23 @@ export const AddProductSheet = ({
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
               <span className="font-medium">
-                S/. {calculatedValues.subtotal.toFixed(2)}
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.subtotal.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span>IGV (18%):</span>
               <span className="font-medium">
-                S/. {calculatedValues.tax.toFixed(2)}
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.tax.toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
-              <span>S/. {calculatedValues.total.toFixed(2)}</span>
+              <span>
+                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
+                {calculatedValues.total.toFixed(2)}
+              </span>
             </div>
           </div>
         )}

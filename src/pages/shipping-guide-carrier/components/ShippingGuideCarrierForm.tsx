@@ -9,6 +9,7 @@ import {
   SHIPPING_GUIDE_CARRIER,
   UNIT_MEASUREMENTS,
 } from "../lib/shipping-guide-carrier.interface";
+import { MODALITIES } from "@/pages/guide/lib/guide.interface";
 import { shippingGuideCarrierSchema } from "../lib/shipping-guide-carrier.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,19 +34,27 @@ import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
+import type { GuideResource } from "@/pages/guide/lib/guide.interface";
+import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import { toast } from "sonner";
-// Removed GuideResource; remittents/recipients now come from PersonResource
 
 export type ShippingGuideCarrierFormValues = {
-  carrier_id: string;
+  transport_modality: string;
+  carrier_id?: string;
+  driver_id?: string;
+  vehicle_id?: string;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
+  driver_license?: string;
   issue_date: string;
   transfer_start_date: string;
   remittent_id: string;
   recipient_id?: string;
-  driver_id: string;
-  vehicle_id: string;
-  secondary_vehicle_id: string | undefined;
-  driver_license: string;
+  secondary_vehicle_id?: string;
+  order_id?: string;
+  shipping_guide_remittent_id?: string;
   origin_address: string;
   origin_ubigeo_id: string;
   destination_address: string;
@@ -61,15 +70,22 @@ export type ShippingGuideCarrierFormValues = {
 };
 
 const defaultValues: ShippingGuideCarrierFormValues = {
+  transport_modality: "PRIVADO",
   carrier_id: "",
+  driver_id: "",
+  vehicle_id: "",
+  vehicle_plate: "",
+  vehicle_brand: "",
+  vehicle_model: "",
+  vehicle_mtc: "",
+  driver_license: "",
   issue_date: "",
   transfer_start_date: "",
   remittent_id: "",
   recipient_id: "",
-  driver_id: "",
-  vehicle_id: "",
   secondary_vehicle_id: "",
-  driver_license: "",
+  order_id: "",
+  shipping_guide_remittent_id: "",
   origin_address: "",
   origin_ubigeo_id: "",
   destination_address: "",
@@ -97,6 +113,7 @@ interface ShippingGuideCarrierFormProps {
   drivers: PersonResource[];
   vehicles: VehicleResource[];
   products: ProductResource[];
+  guides: GuideResource[];
 }
 
 export function ShippingGuideCarrierForm({
@@ -110,6 +127,7 @@ export function ShippingGuideCarrierForm({
   drivers,
   vehicles,
   products,
+  guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
   const navigate = useNavigate();
@@ -154,6 +172,9 @@ export function ShippingGuideCarrierForm({
     },
   });
 
+  const transportModality = form.watch("transport_modality");
+  const selectedGuideId = form.watch("shipping_guide_remittent_id");
+
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
     if (initialValues?.details && initialValues.details.length > 0) {
@@ -172,6 +193,46 @@ export function ShippingGuideCarrierForm({
       setDetails(mappedDetails);
     }
   }, [initialValues, products]);
+
+  // Cargar detalles cuando se selecciona una guía de remisión
+  useEffect(() => {
+    const loadGuideDetails = async () => {
+      if (!selectedGuideId || selectedGuideId === "") {
+        return;
+      }
+
+      try {
+        const response = await findGuideById(parseInt(selectedGuideId));
+        const guide = response.data;
+
+        if (guide.details && guide.details.length > 0) {
+          const mappedDetails: DetailRow[] = guide.details.map((detail) => {
+            const product = products.find(
+              (p) => p.id === detail.product_id
+            );
+            return {
+              product_id: detail.product_id.toString(),
+              product_name: detail.product_name || product?.name || "Producto desconocido",
+              brand_name: product?.brand_name,
+              description: detail.description || "",
+              quantity: parseFloat(detail.quantity) || 0,
+              unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
+              weight: parseFloat(detail.weight) || 0,
+            };
+          });
+          setDetails(mappedDetails);
+          toast.success(`Se cargaron ${mappedDetails.length} detalles de la guía ${guide.full_guide_number}`);
+        } else {
+          toast.info("La guía seleccionada no tiene detalles");
+        }
+      } catch (error) {
+        console.error("Error loading guide details:", error);
+        toast.error("Error al cargar los detalles de la guía");
+      }
+    };
+
+    loadGuideDetails();
+  }, [selectedGuideId, products]);
 
   // Buscar ubigeos origen
   const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
@@ -400,16 +461,29 @@ export function ShippingGuideCarrierForm({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormSelect
                 control={form.control}
-                name="carrier_id"
-                label="Transportista"
-                placeholder="Seleccione transportista"
-                options={carriers.map((c) => ({
-                  value: c.id.toString(),
-                  label: c.business_name || `${c.names} ${c.father_surname}`,
-                  description: c.number_document,
+                name="transport_modality"
+                label="Modalidad de Transporte"
+                placeholder="Seleccione modalidad"
+                options={MODALITIES.map((mod) => ({
+                  value: mod.value,
+                  label: mod.label,
                 }))}
-                withValue
               />
+
+              {transportModality === "PUBLICO" && (
+                <FormSelect
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione transportista"
+                  options={carriers.map((c) => ({
+                    value: c.id.toString(),
+                    label: c.business_name || `${c.names} ${c.father_surname}`,
+                    description: c.number_document,
+                  }))}
+                  withValue
+                />
+              )}
 
               <FormSelect
                 control={form.control}
@@ -421,6 +495,19 @@ export function ShippingGuideCarrierForm({
                   label:
                     p.business_name || `${p.names} ${p.father_surname}`,
                   description: p.number_document,
+                }))}
+                withValue
+              />
+
+              <FormSelect
+                control={form.control}
+                name="shipping_guide_remittent_id"
+                label="Guía de Remisión Remitente (GRR)"
+                placeholder="Seleccione GRR (Opcional)"
+                options={guides.map((g) => ({
+                  value: g.id.toString(),
+                  label: g.full_guide_number,
+                  description: `${g.issue_date} - ${g.status}`,
                 }))}
                 withValue
               />
@@ -439,58 +526,118 @@ export function ShippingGuideCarrierForm({
                 withValue
               />
 
-              <FormSelect
-                control={form.control}
-                name="driver_id"
-                label="Conductor"
-                placeholder="Seleccione conductor"
-                options={drivers.map((d) => ({
-                  value: d.id.toString(),
-                  label: `${d.names} ${d.father_surname}`,
-                  description: d.number_document,
-                }))}
-                withValue
-              />
+              {transportModality === "PRIVADO" && (
+                <>
+                  <FormSelect
+                    control={form.control}
+                    name="driver_id"
+                    label="Conductor"
+                    placeholder="Seleccione conductor"
+                    options={drivers.map((d) => ({
+                      value: d.id.toString(),
+                      label: `${d.names} ${d.father_surname}`,
+                      description: d.number_document,
+                    }))}
+                    withValue
+                  />
 
-              <FormSelect
-                control={form.control}
-                name="vehicle_id"
-                label="Vehículo"
-                placeholder="Seleccione vehículo"
-                options={vehicles.map((v) => ({
-                  value: v.id.toString(),
-                  label: v.plate,
-                  description: `${v.brand} ${v.model}`,
-                }))}
-                withValue
-              />
+                  <FormSelect
+                    control={form.control}
+                    name="vehicle_id"
+                    label="Vehículo"
+                    placeholder="Seleccione vehículo"
+                    options={vehicles.map((v) => ({
+                      value: v.id.toString(),
+                      label: v.plate,
+                      description: `${v.brand} ${v.model}`,
+                    }))}
+                    withValue
+                  />
 
-              <FormSelect
-                control={form.control}
-                name="secondary_vehicle_id"
-                label="Vehículo Secundario (Opcional)"
-                placeholder="Seleccione vehículo secundario"
-                options={vehicles.map((v) => ({
-                  value: v.id.toString(),
-                  label: v.plate,
-                  description: `${v.brand} ${v.model}`,
-                }))}
-                withValue
-              />
+                  <FormSelect
+                    control={form.control}
+                    name="secondary_vehicle_id"
+                    label="Vehículo Secundario (Opcional)"
+                    placeholder="Seleccione vehículo secundario"
+                    options={vehicles.map((v) => ({
+                      value: v.id.toString(),
+                      label: v.plate,
+                      description: `${v.brand} ${v.model}`,
+                    }))}
+                    withValue
+                  />
 
-              <FormField
-                control={form.control}
-                name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: B12345678" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <FormField
+                    control={form.control}
+                    name="driver_license"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Licencia del Conductor</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: B12345678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_plate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Placa del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: ABC-123" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_brand"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Marca del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Toyota" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_model"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Modelo del Vehículo</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: Hilux" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="vehicle_mtc"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Certificado MTC</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Ej: MTC123456" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
             </div>
           </GroupFormSection>
 

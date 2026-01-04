@@ -34,6 +34,7 @@ import { PRODUCT_TYPE } from "@/pages/product-type/lib/product-type.interface";
 import { CLIENT } from "@/pages/client/lib/client.interface";
 import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
+import { DRIVER } from "@/pages/driver/lib/driver.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SALE } from "@/pages/sale/lib/sale.interface";
@@ -139,6 +140,12 @@ const {
   ROUTE: WorkerRoute,
   MODEL: { name: WorkerTitle },
 } = WORKER;
+
+const {
+  ICON_REACT: DriverIcon,
+  ROUTE: DriverRoute,
+  MODEL: { name: DriverTitle },
+} = DRIVER;
 
 const {
   ICON_REACT: PurchaseOrderIcon,
@@ -390,6 +397,11 @@ const data = {
           title: WorkerTitle,
           url: WorkerRoute,
           icon: WorkerIcon,
+        },
+        {
+          title: DriverTitle,
+          url: DriverRoute,
+          icon: DriverIcon,
         },
       ],
     },

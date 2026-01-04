@@ -17,7 +17,7 @@ import {
   debitNoteSchema,
   type DebitNoteSchema,
 } from "../lib/debit-note.schema";
-import { Loader, Trash2, Plus, Info } from "lucide-react";
+import { Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
@@ -25,6 +25,7 @@ import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import type { DebitNoteReason } from "../lib/debit-note.interface";
+import { DebitNoteSummary } from "./DebitNoteSummary";
 
 interface DebitNoteFormProps {
   defaultValues: Partial<DebitNoteSchema>;
@@ -143,9 +144,26 @@ export const DebitNoteForm = ({
     });
   };
 
+  const calculateSubtotal = () => {
+    return fields.reduce((sum, _field, index) => {
+      const quantity = form.watch(`details.${index}.quantity`) || 0;
+      const unitPrice = form.watch(`details.${index}.unit_price`) || 0;
+      return sum + (quantity * unitPrice);
+    }, 0);
+  };
+
+  const calculateIGV = () => {
+    return calculateSubtotal() * 0.18;
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + calculateIGV();
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid xl:grid-cols-3 gap-6 w-full">
+        <div className="xl:col-span-2 space-y-4">
         <GroupFormSection
           title="Información de la Nota de Crédito"
           icon={Info}
@@ -329,29 +347,21 @@ export const DebitNoteForm = ({
         {/* <pre>
           <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
         </pre> */}
-
-        <div className="flex justify-end space-x-2 px-4 pb-4">
-          {onCancel && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}
-            >
-              Cancelar
-            </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting
-              ? mode === "create"
-                ? "Creando..."
-                : "Actualizando..."
-              : mode === "create"
-              ? "Crear"
-              : "Actualizar"}
-          </Button>
         </div>
+
+        <DebitNoteSummary
+          form={form}
+          mode={mode}
+          isSubmitting={isSubmitting}
+          selectedSale={selectedSale || undefined}
+          warehouses={warehouses || []}
+          debitNoteReasons={debitNoteReasons}
+          details={fields}
+          calculateSubtotal={calculateSubtotal}
+          calculateIGV={calculateIGV}
+          calculateTotal={calculateTotal}
+          onCancel={onCancel}
+        />
       </form>
     </Form>
   );

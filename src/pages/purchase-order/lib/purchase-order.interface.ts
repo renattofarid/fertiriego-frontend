@@ -55,19 +55,20 @@ export interface PurchaseOrderResource {
   id: number;
   correlativo: string;
   supplier_id: number;
+  apply_igv: number;
   supplier_fullname: string;
   warehouse_id: number;
-  warehouse_name: string | null;
+  warehouse_name?: string;
   user_id: number;
   user_name: string;
-  order_number: string;
+  order_number?: string;
   issue_date: string;
   expected_date: string;
   status: string;
   observations: string;
   total_estimated: string;
-  purchase_id: number | null;
-  purchase_correlativo: string | null;
+  purchase_id?: string;
+  purchase_correlativo?: string;
   details: PurchaseOrderDetailResource[];
   created_at: string;
 }

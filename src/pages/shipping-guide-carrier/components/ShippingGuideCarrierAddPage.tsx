@@ -17,6 +17,7 @@ import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
+import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 
 export default function ShippingGuideCarrierAddPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
@@ -31,11 +32,13 @@ export default function ShippingGuideCarrierAddPage() {
   const { data: products = [], isLoading: loadingProducts } = useAllProducts();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
+  const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
 
   const isLoading =
     loadingSuppliers ||
     loadingVehicles ||
     loadingProducts ||
+    loadingGuides ||
     !workers ||
     !remittents ||
     !recipients;
@@ -67,6 +70,7 @@ export default function ShippingGuideCarrierAddPage() {
       drivers={workers || []}
       vehicles={vehicles || []}
       products={products || []}
+      guides={guides || []}
     />
   );
 }

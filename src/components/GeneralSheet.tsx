@@ -4,6 +4,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
   SheetClose,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -83,9 +84,7 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
               )}
               <div>
                 {title && <SheetTitle>{title}</SheetTitle>}
-                {subtitle && (
-                  <p className="text-sm text-muted-foreground">{subtitle}</p>
-                )}
+                {subtitle && <SheetDescription>{subtitle}</SheetDescription>}
               </div>
             </div>
             <SheetClose onClick={onClose} />

@@ -126,20 +126,40 @@ export interface GetProductImagesProps {
 export interface ProductPriceResource {
   id: number;
   product_id: number;
-  product_name: string;
   branch_id: number;
-  branch_name: string;
   category_id: number;
-  category: string;
-  price_soles: string;
-  price_usd: string;
+  prices?: Prices;
+  formatted_prices?: FormattedPrices;
+  price_soles?: number;
+  price_usd?: number;
+  price_euro?: number;
   created_at: string;
 }
 
-export interface ProductPriceResponse {
-  data: ProductPriceResource[];
-  links: Links;
-  meta: Meta;
+interface FormattedPrices {
+  PEN?: string;
+  USD?: string;
+  EUR?: string;
+  GBP?: string;
+  JPY?: string;
+  BRL?: string;
+  ARS?: string;
+  CLP?: string;
+  MXN?: string;
+  [key: string]: string | undefined;
+}
+
+interface Prices {
+  PEN?: number;
+  USD?: number;
+  EUR?: number;
+  GBP?: number;
+  JPY?: number;
+  BRL?: number;
+  ARS?: number;
+  CLP?: number;
+  MXN?: number;
+  [key: string]: number | undefined;
 }
 
 export interface ProductPriceResourceById {
@@ -150,15 +170,23 @@ export interface CreateProductPriceRequest {
   product_id: number;
   branch_id: number;
   category_id: number;
-  price_soles: number;
-  price_usd: number;
+  prices: {
+    PEN: number;
+    USD: number;
+    EUR: number;
+    [key: string]: number;
+  };
 }
 
 export interface UpdateProductPriceRequest {
   branch_id?: number;
   category_id?: number;
-  price_soles?: number;
-  price_usd?: number;
+  prices?: {
+    PEN?: number;
+    USD?: number;
+    EUR?: number;
+    [key: string]: number | undefined;
+  };
 }
 
 export interface GetProductPricesProps {

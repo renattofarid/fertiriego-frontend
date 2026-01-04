@@ -17,13 +17,20 @@ import {
   purchaseOrderSchemaUpdate,
   type PurchaseOrderSchema,
 } from "../lib/purchase-order.schema";
-import { Loader, Trash2, Pencil, FileText, ListCheck } from "lucide-react";
+import {
+  Trash2,
+  Pencil,
+  FileText,
+  ListCheck,
+  Plus,
+  ShoppingCart,
+} from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { truncDecimal } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import {
@@ -35,16 +42,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { PurchaseOrderDetailForm } from "./forms/PurchaseOrderDetailForm";
 import { FormSwitch } from "@/components/FormSwitch";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
+import EmptyState from "@/components/EmptyState";
+import { FormInput } from "@/components/FormInput";
+import { PurchaseOrderSummary } from "./PurchaseOrderSummary";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -99,7 +103,16 @@ export const PurchaseOrderForm = ({
         }))
       : []
   );
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  // Estados para modales
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+
+  const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
+    null
+  );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
     quantity_requested: "",
@@ -123,54 +136,141 @@ export const PurchaseOrderForm = ({
   const IGV_RATE = 0.18;
 
   // Vigilar el switch de aplicar IGV para mostrar referencia en UI (no modifica payload)
-  const applyIgv = form.watch("apply_igv");
+  const applyIgv = form.watch("apply_igv") ?? false;
 
-  const handleAddDetail = async (data: any) => {
-    const product = products.find((p) => p.id.toString() === data.product_id);
+  // Formulario separado para los campos temporales de detalle
+  const detailTempForm = useForm({
+    defaultValues: {
+      temp_product_id: currentDetail.product_id,
+      temp_quantity_requested: currentDetail.quantity_requested,
+      temp_unit_price_estimated: currentDetail.unit_price_estimated,
+    },
+  });
+
+  // Watch para los campos temporales de detalle
+  const watchTempProductId = detailTempForm.watch("temp_product_id");
+  const watchTempQuantity = detailTempForm.watch("temp_quantity_requested");
+  const watchTempUnitPrice = detailTempForm.watch("temp_unit_price_estimated");
+
+  // Actualizar listas cuando cambien las props
+  useEffect(() => {
+    setSuppliersList(suppliers);
+  }, [suppliers]);
+
+  useEffect(() => {
+    setWarehousesList(warehouses);
+  }, [warehouses]);
+
+  // Handlers para modales
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    setSuppliersList((prev) => [...prev, newSupplier]);
+    form.setValue("supplier_id", newSupplier.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+      shouldValidate: true,
+    });
+  };
+
+  // Sincronizar los campos temporales con currentDetail
+  useEffect(() => {
+    if (watchTempProductId !== currentDetail.product_id) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        product_id: watchTempProductId || "",
+      }));
+    }
+  }, [watchTempProductId, currentDetail.product_id]);
+
+  useEffect(() => {
+    if (watchTempQuantity !== currentDetail.quantity_requested) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        quantity_requested: watchTempQuantity || "",
+      }));
+    }
+  }, [watchTempQuantity, currentDetail.quantity_requested]);
+
+  useEffect(() => {
+    if (watchTempUnitPrice !== currentDetail.unit_price_estimated) {
+      setCurrentDetail((prev) => ({
+        ...prev,
+        unit_price_estimated: watchTempUnitPrice || "",
+      }));
+    }
+  }, [watchTempUnitPrice, currentDetail.unit_price_estimated]);
+
+  const handleAddDetail = () => {
+    if (
+      !currentDetail.product_id ||
+      !currentDetail.quantity_requested ||
+      !currentDetail.unit_price_estimated
+    ) {
+      return;
+    }
+
+    const product = products.find(
+      (p) => p.id.toString() === currentDetail.product_id
+    );
+    const quantity = parseFloat(currentDetail.quantity_requested);
+    const unitPrice = parseFloat(currentDetail.unit_price_estimated);
+    const subtotal = truncDecimal(quantity * unitPrice, 6);
 
     const newDetail: DetailRow = {
-      product_id: data.product_id,
+      ...currentDetail,
       product_name: product?.name,
-      quantity_requested: data.quantity_requested,
-      unit_price_estimated: data.unit_price_estimated,
-      subtotal: data.subtotal,
+      subtotal,
     };
 
-    if (editingIndex !== null) {
+    if (editingDetailIndex !== null) {
       const updatedDetails = [...details];
-      updatedDetails[editingIndex] = newDetail;
+      updatedDetails[editingDetailIndex] = newDetail;
       setDetails(updatedDetails);
       form.setValue("details", updatedDetails);
-      setEditingIndex(null);
+      setEditingDetailIndex(null);
     } else {
       const updatedDetails = [...details, newDetail];
       setDetails(updatedDetails);
       form.setValue("details", updatedDetails);
     }
 
+    // Limpiar formulario y estado
     setCurrentDetail({
       product_id: "",
       quantity_requested: "",
       unit_price_estimated: "",
       subtotal: 0,
     });
-
-    // Disparar validación del formulario
-    await form.trigger();
+    detailTempForm.reset({
+      temp_product_id: "",
+      temp_quantity_requested: "",
+      temp_unit_price_estimated: "",
+    });
   };
 
   const handleEditDetail = (index: number) => {
-    setCurrentDetail(details[index]);
-    setEditingIndex(index);
+    const detail = details[index];
+    setCurrentDetail(detail);
+    setEditingDetailIndex(index);
+    detailTempForm.setValue("temp_product_id", detail.product_id);
+    detailTempForm.setValue(
+      "temp_quantity_requested",
+      detail.quantity_requested
+    );
+    detailTempForm.setValue(
+      "temp_unit_price_estimated",
+      detail.unit_price_estimated
+    );
   };
 
-  const handleRemoveDetail = async (index: number) => {
+  const handleRemoveDetail = (index: number) => {
     const updatedDetails = details.filter((_, i) => i !== index);
     setDetails(updatedDetails);
     form.setValue("details", updatedDetails);
-
-    // Disparar validación del formulario
-    await form.trigger();
   };
 
   // Calcular total desde los detalles actuales
@@ -222,278 +322,319 @@ export const PurchaseOrderForm = ({
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="space-y-6 w-full"
-      >
-        <GroupFormSection
-          title="Información General"
-          icon={FileText}
-          cols={{
-            sm: 1,
-          }}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormSelect
-              control={form.control}
-              name="supplier_id"
-              label="Proveedor"
-              placeholder="Seleccione un proveedor"
-              options={suppliers.map((supplier) => ({
-                value: supplier.id.toString(),
-                label:
-                  supplier.business_name ??
-                  supplier.names +
-                    " " +
-                    supplier.father_surname +
-                    " " +
-                    supplier.mother_surname,
-              }))}
-              disabled={mode === "update"}
-            />
-
-            <FormSelect
-              control={form.control}
-              name="warehouse_id"
-              label="Almacén"
-              placeholder="Seleccione un almacén"
-              options={warehouses.map((warehouse) => ({
-                value: warehouse.id.toString(),
-                label: warehouse.name,
-              }))}
-              disabled={mode === "update"}
-            />
-
-            <DatePickerFormField
-              control={form.control}
-              name="issue_date"
-              label="Fecha de Emisión"
-              disabledRange={{ after: new Date() }}
-              placeholder="Seleccione la fecha de emisión"
-              dateFormat="dd/MM/yyyy"
-            />
-
-            <DatePickerFormField
-              control={form.control}
-              name="expected_date"
-              label="Fecha Esperada"
-              placeholder="Seleccione la fecha esperada"
-              dateFormat="dd/MM/yyyy"
-            />
-
-            <FormSwitch
-              control={form.control}
-              name="apply_igv"
-              label="Aplicar IGV"
-              text="¿Aplicar IGV a esta orden de compra?"
-            />
-
-            {mode === "update" && purchaseOrder?.total_estimated && (
-              <div className="bg-sidebar p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-sm">Total Estimado:</span>
-                  <span className="text-lg font-bold text-primary">
-                    {formatCurrency(parseFloat(purchaseOrder.total_estimated), {
-                      currencySymbol: "S/.",
-                      decimals: 6,
-                    })}
-                  </span>
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {/* Columna izquierda: Formulario (2 cols) */}
+          <div className="md:col-span-2 space-y-6">
+            {/* Información General */}
+            <GroupFormSection
+              title="Información General"
+              icon={FileText}
+              cols={{ sm: 1, md: 2 }}
+            >
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="supplier_id"
+                    label="Proveedor"
+                    placeholder="Seleccione un proveedor"
+                    options={suppliersList.map((supplier) => ({
+                      value: supplier.id.toString(),
+                      label:
+                        supplier.business_name ??
+                        supplier.names +
+                          " " +
+                          supplier.father_surname +
+                          " " +
+                          supplier.mother_surname,
+                    }))}
+                    disabled={mode === "update"}
+                  />
                 </div>
-              </div>
-            )}
-
-            <div className="md:col-span-2">
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observaciones</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Ingrese observaciones adicionales"
-                        className="resize-none"
-                        {...field}
-                        // Coerce null to empty string so the native textarea value type is satisfied
-                        value={field.value ?? ""}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsSupplierModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo proveedor"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
                 )}
-              />
-            </div>
-          </div>
-        </GroupFormSection>
-        {mode === "create" && (
-          <GroupFormSection
-            title="Detalles de la Orden"
-            icon={ListCheck}
-            cols={{
-              sm: 1,
-            }}
-          >
-            <div className="p-4 bg-sidebar rounded-lg">
-              <PurchaseOrderDetailForm
-                products={products}
-                detail={editingIndex !== null ? currentDetail : null}
-                onSubmit={handleAddDetail}
-                onCancel={() => {
-                  setCurrentDetail({
-                    product_id: "",
-                    quantity_requested: "",
-                    unit_price_estimated: "",
-                    subtotal: 0,
-                  });
-                  setEditingIndex(null);
-                }}
-                isEditing={editingIndex !== null}
-              />
-            </div>
+              </div>
 
-            {details.length > 0 && (
-              <div className="border rounded-lg overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead className="text-right">Cantidad</TableHead>
-                      <TableHead className="text-right">P. Unitario</TableHead>
-                      <TableHead className="text-right">Subtotal</TableHead>
-                      <TableHead className="text-center">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {details.map((detail, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{detail.product_name}</TableCell>
-                        <TableCell className="text-right">
-                          {detail.quantity_requested}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(
-                            parseFloat(detail.unit_price_estimated),
-                            { currencySymbol: "S/.", decimals: 6 }
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right font-bold">
-                          {formatCurrency(detail.subtotal, {
-                            currencySymbol: "S/.",
-                            decimals: 6,
-                          })}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <div className="flex justify-center gap-2">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditDetail(index)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveDetail(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-right font-bold">
-                        SUBTOTAL:
-                      </TableCell>
-                      <TableCell className="text-right font-bold text-lg text-primary">
-                        {formatCurrency(subtotalBase, {
-                          currencySymbol: "S/.",
-                          decimals: 6,
-                        })}
-                      </TableCell>
-                      <TableCell></TableCell>
-                    </TableRow>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelect
+                    control={form.control}
+                    name="warehouse_id"
+                    label="Almacén"
+                    placeholder="Seleccione un almacén"
+                    options={warehousesList.map((warehouse) => ({
+                      value: warehouse.id.toString(),
+                      label: warehouse.name,
+                    }))}
+                    disabled={mode === "update"}
+                  />
+                </div>
+                {mode === "create" && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    onClick={() => setIsWarehouseModalOpen(true)}
+                    className="flex-shrink-0"
+                    title="Crear nuevo almacén"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
 
-                    {applyIgv && (
+              <DatePickerFormField
+                control={form.control}
+                name="issue_date"
+                label="Fecha de Emisión"
+                disabledRange={{ after: new Date() }}
+                placeholder="Seleccione la fecha de emisión"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="expected_date"
+                label="Fecha Esperada"
+                placeholder="Seleccione la fecha esperada"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              <FormSwitch
+                control={form.control}
+                name="apply_igv"
+                text="Aplicar IGV (18%)"
+                textDescription="¿Aplicar IGV a esta orden de compra?"
+                autoHeight
+              />
+
+              <div className="md:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observaciones</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Ingrese observaciones adicionales"
+                          className="resize-none"
+                          {...field}
+                          value={field.value ?? ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </GroupFormSection>
+
+            {/* Detalles */}
+            <GroupFormSection
+              title="Detalles de la Orden"
+              icon={ListCheck}
+              cols={{ sm: 1 }}
+            >
+              {/* Formulario de agregar/editar en una fila */}
+              <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
+                <div className="col-span-6">
+                  <FormSelect
+                    control={detailTempForm.control}
+                    name="temp_product_id"
+                    label="Producto"
+                    placeholder="Seleccione"
+                    options={products.map((product) => ({
+                      value: product.id.toString(),
+                      label: product.name,
+                    }))}
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <FormInput
+                    control={detailTempForm.control}
+                    name="temp_quantity_requested"
+                    label="Cantidad"
+                    type="number"
+                    placeholder="0"
+                    className="h-9"
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <FormInput
+                    control={detailTempForm.control}
+                    name="temp_unit_price_estimated"
+                    label="P. Unit."
+                    type="number"
+                    step="0.000001"
+                    placeholder="0.000000"
+                    className="h-9"
+                  />
+                </div>
+
+                <div className="col-span-2 flex gap-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={handleAddDetail}
+                    disabled={
+                      !currentDetail.product_id ||
+                      !currentDetail.quantity_requested ||
+                      !currentDetail.unit_price_estimated
+                    }
+                    className="h-9 flex-1 px-2"
+                  >
+                    {editingDetailIndex !== null ? (
                       <>
-                        <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="text-right font-bold"
-                          >
-                            IGV (18%) estimado:
-                          </TableCell>
-                          <TableCell className="text-right font-bold">
-                            {formatCurrency(igvAmount, {
-                              currencySymbol: "S/.",
-                              decimals: 6,
-                            })}
-                          </TableCell>
-                          <TableCell></TableCell>
-                        </TableRow>
-
-                        <TableRow>
-                          <TableCell
-                            colSpan={3}
-                            className="text-right font-bold"
-                          >
-                            TOTAL (con IGV) estimado:
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-lg text-primary">
-                            {formatCurrency(totalWithIgv, {
-                              currencySymbol: "S/.",
-                              decimals: 6,
-                            })}
-                          </TableCell>
-                          <TableCell></TableCell>
-                        </TableRow>
+                        <Pencil className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Actualizar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Agregar</span>
                       </>
                     )}
-                  </TableBody>
-                </Table>
+                  </Button>
+                  {editingDetailIndex !== null && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingDetailIndex(null);
+                        setCurrentDetail({
+                          product_id: "",
+                          quantity_requested: "",
+                          unit_price_estimated: "",
+                          subtotal: 0,
+                        });
+                        detailTempForm.reset({
+                          temp_product_id: "",
+                          temp_quantity_requested: "",
+                          temp_unit_price_estimated: "",
+                        });
+                      }}
+                      className="h-9 px-2"
+                    >
+                      <span className="text-xs">X</span>
+                    </Button>
+                  )}
+                </div>
               </div>
-            )}
 
-            {details.length === 0 && (
-              <Empty className="border border-dashed">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <ListCheck />
-                  </EmptyMedia>
-                  <EmptyTitle> No hay detalles agregados</EmptyTitle>
-                  <EmptyDescription>
-                    Agregue productos a la orden de compra utilizando el
-                    formulario de arriba.
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </GroupFormSection>
-        )}
+              {/* Tabla de detalles */}
+              {details.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Producto</TableHead>
+                        <TableHead className="text-right">Cantidad</TableHead>
+                        <TableHead className="text-right">P. Unit.</TableHead>
+                        <TableHead className="text-right">Subtotal</TableHead>
+                        <TableHead className="w-16"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {details.map((detail, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{detail.product_name}</TableCell>
+                          <TableCell className="text-right">
+                            {detail.quantity_requested}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(
+                              parseFloat(detail.unit_price_estimated),
+                              { currencySymbol: "S/.", decimals: 6 }
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-primary">
+                            {formatCurrency(detail.subtotal, {
+                              currencySymbol: "S/.",
+                              decimals: 6,
+                            })}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditDetail(index)}
+                                className="h-7 w-7"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveDetail(index)}
+                                className="h-7 w-7"
+                              >
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <EmptyState
+                  title="No hay detalles agregados"
+                  description="Complete el formulario arriba para agregar productos"
+                  icon={ShoppingCart}
+                />
+              )}
+            </GroupFormSection>
+          </div>
 
-        <div className="flex gap-4 w-full justify-end">
-          <Button type="button" variant="neutral" onClick={onCancel}>
-            Cancelar
-          </Button>
-
-          <Button
-            type="submit"
-            disabled={
-              isSubmitting ||
-              !form.formState.isValid ||
-              (mode === "create" && details.length === 0)
-            }
-          >
-            <Loader
-              className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`}
-            />
-            {isSubmitting ? "Guardando" : "Guardar"}
-          </Button>
+          {/* Columna derecha: Resumen - sticky */}
+          <PurchaseOrderSummary
+            form={form}
+            mode={mode}
+            isSubmitting={isSubmitting}
+            suppliers={suppliers}
+            warehouses={warehouses}
+            details={details}
+            subtotalBase={subtotalBase}
+            igvAmount={igvAmount}
+            totalWithIgv={totalWithIgv}
+            applyIgv={applyIgv}
+            onCancel={onCancel}
+          />
         </div>
       </form>
+
+      {/* Modal para crear nuevo proveedor */}
+      <SupplierCreateModal
+        open={isSupplierModalOpen}
+        onClose={() => setIsSupplierModalOpen(false)}
+        onSupplierCreated={handleSupplierCreated}
+      />
+
+      {/* Modal para crear nuevo almacén */}
+      <WarehouseCreateModal
+        open={isWarehouseModalOpen}
+        onClose={() => setIsWarehouseModalOpen(false)}
+        onWarehouseCreated={handleWarehouseCreated}
+      />
     </Form>
   );
 };

@@ -38,8 +38,8 @@ export interface GuideResource {
   purchase: Purchase;
   warehouse_document: Warehousedocument;
   carrier: Carrier;
-  driver: Carrier;
-  vehicle: Vehicle;
+  driver?: Carrier;
+  vehicle?: Vehicle;
   originUbigeo: UbigeoGuide;
   destinationUbigeo: UbigeoGuide;
   destination_warehouse: Warehouse;
@@ -86,11 +86,23 @@ export interface CreateGuideRequest {
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;
+  order_id?: number | null;
   transport_modality: string;
-  carrier_id: number;
-  driver_id: number;
-  vehicle_id: number;
-  driver_license: string;
+  // Campos para TRANSPORTE PÚBLICO
+  carrier_id?: number | null;
+  // Campos para TRANSPORTE PRIVADO
+  driver_id?: number | null;
+  vehicle_id?: number | null;
+  secondary_vehicle_id?: number | null;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
+  driver_license?: string;
+  // Personas
+  remittent_id: number;
+  shipping_guide_remittent_id?: number | null;
+  // Direcciones (ahora se pueden digitar manualmente)
   origin_address: string;
   origin_ubigeo_id: number;
   destination_address: string;
@@ -109,11 +121,23 @@ export interface UpdateGuideRequest {
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;
+  order_id?: number | null;
   transport_modality?: string;
-  carrier_id?: number;
-  driver_id?: number;
-  vehicle_id?: number;
+  // Campos para TRANSPORTE PÚBLICO
+  carrier_id?: number | null;
+  // Campos para TRANSPORTE PRIVADO
+  driver_id?: number | null;
+  vehicle_id?: number | null;
+  secondary_vehicle_id?: number | null;
+  vehicle_plate?: string;
+  vehicle_brand?: string;
+  vehicle_model?: string;
+  vehicle_mtc?: string;
   driver_license?: string;
+  // Personas
+  remittent_id?: number;
+  shipping_guide_remittent_id?: number | null;
+  // Direcciones
   origin_address?: string;
   origin_ubigeo_id?: number;
   destination_address?: string;

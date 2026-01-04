@@ -94,7 +94,6 @@ export const PersonForm = ({
     }
   }, [type_person, type_document, form]);
 
-
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
     const typeDocument = form.getValues("type_document");
