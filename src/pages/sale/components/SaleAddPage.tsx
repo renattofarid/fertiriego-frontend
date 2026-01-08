@@ -69,7 +69,7 @@ export const SaleAddPage = () => {
     document_type: "",
     issue_date: "",
     payment_type: "",
-    currency: "",
+    currency: "PEN",
     observations: "",
     details: [],
     installments: [],

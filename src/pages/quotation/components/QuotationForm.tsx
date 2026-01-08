@@ -492,8 +492,8 @@ export const QuotationForm = ({
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div className="flex gap-2 items-end max-w-full">
+                <div className="flex-1 min-w-0">
                   <FormSelect
                     control={form.control}
                     name="customer_id"
@@ -525,8 +525,8 @@ export const QuotationForm = ({
                 )}
               </div>
 
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div className="flex gap-2 items-end max-w-full">
+                <div className="flex-1 min-w-0">
                   <FormSelect
                     control={form.control}
                     name="warehouse_id"

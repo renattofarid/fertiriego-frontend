@@ -38,6 +38,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
+import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
+import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
@@ -143,6 +145,9 @@ export const SaleForm = ({
   const { data: guidesCarrier, isLoading: isLoadingGuidesCarrier } =
     useAllShippingGuideCarriers();
 
+  // Cargar categorías de precio
+  const { data: priceCategories } = useAllProductPriceCategories();
+
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null
   );
@@ -154,6 +159,9 @@ export const SaleForm = ({
     igv: 0,
     total: 0,
   });
+
+  // Estado para controlar el precio automático
+  const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
 
   // Estados para cuotas
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
@@ -179,6 +187,7 @@ export const SaleForm = ({
   const detailTempForm = useForm({
     defaultValues: {
       temp_product_id: currentDetail.product_id,
+      temp_price_category_id: "",
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
     },
@@ -202,8 +211,14 @@ export const SaleForm = ({
 
   // Watchers para detalles
   const selectedProductId = detailTempForm.watch("temp_product_id");
+  const selectedPriceCategoryId = detailTempForm.watch("temp_price_category_id");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
+
+  // Cargar precios del producto seleccionado
+  const { data: productPricesData } = useProductPrices({
+    productId: parseInt(selectedProductId) || 0,
+  });
 
   // Watchers para cuotas
   const selectedDueDays = installmentTempForm.watch("temp_due_days");
@@ -452,6 +467,39 @@ export const SaleForm = ({
     }));
   }, [selectedWarehouseId, warehouseProducts, products]);
 
+  // Watch para la moneda seleccionada
+  const selectedCurrency = form.watch("currency");
+
+  // Autocompletar precio cuando se selecciona categoría de precio o moneda
+  useEffect(() => {
+    if (selectedPriceCategoryId && productPricesData && selectedCurrency) {
+      const selectedPrice = productPricesData.find(
+        (price) => price.category_id === parseInt(selectedPriceCategoryId)
+      );
+
+      if (selectedPrice) {
+        let priceValue: number = 0;
+
+        // Seleccionar el precio según la moneda (usar 0 si no existe)
+        if (selectedPrice.prices) {
+          priceValue = selectedPrice.prices[selectedCurrency] ?? 0;
+        }
+
+        if (priceValue.toString() !== lastSetPrice) {
+          detailTempForm.setValue("temp_unit_price", priceValue.toString());
+          setLastSetPrice(priceValue.toString());
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPriceCategoryId, selectedCurrency, productPricesData]);
+
+  // Reset lastSetPrice cuando cambia el producto
+  useEffect(() => {
+    setLastSetPrice(null);
+    detailTempForm.setValue("temp_price_category_id", "");
+  }, [selectedProductId, detailTempForm]);
+
   // Auto-completar datos desde sourceData (orden o cotización)
   useEffect(() => {
     if (sourceData && sourceType && mode === "create") {
@@ -586,8 +634,10 @@ export const SaleForm = ({
       total: 0,
     };
     setCurrentDetail(emptyDetail);
+    setLastSetPrice(null);
     detailTempForm.reset({
       temp_product_id: "",
+      temp_price_category_id: "",
       temp_quantity: "",
       temp_unit_price: "",
     });
@@ -1021,6 +1071,23 @@ export const SaleForm = ({
                   />
                 </Form>
               </div>
+
+              {selectedProductId && priceCategories && priceCategories.length > 0 && (
+                <div className="md:col-span-2">
+                  <Form {...detailTempForm}>
+                    <FormSelect
+                      control={detailTempForm.control}
+                      name="temp_price_category_id"
+                      label="Categoría de Precio"
+                      placeholder="Seleccionar (opcional)"
+                      options={priceCategories.map((cat) => ({
+                        value: cat.id.toString(),
+                        label: cat.name,
+                      }))}
+                    />
+                  </Form>
+                </div>
+              )}
 
               <FormField
                 control={detailTempForm.control}
