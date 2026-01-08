@@ -99,7 +99,6 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
       return response.data;
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "create"));
       throw error;
     }
   },

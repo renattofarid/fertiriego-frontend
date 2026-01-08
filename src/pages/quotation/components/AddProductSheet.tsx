@@ -323,12 +323,7 @@ export const AddProductSheet = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={
-              !productId ||
-              !quantity ||
-              !unitPrice ||
-              !form.watch("purchase_price")
-            }
+            disabled={!productId || !quantity || !unitPrice}
           >
             <Plus className="h-4 w-4 mr-2" />
             {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
