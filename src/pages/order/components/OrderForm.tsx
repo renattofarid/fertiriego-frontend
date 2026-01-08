@@ -579,6 +579,7 @@ export const OrderForm = ({
             products={products}
             editingDetail={editingDetail}
             editingIndex={editingIndex}
+            currency={form.watch("currency")}
           />
         </div>
 

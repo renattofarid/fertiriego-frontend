@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { Plus, Save } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
+import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
+import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -16,6 +18,7 @@ interface AddProductSheetProps {
   editingDetail?: ProductDetail | null;
   editingIndex?: number;
   onEdit?: (detail: ProductDetail, index: number) => void;
+  currency?: string;
 }
 
 export interface ProductDetail {
@@ -38,14 +41,16 @@ export const AddProductSheet = ({
   editingDetail = null,
   editingIndex,
   onEdit,
+  currency = "PEN",
 }: AddProductSheetProps) => {
   const isEditMode = editingDetail !== null;
   const form = useForm({
     defaultValues: {
       product_id: "",
+      price_category_id: "",
       quantity: "",
       unit_price: "",
-      purchase_price: "",
+      purchase_price: "0",
       is_igv: true,
     },
   });
@@ -56,32 +61,79 @@ export const AddProductSheet = ({
     total: 0,
   });
 
+  const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+
   const productId = form.watch("product_id");
+  const priceCategoryId = form.watch("price_category_id");
   const quantity = form.watch("quantity");
   const unitPrice = form.watch("unit_price");
   const isIgv = form.watch("is_igv");
 
-  // Load editing data when editingDetail changes
+  // Cargar categorías de precio
+  const { data: priceCategories } = useAllProductPriceCategories();
+
+  // Cargar precios del producto seleccionado
+  const { data: productPricesData } = useProductPrices({
+    productId: parseInt(productId) || 0,
+  });
+
+  // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
-    if (editingDetail && open) {
-      form.reset({
-        product_id: editingDetail.product_id,
-        quantity: editingDetail.quantity,
-        unit_price: editingDetail.unit_price,
-        purchase_price: editingDetail.purchase_price,
-        is_igv: editingDetail.is_igv,
-      });
-    } else if (!open) {
-      form.reset({
-        product_id: "",
-        quantity: "",
-        unit_price: "",
-        purchase_price: "",
-        is_igv: true,
-      });
-      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+    if (priceCategoryId && productPricesData && currency) {
+      const selectedPrice = productPricesData.find(
+        (price) => price.category_id === parseInt(priceCategoryId)
+      );
+
+      if (selectedPrice) {
+        let priceValue: number = 0;
+
+        // Seleccionar el precio según la moneda (usar 0 si no existe)
+        if (selectedPrice.prices) {
+          priceValue = selectedPrice.prices[currency] ?? 0;
+        }
+
+        if (priceValue.toString() !== lastSetPrice) {
+          form.setValue("unit_price", priceValue.toString());
+          setLastSetPrice(priceValue.toString());
+        }
+      }
     }
-  }, [editingDetail, open, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [priceCategoryId, currency, productPricesData]);
+
+  // Cargar datos cuando se abre el sheet
+  useEffect(() => {
+    if (open) {
+      // Reset lastSetPrice cuando se abre el sheet
+      setLastSetPrice(null);
+
+      if (editingDetail) {
+        form.reset({
+          product_id: editingDetail.product_id,
+          price_category_id: "",
+          quantity: editingDetail.quantity,
+          unit_price: editingDetail.unit_price,
+          purchase_price: editingDetail.purchase_price ?? "0",
+          is_igv: editingDetail.is_igv,
+        });
+      } else {
+        form.reset({
+          product_id: "",
+          price_category_id: "",
+          quantity: "",
+          unit_price: "",
+          purchase_price: "0",
+          is_igv: true,
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Reset lastSetPrice cuando cambia el producto
+  useEffect(() => {
+    setLastSetPrice(null);
+  }, [productId]);
 
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
@@ -128,7 +180,7 @@ export const AddProductSheet = ({
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: formData.unit_price,
-      purchase_price: formData.purchase_price,
+      purchase_price: formData.purchase_price || "0",
       subtotal: calculatedValues.subtotal,
       tax: calculatedValues.tax,
       total: calculatedValues.total,
@@ -169,6 +221,23 @@ export const AddProductSheet = ({
           }))}
           placeholder="Seleccionar producto"
         />
+
+        {productId && (
+          <>
+            {priceCategories && priceCategories.length > 0 && (
+              <FormSelect
+                control={form.control}
+                name="price_category_id"
+                label="Categoría de Precio"
+                options={priceCategories.map((cat) => ({
+                  value: cat.id.toString(),
+                  label: cat.name,
+                }))}
+                placeholder="Seleccionar categoría de precio (opcional)"
+              />
+            )}
+          </>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormInput
