@@ -9,12 +9,13 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 interface AddProductSheetProps {
   open: boolean;
   onClose: () => void;
   onAdd: (detail: ProductDetail) => void;
-  products: ProductResource[];
   defaultIsIgv?: boolean;
   editingDetail?: ProductDetail | null;
   editIndex?: number | null;
@@ -40,7 +41,6 @@ export const AddProductSheet = ({
   open,
   onClose,
   onAdd,
-  products,
   defaultIsIgv = true,
   editingDetail = null,
   editIndex = null,
@@ -87,7 +87,7 @@ export const AddProductSheet = ({
   useEffect(() => {
     if (priceCategoryId && productPricesData && currency) {
       const selectedPrice = productPricesData.find(
-        (price) => price.category_id === parseInt(priceCategoryId)
+        (price) => price.category_id === parseInt(priceCategoryId),
       );
 
       if (selectedPrice) {
@@ -166,6 +166,9 @@ export const AddProductSheet = ({
     }
   }, [quantity, unitPrice, isIgv]);
 
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductResource | null>(null);
+
   const handleSave = () => {
     const formData = form.getValues();
 
@@ -173,15 +176,11 @@ export const AddProductSheet = ({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id === parseInt(formData.product_id)
-    );
-
-    if (!product) return;
+    if (!selectedProduct) return;
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
-      product_name: product.name,
+      product_name: selectedProduct.name,
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: formData.unit_price,
@@ -214,15 +213,19 @@ export const AddProductSheet = ({
       size="lg"
     >
       <div className="flex flex-col gap-4 px-4">
-        <FormSelect
+        <FormSelectAsync
           control={form.control}
           name="product_id"
           label="Producto"
-          options={products.map((p) => ({
-            value: p.id.toString(),
-            label: p.name,
-          }))}
+          useQueryHook={useClients}
+          mapOptionFn={(product: ProductResource) => ({
+            value: product.id.toString(),
+            label: product.name,
+          })}
           placeholder="Seleccionar producto"
+          onValueChange={(_value, item) => {
+            setSelectedProduct(item ?? null);
+          }}
         />
 
         {productId && (

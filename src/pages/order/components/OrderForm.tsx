@@ -17,7 +17,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { QuotationResource } from "@/pages/quotation/lib/quotation.interface";
 import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
@@ -43,14 +42,14 @@ import {
 import { OrderSummary } from "./OrderSummary";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
+import { useClients } from "@/pages/client/lib/client.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 
 interface OrderFormProps {
   onSubmit: (data: CreateOrderRequest) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  customers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   quotations?: QuotationResource[];
   defaultValues?: any;
   mode?: "create" | "update";
@@ -73,9 +72,7 @@ export const OrderForm = ({
   onCancel,
   onSubmit,
   isSubmitting = false,
-  customers,
   warehouses,
-  products,
   quotations,
   defaultValues,
   mode = "create",
@@ -85,17 +82,16 @@ export const OrderForm = ({
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
-    null
+    null,
   );
   const [editingIndex, setEditingIndex] = useState<number | undefined>(
-    undefined
+    undefined,
   );
 
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [customersList, setCustomersList] =
-    useState<PersonResource[]>(customers);
+  const [customersList, setCustomersList] = useState<PersonResource[]>([]);
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
@@ -117,10 +113,6 @@ export const OrderForm = ({
   const quotationId = form.watch("quotation_id");
 
   // Actualizar listas cuando cambien las props
-  useEffect(() => {
-    setCustomersList(customers);
-  }, [customers]);
-
   useEffect(() => {
     setWarehousesList(warehouses);
   }, [warehouses]);
@@ -154,7 +146,7 @@ export const OrderForm = ({
           subtotal: parseFloat(detail.subtotal),
           tax: parseFloat(detail.tax),
           total: parseFloat(detail.total),
-        })
+        }),
       );
       setDetails(orderDetails);
     }
@@ -163,7 +155,7 @@ export const OrderForm = ({
   useEffect(() => {
     if (quotationId && quotations) {
       const selectedQuotation = quotations.find(
-        (q) => q.id === parseInt(quotationId)
+        (q) => q.id === parseInt(quotationId),
       );
 
       if (selectedQuotation && mode === "create") {
@@ -171,7 +163,7 @@ export const OrderForm = ({
         form.setValue("customer_id", selectedQuotation.customer_id.toString());
         form.setValue(
           "warehouse_id",
-          selectedQuotation.warehouse_id.toString()
+          selectedQuotation.warehouse_id.toString(),
         );
         form.setValue("currency", selectedQuotation.currency);
         form.setValue("address", selectedQuotation.address || "");
@@ -323,11 +315,12 @@ export const OrderForm = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex gap-2 items-end max-w-full">
                 <div className="flex-1 min-w-0">
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="customer_id"
                     label="Cliente"
-                    options={customersList.map((c) => ({
+                    useQueryHook={useClients}
+                    mapOptionFn={(c: PersonResource) => ({
                       value: c.id.toString(),
                       label:
                         c.business_name ||
@@ -336,7 +329,7 @@ export const OrderForm = ({
                           (c.father_surname || "") +
                           " " +
                           (c.mother_surname || ""),
-                    }))}
+                    })}
                     placeholder="Seleccionar cliente"
                   />
                 </div>
@@ -576,7 +569,6 @@ export const OrderForm = ({
             onClose={handleCloseSheet}
             onAdd={handleAddDetail}
             onEdit={handleUpdateDetail}
-            products={products}
             editingDetail={editingDetail}
             editingIndex={editingIndex}
             currency={form.watch("currency")}
@@ -587,7 +579,7 @@ export const OrderForm = ({
           form={form}
           mode={mode}
           isSubmitting={isSubmitting}
-          customers={customers}
+          customers={customersList}
           warehouses={warehouses}
           details={details}
           calculateSubtotalTotal={calculateSubtotalTotal}

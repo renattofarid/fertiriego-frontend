@@ -5,9 +5,7 @@ import { useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
 import { useQuotationStore } from "../lib/quotation.store";
-import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
@@ -18,13 +16,11 @@ export const QuotationAddPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const { createQuotation } = useQuotationStore();
 
-  const isLoading = customersLoading || warehousesLoading || productsLoading;
+  const isLoading = warehousesLoading;
 
   const handleSubmit = async (data: any) => {
     setIsSubmitting(true);
@@ -34,7 +30,7 @@ export const QuotationAddPage = () => {
       navigate("/cotizaciones");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al crear la cotización"
+        error.response?.data?.message || "Error al crear la cotización",
       );
     } finally {
       setIsSubmitting(false);
@@ -62,21 +58,14 @@ export const QuotationAddPage = () => {
         </div>
       </div>
 
-      {customers &&
-        customers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 &&
-        products &&
-        products.length > 0 && (
-          <QuotationForm
-            onSubmit={handleSubmit}
-            onCancel={() => navigate("/cotizaciones")}
-            isSubmitting={isSubmitting}
-            customers={customers}
-            warehouses={warehouses}
-            products={products}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && (
+        <QuotationForm
+          onSubmit={handleSubmit}
+          onCancel={() => navigate("/cotizaciones")}
+          isSubmitting={isSubmitting}
+          warehouses={warehouses}
+        />
+      )}
     </FormWrapper>
   );
 };

@@ -45,6 +45,8 @@ import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 import { QuotationSummary } from "./QuotationSummary";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -52,9 +54,7 @@ interface QuotationFormProps {
   onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  customers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
 }
 
 interface DetailRow {
@@ -77,9 +77,7 @@ export const QuotationForm = ({
   onCancel,
   onSubmit,
   isSubmitting = false,
-  customers,
   warehouses,
-  products,
 }: QuotationFormProps) => {
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -87,7 +85,7 @@ export const QuotationForm = ({
   const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
-    null
+    null,
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [technicalSheetsDialog, setTechnicalSheetsDialog] = useState<{
@@ -103,8 +101,7 @@ export const QuotationForm = ({
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [customersList, setCustomersList] =
-    useState<PersonResource[]>(customers);
+
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
@@ -132,18 +129,12 @@ export const QuotationForm = ({
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
 
-  // Actualizar listas cuando cambien las props
-  useEffect(() => {
-    setCustomersList(customers);
-  }, [customers]);
-
   useEffect(() => {
     setWarehousesList(warehouses);
   }, [warehouses]);
 
   // Handlers para modales
   const handleClientCreated = (newClient: PersonResource) => {
-    setCustomersList((prev) => [...prev, newClient]);
     form.setValue("customer_id", newClient.id.toString(), {
       shouldValidate: true,
     });
@@ -178,14 +169,14 @@ export const QuotationForm = ({
       setEditingIndex(index);
       setSheetOpen(true);
     },
-    [details]
+    [details],
   );
 
   const handleRemoveDetail = useCallback(
     (index: number) => {
       setDetails(details.filter((_, i) => i !== index));
     },
-    [details]
+    [details],
   );
 
   const handleViewTechnicalSheets = useCallback(
@@ -197,7 +188,7 @@ export const QuotationForm = ({
         productName: detail.product_name || "",
       });
     },
-    [details]
+    [details],
   );
 
   const columns = useMemo<ColumnDef<DetailRow>[]>(
@@ -323,7 +314,7 @@ export const QuotationForm = ({
         ),
       },
     ],
-    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets]
+    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets],
   );
 
   // Cargar detalles iniciales cuando se está editando
@@ -347,7 +338,7 @@ export const QuotationForm = ({
             total: parseFloat(detail.total),
             technical_sheet: product?.technical_sheet || [],
           };
-        }
+        },
       );
       setDetails(loadedDetails);
     }
@@ -357,7 +348,7 @@ export const QuotationForm = ({
   useEffect(() => {
     if (warehouseId) {
       const selectedWarehouse = warehouses.find(
-        (w) => w.id.toString() === warehouseId
+        (w) => w.id.toString() === warehouseId,
       );
       if (selectedWarehouse?.branch_id) {
         setSelectedBranchId(selectedWarehouse.branch_id);
@@ -494,20 +485,17 @@ export const QuotationForm = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex gap-2 items-end max-w-full">
                 <div className="flex-1 min-w-0">
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="customer_id"
                     label="Cliente"
-                    options={customersList.map((c) => ({
-                      value: c.id.toString(),
+                    useQueryHook={useClients}
+                    mapOptionFn={(client: PersonResource) => ({
+                      value: client.id.toString(),
                       label:
-                        c.business_name ||
-                        c.names +
-                          " " +
-                          c.father_surname +
-                          " " +
-                          (c.mother_surname || ""),
-                    }))}
+                        client.business_name ||
+                        `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
+                    })}
                     placeholder="Seleccionar cliente"
                   />
                 </div>
@@ -764,7 +752,6 @@ export const QuotationForm = ({
             open={sheetOpen}
             onClose={handleCloseSheet}
             onAdd={handleAddDetail}
-            products={products}
             defaultIsIgv={branchHasIgv}
             editingDetail={editingDetail}
             editIndex={editingIndex}
