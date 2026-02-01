@@ -100,6 +100,7 @@ export function FormSelectAsync({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const rawItemsMap = useRef<Map<string, any>>(new Map());
 
   // Hook de consulta con parámetros dinámicos
   const { data, isLoading, isFetching } = useQueryHook({
@@ -138,6 +139,12 @@ export function FormSelectAsync({
   useEffect(() => {
     if (data?.data) {
       const newOptions = data.data.map(mapOptionFn);
+
+      // Store raw items for reliable lookup in onValueChange
+      for (const item of data.data) {
+        const opt = mapOptionFn(item);
+        rawItemsMap.current.set(opt.value, item);
+      }
 
       if (page === 1) {
         setAllOptions(newOptions);
@@ -295,10 +302,7 @@ export function FormSelectAsync({
                                 setSelectedOption(newValue ? option : null);
                                 // Llamar onValueChange si existe, pasando el item completo
                                 if (onValueChange) {
-                                  const selectedItem = data?.data?.find(
-                                    (item) =>
-                                      mapOptionFn(item).value === option.value,
-                                  );
+                                  const selectedItem = rawItemsMap.current.get(option.value);
                                   onValueChange(newValue, selectedItem);
                                 }
                                 setOpen(false);
