@@ -32,10 +32,10 @@ import { FormSwitch } from "@/components/FormSwitch";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect, useMemo } from "react";
-import { useAllWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import { useState, useEffect } from "react";
+import { useAllWarehouseProducts, useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
@@ -68,6 +68,8 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { SaleSummary } from "./SaleSummary";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -75,9 +77,7 @@ interface SaleFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
-  customers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   sourceData?: any; // QuotationResourceById | OrderResourceById
   sourceType?: "quotation" | "order" | null;
   sale?: SaleResource;
@@ -109,22 +109,22 @@ export const SaleForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  customers,
   warehouses,
-  products,
   sourceData,
   sourceType,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
 
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    PersonResource | undefined
+  >(undefined);
+
   // Watch para el almacén seleccionado
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string>("");
 
   // Estado para el modal de crear cliente
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
-  const [customersList, setCustomersList] =
-    useState<PersonResource[]>(customers);
 
   // Estado para el modal de crear almacén
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
@@ -132,9 +132,9 @@ export const SaleForm = ({
     useState<WarehouseResource[]>(warehouses);
 
   // Obtener productos del almacén seleccionado
-  const { data: warehouseProducts, isLoading: isLoadingWarehouseProducts } =
+  const { data: warehouseProducts } =
     useAllWarehouseProducts(
-      selectedWarehouseId ? { warehouse_id: selectedWarehouseId } : undefined
+      selectedWarehouseId ? { warehouse_id: selectedWarehouseId } : undefined,
     );
 
   // Obtener guías de remisión
@@ -149,7 +149,7 @@ export const SaleForm = ({
   const { data: priceCategories } = useAllProductPriceCategories();
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
-    null
+    null,
   );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
@@ -176,7 +176,7 @@ export const SaleForm = ({
   // Estados para guías
   const [guides, setGuides] = useState<GuideRow[]>([]);
   const [editingGuideIndex, setEditingGuideIndex] = useState<number | null>(
-    null
+    null,
   );
   const [currentGuide, setCurrentGuide] = useState<GuideRow>({
     name: "",
@@ -211,7 +211,9 @@ export const SaleForm = ({
 
   // Watchers para detalles
   const selectedProductId = detailTempForm.watch("temp_product_id");
-  const selectedPriceCategoryId = detailTempForm.watch("temp_price_category_id");
+  const selectedPriceCategoryId = detailTempForm.watch(
+    "temp_price_category_id",
+  );
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
 
@@ -229,13 +231,8 @@ export const SaleForm = ({
   const selectedGuideId = guideTempForm.watch("temp_guide_id");
   const selectedGuideName = guideTempForm.watch("temp_guide_name");
   const selectedGuideCorrelative = guideTempForm.watch(
-    "temp_guide_correlative"
+    "temp_guide_correlative",
   );
-
-  // Actualizar lista de clientes cuando cambie la prop
-  useEffect(() => {
-    setCustomersList(customers);
-  }, [customers]);
 
   // Actualizar lista de almacenes cuando cambie la prop
   useEffect(() => {
@@ -244,8 +241,6 @@ export const SaleForm = ({
 
   // Función para manejar la creación de un nuevo cliente
   const handleClientCreated = (newClient: PersonResource) => {
-    // Agregar el nuevo cliente a la lista
-    setCustomersList((prev) => [...prev, newClient]);
     // Seleccionar automáticamente el nuevo cliente
     form.setValue("customer_id", newClient.id.toString(), {
       shouldValidate: true,
@@ -322,7 +317,7 @@ export const SaleForm = ({
 
       if (selectedGuideType === "remision" && guidesRemision) {
         const guide = guidesRemision.find(
-          (g) => g.id.toString() === selectedGuideId
+          (g) => g.id.toString() === selectedGuideId,
         );
         if (guide) {
           guideName = "Guía de Remisión";
@@ -330,7 +325,7 @@ export const SaleForm = ({
         }
       } else if (selectedGuideType === "transportista" && guidesCarrier) {
         const guide = guidesCarrier.find(
-          (g) => g.id.toString() === selectedGuideId
+          (g) => g.id.toString() === selectedGuideId,
         );
         if (guide) {
           guideName = "Guía de Transportista";
@@ -372,7 +367,7 @@ export const SaleForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? saleSchemaCreate : saleSchemaUpdate
+      mode === "create" ? saleSchemaCreate : saleSchemaUpdate,
     ),
     defaultValues: {
       ...defaultValues,
@@ -393,9 +388,6 @@ export const SaleForm = ({
       // Inicializar detalles
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
-          const product = products.find(
-            (p) => p.id.toString() === detail.product_id
-          );
           const quantity = parseFloat(detail.quantity);
           const unitPrice = parseFloat(detail.unit_price);
           const subtotal = roundTo6Decimals(quantity * unitPrice);
@@ -404,7 +396,7 @@ export const SaleForm = ({
 
           return {
             product_id: detail.product_id,
-            product_name: product?.name,
+            product_name: detail.product_name || detail.product?.name,
             quantity: detail.quantity,
             unit_price: detail.unit_price,
             subtotal,
@@ -422,7 +414,7 @@ export const SaleForm = ({
           (inst: any) => ({
             due_days: inst.due_days,
             amount: inst.amount,
-          })
+          }),
         );
         setInstallments(initialInstallments);
         form.setValue("installments", initialInstallments);
@@ -447,25 +439,7 @@ export const SaleForm = ({
     }
   }, [watchedWarehouseId, selectedWarehouseId]);
 
-  // Generar lista de productos con stock según el almacén seleccionado
-  const productsOptions = useMemo(() => {
-    if (
-      selectedWarehouseId &&
-      warehouseProducts &&
-      warehouseProducts.length > 0
-    ) {
-      return warehouseProducts.map((wp) => ({
-        value: wp.product_id.toString(),
-        label: wp.product_name,
-        description: `Stock: ${wp.stock}`,
-      }));
-    }
-    // Si no hay almacén seleccionado, mostrar todos los productos sin stock
-    return products.map((product) => ({
-      value: product.id.toString(),
-      label: product.name,
-    }));
-  }, [selectedWarehouseId, warehouseProducts, products]);
+
 
   // Watch para la moneda seleccionada
   const selectedCurrency = form.watch("currency");
@@ -474,7 +448,7 @@ export const SaleForm = ({
   useEffect(() => {
     if (selectedPriceCategoryId && productPricesData && selectedCurrency) {
       const selectedPrice = productPricesData.find(
-        (price) => price.category_id === parseInt(selectedPriceCategoryId)
+        (price) => price.category_id === parseInt(selectedPriceCategoryId),
       );
 
       if (selectedPrice) {
@@ -530,7 +504,7 @@ export const SaleForm = ({
               igv,
               total,
             };
-          }
+          },
         );
 
         setDetails(quotationDetails);
@@ -554,7 +528,7 @@ export const SaleForm = ({
               igv,
               total,
             };
-          }
+          },
         );
 
         setDetails(orderDetails);
@@ -593,8 +567,8 @@ export const SaleForm = ({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id
+    const wp = warehouseProducts?.find(
+      (wp) => wp.product_id.toString() === currentDetail.product_id,
     );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
@@ -606,7 +580,7 @@ export const SaleForm = ({
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: product?.name,
+      product_name: wp?.product_name,
       subtotal,
       igv,
       total,
@@ -661,7 +635,7 @@ export const SaleForm = ({
   const calculateDetailsSubtotal = () => {
     const sum = details.reduce(
       (sum, detail) => sum + (detail.subtotal || 0),
-      0
+      0,
     );
     return roundTo6Decimals(sum);
   };
@@ -698,8 +672,8 @@ export const SaleForm = ({
       errorToast(
         `El total de cuotas no puede exceder el total de la venta (${formatDecimalTrunc(
           saleTotal,
-          6
-        )})`
+          6,
+        )})`,
       );
       return;
     }
@@ -743,7 +717,7 @@ export const SaleForm = ({
   const calculateInstallmentsTotal = () => {
     const sum = installments.reduce(
       (sum, inst) => sum + parseFloat(inst.amount),
-      0
+      0,
     );
     return roundTo6Decimals(sum);
   };
@@ -820,10 +794,10 @@ export const SaleForm = ({
     if (selectedPaymentType === "CONTADO" && !paymentAmountsMatchTotal()) {
       errorToast(
         `El total pagado (${formatNumber(
-          calculatePaymentTotal()
+          calculatePaymentTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal()
-        )})`
+          calculateDetailsTotal(),
+        )})`,
       );
       return;
     }
@@ -838,10 +812,10 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal()
+          calculateInstallmentsTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal()
-        )})`
+          calculateDetailsTotal(),
+        )})`,
       );
       return;
     }
@@ -892,23 +866,23 @@ export const SaleForm = ({
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <FormSelect
+                <div className="truncate! flex-1">
+                  <FormSelectAsync
                     control={form.control}
                     name="customer_id"
                     label="Cliente"
                     placeholder="Seleccione un cliente"
-                    options={customersList.map((customer) => ({
+                    useQueryHook={useClients}
+                    mapOptionFn={(customer: PersonResource) => ({
                       value: customer.id.toString(),
                       label:
                         customer.business_name ??
-                        customer.names +
-                          " " +
-                          customer.father_surname +
-                          " " +
-                          customer.mother_surname,
-                    }))}
+                        `${customer.names} ${customer.father_surname} ${customer.mother_surname}`,
+                    })}
                     disabled={mode === "update"}
+                    onValueChange={(_value, item) => {
+                      setSelectedCustomer(item ?? null);
+                    }}
                   />
                 </div>
                 {mode === "create" && (
@@ -926,7 +900,7 @@ export const SaleForm = ({
               </div>
 
               <div className="flex gap-2 items-end">
-                <div className="flex-1">
+                <div className="truncate! flex-1">
                   <FormSelect
                     control={form.control}
                     name="warehouse_id"
@@ -1061,33 +1035,43 @@ export const SaleForm = ({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
               <div className="md:col-span-2">
                 <Form {...detailTempForm}>
-                  <FormSelect
+                  <FormSelectAsync
                     control={detailTempForm.control}
                     name="temp_product_id"
                     label="Producto"
                     placeholder="Seleccione"
-                    options={productsOptions}
-                    disabled={isLoadingWarehouseProducts}
+                    useQueryHook={useWarehouseProducts}
+                    mapOptionFn={(wp: WarehouseProductResource) => ({
+                      value: wp.product_id.toString(),
+                      label: wp.product_name,
+                      description: `Stock: ${wp.stock}`,
+                    })}
+                    additionalParams={{
+                      warehouse_id: selectedWarehouseId,
+                    }}
+                    disabled={!selectedWarehouseId}
                   />
                 </Form>
               </div>
 
-              {selectedProductId && priceCategories && priceCategories.length > 0 && (
-                <div className="md:col-span-2">
-                  <Form {...detailTempForm}>
-                    <FormSelect
-                      control={detailTempForm.control}
-                      name="temp_price_category_id"
-                      label="Categoría de Precio"
-                      placeholder="Seleccionar (opcional)"
-                      options={priceCategories.map((cat) => ({
-                        value: cat.id.toString(),
-                        label: cat.name,
-                      }))}
-                    />
-                  </Form>
-                </div>
-              )}
+              {selectedProductId &&
+                priceCategories &&
+                priceCategories.length > 0 && (
+                  <div className="md:col-span-2">
+                    <Form {...detailTempForm}>
+                      <FormSelect
+                        control={detailTempForm.control}
+                        name="temp_price_category_id"
+                        label="Categoría de Precio"
+                        placeholder="Seleccionar (opcional)"
+                        options={priceCategories.map((cat) => ({
+                          value: cat.id.toString(),
+                          label: cat.name,
+                        }))}
+                      />
+                    </Form>
+                  </div>
+                )}
 
               <FormField
                 control={detailTempForm.control}
@@ -1564,7 +1548,7 @@ export const SaleForm = ({
                           <TableCell className="text-right font-bold text-lg text-blue-600">
                             {formatDecimalTrunc(
                               calculateInstallmentsTotal(),
-                              6
+                              6,
                             )}
                           </TableCell>
                           <TableCell></TableCell>
@@ -1611,7 +1595,7 @@ export const SaleForm = ({
           form={form}
           mode={mode}
           isSubmitting={isSubmitting}
-          customers={customersList}
+          selectedCustomer={selectedCustomer}
           warehouses={warehouses}
           details={details}
           installments={installments}

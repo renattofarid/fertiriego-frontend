@@ -17,7 +17,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
@@ -47,6 +46,7 @@ import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { useAllProducts } from "@/pages/product/lib/product.hook";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -80,6 +80,7 @@ export const QuotationForm = ({
   warehouses,
 }: QuotationFormProps) => {
   const { user } = useAuthStore();
+  const { data: products = [] } = useAllProducts();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
@@ -451,6 +452,9 @@ export const QuotationForm = ({
 
     onSubmit(request);
   };
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    PersonResource | undefined
+  >(undefined);
 
   const getTotalAmount = () => {
     return details.reduce((sum, detail) => sum + detail.total, 0);
@@ -497,6 +501,9 @@ export const QuotationForm = ({
                         `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
                     })}
                     placeholder="Seleccionar cliente"
+                    onValueChange={(_value, item) => {
+                      setSelectedCustomer(item ?? null);
+                    }}
                   />
                 </div>
                 {mode === "create" && (
@@ -773,7 +780,7 @@ export const QuotationForm = ({
           form={form}
           mode={mode}
           isSubmitting={isSubmitting}
-          customers={customers}
+          selectedCustomer={selectedCustomer}
           warehouses={warehouses}
           details={details}
           calculateSubtotalTotal={calculateSubtotalTotal}

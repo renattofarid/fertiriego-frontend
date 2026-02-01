@@ -6,9 +6,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { SaleForm } from "./SaleForm";
 import { type SaleSchema } from "../lib/sale.schema";
 import { useSaleStore } from "../lib/sales.store";
-import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { findQuotationById } from "@/pages/quotation/lib/quotation.actions";
 import { findOrderById } from "@/pages/order/lib/order.actions";
 import FormWrapper from "@/components/FormWrapper";
@@ -22,16 +20,16 @@ export const SaleAddPage = () => {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sourceData, setSourceData] = useState<any>(null);
-  const [sourceType, setSourceType] = useState<"quotation" | "order" | null>(null);
+  const [sourceType, setSourceType] = useState<"quotation" | "order" | null>(
+    null,
+  );
   const [isFetchingSource, setIsFetchingSource] = useState(false);
 
-  const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const { createSale } = useSaleStore();
 
-  const isLoading = customersLoading || warehousesLoading || productsLoading || isFetchingSource;
+  const isLoading = warehousesLoading || isFetchingSource;
 
   // Fetch quotation or order data from URL params
   useEffect(() => {
@@ -51,7 +49,9 @@ export const SaleAddPage = () => {
           setSourceType("order");
         }
       } catch (error: any) {
-        errorToast(error.response?.data?.message || "Error al cargar los datos");
+        errorToast(
+          error.response?.data?.message || "Error al cargar los datos",
+        );
         navigate("/ventas");
       } finally {
         setIsFetchingSource(false);
@@ -81,8 +81,10 @@ export const SaleAddPage = () => {
       // Add quotation_id or order_id based on source
       const saleData = {
         ...data,
-        quotation_id: sourceType === "quotation" && sourceData ? sourceData.id : undefined,
-        order_id: sourceType === "order" && sourceData ? sourceData.id : undefined,
+        quotation_id:
+          sourceType === "quotation" && sourceData ? sourceData.id : undefined,
+        order_id:
+          sourceType === "order" && sourceData ? sourceData.id : undefined,
       };
 
       await createSale(saleData);
@@ -116,25 +118,18 @@ export const SaleAddPage = () => {
         </div>
       </div>
 
-      {customers &&
-        customers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 &&
-        products &&
-        products.length > 0 && (
-          <SaleForm
-            defaultValues={getDefaultValues()}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            mode="create"
-            customers={customers}
-            warehouses={warehouses}
-            products={products}
-            sourceData={sourceData}
-            sourceType={sourceType}
-            onCancel={() => navigate("/ventas")}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && (
+        <SaleForm
+          defaultValues={getDefaultValues()}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="create"
+          warehouses={warehouses}
+          sourceData={sourceData}
+          sourceType={sourceType}
+          onCancel={() => navigate("/ventas")}
+        />
+      )}
     </FormWrapper>
   );
 };

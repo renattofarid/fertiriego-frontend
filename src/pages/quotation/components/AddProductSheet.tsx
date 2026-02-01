@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { useClients } from "@/pages/client/lib/client.hook";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -217,7 +217,7 @@ export const AddProductSheet = ({
           control={form.control}
           name="product_id"
           label="Producto"
-          useQueryHook={useClients}
+          useQueryHook={useProduct}
           mapOptionFn={(product: ProductResource) => ({
             value: product.id.toString(),
             label: product.name,
