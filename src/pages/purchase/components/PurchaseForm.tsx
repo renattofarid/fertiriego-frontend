@@ -51,6 +51,8 @@ import EmptyState from "@/components/EmptyState";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { PurchaseSummary } from "./PurchaseSummary";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -60,7 +62,6 @@ interface PurchaseFormProps {
   mode?: "create" | "update";
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   purchaseOrders: PurchaseOrderResource[];
   purchase?: PurchaseResource;
   currentUserId: number;
@@ -89,7 +90,6 @@ export const PurchaseForm = ({
   mode = "create",
   suppliers,
   warehouses,
-  products,
   purchaseOrders,
   currentUserId,
 }: PurchaseFormProps) => {
@@ -102,11 +102,13 @@ export const PurchaseForm = ({
   // Estado para modales
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
-  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+  const [suppliersList, setSuppliersList] =
+    useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] =
+    useState<WarehouseResource[]>(warehouses);
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
-    null
+    null,
   );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
@@ -129,7 +131,7 @@ export const PurchaseForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? purchaseSchemaCreate : purchaseSchemaUpdate
+      mode === "create" ? purchaseSchemaCreate : purchaseSchemaUpdate,
     ),
     defaultValues: {
       ...defaultValues,
@@ -279,7 +281,7 @@ export const PurchaseForm = ({
     }
 
     const selectedPO = purchaseOrders.find(
-      (po) => po.id.toString() === selectedPurchaseOrderId
+      (po) => po.id.toString() === selectedPurchaseOrderId,
     );
 
     if (!selectedPO) return;
@@ -332,6 +334,10 @@ export const PurchaseForm = ({
     }
   }, [selectedPurchaseOrderId, purchaseOrders, form, igvForm]);
 
+  const [selectedProduct, setSelectedProduct] = useState<
+    ProductResource | undefined
+  >(undefined);
+  
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
@@ -342,9 +348,6 @@ export const PurchaseForm = ({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id
-    );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
     let subtotal = truncDecimal(quantity * unitPrice, 6);
@@ -364,7 +367,7 @@ export const PurchaseForm = ({
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: product?.name,
+      product_name: selectedProduct?.name,
       tax: formatDecimalTrunc(tax, 6),
       subtotal,
       total,
@@ -421,7 +424,7 @@ export const PurchaseForm = ({
   const calculateSubtotalTotal = () => {
     const sum = details.reduce(
       (sum, detail) => sum + (detail.subtotal || 0),
-      0
+      0,
     );
     return truncDecimal(sum, 6);
   };
@@ -430,7 +433,7 @@ export const PurchaseForm = ({
     const sum = details.reduce(
       (sum, detail) =>
         sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
-      0
+      0,
     );
     return truncDecimal(sum, 6);
   };
@@ -457,8 +460,8 @@ export const PurchaseForm = ({
       errorToast(
         `El total de cuotas no puede exceder el total de la compra (${formatDecimalTrunc(
           purchaseTotal,
-          6
-        )})`
+          6,
+        )})`,
       );
       return;
     }
@@ -498,7 +501,7 @@ export const PurchaseForm = ({
   const calculateInstallmentsTotal = () => {
     const sum = installments.reduce(
       (sum, inst) => sum + parseFloat(inst.amount),
-      0
+      0,
     );
     return truncDecimal(sum, 6);
   };
@@ -522,10 +525,10 @@ export const PurchaseForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal()
+          calculateInstallmentsTotal(),
         )}) debe ser igual al total de la compra (${formatNumber(
-          calculateDetailsTotal()
-        )})`
+          calculateDetailsTotal(),
+        )})`,
       );
       return;
     }
@@ -588,7 +591,7 @@ export const PurchaseForm = ({
               </div>
 
               <div className="flex gap-2 items-end">
-                <div className="flex-1">
+                <div className="flex-1 truncate">
                   <FormSelect
                     control={form.control}
                     name="supplier_id"
@@ -622,7 +625,7 @@ export const PurchaseForm = ({
               </div>
 
               <div className="flex gap-2 items-end">
-                <div className="flex-1">
+                <div className="flex-1 truncate ">
                   <FormSelect
                     control={form.control}
                     name="warehouse_id"
@@ -737,15 +740,19 @@ export const PurchaseForm = ({
                 {/* Formulario de agregar/editar en una fila */}
                 <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
                   <div className="col-span-6">
-                    <FormSelect
+                    <FormSelectAsync
                       control={detailTempForm.control}
                       name="temp_product_id"
                       label="Producto"
                       placeholder="Seleccione"
-                      options={products.map((product) => ({
+                      useQueryHook={useProduct}
+                      mapOptionFn={(product: ProductResource) => ({
                         value: product.id.toString(),
                         label: product.name,
-                      }))}
+                      })}
+                      onValueChange={(_value, item) => {
+                        setSelectedProduct(item);
+                      }}
                     />
                   </div>
 
@@ -994,7 +1001,7 @@ export const PurchaseForm = ({
                                 <TableCell className="text-right font-semibold">
                                   {formatDecimalTrunc(
                                     parseFloat(inst.amount),
-                                    6
+                                    6,
                                   )}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -1033,7 +1040,7 @@ export const PurchaseForm = ({
                               <TableCell className="text-right font-bold text-lg text-blue-600">
                                 {formatDecimalTrunc(
                                   calculateInstallmentsTotal(),
-                                  6
+                                  6,
                                 )}
                               </TableCell>
                               <TableCell></TableCell>

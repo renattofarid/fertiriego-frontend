@@ -3,10 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { formatNumber } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 
 interface DetailRow {
   product_id: string;
@@ -25,7 +25,6 @@ interface QuotationSummaryProps {
   form: UseFormReturn<any>;
   mode: "create" | "update";
   isSubmitting: boolean;
-  customers: PersonResource[];
   warehouses: WarehouseResource[];
   details: DetailRow[];
   calculateSubtotalTotal: () => number;
@@ -33,13 +32,13 @@ interface QuotationSummaryProps {
   calculateDetailsTotal: () => number;
   onCancel?: () => void;
   selectedPaymentType?: string;
+  selectedCustomer?: PersonResource;
 }
 
 export function QuotationSummary({
   form,
   mode,
   isSubmitting,
-  customers,
   warehouses,
   details,
   calculateSubtotalTotal,
@@ -47,19 +46,14 @@ export function QuotationSummary({
   calculateDetailsTotal,
   onCancel,
   selectedPaymentType,
+  selectedCustomer,
 }: QuotationSummaryProps) {
-  const customerWatch = form.watch("customer_id");
   const warehouseWatch = form.watch("warehouse_id");
   const currencyWatch = form.watch("currency");
 
-  // Obtener el cliente seleccionado
-  const selectedCustomer = customerWatch
-    ? customers.find((c) => c.id.toString() === customerWatch)
-    : undefined;
-
   const customerName = selectedCustomer
-    ? selectedCustomer.business_name ??
-      `${selectedCustomer.names} ${selectedCustomer.father_surname} ${selectedCustomer.mother_surname}`
+    ? (selectedCustomer.business_name ??
+      `${selectedCustomer.names} ${selectedCustomer.father_surname} ${selectedCustomer.mother_surname}`)
     : "Sin seleccionar";
 
   // Obtener el almacén seleccionado
@@ -255,8 +249,8 @@ export function QuotationSummary({
               {isSubmitting
                 ? "Guardando..."
                 : mode === "update"
-                ? "Actualizar Cotización"
-                : "Guardar Cotización"}
+                  ? "Actualizar Cotización"
+                  : "Guardar Cotización"}
             </Button>
             <Button
               type="button"
@@ -273,7 +267,7 @@ export function QuotationSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("fecha_emision")
                 ? new Date(
-                    form.watch("fecha_emision") + "T00:00:00"
+                    form.watch("fecha_emision") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",

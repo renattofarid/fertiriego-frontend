@@ -1,37 +1,23 @@
 import { useEffect } from "react";
 import { useProductStore } from "./product.store";
+import { getAllProducts, getProduct } from "./product.actions";
+import { PRODUCT } from "./product.interface";
+import { useQuery } from "@tanstack/react-query";
 
 export function useProduct(params?: Record<string, unknown>) {
-  const { products, meta, isLoading, error, fetchProducts } =
-    useProductStore();
-
-  useEffect(() => {
-    if (!products) fetchProducts(params);
-  }, [products, fetchProducts]);
-
-  return {
-    data: products,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchProducts,
-  };
+  return useQuery({
+    queryKey: [PRODUCT.QUERY_KEY, params],
+    queryFn: () => getProduct({ params }),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useAllProducts() {
-  const { allProducts, isLoadingAll, error, fetchAllProducts } =
-    useProductStore();
-
-  useEffect(() => {
-    if (!allProducts) fetchAllProducts();
-  }, [allProducts, fetchAllProducts]);
-
-  return {
-    data: allProducts,
-    isLoading: isLoadingAll,
-    error,
-    refetch: fetchAllProducts,
-  };
+  return useQuery({
+    queryKey: [PRODUCT.QUERY_KEY],
+    queryFn: () => getAllProducts(),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useProductById(id: number) {

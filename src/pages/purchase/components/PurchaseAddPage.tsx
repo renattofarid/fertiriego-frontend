@@ -8,7 +8,6 @@ import { type PurchaseSchema } from "../lib/purchase.schema";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import FormWrapper from "@/components/FormWrapper";
@@ -23,17 +22,13 @@ export const PurchaseAddPage = () => {
   const { user } = useAuthStore();
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
   const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
     useAllPurchaseOrders();
 
   const { createPurchase } = usePurchaseStore();
 
   const isLoading =
-    suppliersLoading ||
-    warehousesLoading ||
-    productsLoading ||
-    purchaseOrdersLoading;
+    suppliersLoading || warehousesLoading || purchaseOrdersLoading;
 
   const getDefaultValues = (): Partial<PurchaseSchema> => ({
     supplier_id: "",
@@ -88,8 +83,6 @@ export const PurchaseAddPage = () => {
         suppliers.length > 0 &&
         warehouses &&
         warehouses.length > 0 &&
-        products &&
-        products.length > 0 &&
         user && (
           <PurchaseForm
             defaultValues={getDefaultValues()}
@@ -98,7 +91,6 @@ export const PurchaseAddPage = () => {
             mode="create"
             suppliers={suppliers}
             warehouses={warehouses}
-            products={products}
             purchaseOrders={purchaseOrders || []}
             currentUserId={user.id}
             onCancel={() => navigate("/compras")}

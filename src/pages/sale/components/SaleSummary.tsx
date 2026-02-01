@@ -27,7 +27,7 @@ interface SaleSummaryProps {
   form: UseFormReturn<any>;
   mode: "create" | "update";
   isSubmitting: boolean;
-  customers: PersonResource[];
+  selectedCustomer?: PersonResource;
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -45,7 +45,7 @@ export function SaleSummary({
   form,
   mode,
   isSubmitting,
-  customers,
+  selectedCustomer,
   warehouses,
   details,
   installments = [],
@@ -58,19 +58,13 @@ export function SaleSummary({
   onCancel,
   selectedPaymentType,
 }: SaleSummaryProps) {
-  const customerWatch = form.watch("customer_id");
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
 
-  // Obtener el cliente seleccionado
-  const selectedCustomer = customerWatch
-    ? customers.find((c) => c.id.toString() === customerWatch)
-    : undefined;
-
   const customerName = selectedCustomer
-    ? selectedCustomer.business_name ??
-      `${selectedCustomer.names} ${selectedCustomer.father_surname} ${selectedCustomer.mother_surname}`
+    ? (selectedCustomer.business_name ??
+      `${selectedCustomer.names} ${selectedCustomer.father_surname} ${selectedCustomer.mother_surname}`)
     : "Sin seleccionar";
 
   // Obtener el almacén seleccionado
@@ -279,8 +273,8 @@ export function SaleSummary({
               {isSubmitting
                 ? "Guardando..."
                 : mode === "update"
-                ? "Actualizar Venta"
-                : "Guardar Venta"}
+                  ? "Actualizar Venta"
+                  : "Guardar Venta"}
             </Button>
             <Button
               type="button"
@@ -297,7 +291,7 @@ export function SaleSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("issue_date")
                 ? new Date(
-                    form.watch("issue_date") + "T00:00:00"
+                    form.watch("issue_date") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",

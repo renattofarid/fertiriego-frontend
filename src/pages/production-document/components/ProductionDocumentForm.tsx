@@ -5,9 +5,7 @@ import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
-import {
-  PRODUCTION_DOCUMENT,
-} from "../lib/production-document.interface";
+import { PRODUCTION_DOCUMENT } from "../lib/production-document.interface";
 import { productionDocumentSchema } from "../lib/production-document.schema";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,12 +22,14 @@ import { Plus, Trash2, Loader, Factory, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { SearchableSelect } from "@/components/SearchableSelect";
 import { DataTable } from "@/components/DataTable";
 import { toast } from "sonner";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 
 export type ProductionDocumentFormValues = {
   warehouse_origin_id: string;
@@ -67,13 +67,10 @@ const defaultValues: ProductionDocumentFormValues = {
 
 interface ProductionDocumentFormProps {
   mode?: "create" | "update";
-  onSubmit: (
-    values: ProductionDocumentFormValues
-  ) => Promise<void> | void;
+  onSubmit: (values: ProductionDocumentFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ProductionDocumentFormValues;
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   users: PersonResource[];
   responsibles: PersonResource[];
 }
@@ -84,12 +81,13 @@ export function ProductionDocumentForm({
   isSubmitting = false,
   initialValues,
   warehouses,
-  products,
   users,
   responsibles,
 }: ProductionDocumentFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_DOCUMENT;
   const navigate = useNavigate();
+  const { data: productsData } = useProduct();
+  const products: ProductResource[] = productsData?.data ?? [];
 
   // Estado para detalles
   type ComponentRow = {
@@ -102,20 +100,22 @@ export function ProductionDocumentForm({
   };
 
   const [components, setComponents] = useState<ComponentRow[]>([]);
-  const [currentComponent, setCurrentComponent] = useState<Partial<ComponentRow>>({
+  const [currentComponent, setCurrentComponent] = useState<
+    Partial<ComponentRow>
+  >({
     component_id: "",
     quantity_required: 0,
     quantity_used: 0,
     unit_cost: 0,
     notes: "",
   });
-  const [editingComponentIndex, setEditingComponentIndex] = useState<number | null>(
-    null
-  );
+  const [editingComponentIndex, setEditingComponentIndex] = useState<
+    number | null
+  >(null);
 
   const form = useForm<ProductionDocumentFormValues>({
     resolver: zodResolver(
-      productionDocumentSchema
+      productionDocumentSchema,
     ) as Resolver<ProductionDocumentFormValues>,
     defaultValues: initialValues ?? defaultValues,
   });
@@ -123,14 +123,18 @@ export function ProductionDocumentForm({
   // Cargar componentes iniciales cuando hay initialValues
   useEffect(() => {
     if (initialValues?.components && initialValues.components.length > 0) {
-      const mappedComponents: ComponentRow[] = initialValues.components.map((c) => ({
-        component_id: c.component_id,
-        component_name: products.find((p) => p.id.toString() === c.component_id)?.name || "Componente desconocido",
-        quantity_required: parseFloat(c.quantity_required) || 0,
-        quantity_used: parseFloat(c.quantity_used) || 0,
-        unit_cost: parseFloat(c.unit_cost) || 0,
-        notes: c.notes || "",
-      }));
+      const mappedComponents: ComponentRow[] = initialValues.components.map(
+        (c) => ({
+          component_id: c.component_id,
+          component_name:
+            products.find((p) => p.id.toString() === c.component_id)?.name ||
+            "Componente desconocido",
+          quantity_required: parseFloat(c.quantity_required) || 0,
+          quantity_used: parseFloat(c.quantity_used) || 0,
+          unit_cost: parseFloat(c.unit_cost) || 0,
+          notes: c.notes || "",
+        }),
+      );
       setComponents(mappedComponents);
     }
   }, [initialValues, products]);
@@ -148,7 +152,7 @@ export function ProductionDocumentForm({
     }
 
     const product = products.find(
-      (p) => p.id.toString() === currentComponent.component_id
+      (p) => p.id.toString() === currentComponent.component_id,
     );
     if (!product) {
       toast.error("Componente no encontrado");
@@ -215,7 +219,7 @@ export function ProductionDocumentForm({
   // Columnas para DataTable
   const createComponentColumns = (
     onEdit: (index: number) => void,
-    onDelete: (index: number) => void
+    onDelete: (index: number) => void,
   ): ColumnDef<ComponentRow>[] => [
     {
       accessorKey: "component_name",
@@ -240,7 +244,11 @@ export function ProductionDocumentForm({
     {
       accessorKey: "notes",
       header: "Notas",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.notes || "-"}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground">
+          {row.original.notes || "-"}
+        </span>
+      ),
     },
     {
       id: "actions",
@@ -270,7 +278,7 @@ export function ProductionDocumentForm({
 
   const componentColumns = createComponentColumns(
     handleEditComponent,
-    handleDeleteComponent
+    handleDeleteComponent,
   );
 
   // Submit con validación
@@ -336,16 +344,17 @@ export function ProductionDocumentForm({
               withValue
             />
 
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="product_id"
               label="Producto"
               placeholder="Seleccione producto"
-              options={products.map((p) => ({
+              useQueryHook={useProduct}
+              mapOptionFn={(p: ProductResource) => ({
                 value: p.id.toString(),
                 label: p.name,
                 description: p.unit_name,
-              }))}
+              })}
               withValue
             />
 
@@ -470,24 +479,24 @@ export function ProductionDocumentForm({
           />
 
           {/* Componentes */}
-          <GroupFormSection
-            icon={Factory}
-            title="Componentes"
-            cols={{ sm: 1 }}
-          >
+          <GroupFormSection icon={Factory} title="Componentes" cols={{ sm: 1 }}>
             <div className="space-y-4">
               {/* Formulario inline */}
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end border p-3 rounded-lg bg-muted/30">
-                <SearchableSelect
+                <SearchableSelectAsync
                   label="Componente"
-                  options={products.map((p) => ({
-                    value: p.id.toString(),
-                    label: p.name,
-                    description: p.unit_name,
-                  }))}
+                  useQueryHook={useProduct}
+                  mapOptionFn={(product) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                    description: product.unit_name,
+                  })}
                   value={currentComponent.component_id || ""}
                   onChange={(value) =>
-                    setCurrentComponent({ ...currentComponent, component_id: value })
+                    setCurrentComponent({
+                      ...currentComponent,
+                      component_id: value,
+                    })
                   }
                   withValue
                   placeholder="Buscar componente..."

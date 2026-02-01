@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useProductComponents } from "../lib/product-component.hook";
 import { useProductComponentStore } from "../lib/product-component.store";
-import { useAllProducts } from "../lib/product.hook";
+import { useProduct } from "../lib/product.hook";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/empty";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
-import { FormSelect } from "@/components/FormSelect";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { Plus, Trash2, Pencil, Package, Hash } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import type {
@@ -73,18 +73,12 @@ export function ProductComponentManager({
     params: {},
   });
 
-  const { data: allProducts } = useAllProducts();
-
   const {
     createProductComponent,
     updateProductComponent,
     deleteProductComponent,
     isSubmitting,
   } = useProductComponentStore();
-
-  // Filter out the current product from the component selection
-  const availableComponents =
-    allProducts?.filter((product) => product.id !== productId) || [];
 
   const handleSubmit = async (data: ProductComponentFormData) => {
     try {
@@ -158,11 +152,6 @@ export function ProductComponentManager({
     resetForm();
   };
 
-  const getComponentName = (componentId: number) => {
-    const component = availableComponents.find((p) => p.id === componentId);
-    return component?.name || `Componente ${componentId}`;
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -198,7 +187,7 @@ export function ProductComponentManager({
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                       <h4 className="font-medium truncate">
                         {component.component_name ||
-                          getComponentName(component.component_id)}
+                          `Componente ${component.component_id}`}
                       </h4>
                       <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-md text-xs w-fit">
                         <Hash className="h-3 w-3" />
@@ -284,15 +273,29 @@ export function ProductComponentManager({
                   onSubmit={form.handleSubmit(handleSubmit)}
                   className="space-y-4"
                 >
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="component_id"
                     label="Componente"
                     placeholder="Seleccionar componente"
-                    options={availableComponents.map((product) => ({
+                    useQueryHook={useProduct}
+                    mapOptionFn={(product) => ({
                       value: product.id.toString(),
                       label: `${product.name} (ID: ${product.id})`,
-                    }))}
+                    })}
+                    additionalParams={{
+                      exclude_id: productId,
+                    }}
+                    defaultOption={
+                      editingComponent
+                        ? {
+                            value: editingComponent.component_id.toString(),
+                            label:
+                              editingComponent.component_name ||
+                              `Componente ${editingComponent.component_id}`,
+                          }
+                        : undefined
+                    }
                   />
 
                   <FormField

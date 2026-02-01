@@ -5,9 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { OrderForm } from "./OrderForm";
 import { useOrderStore } from "../lib/order.store";
-import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
 import {
   ERROR_MESSAGE,
@@ -29,20 +27,13 @@ export const OrderEditPage = () => {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
 
-  const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
   const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
   const { updateOrder, fetchOrder, order, isFinding, isSubmitting } =
     useOrderStore();
 
-  const isLoading =
-    customersLoading ||
-    warehousesLoading ||
-    productsLoading ||
-    quotationsLoading ||
-    isFinding;
+  const isLoading = warehousesLoading || quotationsLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -82,7 +73,7 @@ export const OrderEditPage = () => {
       }, 500);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update"),
       );
       // Solo resetear el ref en caso de error (en éxito, navega)
       isSubmittingRef.current = false;
@@ -124,25 +115,18 @@ export const OrderEditPage = () => {
       </div>
 
       <div className="space-y-6">
-        {customers &&
-          customers.length > 0 &&
-          warehouses &&
-          warehouses.length > 0 &&
-          products &&
-          products.length > 0 && (
-            <OrderForm
-              defaultValues={mapOrderToForm(order)}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode="update"
-              customers={customers}
-              warehouses={warehouses}
-              products={products}
-              quotations={quotations}
-              order={order}
-              onCancel={() => navigate("/pedidos")}
-            />
-          )}
+        {warehouses && warehouses.length > 0 && (
+          <OrderForm
+            defaultValues={mapOrderToForm(order)}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            mode="update"
+            warehouses={warehouses}
+            quotations={quotations}
+            order={order}
+            onCancel={() => navigate("/pedidos")}
+          />
+        )}
       </div>
     </FormWrapper>
   );

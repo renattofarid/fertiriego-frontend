@@ -17,7 +17,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
@@ -45,6 +44,8 @@ import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 import { QuotationSummary } from "./QuotationSummary";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -52,9 +53,7 @@ interface QuotationFormProps {
   onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  customers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
 }
 
 interface DetailRow {
@@ -77,9 +76,7 @@ export const QuotationForm = ({
   onCancel,
   onSubmit,
   isSubmitting = false,
-  customers,
   warehouses,
-  products,
 }: QuotationFormProps) => {
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -87,7 +84,7 @@ export const QuotationForm = ({
   const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
-    null
+    null,
   );
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [technicalSheetsDialog, setTechnicalSheetsDialog] = useState<{
@@ -103,8 +100,7 @@ export const QuotationForm = ({
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [customersList, setCustomersList] =
-    useState<PersonResource[]>(customers);
+
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
@@ -132,18 +128,12 @@ export const QuotationForm = ({
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
 
-  // Actualizar listas cuando cambien las props
-  useEffect(() => {
-    setCustomersList(customers);
-  }, [customers]);
-
   useEffect(() => {
     setWarehousesList(warehouses);
   }, [warehouses]);
 
   // Handlers para modales
   const handleClientCreated = (newClient: PersonResource) => {
-    setCustomersList((prev) => [...prev, newClient]);
     form.setValue("customer_id", newClient.id.toString(), {
       shouldValidate: true,
     });
@@ -178,14 +168,14 @@ export const QuotationForm = ({
       setEditingIndex(index);
       setSheetOpen(true);
     },
-    [details]
+    [details],
   );
 
   const handleRemoveDetail = useCallback(
     (index: number) => {
       setDetails(details.filter((_, i) => i !== index));
     },
-    [details]
+    [details],
   );
 
   const handleViewTechnicalSheets = useCallback(
@@ -197,7 +187,7 @@ export const QuotationForm = ({
         productName: detail.product_name || "",
       });
     },
-    [details]
+    [details],
   );
 
   const columns = useMemo<ColumnDef<DetailRow>[]>(
@@ -323,18 +313,14 @@ export const QuotationForm = ({
         ),
       },
     ],
-    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets]
+    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets],
   );
 
   // Cargar detalles iniciales cuando se está editando
   useEffect(() => {
     if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
-        (detail: QuotationDetailResource) => {
-          // Buscar el producto para obtener las fichas técnicas
-          const product = products.find((p) => p.id === detail.product_id);
-
-          return {
+        (detail: QuotationDetailResource) => ({
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "",
             is_igv: detail.is_igv,
@@ -345,19 +331,18 @@ export const QuotationForm = ({
             subtotal: parseFloat(detail.subtotal),
             tax: parseFloat(detail.tax),
             total: parseFloat(detail.total),
-            technical_sheet: product?.technical_sheet || [],
-          };
-        }
+            technical_sheet: Array.isArray(detail.product?.technical_sheet) ? detail.product.technical_sheet : [],
+          }),
       );
       setDetails(loadedDetails);
     }
-  }, [mode, initialData, products]);
+  }, [mode, initialData]);
 
   // Actualizar el branch_id cuando cambie el warehouse seleccionado
   useEffect(() => {
     if (warehouseId) {
       const selectedWarehouse = warehouses.find(
-        (w) => w.id.toString() === warehouseId
+        (w) => w.id.toString() === warehouseId,
       );
       if (selectedWarehouse?.branch_id) {
         setSelectedBranchId(selectedWarehouse.branch_id);
@@ -375,9 +360,6 @@ export const QuotationForm = ({
   }, [branchData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
-    // Buscar el producto para obtener las fichas técnicas
-    const product = products.find((p) => p.id.toString() === detail.product_id);
-
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -389,16 +371,12 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
-      technical_sheet: product?.technical_sheet || [],
     };
 
     setDetails([...details, newDetail]);
   };
 
   const handleUpdateDetail = (detail: ProductDetail, index: number) => {
-    // Buscar el producto para obtener las fichas técnicas
-    const product = products.find((p) => p.id.toString() === detail.product_id);
-
     const updatedDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -410,7 +388,6 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
-      technical_sheet: product?.technical_sheet || [],
     };
 
     const updatedDetails = [...details];
@@ -460,6 +437,9 @@ export const QuotationForm = ({
 
     onSubmit(request);
   };
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    PersonResource | undefined
+  >(undefined);
 
   const getTotalAmount = () => {
     return details.reduce((sum, detail) => sum + detail.total, 0);
@@ -494,21 +474,21 @@ export const QuotationForm = ({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex gap-2 items-end max-w-full">
                 <div className="flex-1 min-w-0">
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="customer_id"
                     label="Cliente"
-                    options={customersList.map((c) => ({
-                      value: c.id.toString(),
+                    useQueryHook={useClients}
+                    mapOptionFn={(client: PersonResource) => ({
+                      value: client.id.toString(),
                       label:
-                        c.business_name ||
-                        c.names +
-                          " " +
-                          c.father_surname +
-                          " " +
-                          (c.mother_surname || ""),
-                    }))}
+                        client.business_name ||
+                        `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
+                    })}
                     placeholder="Seleccionar cliente"
+                    onValueChange={(_value, item) => {
+                      setSelectedCustomer(item ?? null);
+                    }}
                   />
                 </div>
                 {mode === "create" && (
@@ -764,7 +744,6 @@ export const QuotationForm = ({
             open={sheetOpen}
             onClose={handleCloseSheet}
             onAdd={handleAddDetail}
-            products={products}
             defaultIsIgv={branchHasIgv}
             editingDetail={editingDetail}
             editIndex={editingIndex}
@@ -786,7 +765,7 @@ export const QuotationForm = ({
           form={form}
           mode={mode}
           isSubmitting={isSubmitting}
-          customers={customers}
+          selectedCustomer={selectedCustomer}
           warehouses={warehouses}
           details={details}
           calculateSubtotalTotal={calculateSubtotalTotal}

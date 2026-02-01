@@ -23,6 +23,8 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface WarehouseDocumentFormProps {
   onSubmit: (data: WarehouseDocumentSchema) => void;
@@ -31,7 +33,6 @@ interface WarehouseDocumentFormProps {
   mode: "create" | "update";
   warehouses: WarehouseResource[];
   persons: PersonResource[];
-  products: ProductResource[];
 }
 
 export default function WarehouseDocumentForm({
@@ -41,7 +42,6 @@ export default function WarehouseDocumentForm({
   mode,
   warehouses,
   persons,
-  products,
 }: WarehouseDocumentFormProps) {
   const form = useForm({
     resolver: zodResolver(warehouseDocumentSchemaCreate) as any,
@@ -168,15 +168,16 @@ export default function WarehouseDocumentForm({
                   <Card key={field.id} className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div className="md:col-span-2">
-                        <FormSelect
+                        <FormSelectAsync
                           control={form.control}
                           name={`details.${index}.product_id`}
                           label="Producto"
                           placeholder="Seleccione producto"
-                          options={products.map((p) => ({
-                            value: p.id.toString(),
-                            label: p.name,
-                          }))}
+                          useQueryHook={useProduct}
+                          mapOptionFn={(product: ProductResource) => ({
+                            value: product.id.toString(),
+                            label: product.name,
+                          })}
                         />
                       </div>
 
@@ -193,7 +194,7 @@ export default function WarehouseDocumentForm({
                                 {...field}
                                 onChange={(e) =>
                                   field.onChange(
-                                    parseFloat(e.target.value) || 0
+                                    parseFloat(e.target.value) || 0,
                                   )
                                 }
                               />
@@ -216,7 +217,7 @@ export default function WarehouseDocumentForm({
                                 {...field}
                                 onChange={(e) =>
                                   field.onChange(
-                                    parseFloat(e.target.value) || 0
+                                    parseFloat(e.target.value) || 0,
                                   )
                                 }
                               />
@@ -274,8 +275,8 @@ export default function WarehouseDocumentForm({
               {isSubmitting
                 ? "Guardando..."
                 : mode === "create"
-                ? "Crear Documento"
-                : "Actualizar Documento"}
+                  ? "Crear Documento"
+                  : "Actualizar Documento"}
             </Button>
           </div>
         </form>

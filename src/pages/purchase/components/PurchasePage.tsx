@@ -70,7 +70,7 @@ export const PurchasePage = () => {
       };
       await refetch(filterParams);
       successToast(
-        SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete")
+        SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete"),
       );
     } catch (error: any) {
       const errorMessage = error.response?.data?.message ?? ERROR_MESSAGE;
@@ -103,23 +103,23 @@ export const PurchasePage = () => {
     const sumOfInstallments =
       purchase.installments?.reduce(
         (sum, inst) => sum + parseFloat(inst.amount),
-        0
+        0,
       ) || 0;
 
     if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
       errorToast(
         `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(
-          2
+          2,
         )}) no coincide con el total de la compra (${totalAmount.toFixed(
-          2
-        )}). Por favor, sincronice las cuotas.`
+          2,
+        )}). Por favor, sincronice las cuotas.`,
       );
       return;
     }
 
     // Tomar la primera cuota pendiente si existe
     const pendingInstallment = purchase.installments?.find(
-      (inst) => parseFloat(inst.pending_amount) > 0
+      (inst) => parseFloat(inst.pending_amount) > 0,
     );
 
     if (pendingInstallment) {
@@ -229,7 +229,7 @@ export const PurchasePage = () => {
           // Actualizar el selectedPurchase con los datos más recientes del store
           if (selectedPurchase && data) {
             const updatedPurchase = data.find(
-              (p: PurchaseResource) => p.id === selectedPurchase.id
+              (p: PurchaseResource) => p.id === selectedPurchase.id,
             );
             if (updatedPurchase) {
               setSelectedPurchase(updatedPurchase);

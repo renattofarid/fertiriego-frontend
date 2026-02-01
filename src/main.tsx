@@ -12,10 +12,13 @@ import "@fontsource/poppins/600.css";
 import "@fontsource/poppins/700.css";
 import "@fontsource/poppins/800.css";
 import "@fontsource/poppins/900.css";
+import { ReactQueryProvider } from "./providers/ReactQueryProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
-    <Toaster />
-  </StrictMode>
+    <ReactQueryProvider>
+      <App />
+      <Toaster />
+    </ReactQueryProvider>
+  </StrictMode>,
 );

@@ -49,6 +49,8 @@ import { FormInput } from "@/components/FormInput";
 import { PurchaseOrderSummary } from "./PurchaseOrderSummary";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
@@ -58,7 +60,6 @@ interface PurchaseOrderFormProps {
   mode?: "create" | "update";
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   purchaseOrder?: PurchaseOrderResource;
 }
 
@@ -80,7 +81,6 @@ export const PurchaseOrderForm = ({
   mode = "create",
   suppliers,
   warehouses,
-  products,
   purchaseOrder,
 }: PurchaseOrderFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>(
@@ -95,23 +95,25 @@ export const PurchaseOrderForm = ({
             ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
             : truncDecimal(
                 d.quantity_requested * parseFloat(d.unit_price_estimated),
-                6
+                6,
               ),
           subtotal_estimated: d.subtotal_estimated
             ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
             : undefined,
         }))
-      : []
+      : [],
   );
 
   // Estados para modales
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [suppliersList, setSuppliersList] = useState<PersonResource[]>(suppliers);
-  const [warehousesList, setWarehousesList] = useState<WarehouseResource[]>(warehouses);
+  const [suppliersList, setSuppliersList] =
+    useState<PersonResource[]>(suppliers);
+  const [warehousesList, setWarehousesList] =
+    useState<WarehouseResource[]>(warehouses);
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
-    null
+    null,
   );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
@@ -122,7 +124,7 @@ export const PurchaseOrderForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? purchaseOrderSchemaCreate : purchaseOrderSchemaUpdate
+      mode === "create" ? purchaseOrderSchemaCreate : purchaseOrderSchemaUpdate,
     ),
     defaultValues: {
       ...defaultValues,
@@ -204,6 +206,10 @@ export const PurchaseOrderForm = ({
     }
   }, [watchTempUnitPrice, currentDetail.unit_price_estimated]);
 
+  const [selectedProduct, setSelectedProduct] = useState<
+    ProductResource | undefined
+  >(undefined);
+
   const handleAddDetail = () => {
     if (
       !currentDetail.product_id ||
@@ -213,16 +219,13 @@ export const PurchaseOrderForm = ({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id
-    );
     const quantity = parseFloat(currentDetail.quantity_requested);
     const unitPrice = parseFloat(currentDetail.unit_price_estimated);
     const subtotal = truncDecimal(quantity * unitPrice, 6);
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: product?.name,
+      product_name: selectedProduct?.name,
       subtotal,
     };
 
@@ -259,11 +262,11 @@ export const PurchaseOrderForm = ({
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue(
       "temp_quantity_requested",
-      detail.quantity_requested
+      detail.quantity_requested,
     );
     detailTempForm.setValue(
       "temp_unit_price_estimated",
-      detail.unit_price_estimated
+      detail.unit_price_estimated,
     );
   };
 
@@ -304,7 +307,7 @@ export const PurchaseOrderForm = ({
 
     const totalEstimated = truncDecimal(
       transformedDetails.reduce((s, it) => s + it.subtotal_estimated, 0),
-      6
+      6,
     );
 
     onSubmit({
@@ -450,15 +453,19 @@ export const PurchaseOrderForm = ({
               {/* Formulario de agregar/editar en una fila */}
               <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
                 <div className="col-span-6">
-                  <FormSelect
+                  <FormSelectAsync
                     control={detailTempForm.control}
                     name="temp_product_id"
                     label="Producto"
                     placeholder="Seleccione"
-                    options={products.map((product) => ({
+                    useQueryHook={useProduct}
+                    mapOptionFn={(product: ProductResource) => ({
                       value: product.id.toString(),
                       label: product.name,
-                    }))}
+                    })}
+                    onValueChange={(_value, item) => {
+                      setSelectedProduct(item);
+                    }}
                   />
                 </div>
 
@@ -559,7 +566,7 @@ export const PurchaseOrderForm = ({
                           <TableCell className="text-right">
                             {formatCurrency(
                               parseFloat(detail.unit_price_estimated),
-                              { currencySymbol: "S/.", decimals: 6 }
+                              { currencySymbol: "S/.", decimals: 6 },
                             )}
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">

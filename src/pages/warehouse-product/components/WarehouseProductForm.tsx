@@ -19,11 +19,12 @@ import {
 } from "../lib/warehouse-product.schema.ts";
 import { Loader, Plus } from "lucide-react";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { FormSelect } from "@/components/FormSelect";
 import { useState } from "react";
 import ProductModal from "@/pages/product/components/ProductModal";
 import { PRODUCT } from "@/pages/product/lib/product.interface";
+import { FormSelectAsync } from "@/components/FormSelectAsync.tsx";
+import { useProduct } from "@/pages/product/lib/product.hook.ts";
 
 interface WarehouseProductFormProps {
   defaultValues: Partial<WarehouseProductSchema>;
@@ -43,17 +44,12 @@ export const WarehouseProductForm = ({
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
 
   const { data: warehouses, isLoading: loadingWarehouses } = useAllWarehouses();
-  const {
-    data: products,
-    isLoading: loadingProducts,
-    refetch: refetchProducts,
-  } = useAllProducts();
 
   const form = useForm({
     resolver: zodResolver(
       mode === "create"
         ? warehouseProductSchemaCreate
-        : warehouseProductSchemaUpdate
+        : warehouseProductSchemaUpdate,
     ),
     defaultValues: {
       warehouse_id: "",
@@ -73,13 +69,6 @@ export const WarehouseProductForm = ({
       label: warehouse.name,
     })) || [];
 
-  // Preparar opciones para el selector de productos
-  const productOptions =
-    products?.map((product) => ({
-      value: product.id.toString(),
-      label: product.name,
-    })) || [];
-
   // Handlers para el modal de producto
   const handleOpenProductModal = () => {
     setIsProductModalOpen(true);
@@ -91,7 +80,6 @@ export const WarehouseProductForm = ({
 
   const handleCloseProduct = () => {
     setIsProductModalOpen(false);
-    refetchProducts();
   };
 
   return (
@@ -112,13 +100,16 @@ export const WarehouseProductForm = ({
           <div className="col-span-full">
             <div className="flex gap-2 items-end">
               <div className="flex-1">
-                <FormSelect
+                <FormSelectAsync
                   name="product_id"
                   label="Producto"
+                  useQueryHook={useProduct}
                   placeholder="Seleccione un producto"
-                  options={productOptions}
+                  mapOptionFn={(product) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                  })}
                   control={form.control}
-                  disabled={loadingProducts}
                 />
               </div>
               <Button
@@ -141,7 +132,6 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock</FormLabel>
                 <FormControl>
                   <Input
-                    
                     type="number"
                     placeholder="Ej: 400"
                     {...field}
@@ -161,7 +151,6 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock Mínimo (Opcional)</FormLabel>
                 <FormControl>
                   <Input
-                    
                     type="number"
                     placeholder="Ej: 50"
                     {...field}
@@ -185,7 +174,6 @@ export const WarehouseProductForm = ({
                 <FormLabel>Stock Máximo (Opcional)</FormLabel>
                 <FormControl>
                   <Input
-                    
                     type="number"
                     placeholder="Ej: 1000"
                     {...field}

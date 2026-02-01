@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useGuideMotives } from "../lib/guide.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
@@ -33,7 +32,6 @@ export default function GuideAddPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
   const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
   const { data: carriers, isLoading: carriersLoading } = useAllSuppliers();
@@ -52,7 +50,6 @@ export default function GuideAddPage() {
 
   const isLoading =
     warehousesLoading ||
-    productsLoading ||
     motivesLoading ||
     vehiclesLoading ||
     carriersLoading ||
@@ -61,7 +58,6 @@ export default function GuideAddPage() {
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
-    !products ||
     !motives ||
     !vehicles ||
     !carriers ||
@@ -138,8 +134,6 @@ export default function GuideAddPage() {
 
       {warehouses &&
         warehouses.length > 0 &&
-        products &&
-        products.length > 0 &&
         motives &&
         motives.length > 0 &&
         vehicles &&
@@ -159,7 +153,6 @@ export default function GuideAddPage() {
             isSubmitting={isSubmitting}
             mode="create"
             warehouses={warehouses}
-            products={products}
             motives={motives}
             vehicles={vehicles}
             carriers={carriers}

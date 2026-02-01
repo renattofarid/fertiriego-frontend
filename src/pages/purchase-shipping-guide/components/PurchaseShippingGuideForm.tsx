@@ -18,7 +18,17 @@ import {
   purchaseShippingGuideSchemaUpdate,
   type PurchaseShippingGuideSchema,
 } from "../lib/purchase-shipping-guide.schema";
-import { Loader, Plus, Trash2, Pencil, Search } from "lucide-react";
+import {
+  Loader,
+  Plus,
+  Trash2,
+  Pencil,
+  Search,
+  Info,
+  BadgeInfo,
+  Box,
+  Car,
+} from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -34,8 +44,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GUIDE_STATUS_OPTIONS, UNIT_OPTIONS } from "../lib/purchase-shipping-guide.interface";
+import {
+  GUIDE_STATUS_OPTIONS,
+  UNIT_OPTIONS,
+} from "../lib/purchase-shipping-guide.interface";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 interface PurchaseShippingGuideFormProps {
   defaultValues: Partial<PurchaseShippingGuideSchema>;
@@ -43,7 +58,6 @@ interface PurchaseShippingGuideFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
-  products: ProductResource[];
   purchases?: PurchaseResource[];
 }
 
@@ -60,11 +74,12 @@ export const PurchaseShippingGuideForm = ({
   onCancel,
   isSubmitting = false,
   mode = "create",
-  products,
   purchases = [],
 }: PurchaseShippingGuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
-  const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(null);
+  const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
+    null,
+  );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
     quantity: "",
@@ -77,7 +92,9 @@ export const PurchaseShippingGuideForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? purchaseShippingGuideSchemaCreate : purchaseShippingGuideSchemaUpdate
+      mode === "create"
+        ? purchaseShippingGuideSchemaCreate
+        : purchaseShippingGuideSchemaUpdate,
     ),
     defaultValues,
     mode: "onChange",
@@ -104,7 +121,7 @@ export const PurchaseShippingGuideForm = ({
     }
 
     const selectedPurchase = purchases.find(
-      (p) => p.id.toString() === selectedPurchaseId
+      (p) => p.id.toString() === selectedPurchaseId,
     );
 
     if (!selectedPurchase) return;
@@ -113,7 +130,7 @@ export const PurchaseShippingGuideForm = ({
     if (selectedPurchase.supplier_fullname) {
       form.setValue(
         "origin_address",
-        `Proveedor: ${selectedPurchase.supplier_fullname}`
+        `Proveedor: ${selectedPurchase.supplier_fullname}`,
       );
     }
 
@@ -127,7 +144,7 @@ export const PurchaseShippingGuideForm = ({
             quantity: detail.quantity,
             unit: "UND", // Unidad por defecto
           };
-        }
+        },
       );
 
       setDetails(purchaseDetails);
@@ -145,7 +162,10 @@ export const PurchaseShippingGuideForm = ({
   // Observers
   useEffect(() => {
     if (selectedProductId !== currentDetail.product_id) {
-      setCurrentDetail({ ...currentDetail, product_id: selectedProductId || "" });
+      setCurrentDetail({
+        ...currentDetail,
+        product_id: selectedProductId || "",
+      });
     }
   }, [selectedProductId]);
 
@@ -161,17 +181,23 @@ export const PurchaseShippingGuideForm = ({
     }
   }, [selectedUnit]);
 
+  const [productSelected, setProductSelected] = useState<
+    ProductResource | undefined
+  >(undefined);
+
   // Funciones para detalles
   const handleAddDetail = () => {
-    if (!currentDetail.product_id || !currentDetail.quantity || !currentDetail.unit) {
+    if (
+      !currentDetail.product_id ||
+      !currentDetail.quantity ||
+      !currentDetail.unit
+    ) {
       return;
     }
 
-    const product = products.find((p) => p.id.toString() === currentDetail.product_id);
-
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: product?.name,
+      product_name: productSelected?.name,
     };
 
     if (editingDetailIndex !== null) {
@@ -217,326 +243,332 @@ export const PurchaseShippingGuideForm = ({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-6 w-full"
       >
-        {/* Información General */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="guide_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Guía</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="T001-00000001" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <GroupFormSection
+          icon={Info}
+          title="Información General"
+          cols={{
+            md: 3,
+          }}
+        >
+          <FormField
+            control={form.control}
+            name="guide_number"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Número de Guía</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="T001-00000001" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <DatePickerFormField
-                control={form.control}
-                name="issue_date"
-                label="Fecha de Emisión"
-              />
+          <DatePickerFormField
+            control={form.control}
+            name="issue_date"
+            label="Fecha de Emisión"
+          />
 
-              <DatePickerFormField
-                control={form.control}
-                name="transfer_date"
-                label="Fecha de Traslado"
-              />
-            </div>
+          <DatePickerFormField
+            control={form.control}
+            name="transfer_date"
+            label="Fecha de Traslado"
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mode === "create" && purchases && purchases.length > 0 && (
-                <FormSelect
-                  control={form.control}
-                  name="purchase_id"
-                  label="Compra (Opcional)"
-                  placeholder="Seleccione una compra"
-                  options={[
-                    { value: "", label: "Sin compra" },
-                    ...purchases.map((purchase) => ({
-                      value: purchase.id.toString(),
-                      label: `${purchase.correlativo} - ${purchase.supplier_fullname}`,
-                    })),
-                  ]}
-                />
-              )}
-
-              <FormSelect
-                control={form.control}
-                name="status"
-                label="Estado"
-                placeholder="Seleccione"
-                options={GUIDE_STATUS_OPTIONS}
-              />
-            </div>
-
-            <FormField
+          {mode === "create" && purchases && purchases.length > 0 && (
+            <FormSelect
               control={form.control}
-              name="motive"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Motivo de Traslado</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ej: Compra de materiales" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              name="purchase_id"
+              label="Compra (Opcional)"
+              placeholder="Seleccione una compra"
+              options={[
+                { value: "", label: "Sin compra" },
+                ...purchases.map((purchase) => ({
+                  value: purchase.id.toString(),
+                  label: `${purchase.correlativo} - ${purchase.supplier_fullname}`,
+                })),
+              ]}
             />
-          </CardContent>
-        </Card>
+          )}
+
+          <FormSelect
+            control={form.control}
+            name="status"
+            label="Estado"
+            placeholder="Seleccione"
+            options={GUIDE_STATUS_OPTIONS}
+          />
+
+          <FormField
+            control={form.control}
+            name="motive"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Motivo de Traslado</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ej: Compra de materiales" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </GroupFormSection>
 
         {/* Información del Transportista */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información del Transportista</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="carrier_ruc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>RUC del Transportista</FormLabel>
-                    <FormControl>
-                      <div className="flex gap-2">
-                        <Input {...field} placeholder="20123456789" maxLength={11} />
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          disabled={
-                            !field.value || field.value.length !== 11 || isSearching
-                          }
-                          onClick={async () => {
-                            if (field.value && field.value.length === 11) {
-                              setIsSearching(true);
-                              try {
-                                const response = await searchRUC({
-                                  search: field.value,
-                                });
-                                if (response.data) {
-                                  const newFieldsFromSearch = {
-                                    ...fieldsFromSearch,
-                                  };
-                                  if (isValidData(response.data.business_name)) {
-                                    form.setValue(
-                                      "carrier_name",
-                                      response.data.business_name
-                                    );
-                                    newFieldsFromSearch.carrier_name = true;
-                                  }
-                                  setFieldsFromSearch(newFieldsFromSearch);
-                                }
-                              } catch (error) {
-                                console.error("Error searching RUC:", error);
-                              } finally {
-                                setIsSearching(false);
+        <GroupFormSection
+          title="Información del Transportista"
+          icon={BadgeInfo}
+          cols={{
+            md: 3,
+          }}
+        >
+          <FormField
+            control={form.control}
+            name="carrier_ruc"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RUC del Transportista</FormLabel>
+                <FormControl>
+                  <div className="flex gap-2">
+                    <Input
+                      {...field}
+                      placeholder="20123456789"
+                      maxLength={11}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      disabled={
+                        !field.value || field.value.length !== 11 || isSearching
+                      }
+                      onClick={async () => {
+                        if (field.value && field.value.length === 11) {
+                          setIsSearching(true);
+                          try {
+                            const response = await searchRUC({
+                              search: field.value,
+                            });
+                            if (response.data) {
+                              const newFieldsFromSearch = {
+                                ...fieldsFromSearch,
+                              };
+                              if (isValidData(response.data.business_name)) {
+                                form.setValue(
+                                  "carrier_name",
+                                  response.data.business_name,
+                                );
+                                newFieldsFromSearch.carrier_name = true;
                               }
+                              setFieldsFromSearch(newFieldsFromSearch);
                             }
-                          }}
-                        >
-                          {isSearching ? (
-                            <Loader className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Search className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                          } catch (error) {
+                            console.error("Error searching RUC:", error);
+                          } finally {
+                            setIsSearching(false);
+                          }
+                        }
+                      }}
+                    >
+                      {isSearching ? (
+                        <Loader className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Search className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="carrier_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Transportista</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Nombre o Razón Social"
-                        disabled={fieldsFromSearch.carrier_name}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="carrier_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre del Transportista</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Nombre o Razón Social"
+                    disabled={fieldsFromSearch.carrier_name}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="vehicle_plate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="ABC-123" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <FormField
+            control={form.control}
+            name="vehicle_plate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Placa del Vehículo</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="ABC-123" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="driver_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Conductor</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Nombre completo" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="driver_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nombre del Conductor</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Nombre completo" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="D12345678" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          <FormField
+            control={form.control}
+            name="driver_license"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Licencia del Conductor</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="D12345678" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </GroupFormSection>
 
         {/* Información de Traslado */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información de Traslado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="origin_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección de Origen</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Dirección completa" rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        <GroupFormSection
+          title="Información de Traslado"
+          icon={Car}
+          cols={{ md: 2 }}
+        >
+          <FormField
+            control={form.control}
+            name="origin_address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dirección de Origen</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    placeholder="Dirección completa"
+                    rows={2}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="destination_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección de Destino</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Dirección completa" rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+          <FormField
+            control={form.control}
+            name="destination_address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dirección de Destino</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    placeholder="Dirección completa"
+                    rows={2}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="total_weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Peso Total (kg)</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <FormField
+            control={form.control}
+            name="total_weight"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Peso Total (kg)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observaciones</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder="Opcional" rows={2} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+          <FormField
+            control={form.control}
+            name="observations"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Observaciones</FormLabel>
+                <FormControl>
+                  <Textarea {...field} placeholder="Opcional" rows={2} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </GroupFormSection>
 
         {/* Detalles de Productos */}
         {mode === "create" && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Productos a Transportar</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
-                <div className="md:col-span-2">
-                  <Form {...detailTempForm}>
-                    <FormSelect
-                      control={detailTempForm.control}
-                      name="temp_product_id"
-                      label="Producto"
-                      placeholder="Seleccione"
-                      options={products.map((product) => ({
-                        value: product.id.toString(),
-                        label: product.name,
-                      }))}
-                    />
-                  </Form>
-                </div>
-
-                <FormField
+          <GroupFormSection
+            title="Productos a Transportar"
+            icon={Box}
+            cols={{
+              md: 4,
+            }}
+          >
+            <div className="md:col-span-2">
+              <Form {...detailTempForm}>
+                <FormSelectAsync
                   control={detailTempForm.control}
-                  name="temp_quantity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          
-                          placeholder="0"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                  name="temp_product_id"
+                  label="Producto"
+                  placeholder="Seleccione"
+                  useQueryHook={useProduct}
+                  mapOptionFn={(product: ProductResource) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                  })}
+                  onValueChange={(_value, item) => {
+                    setProductSelected(item);
+                  }}
                 />
+              </Form>
+            </div>
 
+            <FormField
+              control={detailTempForm.control}
+              name="temp_quantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cantidad</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0"
+                      {...field}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-2 items-end w-full">
+              <div className="w-full">
                 <FormSelect
                   control={detailTempForm.control}
                   name="temp_unit"
@@ -561,7 +593,9 @@ export const PurchaseShippingGuideForm = ({
                   {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
                 </Button>
               </div>
+            </div>
 
+            <div className="col-span-full">
               {details.length > 0 ? (
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
@@ -613,8 +647,8 @@ export const PurchaseShippingGuideForm = ({
                   </Badge>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </GroupFormSection>
         )}
 
         {/* Botones de Acción */}

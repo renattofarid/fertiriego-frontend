@@ -8,7 +8,6 @@ import { WAREHOUSE_DOCUMENT } from "../lib/warehouse-document.interface";
 import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
 import { storeWarehouseDocument } from "../lib/warehouse-document.actions";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { successToast, errorToast } from "@/lib/core.function";
 import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 
@@ -20,7 +19,6 @@ export default function WarehouseDocumentAddPage() {
 
   const { data: warehouses } = useAllWarehouses();
   const persons = useAllWorkers();
-  const { data: products } = useAllProducts();
 
   const handleSubmit = async (data: WarehouseDocumentSchema) => {
     setIsSubmitting(true);
@@ -45,7 +43,9 @@ export default function WarehouseDocumentAddPage() {
       navigate("/documentos-almacen");
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? "Error al crear el documento";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al crear el documento";
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -64,7 +64,7 @@ export default function WarehouseDocumentAddPage() {
           />
         </div>
 
-        {warehouses && persons && products && (
+        {warehouses && persons && (
           <WarehouseDocumentForm
             onSubmit={handleSubmit}
             defaultValues={EMPTY}
@@ -72,7 +72,6 @@ export default function WarehouseDocumentAddPage() {
             mode="create"
             warehouses={warehouses}
             persons={persons}
-            products={products}
           />
         )}
       </div>

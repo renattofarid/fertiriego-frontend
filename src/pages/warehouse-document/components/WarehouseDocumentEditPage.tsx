@@ -9,7 +9,6 @@ import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
 import { useWarehouseDocumentById } from "../lib/warehouse-document.hook";
 import { useWarehouseDocumentStore } from "../lib/warehouse-document.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { successToast, errorToast } from "@/lib/core.function";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
@@ -23,7 +22,6 @@ export default function WarehouseDocumentEditPage() {
 
   const { data: warehouses } = useAllWarehouses();
   const persons = useAllWorkers();
-  const { data: products } = useAllProducts();
 
   const { data: document, isFinding } = useWarehouseDocumentById(parseInt(id!));
   const { updateDocument } = useWarehouseDocumentStore();
@@ -54,8 +52,9 @@ export default function WarehouseDocumentEditPage() {
       navigate("/documentos-almacen");
     } catch (error: any) {
       const errorMessage =
-           (error.response.data.message ?? error.response.data.error) ??
-           "Error al actualizar el documento";
+        error.response.data.message ??
+        error.response.data.error ??
+        "Error al actualizar el documento";
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -104,7 +103,7 @@ export default function WarehouseDocumentEditPage() {
           />
         </div>
 
-        {warehouses && persons && products && (
+        {warehouses && persons && (
           <WarehouseDocumentForm
             onSubmit={handleSubmit}
             defaultValues={defaultValues}
@@ -112,7 +111,6 @@ export default function WarehouseDocumentEditPage() {
             mode="update"
             warehouses={warehouses}
             persons={persons}
-            products={products}
           />
         )}
       </div>

@@ -12,7 +12,6 @@ import {
   type ProductionDocumentFormValues,
 } from "./ProductionDocumentForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
@@ -24,12 +23,10 @@ export default function ProductionDocumentAddPage() {
   // Hooks para datos
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
-  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
   const users = useAllPersons();
   const responsibles = useAllPersons();
 
-  const isLoading =
-    loadingWarehouses || loadingProducts || !users || !responsibles;
+  const isLoading = loadingWarehouses || !users || !responsibles;
 
   const onSubmit = async (values: ProductionDocumentFormValues) => {
     try {
@@ -38,7 +35,7 @@ export default function ProductionDocumentAddPage() {
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
       );
     }
   };
@@ -53,7 +50,6 @@ export default function ProductionDocumentAddPage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       warehouses={warehouses || []}
-      products={products || []}
       users={users || []}
       responsibles={responsibles || []}
     />
