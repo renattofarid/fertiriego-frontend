@@ -25,7 +25,7 @@ import { searchUbigeos } from "../lib/ubigeo.actions";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
+
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
@@ -38,6 +38,8 @@ import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
 import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
 import { errorToast } from "@/lib/core.function";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -46,7 +48,6 @@ interface GuideFormProps {
   isSubmitting?: boolean;
   mode?: "create" | "update";
   warehouses: WarehouseResource[];
-  products: ProductResource[];
   motives: GuideMotiveResource[];
   vehicles: VehicleResource[];
   carriers: PersonResource[];
@@ -69,17 +70,14 @@ interface DetailRow {
 }
 
 const createDetailColumns = (
-  products: ProductResource[],
   onEdit: (index: number) => void,
-  onDelete: (index: number) => void
+  onDelete: (index: number) => void,
 ): ColumnDef<DetailRow>[] => [
   {
     accessorKey: "product_id",
     header: "Producto",
     cell: ({ row }) => {
-      const productId = row.original.product_id;
-      const productName = products.find((p) => p.id == productId);
-      return <span className="text-sm">{productName?.name || "N/A"}</span>;
+      return <span className="text-sm">{row.original.product_name || row.original.description || "N/A"}</span>;
     },
   },
   {
@@ -146,7 +144,6 @@ export const GuideForm = ({
   isSubmitting = false,
   mode = "create",
   warehouses,
-  products,
   motives,
   vehicles,
   carriers,
@@ -160,7 +157,7 @@ export const GuideForm = ({
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
-    null
+    null,
   );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: 0,
@@ -218,7 +215,7 @@ export const GuideForm = ({
         setIsSearchingDestination(false);
       }
     },
-    []
+    [],
   );
 
   const form = useForm({
@@ -318,10 +315,7 @@ export const GuideForm = ({
     if (details.length > 0) {
       const formatted = details.map((detail) => ({
         product_id: detail.product_id.toString(),
-        description:
-          detail.description ||
-          products.find((p) => p.id === detail.product_id)?.name ||
-          "",
+        description: detail.description || detail.product_name || "",
         quantity: Number(detail.quantity),
         unit_measure: detail.unit_measure,
         weight: Number(detail.weight || 0),
@@ -336,7 +330,7 @@ export const GuideForm = ({
       // Si no hay details, limpiar el form
       form.setValue("details", [], { shouldValidate: false });
     }
-  }, [details, products, form]);
+  }, [details, form]);
 
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
@@ -347,9 +341,7 @@ export const GuideForm = ({
     const detailToSave: DetailRow = {
       ...currentDetail,
       description:
-        currentDetail.description ||
-        products.find((p) => p.id === currentDetail.product_id)?.name ||
-        "",
+        currentDetail.description || currentDetail.product_name || "",
     };
 
     if (editingDetailIndex !== null) {
@@ -832,24 +824,28 @@ export const GuideForm = ({
                 <div className="space-y-4">
                   {/* Formulario para agregar detalles */}
                   <div className="grid grid-cols-1 gap-4 md:grid-cols-6 p-4 rounded-lg">
-                    <SearchableSelect
+                    <SearchableSelectAsync
                       label="Producto"
-                      options={products.map((product) => ({
+                      useQueryHook={useProduct}
+                      mapOptionFn={(product) => ({
                         value: product.id.toString(),
                         label: product.name,
                         description: product.brand_name,
-                      }))}
+                      })}
                       withValue
                       value={currentDetail.product_id.toString()}
                       onChange={(value) => {
-                        const productId = Number(value);
-                        const selected = products.find(
-                          (p) => p.id === productId
-                        );
                         setCurrentDetail({
                           ...currentDetail,
-                          product_id: productId,
-                          description: selected?.name || "",
+                          product_id: Number(value),
+                        });
+                      }}
+                      onValueChange={(value, item) => {
+                        setCurrentDetail({
+                          ...currentDetail,
+                          product_id: Number(value),
+                          product_name: item?.name || "",
+                          description: item?.name || "",
                         });
                       }}
                       placeholder="Selecciona un producto"
@@ -937,9 +933,8 @@ export const GuideForm = ({
                   {details.length > 0 && (
                     <DataTable
                       columns={createDetailColumns(
-                        products,
                         handleEditDetail,
-                        handleDeleteDetail
+                        handleDeleteDetail,
                       )}
                       data={details}
                       isLoading={false}

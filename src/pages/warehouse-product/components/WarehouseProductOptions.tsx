@@ -2,8 +2,9 @@
 
 import SearchInput from "@/components/SearchInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
 
 export default function WarehouseProductOptions({
   search,
@@ -13,7 +14,6 @@ export default function WarehouseProductOptions({
   productId,
   setProductId,
   warehouses,
-  products,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -22,21 +22,12 @@ export default function WarehouseProductOptions({
   productId: string;
   setProductId: (value: string) => void;
   warehouses: WarehouseResource[];
-  products: ProductResource[];
 }) {
   const warehouseOptions = [
     { value: "", label: "Todos los almacenes" },
     ...(warehouses?.map((warehouse) => ({
       value: warehouse.id.toString(),
       label: warehouse.name,
-    })) || []),
-  ];
-
-  const productOptions = [
-    { value: "", label: "Todos los productos" },
-    ...(products?.map((product) => ({
-      value: product.id.toString(),
-      label: product.name,
     })) || []),
   ];
 
@@ -55,8 +46,12 @@ export default function WarehouseProductOptions({
         placeholder="Todos los almacenes"
       />
 
-      <SearchableSelect
-        options={productOptions}
+      <SearchableSelectAsync
+        useQueryHook={useProduct}
+        mapOptionFn={(product) => ({
+          value: product.id.toString(),
+          label: product.name,
+        })}
         value={productId}
         onChange={setProductId}
         placeholder="Todos los productos"

@@ -5,9 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
 import { useQuotationStore } from "../lib/quotation.store";
-import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
@@ -22,9 +20,7 @@ export const QuotationEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const {
     quotation,
@@ -39,8 +35,7 @@ export const QuotationEditPage = () => {
     }
   }, [id, fetchQuotation]);
 
-  const isLoading =
-    customersLoading || warehousesLoading || productsLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   const handleSubmit = async (data: UpdateQuotationRequest) => {
     if (!id) return;
@@ -53,7 +48,7 @@ export const QuotationEditPage = () => {
     } catch (error) {
       const err = error as { response?: { data?: { message?: string } } };
       errorToast(
-        err.response?.data?.message || "Error al actualizar la cotización"
+        err.response?.data?.message || "Error al actualizar la cotización",
       );
     } finally {
       setIsSubmitting(false);
@@ -96,23 +91,16 @@ export const QuotationEditPage = () => {
         </div>
       </div>
 
-      {customers &&
-        customers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 &&
-        products &&
-        products.length > 0 && (
-          <QuotationForm
-            mode="update"
-            initialData={quotation}
-            onSubmit={handleSubmit}
-            onCancel={() => navigate("/cotizaciones")}
-            isSubmitting={isSubmitting}
-            customers={customers}
-            warehouses={warehouses}
-            products={products}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && (
+        <QuotationForm
+          mode="update"
+          initialData={quotation}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate("/cotizaciones")}
+          isSubmitting={isSubmitting}
+          warehouses={warehouses}
+        />
+      )}
     </FormWrapper>
   );
 };

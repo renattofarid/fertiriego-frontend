@@ -8,7 +8,6 @@ import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
 import { usePurchaseOrderStore } from "../lib/purchase-order.store";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -26,11 +25,10 @@ export default function PurchaseOrderAddPage() {
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const { createPurchaseOrder, isSubmitting } = usePurchaseOrderStore();
 
-  const isLoading = suppliersLoading || warehousesLoading || productsLoading;
+  const isLoading = suppliersLoading || warehousesLoading;
 
   const getDefaultValues = (): Partial<PurchaseOrderSchema> => ({
     supplier_id: "",
@@ -57,7 +55,7 @@ export default function PurchaseOrderAddPage() {
       }, 500);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
       );
       // Solo resetear el ref en caso de error (en éxito, navega)
       isSubmittingRef.current = false;
@@ -88,9 +86,7 @@ export default function PurchaseOrderAddPage() {
       {suppliers &&
         suppliers.length > 0 &&
         warehouses &&
-        warehouses.length > 0 &&
-        products &&
-        products.length > 0 && (
+        warehouses.length > 0 && (
           <PurchaseOrderForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
@@ -98,7 +94,6 @@ export default function PurchaseOrderAddPage() {
             mode="create"
             suppliers={suppliers}
             warehouses={warehouses}
-            products={products}
             onCancel={() => navigate("/ordenes-compra")}
           />
         )}

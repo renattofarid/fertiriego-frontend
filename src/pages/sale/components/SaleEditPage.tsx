@@ -6,9 +6,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { SaleForm } from "./SaleForm";
 import { type SaleUpdateSchema } from "../lib/sale.schema";
 import { useSaleStore } from "../lib/sales.store";
-import { useClients } from "@/pages/client/lib/client.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { SALE, type SaleResource } from "../lib/sale.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
@@ -21,14 +19,11 @@ export const SaleEditPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: customers, isLoading: customersLoading } = useClients();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const { updateSale, fetchSale, sale, isFinding } = useSaleStore();
 
-  const isLoading =
-    customersLoading || warehousesLoading || productsLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -48,7 +43,7 @@ export const SaleEditPage = () => {
 
       if (hasPayments) {
         errorToast(
-          "No se puede editar una venta que ya tiene pagos registrados"
+          "No se puede editar una venta que ya tiene pagos registrados",
         );
         navigate("/ventas");
       }
@@ -61,7 +56,7 @@ export const SaleEditPage = () => {
     document_type: data.document_type,
     issue_date: format(
       parse(data.issue_date, "yyyy-MM-dd", new Date()),
-      "yyyy-MM-dd"
+      "yyyy-MM-dd",
     ),
     payment_type: data.payment_type,
     currency: data.currency,
@@ -90,7 +85,7 @@ export const SaleEditPage = () => {
       navigate("/ventas");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al actualizar la venta"
+        error.response?.data?.message || "Error al actualizar la venta",
       );
     } finally {
       setIsSubmitting(false);
@@ -133,24 +128,17 @@ export const SaleEditPage = () => {
 
       <div className="space-y-6">
         {/* Main Form */}
-        {customers &&
-          customers.length > 0 &&
-          warehouses &&
-          warehouses.length > 0 &&
-          products &&
-          products.length > 0 && (
-            <SaleForm
-              defaultValues={mapSaleToForm(sale)}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode="update"
-              customers={customers}
-              warehouses={warehouses}
-              products={products}
-              sale={sale}
-              onCancel={() => navigate("/ventas")}
-            />
-          )}
+        {warehouses && warehouses.length > 0 && (
+          <SaleForm
+            defaultValues={mapSaleToForm(sale)}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            mode="update"
+            warehouses={warehouses}
+            sale={sale}
+            onCancel={() => navigate("/ventas")}
+          />
+        )}
       </div>
     </FormWrapper>
   );

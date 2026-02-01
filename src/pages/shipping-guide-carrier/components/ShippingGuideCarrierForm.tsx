@@ -37,6 +37,8 @@ import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { GuideResource } from "@/pages/guide/lib/guide.interface";
 import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import { toast } from "sonner";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -112,7 +114,6 @@ interface ShippingGuideCarrierFormProps {
   recipients: PersonResource[];
   drivers: PersonResource[];
   vehicles: VehicleResource[];
-  products: ProductResource[];
   guides: GuideResource[];
 }
 
@@ -126,7 +127,6 @@ export function ShippingGuideCarrierForm({
   recipients,
   drivers,
   vehicles,
-  products,
   guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
@@ -151,7 +151,7 @@ export function ShippingGuideCarrierForm({
     weight: 0,
   });
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
-    null
+    null,
   );
 
   // Estado para ubigeos
@@ -164,7 +164,7 @@ export function ShippingGuideCarrierForm({
 
   const form = useForm<ShippingGuideCarrierFormValues>({
     resolver: zodResolver(
-      shippingGuideCarrierSchema
+      shippingGuideCarrierSchema,
     ) as Resolver<ShippingGuideCarrierFormValues>,
     defaultValues: initialValues ?? {
       ...defaultValues,
@@ -175,24 +175,24 @@ export function ShippingGuideCarrierForm({
   const transportModality = form.watch("transport_modality");
   const selectedGuideId = form.watch("shipping_guide_remittent_id");
 
+  const [selectedProduct, setSelectedProduct] = useState<
+    ProductResource | undefined
+  >(undefined);
+
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
     if (initialValues?.details && initialValues.details.length > 0) {
-      const mappedDetails: DetailRow[] = initialValues.details.map((d) => {
-        const product = products.find((p) => p.id.toString() === d.product_id);
-        return {
-          product_id: d.product_id,
-          product_name: product?.name || "Producto desconocido",
-          brand_name: product?.brand_name,
-          description: d.description,
-          quantity: parseFloat(d.quantity) || 0,
-          unit: d.unit,
-          weight: parseFloat(d.weight) || 0,
-        };
-      });
+      const mappedDetails: DetailRow[] = initialValues.details.map((d) => ({
+        product_id: d.product_id,
+        product_name: d.description || "Producto desconocido",
+        description: d.description,
+        quantity: parseFloat(d.quantity) || 0,
+        unit: d.unit,
+        weight: parseFloat(d.weight) || 0,
+      }));
       setDetails(mappedDetails);
     }
-  }, [initialValues, products]);
+  }, [initialValues]);
 
   // Cargar detalles cuando se selecciona una guía de remisión
   useEffect(() => {
@@ -206,22 +206,19 @@ export function ShippingGuideCarrierForm({
         const guide = response.data;
 
         if (guide.details && guide.details.length > 0) {
-          const mappedDetails: DetailRow[] = guide.details.map((detail) => {
-            const product = products.find(
-              (p) => p.id === detail.product_id
-            );
-            return {
-              product_id: detail.product_id.toString(),
-              product_name: detail.product_name || product?.name || "Producto desconocido",
-              brand_name: product?.brand_name,
-              description: detail.description || "",
-              quantity: parseFloat(detail.quantity) || 0,
-              unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
-              weight: parseFloat(detail.weight) || 0,
-            };
-          });
+          const mappedDetails: DetailRow[] = guide.details.map((detail) => ({
+            product_id: detail.product_id.toString(),
+            product_name:
+              detail.product_name || "Producto desconocido",
+            description: detail.description || "",
+            quantity: parseFloat(detail.quantity) || 0,
+            unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
+            weight: parseFloat(detail.weight) || 0,
+          }));
           setDetails(mappedDetails);
-          toast.success(`Se cargaron ${mappedDetails.length} detalles de la guía ${guide.full_guide_number}`);
+          toast.success(
+            `Se cargaron ${mappedDetails.length} detalles de la guía ${guide.full_guide_number}`,
+          );
         } else {
           toast.info("La guía seleccionada no tiene detalles");
         }
@@ -232,7 +229,7 @@ export function ShippingGuideCarrierForm({
     };
 
     loadGuideDetails();
-  }, [selectedGuideId, products]);
+  }, [selectedGuideId]);
 
   // Buscar ubigeos origen
   const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
@@ -270,7 +267,7 @@ export function ShippingGuideCarrierForm({
         setIsSearchingDestination(false);
       }
     },
-    []
+    [],
   );
 
   // Formatear label ubigeo
@@ -293,18 +290,15 @@ export function ShippingGuideCarrierForm({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id
-    );
-    if (!product) {
+    if (!selectedProduct) {
       toast.error("Producto no encontrado");
       return;
     }
 
     const newDetail: DetailRow = {
       product_id: currentDetail.product_id,
-      product_name: product.name,
-      brand_name: product.brand_name,
+      product_name: selectedProduct.name,
+      brand_name: selectedProduct.brand_name,
       description: currentDetail.description || "",
       quantity: currentDetail.quantity,
       unit: currentDetail.unit || UNIT_MEASUREMENTS[0].value,
@@ -327,6 +321,7 @@ export function ShippingGuideCarrierForm({
       weight: 0,
       description: "",
     });
+    setSelectedProduct(undefined);
   };
 
   // Editar detalle
@@ -362,7 +357,7 @@ export function ShippingGuideCarrierForm({
   // Columnas para DataTable
   const createDetailColumns = (
     onEdit: (index: number) => void,
-    onDelete: (index: number) => void
+    onDelete: (index: number) => void,
   ): ColumnDef<DetailRow>[] => [
     {
       accessorKey: "product_name",
@@ -418,7 +413,7 @@ export function ShippingGuideCarrierForm({
 
   const detailColumns = createDetailColumns(
     handleEditDetail,
-    handleDeleteDetail
+    handleDeleteDetail,
   );
 
   // Submit con validación
@@ -492,8 +487,7 @@ export function ShippingGuideCarrierForm({
                 placeholder="Seleccione remitente"
                 options={remittents.map((p) => ({
                   value: p.id.toString(),
-                  label:
-                    p.business_name || `${p.names} ${p.father_surname}`,
+                  label: p.business_name || `${p.names} ${p.father_surname}`,
                   description: p.number_document,
                 }))}
                 withValue
@@ -519,8 +513,7 @@ export function ShippingGuideCarrierForm({
                 placeholder="Seleccione destinatario"
                 options={recipients.map((p) => ({
                   value: p.id.toString(),
-                  label:
-                    p.business_name || `${p.names} ${p.father_surname}`,
+                  label: p.business_name || `${p.names} ${p.father_surname}`,
                   description: p.number_document,
                 }))}
                 withValue
@@ -744,16 +737,20 @@ export function ShippingGuideCarrierForm({
             <div className="space-y-4">
               {/* Formulario inline */}
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end border p-3 rounded-lg bg-muted/30">
-                <SearchableSelect
+                <SearchableSelectAsync
                   label="Seleccione producto"
-                  options={products.map((p) => ({
-                    value: p.id.toString(),
-                    label: p.name,
-                    description: p.brand_name,
-                  }))}
+                  useQueryHook={useProduct}
+                  mapOptionFn={(product) => ({
+                    value: product.id.toString(),
+                    label: product.name,
+                    description: product.brand_name,
+                  })}
                   value={currentDetail.product_id || ""}
                   onChange={(value) =>
                     setCurrentDetail({ ...currentDetail, product_id: value })
+                  }
+                  onValueChange={(_value, item) =>
+                    setSelectedProduct(item as ProductResource | undefined)
                   }
                   withValue
                   placeholder="Buscar producto..."
@@ -888,7 +885,7 @@ export function ShippingGuideCarrierForm({
                           {field}: {error?.message || "Error en este campo"}
                         </li>
                       );
-                    }
+                    },
                   )}
                 </ul>
               </div>

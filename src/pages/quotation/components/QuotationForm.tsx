@@ -46,7 +46,6 @@ import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -80,7 +79,6 @@ export const QuotationForm = ({
   warehouses,
 }: QuotationFormProps) => {
   const { user } = useAuthStore();
-  const { data: products = [] } = useAllProducts();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
@@ -322,11 +320,7 @@ export const QuotationForm = ({
   useEffect(() => {
     if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
-        (detail: QuotationDetailResource) => {
-          // Buscar el producto para obtener las fichas técnicas
-          const product = products.find((p) => p.id === detail.product_id);
-
-          return {
+        (detail: QuotationDetailResource) => ({
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "",
             is_igv: detail.is_igv,
@@ -337,13 +331,12 @@ export const QuotationForm = ({
             subtotal: parseFloat(detail.subtotal),
             tax: parseFloat(detail.tax),
             total: parseFloat(detail.total),
-            technical_sheet: product?.technical_sheet || [],
-          };
-        },
+            technical_sheet: Array.isArray(detail.product?.technical_sheet) ? detail.product.technical_sheet : [],
+          }),
       );
       setDetails(loadedDetails);
     }
-  }, [mode, initialData, products]);
+  }, [mode, initialData]);
 
   // Actualizar el branch_id cuando cambie el warehouse seleccionado
   useEffect(() => {
@@ -367,9 +360,6 @@ export const QuotationForm = ({
   }, [branchData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
-    // Buscar el producto para obtener las fichas técnicas
-    const product = products.find((p) => p.id.toString() === detail.product_id);
-
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -381,16 +371,12 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
-      technical_sheet: product?.technical_sheet || [],
     };
 
     setDetails([...details, newDetail]);
   };
 
   const handleUpdateDetail = (detail: ProductDetail, index: number) => {
-    // Buscar el producto para obtener las fichas técnicas
-    const product = products.find((p) => p.id.toString() === detail.product_id);
-
     const updatedDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
@@ -402,7 +388,6 @@ export const QuotationForm = ({
       subtotal: detail.subtotal,
       tax: detail.tax,
       total: detail.total,
-      technical_sheet: product?.technical_sheet || [],
     };
 
     const updatedDetails = [...details];

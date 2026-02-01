@@ -7,7 +7,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseShippingGuideForm } from "./PurchaseShippingGuideForm";
 import { type PurchaseShippingGuideSchema } from "../lib/purchase-shipping-guide.schema";
 import { usePurchaseShippingGuideStore } from "../lib/purchase-shipping-guide.store";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
@@ -17,8 +16,8 @@ export const PurchaseShippingGuideEditPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: products, isLoading: productsLoading } = useAllProducts();
-  const { guide, fetchGuide, updateGuide, isFinding } = usePurchaseShippingGuideStore();
+  const { guide, fetchGuide, updateGuide, isFinding } =
+    usePurchaseShippingGuideStore();
 
   useEffect(() => {
     if (id) {
@@ -59,13 +58,15 @@ export const PurchaseShippingGuideEditPage = () => {
       await updateGuide(Number(id), data);
       navigate("/guias-compra");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al actualizar la guía");
+      errorToast(
+        error.response?.data?.message || "Error al actualizar la guía",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isFinding || productsLoading) {
+  if (isFinding) {
     return (
       <FormWrapper>
         <div className="mb-6">
@@ -102,16 +103,13 @@ export const PurchaseShippingGuideEditPage = () => {
         </div>
       </div>
 
-      {products && products.length > 0 && (
-        <PurchaseShippingGuideForm
-          defaultValues={getDefaultValues()}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          mode="update"
-          products={products}
-          onCancel={() => navigate("/guias-compra")}
-        />
-      )}
+      <PurchaseShippingGuideForm
+        defaultValues={getDefaultValues()}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        mode="update"
+        onCancel={() => navigate("/guias-compra")}
+      />
     </FormWrapper>
   );
 };

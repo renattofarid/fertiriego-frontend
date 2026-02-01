@@ -10,12 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { getDocumentTypeLabel } from "../lib/warehouse-document.constants";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import {
   DOCUMENT_TYPES,
   MOVEMENT_TYPES,
 } from "../lib/warehouse-document.constants";
 import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
   {
@@ -180,11 +181,10 @@ export default function WarehouseKardexPage() {
   const [selectedMovementType, setSelectedMovementType] = useState("");
   const [fromDate, setFromDate] = useState(new Date());
   const [toDate, setToDate] = useState(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   );
 
   const { data: warehouses } = useAllWarehouses();
-  const { data: products } = useAllProducts();
 
   const params = {
     page,
@@ -245,17 +245,16 @@ export default function WarehouseKardexPage() {
                 />
               )}
 
-              {products && (
-                <SearchableSelect
-                  options={products.map((p) => ({
-                    value: p.id.toString(),
-                    label: p.name,
-                  }))}
-                  value={selectedProduct}
-                  onChange={setSelectedProduct}
-                  placeholder="Todos los productos"
-                />
-              )}
+              <SearchableSelectAsync
+                useQueryHook={useProduct}
+                mapOptionFn={(product) => ({
+                  value: product.id.toString(),
+                  label: product.name,
+                })}
+                value={selectedProduct}
+                onChange={setSelectedProduct}
+                placeholder="Todos los productos"
+              />
 
               <SearchableSelect
                 options={DOCUMENT_TYPES.map((type) => ({
@@ -285,7 +284,7 @@ export default function WarehouseKardexPage() {
                 onDateChange={(from, to) => {
                   setFromDate(from ? from : new Date());
                   setToDate(
-                    to ? to : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                    to ? to : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                   );
                 }}
               />

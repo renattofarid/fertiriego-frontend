@@ -8,7 +8,6 @@ import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
 import { usePurchaseOrderStore } from "../lib/purchase-order.store";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -30,7 +29,6 @@ export default function PurchaseOrderEditPage() {
 
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
 
   const {
     updatePurchaseOrder,
@@ -40,8 +38,7 @@ export default function PurchaseOrderEditPage() {
     isSubmitting,
   } = usePurchaseOrderStore();
 
-  const isLoading =
-    suppliersLoading || warehousesLoading || productsLoading || isFinding;
+  const isLoading = suppliersLoading || warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -53,7 +50,7 @@ export default function PurchaseOrderEditPage() {
   }, [id, navigate, fetchPurchaseOrder]);
 
   const mapPurchaseOrderToForm = (
-    data: PurchaseOrderResource
+    data: PurchaseOrderResource,
   ): Partial<PurchaseOrderSchema> => ({
     supplier_id: data.supplier_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
@@ -82,7 +79,7 @@ export default function PurchaseOrderEditPage() {
       }, 500);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update"),
       );
       // Solo resetear el ref en caso de error (en éxito, navega)
       isSubmittingRef.current = false;
@@ -126,9 +123,7 @@ export default function PurchaseOrderEditPage() {
       {suppliers &&
         suppliers.length > 0 &&
         warehouses &&
-        warehouses.length > 0 &&
-        products &&
-        products.length > 0 && (
+        warehouses.length > 0 && (
           <PurchaseOrderForm
             defaultValues={mapPurchaseOrderToForm(purchaseOrder)}
             onSubmit={handleSubmit}
@@ -136,7 +131,6 @@ export default function PurchaseOrderEditPage() {
             mode="update"
             suppliers={suppliers}
             warehouses={warehouses}
-            products={products}
             purchaseOrder={purchaseOrder}
             onCancel={() => navigate("/ordenes-compra")}
           />

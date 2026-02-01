@@ -13,7 +13,6 @@ import {
   type ProductionDocumentFormValues,
 } from "./ProductionDocumentForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
@@ -21,18 +20,12 @@ export default function ProductionDocumentEditPage() {
   const { ROUTE, MODEL } = PRODUCTION_DOCUMENT;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    document,
-    fetchDocument,
-    updateDocument,
-    isSubmitting,
-    isFinding,
-  } = useProductionDocumentStore();
+  const { document, fetchDocument, updateDocument, isSubmitting, isFinding } =
+    useProductionDocumentStore();
 
   // Hooks para datos
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
-  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
   const users = useAllPersons();
   const responsibles = useAllPersons();
 
@@ -43,12 +36,7 @@ export default function ProductionDocumentEditPage() {
     }
   }, [id, fetchDocument]);
 
-  const isLoading =
-    loadingWarehouses ||
-    loadingProducts ||
-    !users ||
-    !responsibles ||
-    isFinding;
+  const isLoading = loadingWarehouses || !users || !responsibles || isFinding;
 
   const onSubmit = async (values: ProductionDocumentFormValues) => {
     if (!id) return;
@@ -58,7 +46,7 @@ export default function ProductionDocumentEditPage() {
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update"),
       );
     }
   };
@@ -95,7 +83,6 @@ export default function ProductionDocumentEditPage() {
       isSubmitting={isSubmitting}
       initialValues={initialValues}
       warehouses={warehouses || []}
-      products={products || []}
       users={users || []}
       responsibles={responsibles || []}
     />

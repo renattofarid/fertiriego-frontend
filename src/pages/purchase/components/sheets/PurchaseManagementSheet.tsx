@@ -15,7 +15,6 @@ import type { PurchaseResource } from "../../lib/purchase.interface";
 import { usePurchaseDetailStore } from "../../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../../lib/purchase-installment.store";
 import { usePurchaseStore } from "../../lib/purchase.store";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { PurchaseDetailTable } from "../PurchaseDetailTable";
 import { PurchaseInstallmentTable } from "../PurchaseInstallmentTable";
 import { PurchaseDetailForm } from "../forms/PurchaseDetailForm";
@@ -39,10 +38,12 @@ export function PurchaseManagementSheet({
   const [showDetailForm, setShowDetailForm] = useState(false);
   const [showInstallmentForm, setShowInstallmentForm] = useState(false);
   const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
-  const [editingInstallmentId, setEditingInstallmentId] = useState<number | null>(null);
-  const [currentPurchase, setCurrentPurchase] = useState<PurchaseResource | null>(purchase);
+  const [editingInstallmentId, setEditingInstallmentId] = useState<
+    number | null
+  >(null);
+  const [currentPurchase, setCurrentPurchase] =
+    useState<PurchaseResource | null>(purchase);
 
-  const { data: products } = useAllProducts();
   const { fetchPurchase } = usePurchaseStore();
 
   const {
@@ -137,7 +138,9 @@ export function PurchaseManagementSheet({
       fetchDetails(purchase.id);
       await refreshPurchaseData(); // Actualizar la compra y la información general
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al guardar el detalle");
+      errorToast(
+        error.response?.data?.message || "Error al guardar el detalle",
+      );
     }
   };
 
@@ -173,7 +176,10 @@ export function PurchaseManagementSheet({
     }
   };
 
-  const handleSyncInstallment = async (installmentId: number, newAmount: number) => {
+  const handleSyncInstallment = async (
+    installmentId: number,
+    newAmount: number,
+  ) => {
     if (!purchase) return;
 
     try {
@@ -183,7 +189,9 @@ export function PurchaseManagementSheet({
       successToast("Cuota sincronizada exitosamente");
       fetchInstallments(purchase.id);
     } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al sincronizar la cuota");
+      errorToast(
+        error.response?.data?.message || "Error al sincronizar la cuota",
+      );
     }
   };
 
@@ -192,7 +200,9 @@ export function PurchaseManagementSheet({
   // Determinar si se pueden agregar detalles o cuotas
   const isPaid = currentPurchase.status === "PAGADO";
   const isCash = currentPurchase.payment_type === "CONTADO";
-  const hasPayments = parseFloat(currentPurchase.total_amount) !== parseFloat(currentPurchase.current_amount);
+  const hasPayments =
+    parseFloat(currentPurchase.total_amount) !==
+    parseFloat(currentPurchase.current_amount);
 
   // Para detalles: NO se puede si está pagada O (es al contado Y tiene pagos)
   const canAddDetails = !isPaid && !(isCash && hasPayments);
@@ -222,12 +232,15 @@ export function PurchaseManagementSheet({
             <CardContent className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Proveedor:</span>
-                <p className="font-semibold">{currentPurchase.supplier_fullname}</p>
+                <p className="font-semibold">
+                  {currentPurchase.supplier_fullname}
+                </p>
               </div>
               <div>
                 <span className="text-muted-foreground">Documento:</span>
                 <p className="font-semibold">
-                  {currentPurchase.document_type} - {currentPurchase.document_number}
+                  {currentPurchase.document_type} -{" "}
+                  {currentPurchase.document_number}
                 </p>
               </div>
               <div>
@@ -252,8 +265,8 @@ export function PurchaseManagementSheet({
                       currentPurchase.status === "PAGADA"
                         ? "default"
                         : currentPurchase.status === "CANCELADO"
-                        ? "destructive"
-                        : "secondary"
+                          ? "destructive"
+                          : "secondary"
                     }
                   >
                     {currentPurchase.status}
@@ -264,7 +277,11 @@ export function PurchaseManagementSheet({
                 <span className="text-muted-foreground">Tipo de Pago:</span>
                 <div className="mt-1">
                   <Badge
-                    variant={currentPurchase.payment_type === "CONTADO" ? "default" : "secondary"}
+                    variant={
+                      currentPurchase.payment_type === "CONTADO"
+                        ? "default"
+                        : "secondary"
+                    }
                   >
                     {currentPurchase.payment_type}
                   </Badge>
@@ -280,7 +297,10 @@ export function PurchaseManagementSheet({
                 <PackageOpen className="h-4 w-4" />
                 Detalles ({details?.length || 0})
               </TabsTrigger>
-              <TabsTrigger value="installments" className="flex items-center gap-2">
+              <TabsTrigger
+                value="installments"
+                className="flex items-center gap-2"
+              >
                 <CreditCard className="h-4 w-4" />
                 Cuotas ({installments?.length || 0})
               </TabsTrigger>
@@ -295,18 +315,15 @@ export function PurchaseManagementSheet({
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {products && (
-                      <PurchaseDetailForm
-                        products={products}
-                        detail={editingDetailId ? detail : null}
-                        onSubmit={handleDetailSubmit}
-                        onCancel={() => {
-                          setShowDetailForm(false);
-                          setEditingDetailId(null);
-                        }}
-                        isSubmitting={detailSubmitting}
-                      />
-                    )}
+                    <PurchaseDetailForm
+                      detail={editingDetailId ? detail : null}
+                      onSubmit={handleDetailSubmit}
+                      onCancel={() => {
+                        setShowDetailForm(false);
+                        setEditingDetailId(null);
+                      }}
+                      isSubmitting={detailSubmitting}
+                    />
                   </CardContent>
                 </Card>
               ) : (
@@ -380,31 +397,45 @@ export function PurchaseManagementSheet({
                   )}
 
                   {/* Advertencia de desincronización */}
-                  {isCash && installments && installments.length > 0 && (() => {
-                    const totalAmount = parseFloat(currentPurchase.total_amount);
-                    const installmentAmount = parseFloat(installments[0]?.amount || "0");
-                    const hasNoPayments = parseFloat(installments[0]?.pending_amount || "0") === installmentAmount;
-                    const hasDifference = Math.abs(installmentAmount - totalAmount) > 0.01;
-
-                    if (hasNoPayments && hasDifference) {
-                      return (
-                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no coincide con el total de la compra ({totalAmount.toFixed(2)}).
-                            Debe sincronizar la cuota usando el botón 🔄
-                          </p>
-                        </div>
+                  {isCash &&
+                    installments &&
+                    installments.length > 0 &&
+                    (() => {
+                      const totalAmount = parseFloat(
+                        currentPurchase.total_amount,
                       );
-                    }
-                    return null;
-                  })()}
+                      const installmentAmount = parseFloat(
+                        installments[0]?.amount || "0",
+                      );
+                      const hasNoPayments =
+                        parseFloat(installments[0]?.pending_amount || "0") ===
+                        installmentAmount;
+                      const hasDifference =
+                        Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                      if (hasNoPayments && hasDifference) {
+                        return (
+                          <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                            <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                              ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
+                              coincide con el total de la compra (
+                              {totalAmount.toFixed(2)}). Debe sincronizar la
+                              cuota usando el botón 🔄
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
 
                   <PurchaseInstallmentTable
                     installments={installments || []}
                     onEdit={handleEditInstallment}
                     onRefresh={() => purchase && fetchInstallments(purchase.id)}
                     isCashPayment={isCash}
-                    purchaseTotalAmount={parseFloat(currentPurchase.total_amount)}
+                    purchaseTotalAmount={parseFloat(
+                      currentPurchase.total_amount,
+                    )}
                     onSyncInstallment={handleSyncInstallment}
                   />
                 </>

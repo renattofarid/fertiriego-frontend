@@ -14,12 +14,7 @@ import {
   type GetPurchasesParams,
 } from "./purchase.actions";
 import type { PurchaseSchema, PurchaseUpdateSchema } from "./purchase.schema";
-import {
-  ERROR_MESSAGE,
-  SUCCESS_MESSAGE,
-  errorToast,
-  successToast,
-} from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
 import { PURCHASE } from "./purchase.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
@@ -44,7 +39,7 @@ interface PurchaseStore {
   createPurchase: (data: PurchaseSchema) => Promise<void>;
   updatePurchase: (
     id: number,
-    data: Partial<PurchaseUpdateSchema>
+    data: Partial<PurchaseUpdateSchema>,
   ) => Promise<void>;
   removePurchase: (id: number) => Promise<void>;
   resetPurchase: () => void;
@@ -64,7 +59,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Fetch all purchases (no pagination)
   fetchAllPurchases: async () => {
-    set({ isLoadingAll: true, error: undefined});
+    set({ isLoadingAll: true, error: undefined });
     try {
       const data = await getAllPurchases();
       set({ allPurchases: data, isLoadingAll: false });
@@ -76,7 +71,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Fetch purchases with pagination
   fetchPurchases: async (params?: GetPurchasesParams) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const response = await getPurchases(params);
       const meta = response.meta;
@@ -89,7 +84,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Fetch single purchase by ID
   fetchPurchase: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
       const response = await findPurchaseById(id);
       set({ purchase: response.data, isFinding: false });
@@ -101,7 +96,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Create new purchase
   createPurchase: async (data: PurchaseSchema) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       const request: CreatePurchaseRequest = {
         supplier_id: Number(data.supplier_id),
@@ -138,7 +133,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
   // Update purchase
   updatePurchase: async (id: number, data: Partial<PurchaseUpdateSchema>) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       const request: UpdatePurchaseRequest = {
         ...(data.supplier_id && { supplier_id: Number(data.supplier_id) }),
@@ -161,30 +156,26 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
 
       await updatePurchase(id, request);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "update"));
       throw error;
     }
   },
 
   // Delete purchase
   removePurchase: async (id: number) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await deletePurchase(id);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "delete"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "delete"));
       throw error;
     }
   },
 
   // Reset purchase state
   resetPurchase: () => {
-    set({ purchase: null, error: undefined});
+    set({ purchase: null, error: undefined });
   },
 }));

@@ -17,17 +17,17 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { FormSelect } from "@/components/FormSelect";
 import { Loader } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { errorToast, successToast } from "@/lib/core.function";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useProduct } from "@/pages/product/lib/product.hook";
 
 interface PurchaseDetailModalProps {
   open: boolean;
   onClose: () => void;
   purchaseId: number;
-  products: ProductResource[];
   detailId?: number | null;
 }
 
@@ -35,7 +35,6 @@ export function PurchaseDetailModal({
   open,
   onClose,
   purchaseId,
-  products,
   detailId,
 }: PurchaseDetailModalProps) {
   const {
@@ -157,7 +156,7 @@ export function PurchaseDetailModal({
     } catch (error: any) {
       errorToast(
         error.response?.data?.message ||
-          `Error al ${detailId ? "actualizar" : "agregar"} el detalle`
+          `Error al ${detailId ? "actualizar" : "agregar"} el detalle`,
       );
     }
   };
@@ -173,15 +172,16 @@ export function PurchaseDetailModal({
 
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="product_id"
               label="Producto"
               placeholder="Seleccione un producto"
-              options={products.map((product) => ({
+              useQueryHook={useProduct}
+              mapOptionFn={(product: ProductResource) => ({
                 value: product.id.toString(),
                 label: product.name,
-              }))}
+              })}
               disabled={!!detailId}
             />
 
@@ -192,12 +192,7 @@ export function PurchaseDetailModal({
                 <FormItem>
                   <FormLabel>Cantidad</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      
-                      placeholder="0"
-                      {...field}
-                    />
+                    <Input type="number" placeholder="0" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -214,7 +209,6 @@ export function PurchaseDetailModal({
                     <Input
                       type="number"
                       step="0.01"
-                      
                       placeholder="0.00"
                       {...field}
                     />
@@ -234,7 +228,6 @@ export function PurchaseDetailModal({
                     <Input
                       type="number"
                       step="0.01"
-                      
                       placeholder="0.00"
                       {...field}
                     />

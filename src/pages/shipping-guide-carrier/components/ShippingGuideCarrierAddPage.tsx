@@ -14,7 +14,6 @@ import {
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -29,7 +28,6 @@ export default function ShippingGuideCarrierAddPage() {
     useAllSuppliers();
   const workers = useAllWorkers();
   const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
-  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
   const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
@@ -37,7 +35,6 @@ export default function ShippingGuideCarrierAddPage() {
   const isLoading =
     loadingSuppliers ||
     loadingVehicles ||
-    loadingProducts ||
     loadingGuides ||
     !workers ||
     !remittents ||
@@ -69,7 +66,6 @@ export default function ShippingGuideCarrierAddPage() {
       recipients={recipients || []}
       drivers={workers || []}
       vehicles={vehicles || []}
-      products={products || []}
       guides={guides || []}
     />
   );

@@ -16,7 +16,6 @@ import { WarehouseProductColumns } from "./WarehouseProductColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import { WAREHOUSE_PRODUCT } from "../lib/warehouse-product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import FormSkeleton from "@/components/FormSkeleton";
 
@@ -34,7 +33,6 @@ export default function WarehouseProductPage() {
 
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
-  const { data: products = [], isLoading: loadingProducts } = useAllProducts();
 
   useEffect(() => {
     const params: Record<string, any> = { page, search, per_page };
@@ -52,14 +50,14 @@ export default function WarehouseProductPage() {
     } catch (error: any) {
       errorToast(
         error.response.data.message ?? error.response.data.error,
-        ERROR_MESSAGE(MODEL, "delete")
+        ERROR_MESSAGE(MODEL, "delete"),
       );
     } finally {
       setDeleteId(null);
     }
   };
 
-  if (loadingWarehouses || loadingProducts || !warehouses || !products) {
+  if (loadingWarehouses || !warehouses) {
     return <FormSkeleton />;
   }
 
@@ -90,7 +88,6 @@ export default function WarehouseProductPage() {
           productId={productId}
           setProductId={setProductId}
           warehouses={warehouses}
-          products={products}
         />
       </WarehouseProductTable>
 

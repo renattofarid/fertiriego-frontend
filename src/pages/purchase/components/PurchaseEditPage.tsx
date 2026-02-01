@@ -10,7 +10,6 @@ import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PURCHASE, type PurchaseResource } from "../lib/purchase.interface";
@@ -41,7 +40,6 @@ export const PurchaseEditPage = () => {
   const { user } = useAuthStore();
   const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: products, isLoading: productsLoading } = useAllProducts();
   const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
     useAllPurchaseOrders();
 
@@ -51,11 +49,7 @@ export const PurchaseEditPage = () => {
   const { fetchInstallments, installments } = usePurchaseInstallmentStore();
 
   const isLoading =
-    suppliersLoading ||
-    warehousesLoading ||
-    productsLoading ||
-    purchaseOrdersLoading ||
-    isFinding;
+    suppliersLoading || warehousesLoading || purchaseOrdersLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -73,7 +67,7 @@ export const PurchaseEditPage = () => {
   }, [id, fetchDetails, fetchInstallments]);
 
   const mapPurchaseToForm = (
-    data: PurchaseResource
+    data: PurchaseResource,
   ): Partial<PurchaseSchema> => ({
     supplier_id: data.supplier_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
@@ -99,7 +93,7 @@ export const PurchaseEditPage = () => {
       navigate("/compras");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al actualizar la compra"
+        error.response?.data?.message || "Error al actualizar la compra",
       );
     } finally {
       setIsSubmitting(false);
@@ -186,8 +180,6 @@ export const PurchaseEditPage = () => {
           suppliers.length > 0 &&
           warehouses &&
           warehouses.length > 0 &&
-          products &&
-          products.length > 0 &&
           user && (
             <PurchaseForm
               defaultValues={mapPurchaseToForm(purchase)}
@@ -196,7 +188,6 @@ export const PurchaseEditPage = () => {
               mode="update"
               suppliers={suppliers}
               warehouses={warehouses}
-              products={products}
               purchaseOrders={purchaseOrders || []}
               purchase={purchase}
               currentUserId={user.id}
@@ -243,12 +234,11 @@ export const PurchaseEditPage = () => {
       </div>
 
       {/* Modals */}
-      {isDetailModalOpen && products && (
+      {isDetailModalOpen && (
         <PurchaseDetailModal
           open={isDetailModalOpen}
           onClose={handleDetailModalClose}
           purchaseId={Number(id)}
-          products={products}
           detailId={editingDetailId}
         />
       )}

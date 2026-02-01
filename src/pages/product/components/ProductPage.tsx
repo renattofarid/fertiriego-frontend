@@ -32,24 +32,24 @@ export default function ProductPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [assignStockProductId, setAssignStockProductId] = useState<number | null>(null);
+  const [assignStockProductId, setAssignStockProductId] = useState<
+    number | null
+  >(null);
 
-  const { data, meta, isLoading, refetch } = useProduct();
+  const { data, isLoading, refetch } = useProduct({
+    page,
+    search,
+    per_page,
+    ...(selectedCategory && { category_id: selectedCategory }),
+    ...(selectedBrand && { brand_id: selectedBrand }),
+    ...(selectedType && { product_type: selectedType }),
+  });
   const { data: categories } = useAllCategories();
   const { data: brands } = useAllBrands();
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedCategory && { category_id: selectedCategory }),
-      ...(selectedBrand && { brand_id: selectedBrand }),
-      ...(selectedType && { product_type: selectedType }),
-    };
-    refetch(filterParams);
+    setPage(1);
   }, [
-    page,
     search,
     per_page,
     selectedCategory,
@@ -62,19 +62,13 @@ export default function ProductPage() {
     if (!deleteId) return;
     try {
       await deleteProduct(deleteId);
-      const filterParams = {
-        page,
-        search,
-        per_page,
-        ...(selectedCategory && { category_id: selectedCategory }),
-        ...(selectedBrand && { brand_id: selectedBrand }),
-        ...(selectedType && { product_type: selectedType }),
-      };
-      await refetch(filterParams);
+      await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) ?? ERROR_MESSAGE(MODEL, "delete");
+        error.response.data.message ??
+        error.response.data.error ??
+        ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -112,7 +106,7 @@ export default function ProductPage() {
           onView: handleViewProduct,
           onAssignStock: setAssignStockProductId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         {categories && brands && (
           <ProductOptions
@@ -132,11 +126,11 @@ export default function ProductPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
+        totalData={data?.meta?.total || 0}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
       />
 
       {deleteId !== null && (
