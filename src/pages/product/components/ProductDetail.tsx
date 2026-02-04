@@ -15,7 +15,8 @@ import { ProductImageGallery } from "./ProductImageGallery";
 import { ProductTechnicalSheets } from "./ProductTechnicalSheets";
 import { ProductPriceManager } from "./ProductPriceManager";
 import { ProductComponentManager } from "./ProductComponentManager";
-import FormWrapper from "@/components/FormWrapper";
+import { ProductWarehouseStock } from "./ProductWarehouseStock";
+import FormWrapper from "@/components/FormWrapper"; 
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PRODUCT } from "../lib/product.interface";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -142,6 +143,7 @@ export default function ProductDetail() {
               </p>
             </div>
           </div>
+          <ProductWarehouseStock productId={parseInt(id!)} embedded />
         </GroupFormSection>
 
         {/* Technical Sheets */}
