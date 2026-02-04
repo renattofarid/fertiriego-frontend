@@ -41,11 +41,11 @@ export function DateRangePickerFilter({
       ? `${format(dateRange.from, dateFormat, { locale: es })} - ${format(
           dateRange.to,
           dateFormat,
-          { locale: es }
+          { locale: es },
         )}`
       : dateRange.from
-      ? `${format(dateRange.from, dateFormat, { locale: es })} - ...`
-      : placeholder;
+        ? `${format(dateRange.from, dateFormat, { locale: es })} - ...`
+        : placeholder;
 
   const handleSelect = (range: DateRange | undefined) => {
     // Always update both dates, even if one is undefined
@@ -58,10 +58,11 @@ export function DateRangePickerFilter({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          size="sm"
           className={cn(
             "w-full justify-start text-left font-normal",
             !dateRange.from && "text-muted-foreground",
-            className
+            className,
           )}
         >
           {displayValue}

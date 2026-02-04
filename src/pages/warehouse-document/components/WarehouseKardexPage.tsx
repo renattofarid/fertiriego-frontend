@@ -7,6 +7,8 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { WarehouseKardexResource } from "../lib/warehouse-kardex.interface";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Info } from "lucide-react";
 import { getDocumentTypeLabel } from "../lib/warehouse-document.constants";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
@@ -17,6 +19,7 @@ import {
 import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import PageWrapper from "@/components/PageWrapper";
 
 const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
   {
@@ -179,10 +182,8 @@ export default function WarehouseKardexPage() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedDocumentType, setSelectedDocumentType] = useState("");
   const [selectedMovementType, setSelectedMovementType] = useState("");
-  const [fromDate, setFromDate] = useState(new Date());
-  const [toDate, setToDate] = useState(
-    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  );
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
 
   const { data: warehouses } = useAllWarehouses();
 
@@ -213,7 +214,7 @@ export default function WarehouseKardexPage() {
   ]);
 
   return (
-    <div className="space-y-4">
+    <PageWrapper>
       <div className="flex justify-between items-center">
         <TitleComponent
           title="Kardex de Almacén"
@@ -293,6 +294,16 @@ export default function WarehouseKardexPage() {
         </DataTable>
       </div>
 
+      {!isLoading && (!data || data.length === 0) && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            No se encontraron movimientos. Intente verificar los filtros
+            seleccionados o ampliar el rango de fechas.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <DataTablePagination
         page={page}
         totalPages={meta?.last_page || 1}
@@ -301,6 +312,6 @@ export default function WarehouseKardexPage() {
         setPerPage={setPerPage}
         totalData={meta?.total || 0}
       />
-    </div>
+    </PageWrapper>
   );
 }
