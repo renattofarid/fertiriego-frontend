@@ -13,6 +13,7 @@ import {
   QUOTATION,
   type UpdateQuotationRequest,
 } from "../lib/quotation.interface";
+import PageWrapper from "@/components/PageWrapper";
 
 export const QuotationEditPage = () => {
   const { ICON } = QUOTATION;
@@ -84,7 +85,7 @@ export const QuotationEditPage = () => {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
@@ -101,6 +102,6 @@ export const QuotationEditPage = () => {
           warehouses={warehouses}
         />
       )}
-    </FormWrapper>
+    </PageWrapper>
   );
 };
