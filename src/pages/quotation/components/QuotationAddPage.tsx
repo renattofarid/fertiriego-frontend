@@ -10,6 +10,7 @@ import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import { QUOTATION } from "../lib/quotation.interface";
+import PageWrapper from "@/components/PageWrapper";
 
 export const QuotationAddPage = () => {
   const { ICON } = QUOTATION;
@@ -51,7 +52,7 @@ export const QuotationAddPage = () => {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Cotización" mode="create" icon={ICON} />
@@ -66,6 +67,6 @@ export const QuotationAddPage = () => {
           warehouses={warehouses}
         />
       )}
-    </FormWrapper>
+    </PageWrapper>
   );
 };
