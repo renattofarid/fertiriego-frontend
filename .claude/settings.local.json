@@ -13,7 +13,10 @@
       "Bash(npm run type-check:*)",
       "Bash(npm run:*)",
       "Bash(move:*)",
-      "Bash(move src\\\\pages\\\\guide\\\\components\\\\GuideFormUpdated.tsx src\\\\pages\\\\guide\\\\components\\\\GuideForm.tsx)"
+      "Bash(move src\\\\pages\\\\guide\\\\components\\\\GuideFormUpdated.tsx src\\\\pages\\\\guide\\\\components\\\\GuideForm.tsx)",
+      "Bash(git restore:*)",
+      "Bash(git update-index:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
