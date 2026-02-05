@@ -18,9 +18,10 @@ import {
   productSchemaUpdate,
   type ProductSchema,
 } from "../lib/product.schema";
-import { Loader, Upload, X, FileText, Plus } from "lucide-react";
+import { Loader, Upload, X, FileText, Plus, Package, File } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
+import { GroupFormSection } from "@/components/GroupFormSection";
 import type { ProductResource } from "../lib/product.interface";
 import type { CategoryResource } from "@/pages/category/lib/category.interface";
 import type { BrandResource } from "@/pages/brand/lib/brand.interface";
@@ -136,7 +137,11 @@ export const ProductForm = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
         {/* Información Básica */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
+        <GroupFormSection
+          title="Información Básica"
+          icon={Package}
+          cols={{ sm: 1, md: 2 }}
+        >
           <div className="md:col-span-2">
             <FormField
               control={form.control}
@@ -251,10 +256,7 @@ export const ProductForm = ({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-        </div>
 
-        {/* IGV y Observaciones */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
           <FormSwitch
             control={form.control}
             name="is_igv"
@@ -282,12 +284,14 @@ export const ProductForm = ({
               )}
             />
           </div>
-        </div>
+        </GroupFormSection>
 
-        {/* Technical Sheets Section */}
-        <div className="bg-sidebar p-4 rounded-lg space-y-4">
-          <div className="flex items-center justify-between">
-            <FormLabel>Fichas Técnicas</FormLabel>
+        {/* Fichas Técnicas */}
+        <GroupFormSection
+          title="Fichas Técnicas"
+          icon={File}
+          cols={{ sm: 1 }}
+          headerExtra={
             <Button
               type="button"
               variant="outline"
@@ -297,8 +301,8 @@ export const ProductForm = ({
               <Upload className="h-4 w-4 mr-2" />
               Agregar Archivos
             </Button>
-          </div>
-
+          }
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -379,7 +383,7 @@ export const ProductForm = ({
               </p>
             </div>
           )}
-        </div>
+        </GroupFormSection>
 
         <div className="flex gap-4 w-full justify-end">
           <Button type="button" variant="neutral" onClick={onCancel}>
