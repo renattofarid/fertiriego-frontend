@@ -35,19 +35,13 @@ export const PRODUCT: ModelComplete<ProductSchema> = {
     },
   },
   EMPTY: {
-    company_id: "",
-    codigo: "",
     name: "",
     category_id: "",
     brand_id: "",
     unit_id: "",
     product_type_id: "",
-    purchase_price: "",
-    sale_price: "",
-    is_taxed: false,
     is_igv: false,
-    supplier_id: "",
-    comment: "",
+    observations: "",
     technical_sheet: [],
   },
 };
@@ -67,16 +61,20 @@ export interface ProductResource {
   brand_name: string;
   unit_id: number;
   unit_name: string;
-  technical_sheet: string[];
+  observations?: string;
+  is_igv: number;
+  technical_sheet?: string[];
   product_images: string[];
-  components: {
-    component_id: number;
-    component_name: string | null;
-    component_quantity: number;
-  }[];
+  components: Component[];
   created_at: string;
   product_type_id: number;
   product_type_name: string;
+}
+
+export interface Component {
+  component_id: number;
+  component_name: string;
+  component_quantity: number;
 }
 
 export interface ProductResourceById {

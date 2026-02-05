@@ -211,7 +211,7 @@ export const QuotationForm = ({
         header: "V. Unitario",
         cell: ({ row }) => (
           <div className="text-right">
-            {parseFloat(row.original.unit_price).toFixed(2)}
+            {parseFloat(row.original.unit_price).toFixed(4)}
           </div>
         ),
       },
@@ -223,7 +223,7 @@ export const QuotationForm = ({
             {(
               parseFloat(row.original.unit_price) *
               (!row.original.is_igv ? 1.18 : 1)
-            ).toFixed(2)}
+            ).toFixed(4)}
           </div>
         ),
       },

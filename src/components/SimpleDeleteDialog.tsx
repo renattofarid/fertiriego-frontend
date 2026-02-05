@@ -9,27 +9,40 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { Trash2 } from "lucide-react";
 interface SimpleDeleteDialogProps {
   onConfirm: () => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title?: string;
-  description?: string;
-  confirmText?: string;
-  isLoading?: boolean;
 }
+
+export const DeleteButton = ({
+  onClick,
+  icon = <Trash2 className="size-5 text-destructive" />,
+}: {
+  onClick: () => void;
+  icon?: React.ReactNode;
+}) => {
+  return (
+    <Button
+      type="button"
+      tooltip="Eliminar"
+      variant="outline"
+      size="icon"
+      className="size-7"
+      onClick={onClick}
+    >
+      {icon}
+    </Button>
+  );
+};
 
 export function SimpleDeleteDialog({
   onConfirm,
   open,
   onOpenChange,
-  title,
-  description,
-  confirmText,
-  isLoading,
 }: SimpleDeleteDialogProps) {
   const [loading, setLoading] = useState(false);
-  const effectiveLoading = isLoading ?? loading;
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -45,26 +58,26 @@ export function SimpleDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title ?? "Eliminar registro"}</DialogTitle>
+          <DialogTitle>Eliminar registro</DialogTitle>
           <DialogDescription>
-            {description ??
-              "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?"}
+            Esta acción no se puede deshacer. ¿Estás seguro de que deseas
+            eliminar este registro?
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2 mt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={effectiveLoading}
+            disabled={loading}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={effectiveLoading}
+            disabled={loading}
           >
-            {effectiveLoading ? (confirmText ? `${confirmText}...` : "Procesando...") : (confirmText ?? "Confirmar")}
+            {loading ? "Eliminando..." : "Confirmar"}
           </Button>
         </div>
       </DialogContent>

@@ -1,21 +1,15 @@
 import { useEffect } from "react";
 import { useProductTypeStore } from "./product-type.store";
+import { useQuery } from "@tanstack/react-query";
+import { getProductType } from "./product-type.actions";
+import { PRODUCT_TYPE } from "./product-type.interface";
 
 export function useProductType(params?: Record<string, unknown>) {
-  const { productTypes, meta, isLoading, error, fetchProductTypes } =
-    useProductTypeStore();
-
-  useEffect(() => {
-    if (!productTypes) fetchProductTypes({ ...params });
-  }, [productTypes, fetchProductTypes]);
-
-  return {
-    data: productTypes,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchProductTypes,
-  };
+  return useQuery({
+    queryKey: [PRODUCT_TYPE.QUERY_KEY, params],
+    queryFn: () => getProductType({ params }),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useAllProductTypes() {
