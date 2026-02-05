@@ -14,6 +14,10 @@ interface SimpleDeleteDialogProps {
   onConfirm: () => Promise<void>;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmText?: string;
+  isLoading?: boolean;
 }
 
 export const DeleteButton = ({
@@ -41,16 +45,29 @@ export function SimpleDeleteDialog({
   onConfirm,
   open,
   onOpenChange,
+  title = "Eliminar registro",
+  description = "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?",
+  confirmText = "Confirmar",
+  isLoading,
 }: SimpleDeleteDialogProps) {
-  const [loading, setLoading] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+  const loading = isLoading ?? internalLoading;
 
   const handleConfirm = async () => {
-    setLoading(true);
+    // Si el estado de carga viene controlado desde fuera,
+    // solo ejecutamos la acción y cerramos el diálogo.
+    if (isLoading !== undefined) {
+      await onConfirm();
+      onOpenChange(false);
+      return;
+    }
+
+    setInternalLoading(true);
     try {
       await onConfirm();
       onOpenChange(false);
     } finally {
-      setLoading(false);
+      setInternalLoading(false);
     }
   };
 
@@ -58,11 +75,8 @@ export function SimpleDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Eliminar registro</DialogTitle>
-          <DialogDescription>
-            Esta acción no se puede deshacer. ¿Estás seguro de que deseas
-            eliminar este registro?
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2 mt-4">
           <Button
@@ -77,7 +91,7 @@ export function SimpleDeleteDialog({
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? "Eliminando..." : "Confirmar"}
+            {loading ? "Eliminando..." : confirmText}
           </Button>
         </div>
       </DialogContent>

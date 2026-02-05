@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useBrand } from "../lib/brand.hook";
 import TitleComponent from "@/components/TitleComponent";
 import BrandActions from "./BrandActions";
@@ -26,11 +26,9 @@ export default function BrandPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useBrand();
+  const { data, isLoading, refetch } = useBrand({ page, search, per_page });
 
-  useEffect(() => {
-    refetch({ page, search, per_page });
-  }, [page, search, per_page]);
+  const meta = data?.meta;
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -62,7 +60,7 @@ export default function BrandPage() {
           onEdit: setEditId,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <BrandOptions search={search} setSearch={setSearch} />
       </BrandTable>
