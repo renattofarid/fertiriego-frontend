@@ -18,7 +18,7 @@ import {
   productSchemaUpdate,
   type ProductSchema,
 } from "../lib/product.schema";
-import { Loader, Upload, X, FileText } from "lucide-react";
+import { Loader, Upload, X, FileText, Plus } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import type { ProductResource } from "../lib/product.interface";
@@ -30,17 +30,18 @@ import { Badge } from "@/components/ui/badge";
 import { useProductStore } from "../lib/product.store";
 import { successToast, errorToast } from "@/lib/core.function";
 import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
-import type { CompanyResource } from "@/pages/company/lib/company.interface";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { Plus } from "lucide-react";
 import UnitModal from "@/pages/unit/components/UnitModal";
 import ProductTypeModal from "@/pages/product-type/components/ProductTypeModal";
 import CategoryModal from "@/pages/category/components/CategoryModal";
 import BrandModal from "@/pages/brand/components/BrandModal";
 import { useUnit } from "@/pages/unit/lib/unit.hook";
 import { useProductType } from "@/pages/product-type/lib/product-type.hook";
-import { useCategory, useAllCategories } from "@/pages/category/lib/category.hook";
+import {
+  useCategory,
+  useAllCategories,
+} from "@/pages/category/lib/category.hook";
 import { useBrand } from "@/pages/brand/lib/brand.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
 
 interface ProductFormProps {
   defaultValues: Partial<ProductSchema>;
@@ -48,13 +49,8 @@ interface ProductFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "update";
-  categories: CategoryResource[];
-  brands: BrandResource[];
   units: UnitResource[];
   product?: ProductResource;
-  productTypes: ProductTypeResource[];
-  companies: CompanyResource[];
-  suppliers: PersonResource[];
 }
 
 export const ProductForm = ({
@@ -63,17 +59,12 @@ export const ProductForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  categories,
-  brands,
   units,
   product,
-  productTypes,
-  companies,
-  suppliers,
 }: ProductFormProps) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [existingFiles, setExistingFiles] = useState<string[]>(
-    product?.technical_sheet || []
+    product?.technical_sheet || [],
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { deleteTechnicalSheet } = useProductStore();
@@ -93,7 +84,7 @@ export const ProductForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? productSchemaCreate : productSchemaUpdate
+      mode === "create" ? productSchemaCreate : productSchemaUpdate,
     ),
     defaultValues: {
       ...defaultValues,
@@ -117,7 +108,7 @@ export const ProductForm = ({
     const currentFiles = form.getValues("technical_sheet") || [];
     form.setValue(
       "technical_sheet",
-      currentFiles.filter((_, i) => i !== index)
+      currentFiles.filter((_, i) => i !== index),
     );
   };
 
@@ -146,31 +137,6 @@ export const ProductForm = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
         {/* Información Básica */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
-          <FormSelect
-            control={form.control}
-            name="company_id"
-            label="Empresa"
-            placeholder="Seleccione una empresa"
-            options={companies.map((company) => ({
-              value: company.id.toString(),
-              label: company.social_reason,
-            }))}
-          />
-
-          <FormField
-            control={form.control}
-            name="codigo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Código</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: PROD-001" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <div className="md:col-span-2">
             <FormField
               control={form.control}
@@ -189,15 +155,16 @@ export const ProductForm = ({
 
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="category_id"
                 label="Categoría"
                 placeholder="Seleccione una categoría"
-                options={categories.map((category) => ({
+                useQueryHook={useCategory}
+                mapOptionFn={(category: CategoryResource) => ({
                   value: category.id.toString(),
                   label: `${"  ".repeat(category.level - 1)}${category.name}`,
-                }))}
+                })}
               />
             </div>
             <Button
@@ -213,15 +180,16 @@ export const ProductForm = ({
 
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="product_type_id"
                 label="Tipo de Producto"
                 placeholder="Seleccione el tipo"
-                options={productTypes.map((productType) => ({
+                useQueryHook={useProductType}
+                mapOptionFn={(productType: ProductTypeResource) => ({
                   value: productType.id.toString(),
                   label: productType.name,
-                }))}
+                })}
               />
             </div>
             <Button
@@ -237,15 +205,16 @@ export const ProductForm = ({
 
           <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="brand_id"
                 label="Marca"
                 placeholder="Seleccione una marca"
-                options={brands.map((brand) => ({
+                useQueryHook={useBrand}
+                mapOptionFn={(brand: BrandResource) => ({
                   value: brand.id.toString(),
                   label: brand.name,
-                }))}
+                })}
               />
             </div>
             <Button
@@ -284,53 +253,8 @@ export const ProductForm = ({
           </div>
         </div>
 
-        {/* Precios y Proveedor */}
+        {/* IGV y Observaciones */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-sidebar p-4 rounded-lg">
-          <FormField
-            control={form.control}
-            name="purchase_price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Precio de Compra</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="50.00"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="sale_price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Precio de Venta</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="60.00"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormSwitch
-            control={form.control}
-            name="is_taxed"
-            label="Impuesto"
-            text={form.watch("is_taxed") ? "Gravado" : "Exonerado"}
-          />
-
           <FormSwitch
             control={form.control}
             name="is_igv"
@@ -338,43 +262,16 @@ export const ProductForm = ({
             text={form.watch("is_igv") ? "Incluye IGV" : "No incluye IGV"}
           />
 
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
-              <FormSelect
-                control={form.control}
-                name="supplier_id"
-                label="Proveedor"
-                placeholder="Seleccione un proveedor"
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id.toString(),
-                  label:
-                    supplier.type_person === "JURIDICA"
-                      ? supplier.business_name || supplier.commercial_name
-                      : `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-                }))}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-10 w-10 shrink-0"
-              onClick={() => errorToast("El modal de proveedor aún no está implementado. Por favor, use la página de proveedores.")}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
           <div className="md:col-span-2">
             <FormField
               control={form.control}
-              name="comment"
+              name="observations"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Comentarios</FormLabel>
+                  <FormLabel>Observaciones</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Este es un producto de prueba"
+                      placeholder="Observaciones del producto"
                       className="resize-none"
                       rows={3}
                       {...field}
@@ -489,10 +386,7 @@ export const ProductForm = ({
             Cancelar
           </Button>
 
-          <Button
-            type="submit"
-            disabled={isSubmitting || !form.formState.isValid}
-          >
+          <Button type="submit" disabled={isSubmitting}>
             <Loader
               className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`}
             />

@@ -7,7 +7,7 @@ export const successToast = (
   description: string = new Date().toLocaleString()
 ) => {
   return toast.success(body, {
-    description: description,
+    description,
     action: {
       label: "Listo",
       onClick: () => toast.dismiss(),
@@ -20,12 +20,65 @@ export const errorToast = (
   description: string = new Date().toLocaleString()
 ) => {
   return toast.error(body, {
-    description: description,
+    description,
     action: {
       label: "Cerrar",
       onClick: () => toast.dismiss(),
     },
   });
+};
+
+export const warningToast = (
+  body: string,
+  description: string = new Date().toLocaleString()
+) => {
+  return toast.warning(body, {
+    description,
+    action: {
+      label: "Entendido",
+      onClick: () => toast.dismiss(),
+    },
+  });
+};
+
+export const infoToast = (
+  body: string,
+  description: string = new Date().toLocaleString()
+) => {
+  return toast.info(body, {
+    description,
+    action: {
+      label: "Ok",
+      onClick: () => toast.dismiss(),
+    },
+  });
+};
+
+export const loadingToast = (body: string = "Cargando...") => {
+  return toast.loading(body);
+};
+
+export const promiseToast = <T>(
+  promise: Promise<T>,
+  messages: {
+    loading?: string;
+    success?: string | ((data: T) => string);
+    error?: string | ((error: unknown) => string);
+  } = {}
+) => {
+  return toast.promise(promise, {
+    loading: messages.loading ?? "Procesando...",
+    success: messages.success ?? "Operación exitosa",
+    error: messages.error ?? "Ocurrió un error",
+  });
+};
+
+export const dismissToast = (toastId?: string | number) => {
+  if (toastId) {
+    toast.dismiss(toastId);
+  } else {
+    toast.dismiss();
+  }
 };
 
 export const objectToFormData = (obj: any) => {

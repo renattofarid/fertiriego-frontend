@@ -1,21 +1,15 @@
 import { useEffect } from "react";
 import { useCategoryStore } from "./category.store";
+import { getCategory } from "./category.actions";
+import { useQuery } from "@tanstack/react-query";
+import { CATEGORY } from "./category.interface";
 
 export function useCategory(params?: Record<string, unknown>) {
-  const { categories, meta, isLoading, error, fetchCategories } =
-    useCategoryStore();
-
-  useEffect(() => {
-    if (!categories) fetchCategories(params);
-  }, [categories, fetchCategories]);
-
-  return {
-    data: categories,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchCategories,
-  };
+  return useQuery({
+    queryKey: [CATEGORY.QUERY_KEY, params],
+    queryFn: () => getCategory({ params }),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useAllCategories() {

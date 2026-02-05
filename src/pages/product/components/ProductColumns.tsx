@@ -1,12 +1,9 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { ProductResource } from "../lib/product.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Image } from "lucide-react";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Eye, FileText, Image, Pencil, ShoppingCart } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const ProductColumns = ({
   onEdit,
@@ -120,24 +117,24 @@ export const ProductColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onView(id)}>
-              Ver Detalles
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            {onAssignStock && (
-              <DropdownMenuItem onClick={() => onAssignStock(id)}>
-                Asignar a Almacén
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <div className="flex items-center gap-2">
+          <ButtonAction
+            onClick={() => onView(id)}
+            icon={Eye}
+            canRender={!!onView}
+          />
+          <ButtonAction
+            onClick={() => onEdit(id)}
+            icon={Pencil}
+            canRender={!!onEdit}
+          />
+          <ButtonAction
+            onClick={() => onAssignStock?.(id)}
+            icon={ShoppingCart}
+            canRender={!!onAssignStock}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </div>
       );
     },
   },

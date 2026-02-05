@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useProductType } from "../lib/product-type.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductTypeActions from "./ProductTypeActions";
@@ -31,27 +31,15 @@ export default function ProductTypePage() {
     number | null
   >(null);
 
-  const { data, meta, isLoading, refetch } = useProductType();
+  const { data, isLoading, refetch } = useProductType({ page, search, per_page });
 
-  useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-    };
-    refetch(filterParams);
-  }, [page, search, per_page, refetch]);
+  const meta = data?.meta;
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deleteProductType(deleteId);
-      const filterParams = {
-        page,
-        search,
-        per_page,
-      };
-      await refetch(filterParams);
+      await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
@@ -96,7 +84,7 @@ export default function ProductTypePage() {
           onEdit: handleEditProductType,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <TypeUserOptions search={search} setSearch={setSearch} />
       </ProductTypeTable>

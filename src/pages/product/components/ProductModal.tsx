@@ -11,12 +11,7 @@ import { PRODUCT, type ProductResource } from "../lib/product.interface";
 import { useProduct, useProductById } from "../lib/product.hook";
 import { useProductStore } from "../lib/product.store";
 import { ProductForm } from "./ProductForm";
-import { useAllCategories } from "@/pages/category/lib/category.hook";
-import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
-import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
-import { useAllCompanies } from "@/pages/company/lib/company.hook";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 
 interface Props {
   id?: number;
@@ -51,13 +46,7 @@ export default function ProductModal({
       }
     : useProductById(id!);
 
-  const { data: categories, isLoading: loadingCategories } = useAllCategories();
-  const { data: brands, isLoading: loadingBrands } = useAllBrands();
   const { data: units, isLoading: loadingUnits } = useAllUnits();
-  const { data: productTypes, isLoading: loadingProductTypes } =
-    useAllProductTypes();
-  const { data: companies, isLoading: loadingCompanies } = useAllCompanies();
-  const { data: suppliers, isLoading: loadingSuppliers } = useAllSuppliers();
 
   const mapProductToForm = (
     data: ProductResource | null
@@ -113,12 +102,7 @@ export default function ProductModal({
   const isLoadingAny =
     isSubmitting ||
     findingProduct ||
-    loadingCategories ||
-    loadingBrands ||
-    loadingUnits ||
-    loadingProductTypes ||
-    loadingCompanies ||
-    loadingSuppliers;
+    loadingUnits;
 
   return (
     <GeneralModal
@@ -127,19 +111,14 @@ export default function ProductModal({
       title={title}
       maxWidth="!max-w-[--breakpoint-md]"
     >
-      {!isLoadingAny && categories && brands && units && productTypes && companies && suppliers ? (
+      {!isLoadingAny && units ? (
         <ProductForm
           defaultValues={mapProductToForm(product)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode={mode}
           onCancel={onCloseModal}
-          categories={categories}
-          brands={brands}
           units={units}
-          productTypes={productTypes}
-          companies={companies}
-          suppliers={suppliers}
           product={mode === "update" && product ? product : undefined}
         />
       ) : (

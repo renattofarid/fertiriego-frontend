@@ -16,7 +16,7 @@ import { ProductTechnicalSheets } from "./ProductTechnicalSheets";
 import { ProductPriceManager } from "./ProductPriceManager";
 import { ProductComponentManager } from "./ProductComponentManager";
 import { ProductWarehouseStock } from "./ProductWarehouseStock";
-import FormWrapper from "@/components/FormWrapper"; 
+import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PRODUCT } from "../lib/product.interface";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -153,7 +153,7 @@ export default function ProductDetail() {
           icon={FileText}
         >
           <ProductTechnicalSheets
-            technicalSheets={product.technical_sheet}
+            technicalSheets={product.technical_sheet ?? []}
             productId={parseInt(id!)}
           />
         </GroupFormSection>

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { Trash2 } from "lucide-react";
 interface SimpleDeleteDialogProps {
   onConfirm: () => Promise<void>;
   open: boolean;
@@ -19,25 +20,54 @@ interface SimpleDeleteDialogProps {
   isLoading?: boolean;
 }
 
+export const DeleteButton = ({
+  onClick,
+  icon = <Trash2 className="size-5 text-destructive" />,
+}: {
+  onClick: () => void;
+  icon?: React.ReactNode;
+}) => {
+  return (
+    <Button
+      type="button"
+      tooltip="Eliminar"
+      variant="outline"
+      size="icon"
+      className="size-7"
+      onClick={onClick}
+    >
+      {icon}
+    </Button>
+  );
+};
+
 export function SimpleDeleteDialog({
   onConfirm,
   open,
   onOpenChange,
-  title,
-  description,
-  confirmText,
+  title = "Eliminar registro",
+  description = "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?",
+  confirmText = "Confirmar",
   isLoading,
 }: SimpleDeleteDialogProps) {
-  const [loading, setLoading] = useState(false);
-  const effectiveLoading = isLoading ?? loading;
+  const [internalLoading, setInternalLoading] = useState(false);
+  const loading = isLoading ?? internalLoading;
 
   const handleConfirm = async () => {
-    setLoading(true);
+    // Si el estado de carga viene controlado desde fuera,
+    // solo ejecutamos la acción y cerramos el diálogo.
+    if (isLoading !== undefined) {
+      await onConfirm();
+      onOpenChange(false);
+      return;
+    }
+
+    setInternalLoading(true);
     try {
       await onConfirm();
       onOpenChange(false);
     } finally {
-      setLoading(false);
+      setInternalLoading(false);
     }
   };
 
@@ -45,26 +75,23 @@ export function SimpleDeleteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title ?? "Eliminar registro"}</DialogTitle>
-          <DialogDescription>
-            {description ??
-              "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?"}
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2 mt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            disabled={effectiveLoading}
+            disabled={loading}
           >
             Cancelar
           </Button>
           <Button
             variant="destructive"
             onClick={handleConfirm}
-            disabled={effectiveLoading}
+            disabled={loading}
           >
-            {effectiveLoading ? (confirmText ? `${confirmText}...` : "Procesando...") : (confirmText ?? "Confirmar")}
+            {loading ? "Eliminando..." : confirmText}
           </Button>
         </div>
       </DialogContent>

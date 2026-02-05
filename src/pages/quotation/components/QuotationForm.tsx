@@ -195,6 +195,9 @@ export const QuotationForm = ({
       {
         accessorKey: "product_name",
         header: "Producto",
+        cell: ({ row }) => (
+          <div className="text-wrap">{row.original.product_name}</div>
+        ),
       },
       {
         accessorKey: "quantity",
@@ -205,19 +208,22 @@ export const QuotationForm = ({
       },
       {
         accessorKey: "unit_price",
-        header: "P. Unitario",
+        header: "V. Unitario",
         cell: ({ row }) => (
           <div className="text-right">
-            {parseFloat(row.original.unit_price).toFixed(2)}
+            {parseFloat(row.original.unit_price).toFixed(4)}
           </div>
         ),
       },
       {
-        accessorKey: "purchase_price",
-        header: "P. Compra",
+        accessorKey: "unit_price_with_igv",
+        header: "P. Unitario",
         cell: ({ row }) => (
           <div className="text-right">
-            {parseFloat(row.original.purchase_price).toFixed(2)}
+            {(
+              parseFloat(row.original.unit_price) *
+              (!row.original.is_igv ? 1.18 : 1)
+            ).toFixed(4)}
           </div>
         ),
       },
@@ -321,18 +327,20 @@ export const QuotationForm = ({
     if (mode === "update" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => ({
-            product_id: detail.product_id.toString(),
-            product_name: detail.product?.name || "",
-            is_igv: detail.is_igv,
-            quantity: detail.quantity.toString(),
-            unit_price: detail.unit_price.toString(),
-            purchase_price: detail.purchase_price.toString(),
-            description: detail.description || "",
-            subtotal: parseFloat(detail.subtotal),
-            tax: parseFloat(detail.tax),
-            total: parseFloat(detail.total),
-            technical_sheet: Array.isArray(detail.product?.technical_sheet) ? detail.product.technical_sheet : [],
-          }),
+          product_id: detail.product_id.toString(),
+          product_name: detail.product?.name || "",
+          is_igv: detail.is_igv,
+          quantity: detail.quantity.toString(),
+          unit_price: detail.unit_price.toString(),
+          purchase_price: detail.purchase_price.toString(),
+          description: detail.description || "",
+          subtotal: parseFloat(detail.subtotal),
+          tax: parseFloat(detail.tax),
+          total: parseFloat(detail.total),
+          technical_sheet: Array.isArray(detail.product?.technical_sheet)
+            ? detail.product.technical_sheet
+            : [],
+        }),
       );
       setDetails(loadedDetails);
     }

@@ -1,26 +1,19 @@
 import { useEffect } from "react";
 import { useBrandStore } from "./brand.store";
+import { useQuery } from "@tanstack/react-query";
+import { BRAND } from "./brand.interface";
+import { getBrand } from "./brand.actions";
 
 export function useBrand(params?: Record<string, unknown>) {
-  const { brands, meta, isLoading, error, fetchBrands } =
-    useBrandStore();
-
-  useEffect(() => {
-    if (!brands) fetchBrands(params);
-  }, [brands, fetchBrands]);
-
-  return {
-    data: brands,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchBrands,
-  };
+  return useQuery({
+    queryKey: [BRAND.QUERY_KEY, params],
+    queryFn: () => getBrand({ params }),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useAllBrands() {
-  const { allBrands, isLoadingAll, error, fetchAllBrands } =
-    useBrandStore();
+  const { allBrands, isLoadingAll, error, fetchAllBrands } = useBrandStore();
 
   useEffect(() => {
     if (!allBrands) fetchAllBrands();

@@ -144,6 +144,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 variant="default"
                 className="w-full"
+                tabIndex={-1}
               >
                 {isLoading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
