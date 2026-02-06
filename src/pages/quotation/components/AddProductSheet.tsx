@@ -260,7 +260,7 @@ export const AddProductSheet = ({
             name="unit_price"
             label="Precio Unitario"
             type="number"
-            step="0.01"
+            step="0.0001"
             placeholder="0.00"
           />
 

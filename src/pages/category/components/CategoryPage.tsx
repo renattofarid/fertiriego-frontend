@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useCategory } from "../lib/category.hook";
 import TitleComponent from "@/components/TitleComponent";
 import CategoryActions from "./CategoryActions";
@@ -26,11 +26,9 @@ export default function CategoryPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useCategory();
+  const { data, isLoading, refetch } = useCategory({ page, search, per_page });
 
-  useEffect(() => {
-    refetch({ page, search, per_page });
-  }, [page, search, per_page]);
+  const meta = data?.meta;
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -62,7 +60,7 @@ export default function CategoryPage() {
           onEdit: setEditId,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <CategoryOptions search={search} setSearch={setSearch} />
       </CategoryTable>

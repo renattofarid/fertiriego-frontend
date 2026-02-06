@@ -5,6 +5,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
@@ -73,6 +74,7 @@ export function FormSwitch<T extends FieldValues>({
               />
             </FormControl>
           </FormLabel>
+          <FormMessage />
           {description && (
             <FormDescription className="text-xs font-normal">
               {description}

@@ -6,12 +6,7 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { ProductForm } from "./ProductForm";
 import { type ProductSchema } from "../lib/product.schema";
 import { useProductStore } from "../lib/product.store";
-import { useAllCategories } from "@/pages/category/lib/category.hook";
-import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import { useAllUnits } from "@/pages/unit/lib/unit.hook";
-import { useAllProductTypes } from "@/pages/product-type/lib/product-type.hook";
-import { useAllCompanies } from "@/pages/company/lib/company.hook";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -28,37 +23,20 @@ export default function ProductAddPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: categories, isLoading: categoriesLoading } = useAllCategories();
-  const { data: brands, isLoading: brandsLoading } = useAllBrands();
   const { data: units, isLoading: unitsLoading } = useAllUnits();
-  const { data: productTypes } = useAllProductTypes();
-  const { data: companies, isLoading: companiesLoading } = useAllCompanies();
-  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
 
   const { createProduct } = useProductStore();
 
-  const isLoading =
-    categoriesLoading ||
-    brandsLoading ||
-    unitsLoading ||
-    !productTypes ||
-    companiesLoading ||
-    suppliersLoading;
+  const isLoading = unitsLoading;
 
   const getDefaultValues = (): Partial<ProductSchema> => ({
-    company_id: "",
-    codigo: "",
     name: "",
     category_id: "",
     brand_id: "",
     unit_id: "",
     product_type_id: "",
-    purchase_price: "",
-    sale_price: "",
-    is_taxed: false,
     is_igv: false,
-    supplier_id: "",
-    comment: "",
+    observations: "",
     technical_sheet: [],
   });
 
@@ -99,29 +77,13 @@ export default function ProductAddPage() {
         </div>
       </div>
 
-      {categories &&
-        categories.length > 0 &&
-        brands &&
-        brands.length > 0 &&
-        units &&
-        units.length > 0 &&
-        productTypes &&
-        productTypes.length > 0 &&
-        companies &&
-        companies.length > 0 &&
-        suppliers &&
-        suppliers.length > 0 && (
+      {units && units.length > 0 && (
           <ProductForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             mode="create"
-            categories={categories}
-            brands={brands}
             units={units}
-            productTypes={productTypes}
-            companies={companies}
-            suppliers={suppliers}
             onCancel={() => navigate("/productos")}
           />
         )}
