@@ -327,8 +327,12 @@ export const AddProductSheet = ({
             type="button"
             onClick={handleSave}
             disabled={!productId || !quantity || !unitPrice}
-            icon={isEditMode ? Pencil : Plus}
           >
+            {isEditMode ? (
+              <Pencil className="mr-2 h-4 w-4" />
+            ) : (
+              <Plus className="mr-2 h-4 w-4" />
+            )}
             {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
           </Button>
         </div>
