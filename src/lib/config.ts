@@ -1,14 +1,14 @@
 import axios from "axios";
 import { errorToast } from "./core.function";
 
-// const baseURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
-// export const prodAssetURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
 const baseURL =
-  "https://develop.garzasoft.com:82/comercialferriego-backend/public/api/";
+  "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
 export const prodAssetURL =
-  "https://develop.garzasoft.com:82/comercialferriego-backend/public/storage/";
+  "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
+// const baseURL =
+//   "https://develop.garzasoft.com:82/comercialferriego-backend/public/api/";
+// export const prodAssetURL =
+//   "https://develop.garzasoft.com:82/comercialferriego-backend/public/storage/";
 
 export const api = axios.create({
   baseURL,
@@ -29,7 +29,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Variable para evitar múltiples redirecciones simultáneas
@@ -55,7 +55,7 @@ api.interceptors.response.use(
       return new Promise(() => {}); // Promesa que nunca se resuelve para detener la ejecución
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Locale por defecto de la aplicación. Puede cambiarse si se desea otro locale.
