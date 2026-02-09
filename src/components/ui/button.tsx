@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
 
 // Color map: define cada color UNA vez con todas sus variantes
 const colorClasses = {
@@ -19,7 +20,7 @@ const colorClasses = {
     bgSolid: "bg-primary text-primary-foreground dark:bg-blue-600", // Para default/secondary/destructive
     hoverSolid: "hover:bg-primary/90 dark:hover:bg-blue-600", // Para default/secondary/destructive
     hoverOutline:
-      "hover:bg-primary/5 dark:hover:bg-blue-950 hover:text-blue-600 dark:hover:text-blue-400", // Para outline/tertiary/ghost
+      "hover:bg-primary/5 dark:hover:bg-blue-950 hover:text-primary dark:hover:text-blue-400", // Para outline/tertiary/ghost
   },
 
   muted: {
@@ -375,15 +376,17 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color">,
+  extends
+    Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "color">,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   tooltip?: React.ReactNode; // ✅ puede ser string o JSX
   delayDuration?: number;
+  icon?: LucideIcon;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -396,17 +399,22 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       tooltip,
       delayDuration,
+      icon: Icon,
       ...props
     },
-    ref
+    ref,
   ) => {
     const Comp = asChild ? SlotPrimitive.Slot : "button";
+
     const button = (
       <Comp
         className={cn(buttonVariants({ variant, size, color, className }))}
         ref={ref}
         {...props}
-      />
+      >
+        {Icon && <Icon className="mr-1 h-3 w-3" />}
+        {props.children}
+      </Comp>
     );
 
     return tooltip ? (
@@ -420,7 +428,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ) : (
       button
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

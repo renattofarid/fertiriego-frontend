@@ -29,7 +29,7 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Variable para evitar múltiples redirecciones simultáneas
@@ -55,7 +55,7 @@ api.interceptors.response.use(
       return new Promise(() => {}); // Promesa que nunca se resuelve para detener la ejecución
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 // Locale por defecto de la aplicación. Puede cambiarse si se desea otro locale.
