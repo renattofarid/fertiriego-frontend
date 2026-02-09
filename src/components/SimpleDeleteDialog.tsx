@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { Trash2 } from "lucide-react";
+import { Trash2, type LucideIcon } from "lucide-react";
 interface SimpleDeleteDialogProps {
   onConfirm: () => Promise<void>;
   open: boolean;
@@ -22,21 +22,24 @@ interface SimpleDeleteDialogProps {
 
 export const DeleteButton = ({
   onClick,
-  icon = <Trash2 className="size-5 text-destructive" />,
+  icon: Icon = Trash2,
+  variant = "outline",
 }: {
   onClick: () => void;
-  icon?: React.ReactNode;
+  icon?: LucideIcon;
+  variant?: "ghost" | "outline" | "default" | "destructive";
 }) => {
   return (
     <Button
       type="button"
       tooltip="Eliminar"
-      variant="outline"
+      variant={variant}
       size="icon"
+      color="red"
       className="size-7"
       onClick={onClick}
     >
-      {icon}
+      {Icon && <Icon className="size-5" />}
     </Button>
   );
 };

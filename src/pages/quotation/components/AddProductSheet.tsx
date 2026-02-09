@@ -4,7 +4,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
@@ -148,7 +148,7 @@ export const AddProductSheet = ({
     const price = parseFloat(unitPrice) || 0;
 
     if (qty > 0 && price > 0) {
-      if (isIgv) {
+      if (!isIgv) {
         // El precio incluye IGV: desglosar el IGV
         const total = qty * price;
         const subtotal = total / 1.18;
@@ -288,8 +288,8 @@ export const AddProductSheet = ({
         <FormSwitch
           control={form.control}
           name="is_igv"
-          text="Incluye IGV"
-          textDescription="El precio unitario incluye el IGV"
+          text="Calcular IGV"
+          textDescription="Calcular IGV para este producto"
           autoHeight
         />
 
@@ -327,8 +327,8 @@ export const AddProductSheet = ({
             type="button"
             onClick={handleSave}
             disabled={!productId || !quantity || !unitPrice}
+            icon={isEditMode ? Pencil : Plus}
           >
-            <Plus className="h-4 w-4 mr-2" />
             {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
           </Button>
         </div>

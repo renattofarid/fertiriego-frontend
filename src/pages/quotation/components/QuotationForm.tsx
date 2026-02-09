@@ -46,6 +46,8 @@ import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface QuotationFormProps {
   mode?: "create" | "update";
@@ -222,7 +224,7 @@ export const QuotationForm = ({
           <div className="text-right">
             {(
               parseFloat(row.original.unit_price) *
-              (!row.original.is_igv ? 1.18 : 1)
+              (row.original.is_igv ? 1.18 : 1)
             ).toFixed(4)}
           </div>
         ),
@@ -299,22 +301,17 @@ export const QuotationForm = ({
         header: "Acciones",
         cell: ({ row }) => (
           <div className="flex gap-2 justify-center">
-            <Button
-              type="button"
+            <ButtonAction
+              icon={Pencil}
+              color="primary"
               variant="ghost"
-              size="sm"
               onClick={() => handleEditDetail(row.index)}
-            >
-              <Pencil className="h-4 w-4 text-blue-500" />
-            </Button>
-            <Button
-              type="button"
+            />
+            <DeleteButton
+              icon={Trash2}
               variant="ghost"
-              size="sm"
               onClick={() => handleRemoveDetail(row.index)}
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
+            />
           </div>
         ),
       },
