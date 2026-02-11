@@ -34,8 +34,6 @@ export default function GuideEditPage() {
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const recipients = useAllPersons();
-  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({
     per_page: 1000,
   });
@@ -52,13 +50,9 @@ export default function GuideEditPage() {
     ordersLoading ||
     !warehouses ||
     !motives ||
-    !vehicles ||
-    !carriers ||
-    !drivers ||
     !sales ||
     !purchases ||
     !warehouseDocuments ||
-    !recipients ||
     isFinding;
 
   useEffect(() => {
@@ -162,16 +156,12 @@ export default function GuideEditPage() {
         vehicles.length > 0 &&
         carriers &&
         carriers.length > 0 &&
-        drivers &&
-        drivers.length > 0 &&
         sales &&
         sales.length >= 0 &&
         purchases &&
         purchases.length >= 0 &&
         warehouseDocuments &&
         warehouseDocuments.length >= 0 &&
-        recipients &&
-        recipients.length >= 0 &&
         guide && (
           <GuideForm
             defaultValues={mapGuideToForm(guide)}
@@ -181,14 +171,9 @@ export default function GuideEditPage() {
             mode="update"
             warehouses={warehouses}
             motives={motives}
-            vehicles={vehicles}
-            carriers={carriers}
-            drivers={drivers}
             sales={sales}
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
-            recipients={recipients}
-            remittents={remittents || []}
             orders={orders || []}
           />
         )}

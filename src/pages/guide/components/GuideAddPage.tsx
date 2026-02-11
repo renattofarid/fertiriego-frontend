@@ -17,7 +17,6 @@ import {
 import { useGuideStore } from "../lib/guide.store";
 import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
-import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
@@ -30,7 +29,6 @@ export default function GuideAddPage() {
 
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
@@ -44,14 +42,12 @@ export default function GuideAddPage() {
   const isLoading =
     warehousesLoading ||
     motivesLoading ||
-    vehiclesLoading ||
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
     !motives ||
-    !vehicles ||
     !sales ||
     !purchases ||
     !warehouseDocuments;
@@ -125,8 +121,6 @@ export default function GuideAddPage() {
         warehouses.length > 0 &&
         motives &&
         motives.length > 0 &&
-        vehicles &&
-        vehicles.length > 0 &&
         warehouseDocuments &&
         warehouseDocuments.length >= 0 && (
           <GuideForm
@@ -137,7 +131,6 @@ export default function GuideAddPage() {
             mode="create"
             warehouses={warehouses}
             motives={motives}
-            vehicles={vehicles}
             sales={sales}
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}

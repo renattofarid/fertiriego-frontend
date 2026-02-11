@@ -56,6 +56,7 @@ import { GUIDE } from "@/pages/guide/lib/guide.interface";
 import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
+import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -408,6 +409,11 @@ const data = {
           title: DriverTitle,
           url: DriverRoute,
           icon: DriverIcon,
+        },
+        {
+          title: CarrierTitle,
+          url: CarrierRoute,
+          icon: CarrierIcon,
         },
       ],
     },

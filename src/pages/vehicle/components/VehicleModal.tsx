@@ -8,7 +8,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { VEHICLE, type VehicleResource } from "../lib/vehicle.interface";
-import { useVehicle, useVehicleById } from "../lib/vehicle.hook";
+import { useVehicles, useVehicleById } from "../lib/vehicle.hook";
 import { useVehicleStore } from "../lib/vehicle.store";
 import { VehicleForm } from "./VehicleForm";
 
@@ -29,7 +29,7 @@ export default function VehicleModal({
   mode,
   onClose,
 }: Props) {
-  const { refetch } = useVehicle();
+  const { refetch } = useVehicles();
 
   const {
     data: vehicle,
@@ -70,7 +70,7 @@ export default function VehicleModal({
             error.response.data.message ??
               error.response.data.error ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -86,7 +86,7 @@ export default function VehicleModal({
             error.response.data.message ??
               error.response.data.error ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              ERROR_MESSAGE(MODEL, "update"),
           );
         });
     }

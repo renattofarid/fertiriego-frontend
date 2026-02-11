@@ -25,9 +25,7 @@ import { searchUbigeos } from "../lib/ubigeo.actions";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/warehouse-document.interface";
@@ -43,6 +41,9 @@ import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useRemittents } from "@/pages/person/lib/person.hook";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
+import { useDrivers } from "@/pages/driver/lib/driver.hook";
+import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -52,7 +53,6 @@ interface GuideFormProps {
   mode?: "create" | "update";
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
-  vehicles: VehicleResource[];
   sales: SaleResource[];
   purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
@@ -148,7 +148,6 @@ export const GuideForm = ({
   mode = "create",
   warehouses,
   motives,
-  vehicles,
   sales,
   purchases,
   warehouseDocuments,
@@ -611,40 +610,42 @@ export const GuideForm = ({
             name="carrier_id"
             label="Transportista"
             placeholder="Seleccione un transportista"
-            useQueryHook={}
-            options={carriers.map((carrier) => ({
+            useQueryHook={useCarriers}
+            mapOptionFn={(carrier) => ({
               value: carrier.id.toString(),
               label:
                 carrier.business_name ||
                 `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-            }))}
+            })}
           />
 
           {transportModality === "PRIVADO" && (
             <>
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="driver_id"
                 label="Conductor"
                 placeholder="Seleccione un conductor"
-                options={drivers.map((driver) => ({
+                useQueryHook={useDrivers}
+                mapOptionFn={(driver) => ({
                   value: driver.id.toString(),
                   label:
                     driver.business_name ||
                     `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-                }))}
+                })}
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="vehicle_id"
                 label="Vehículo"
                 placeholder="Seleccione un vehículo"
-                options={vehicles.map((vehicle) => ({
+                useQueryHook={useVehicles}
+                mapOptionFn={(vehicle) => ({
                   value: vehicle.id.toString(),
                   label: vehicle.plate,
                   description: `${vehicle.brand} ${vehicle.model}`,
-                }))}
+                })}
               />
 
               <FormField
@@ -666,16 +667,17 @@ export const GuideForm = ({
                 )}
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="secondary_vehicle_id"
                 label="Vehículo Secundario (Opcional)"
                 placeholder="Seleccione un vehículo secundario"
-                options={vehicles.map((vehicle) => ({
+                useQueryHook={useVehicles}
+                mapOptionFn={(vehicle) => ({
                   value: vehicle.id.toString(),
                   label: vehicle.plate,
                   description: `${vehicle.brand} ${vehicle.model}`,
-                }))}
+                })}
               />
 
               <FormField
