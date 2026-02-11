@@ -230,7 +230,7 @@ export const QuotationForm = ({
           <div className="text-right">
             {(
               parseFloat(row.original.unit_price) *
-              (row.original.is_igv ? 1.18 : 1)
+              (!row.original.is_igv ? 1.18 : 1)
             ).toFixed(4)}
           </div>
         ),
@@ -240,8 +240,8 @@ export const QuotationForm = ({
         header: "IGV",
         cell: ({ row }) => (
           <div className="text-center">
-            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
-              {row.original.is_igv ? "Sí" : "No"}
+            <Badge variant={!row.original.is_igv ? "default" : "secondary"}>
+              {!row.original.is_igv ? "Sí" : "No"}
             </Badge>
           </div>
         ),

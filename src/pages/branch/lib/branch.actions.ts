@@ -34,11 +34,9 @@ export async function getAllBranches(): Promise<BranchResource[]> {
   return data;
 }
 
-export async function findBranchById(
-  id: number
-): Promise<BranchResourceById> {
-  const response = await api.get<BranchResourceById>(`${ENDPOINT}/${id}`);
-  return response.data;
+export async function findBranchById(id: number): Promise<BranchResource> {
+  const { data } = await api.get<BranchResourceById>(`${ENDPOINT}/${id}`);
+  return data.data;
 }
 
 export async function storeBranch(data: any): Promise<BranchResponse> {
@@ -48,7 +46,7 @@ export async function storeBranch(data: any): Promise<BranchResponse> {
 
 export async function updateBranch(
   id: number,
-  data: any
+  data: any,
 ): Promise<BranchResponse> {
   const response = await api.put<BranchResponse>(`${ENDPOINT}/${id}`, data);
   return response.data;

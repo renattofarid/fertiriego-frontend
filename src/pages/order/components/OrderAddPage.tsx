@@ -5,7 +5,6 @@ import { OrderForm } from "./OrderForm";
 import { useOrderStore } from "../lib/order.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import { ORDER, type CreateOrderRequest } from "../lib/order.interface";
@@ -44,14 +43,14 @@ export const OrderAddPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Pedido" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 

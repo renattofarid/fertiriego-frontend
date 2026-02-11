@@ -20,7 +20,13 @@ export function ButtonAction({
   if (!canRender) return null;
 
   return (
-    <Button variant={variant} size="icon-xs" color={color} {...props}>
+    <Button
+      type="button"
+      variant={variant}
+      size="icon-xs"
+      color={color}
+      {...props}
+    >
       <Icon />
     </Button>
   );

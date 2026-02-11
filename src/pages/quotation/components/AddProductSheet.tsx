@@ -149,16 +149,16 @@ export const AddProductSheet = ({
 
     if (qty > 0 && price > 0) {
       if (!isIgv) {
-        // El precio incluye IGV: desglosar el IGV
-        const total = qty * price;
-        const subtotal = total / 1.18;
-        const tax = total - subtotal;
-        setCalculatedValues({ subtotal, tax, total });
-      } else {
         // El precio NO incluye IGV: calcular el IGV
         const subtotal = qty * price;
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
+        setCalculatedValues({ subtotal, tax, total });
+      } else {
+        // El precio incluye IGV: desglosar el IGV
+        const total = qty * price;
+        const subtotal = total / 1.18;
+        const tax = total - subtotal;
         setCalculatedValues({ subtotal, tax, total });
       }
     } else {
@@ -176,11 +176,13 @@ export const AddProductSheet = ({
       return;
     }
 
-    if (!selectedProduct) return;
+    // En modo edición, usar el nombre del editingDetail si no hay selectedProduct
+    const productName = selectedProduct?.name ?? editingDetail?.product_name;
+    if (!productName) return;
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
-      product_name: selectedProduct.name,
+      product_name: productName,
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: formData.unit_price,
@@ -289,6 +291,7 @@ export const AddProductSheet = ({
         <FormSwitch
           control={form.control}
           name="is_igv"
+          negate={true}
           text="Calcular IGV"
           textDescription="Calcular IGV para este producto"
           autoHeight

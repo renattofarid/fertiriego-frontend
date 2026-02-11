@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
 import { useQuotationStore } from "../lib/quotation.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import {
@@ -63,20 +62,20 @@ export const QuotationEditPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   if (!quotation) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
@@ -85,7 +84,7 @@ export const QuotationEditPage = () => {
         <div className="text-center py-8 text-muted-foreground">
           No se encontró la cotización
         </div>
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 

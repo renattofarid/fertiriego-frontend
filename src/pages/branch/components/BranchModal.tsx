@@ -29,12 +29,12 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
 
   const {
     data: branch,
-    isFinding: findingBranch,
+    isLoading: findingBranch,
     refetch: refetchBranch,
   } = mode === "create"
     ? {
         data: EMPTY,
-        isFinding: false,
+        isLoading: false,
         refetch: refetch,
       }
     : useBranchById(id!);
@@ -65,7 +65,7 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
             error.response.data.message ??
               error.response.data.error ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -81,7 +81,7 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
             error.response.data.message ??
               error.response.data.error ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              ERROR_MESSAGE(MODEL, "update"),
           );
         });
     }

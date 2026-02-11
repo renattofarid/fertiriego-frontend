@@ -158,7 +158,10 @@ export const AddProductSheet = ({
     }
   }, [quantity, unitPrice, isIgv]);
 
-  const handleAdd = () => {
+  const handleAdd = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     const formData = form.getValues();
 
     if (
@@ -170,11 +173,13 @@ export const AddProductSheet = ({
       return;
     }
 
-    if (!selectedProduct) return;
+    // En modo edición, usar el nombre del editingDetail si no hay selectedProduct
+    const productName = selectedProduct?.name ?? editingDetail?.product_name;
+    if (!productName) return;
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
-      product_name: selectedProduct.name,
+      product_name: productName,
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: formData.unit_price,

@@ -21,6 +21,7 @@ interface FormSwitchProps<T extends FieldValues> {
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
   autoHeight?: boolean;
+  negate?: boolean;
 }
 
 export function FormSwitch<T extends FieldValues>({
@@ -34,6 +35,7 @@ export function FormSwitch<T extends FieldValues>({
   disabled,
   size = "md",
   autoHeight = false,
+  negate = false,
 }: FormSwitchProps<T>) {
   const sizeClasses = {
     sm: "h-8 p-2 gap-2",
@@ -67,8 +69,10 @@ export function FormSwitch<T extends FieldValues>({
 
             <FormControl>
               <Switch
-                checked={field.value}
-                onCheckedChange={field.onChange}
+                checked={negate ? !field.value : field.value}
+                onCheckedChange={(checked) =>
+                  field.onChange(negate ? !checked : checked)
+                }
                 disabled={disabled}
                 className="shrink-0"
               />
