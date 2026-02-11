@@ -40,6 +40,9 @@ import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
 import { errorToast } from "@/lib/core.function";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useRemittents } from "@/pages/person/lib/person.hook";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -50,13 +53,9 @@ interface GuideFormProps {
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
   vehicles: VehicleResource[];
-  carriers: PersonResource[];
-  drivers: PersonResource[];
   sales: SaleResource[];
   purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
-  recipients: PersonResource[];
-  remittents: PersonResource[];
   orders: OrderResource[];
 }
 
@@ -77,7 +76,11 @@ const createDetailColumns = (
     accessorKey: "product_id",
     header: "Producto",
     cell: ({ row }) => {
-      return <span className="text-sm">{row.original.product_name || row.original.description || "N/A"}</span>;
+      return (
+        <span className="text-sm">
+          {row.original.product_name || row.original.description || "N/A"}
+        </span>
+      );
     },
   },
   {
@@ -146,13 +149,9 @@ export const GuideForm = ({
   warehouses,
   motives,
   vehicles,
-  carriers,
-  drivers,
   sales,
   purchases,
   warehouseDocuments,
-  recipients,
-  remittents,
   orders,
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -486,18 +485,26 @@ export const GuideForm = ({
           icon={Package2}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="remittent_id"
             label="Remitente"
             placeholder="Seleccione un remitente"
-            options={remittents.map((remittent) => ({
+            useQueryHook={useRemittents}
+            mapOptionFn={(remittent: PersonResource) => ({
               value: remittent.id.toString(),
               label:
                 remittent.business_name ||
                 `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
               description: remittent.number_document,
-            }))}
+            })}
+            // mapOptionFn={remittents.map((remittent) => ({
+            //   value: remittent.id.toString(),
+            //   label:
+            //     remittent.business_name ||
+            //     `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
+            //   description: remittent.number_document,
+            // }))}
             withValue
           />
 
@@ -574,20 +581,21 @@ export const GuideForm = ({
             }))}
           />
 
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="recipient_id"
             label="Destinatario"
             placeholder="Selecciona un destinatario"
-            options={recipients.map((recipient) => ({
-              value: recipient.id.toString(),
+            useQueryHook={useClients}
+            mapOptionFn={(client) => ({
+              value: client.id.toString(),
               label:
-                recipient.business_name ||
-                `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
-              description: recipient.business_name
+                client.business_name ||
+                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+              description: client.business_name
                 ? ""
-                : `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
-            }))}
+                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+            })}
             withValue
           />
         </GroupFormSection>
@@ -598,11 +606,12 @@ export const GuideForm = ({
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="carrier_id"
             label="Transportista"
             placeholder="Seleccione un transportista"
+            useQueryHook={}
             options={carriers.map((carrier) => ({
               value: carrier.id.toString(),
               label:

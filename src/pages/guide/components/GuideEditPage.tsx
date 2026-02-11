@@ -18,7 +18,6 @@ import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
 import type { GuideSchema } from "../lib/guide.schema";
-import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
 
 export default function GuideEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,7 +30,6 @@ export default function GuideEditPage() {
   const carriers = useAllPersons({
     role_names: ["TRANSPORTISTA"],
   });
-  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =

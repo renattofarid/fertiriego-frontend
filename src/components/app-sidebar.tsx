@@ -148,6 +148,12 @@ const {
 } = DRIVER;
 
 const {
+  ICON_REACT: CarrierIcon,
+  ROUTE: CarrierRoute,
+  MODEL: { name: CarrierTitle },
+} = CARRIER;
+
+const {
   ICON_REACT: PurchaseOrderIcon,
   ROUTE: PurchaseOrderRoute,
   MODEL: { name: PurchaseOrderTitle },

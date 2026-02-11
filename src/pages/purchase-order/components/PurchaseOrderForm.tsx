@@ -128,6 +128,7 @@ export const PurchaseOrderForm = ({
     ),
     defaultValues: {
       ...defaultValues,
+      observations: defaultValues.observations ?? "",
       details: details.length > 0 ? details : [],
       apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
     },
@@ -628,6 +629,11 @@ export const PurchaseOrderForm = ({
           />
         </div>
       </form>
+
+      <pre>
+        <code>{JSON.stringify(form.getValues(), null, 2)}</code>
+        <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+      </pre>
 
       {/* Modal para crear nuevo proveedor */}
       <SupplierCreateModal

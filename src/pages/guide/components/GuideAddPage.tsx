@@ -18,13 +18,10 @@ import { useGuideStore } from "../lib/guide.store";
 import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
-import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
@@ -34,14 +31,10 @@ export default function GuideAddPage() {
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
   const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
-  const { data: carriers, isLoading: carriersLoading } = useAllSuppliers();
-  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const recipients = useAllPersons();
-  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({
     per_page: 1000,
   });
@@ -52,7 +45,6 @@ export default function GuideAddPage() {
     warehousesLoading ||
     motivesLoading ||
     vehiclesLoading ||
-    carriersLoading ||
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
@@ -60,12 +52,9 @@ export default function GuideAddPage() {
     !warehouses ||
     !motives ||
     !vehicles ||
-    !carriers ||
-    !drivers ||
     !sales ||
     !purchases ||
-    !warehouseDocuments ||
-    !recipients;
+    !warehouseDocuments;
 
   const getDefaultValues = (): Partial<GuideSchema> => ({
     warehouse_id: "",
@@ -138,14 +127,8 @@ export default function GuideAddPage() {
         motives.length > 0 &&
         vehicles &&
         vehicles.length > 0 &&
-        carriers &&
-        carriers.length > 0 &&
-        drivers &&
-        drivers.length > 0 &&
         warehouseDocuments &&
-        warehouseDocuments.length >= 0 &&
-        recipients &&
-        recipients.length >= 0 && (
+        warehouseDocuments.length >= 0 && (
           <GuideForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
@@ -155,13 +138,9 @@ export default function GuideAddPage() {
             warehouses={warehouses}
             motives={motives}
             vehicles={vehicles}
-            carriers={carriers}
-            drivers={drivers}
             sales={sales}
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
-            recipients={recipients}
-            remittents={remittents || []}
             orders={orders || []}
           />
         )}

@@ -15,7 +15,7 @@ import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { SALE } from "../lib/sale.interface";
 
 export const SaleAddPage = () => {
-  const { ICON } = SALE;
+  const { ICON, MODEL } = SALE;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,7 +91,11 @@ export const SaleAddPage = () => {
       successToast("Venta creada correctamente");
       navigate("/ventas");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE);
+      errorToast(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          ERROR_MESSAGE(MODEL, "create"),
+      );
     } finally {
       setIsSubmitting(false);
     }

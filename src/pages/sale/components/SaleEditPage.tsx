@@ -10,11 +10,11 @@ import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { SALE, type SaleResource } from "../lib/sale.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { errorToast } from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
 import { format, parse } from "date-fns";
 
 export const SaleEditPage = () => {
-  const { ICON } = SALE;
+  const { ICON, MODEL } = SALE;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -85,7 +85,9 @@ export const SaleEditPage = () => {
       navigate("/ventas");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al actualizar la venta",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          ERROR_MESSAGE(MODEL, "update"),
       );
     } finally {
       setIsSubmitting(false);

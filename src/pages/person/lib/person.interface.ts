@@ -52,6 +52,54 @@ export const PERSON: ModelComplete<PersonSchema> = {
   },
 };
 
+export const REMITTENT: ModelComplete<PersonSchema> = {
+  MODEL: {
+    name: "Remitente",
+    description: "Gestión de remitentes del sistema.",
+    plural: "Remitentes",
+    gender: false,
+  },
+  ICON: "Users",
+  ICON_REACT: Users,
+  ENDPOINT: "/person",
+  QUERY_KEY: "remittents",
+  ROUTE: "/remitentes",
+  ROUTE_ADD: `/remitentes/agregar`,
+  ROUTE_UPDATE: `/remitentes/actualizar`,
+  TITLES: {
+    create: {
+      title: `Crear Remitente`,
+      subtitle: `Complete los campos para crear un nuevo remitente`,
+    },
+    update: {
+      title: `Actualizar Remitente`,
+      subtitle: `Actualice los campos para modificar el remitente`,
+    },
+    delete: {
+      title: `Eliminar Remitente`,
+      subtitle: `Confirme para eliminar el remitente`,
+    },
+  },
+  EMPTY: {
+    type_document: "DNI",
+    type_person: "NATURAL",
+    names: "",
+    gender: "M",
+    birth_date: "",
+    commercial_name: "",
+    father_surname: "",
+    mother_surname: "",
+    business_name: "",
+    address: "",
+    phone: "",
+    email: "",
+    role_id: "",
+    number_document: "",
+  },
+};
+
+export const REMITTENT_ROLE_CODE = "CLIENT";
+
 export interface PersonResponse {
   data: PersonResource[];
   links: Links;
