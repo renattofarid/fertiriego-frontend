@@ -1,5 +1,3 @@
-"use client";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -969,6 +967,23 @@ export const SaleForm = ({
                   value: c.value,
                   label: c.label,
                 }))}
+              />
+
+              <FormField
+                control={form.control}
+                name="order_purchase"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Orden de Compra</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese número de orden"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
               <FormSwitch

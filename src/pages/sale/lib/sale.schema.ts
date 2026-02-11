@@ -88,6 +88,7 @@ export const saleSchemaCreate = z.object({
     .default("0"),
   quotation_id: z.string().optional(),
   order_id: z.string().optional(),
+  order_purchase: z.string().optional(),
   is_anticipado: z.boolean().optional().default(false),
   is_deduccion: z.boolean().optional().default(false),
   is_retencionigv: z.boolean().optional().default(false),
