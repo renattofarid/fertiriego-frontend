@@ -63,6 +63,7 @@ interface FormSelectAsyncProps {
   defaultOption?: Option; // Opción inicial para mostrar cuando se edita
   additionalParams?: Record<string, any>; // Parámetros adicionales para el hook
   onValueChange?: (value: string, item?: any) => void; // Callback cuando cambia el valor
+  preloadItemId?: string; // ID del item a precargar buscando en todas las páginas
 }
 
 export function FormSelectAsync({
@@ -85,6 +86,7 @@ export function FormSelectAsync({
   defaultOption,
   additionalParams = {},
   onValueChange,
+  preloadItemId,
 }: FormSelectAsyncProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -161,6 +163,25 @@ export function FormSelectAsync({
     }
   }, [data, page, mapOptionFn]);
 
+  // Precargar item específico buscando en todas las páginas
+  useEffect(() => {
+    if (
+      preloadItemId &&
+      !isLoading &&
+      !isFetching &&
+      data?.meta?.last_page &&
+      page < data.meta.last_page
+    ) {
+      // Verificar si el item ya está cargado
+      const itemFound = allOptions.some((opt) => opt.value === preloadItemId);
+
+      if (!itemFound) {
+        // Cargar siguiente página para buscar el item
+        setPage((prev) => prev + 1);
+      }
+    }
+  }, [preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
+
   // Manejar scroll para cargar más
   const handleScroll = useCallback(
     (e: React.UIEvent<HTMLDivElement>) => {
@@ -203,7 +224,6 @@ export function FormSelectAsync({
           (field.value && selectedOption?.value === field.value
             ? selectedOption
             : null);
-
 
         return (
           <FormItem className="flex flex-col justify-between">
@@ -256,7 +276,7 @@ export function FormSelectAsync({
                 </PopoverTrigger>
 
                 <PopoverContent
-                  className="p-0 w-(--radix-popover-trigger-width)!"
+                  className="p-0 min-w-(--radix-popover-trigger-width)! w-auto"
                   onWheel={(e) => e.stopPropagation()}
                   onWheelCapture={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}
@@ -302,7 +322,9 @@ export function FormSelectAsync({
                                 setSelectedOption(newValue ? option : null);
                                 // Llamar onValueChange si existe, pasando el item completo
                                 if (onValueChange) {
-                                  const selectedItem = rawItemsMap.current.get(option.value);
+                                  const selectedItem = rawItemsMap.current.get(
+                                    option.value,
+                                  );
                                   onValueChange(newValue, selectedItem);
                                 }
                                 setOpen(false);

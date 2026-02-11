@@ -182,24 +182,24 @@ export const PurchaseForm = ({
         const updatedDetails = details.map((detail) => {
           const quantity = parseFloat(detail.quantity);
           const unitPrice = parseFloat(detail.unit_price);
-          let subtotal = truncDecimal(quantity * unitPrice, 6);
+          let subtotal = truncDecimal(quantity * unitPrice, 2);
           let tax = 0;
           let total = 0;
 
           if (watchIncludeIgv) {
             // unitPrice incluye IGV: descomponer (truncando resultados)
-            const totalIncl = truncDecimal(quantity * unitPrice, 6);
-            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
-            tax = truncDecimal(totalIncl - subtotal, 6);
+            const totalIncl = truncDecimal(quantity * unitPrice, 2);
+            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
+            tax = truncDecimal(totalIncl - subtotal, 2);
             total = totalIncl;
           } else {
-            tax = truncDecimal(subtotal * IGV_RATE, 6); // Calcular impuesto automáticamente (18%)
-            total = truncDecimal(subtotal + tax, 6);
+            tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
+            total = truncDecimal(subtotal + tax, 2);
           }
 
           return {
             ...detail,
-            tax: formatDecimalTrunc(tax, 6),
+            tax: formatDecimalTrunc(tax, 2),
             subtotal,
             total,
           };
@@ -303,19 +303,19 @@ export const PurchaseForm = ({
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const unitPrice = parseFloat(detail.unit_price_estimated);
-        let subtotal = truncDecimal(quantity * unitPrice, 6);
+        let subtotal = truncDecimal(quantity * unitPrice, 2);
         let tax = 0;
         let total = 0;
 
         if (includeIgvValue) {
           // unitPrice incluye IGV: descomponer (truncando resultados)
-          const totalIncl = truncDecimal(quantity * unitPrice, 6);
-          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
-          tax = truncDecimal(totalIncl - subtotal, 6);
+          const totalIncl = truncDecimal(quantity * unitPrice, 2);
+          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE),2);
+          tax = truncDecimal(totalIncl - subtotal, 2);
           total = totalIncl;
         } else {
-          tax = truncDecimal(subtotal * IGV_RATE, 6);
-          total = truncDecimal(subtotal + tax, 6);
+          tax = truncDecimal(subtotal * IGV_RATE, 2);
+          total = truncDecimal(subtotal + tax, 2);
         }
 
         return {
@@ -323,7 +323,7 @@ export const PurchaseForm = ({
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
           unit_price: detail.unit_price_estimated,
-          tax: formatDecimalTrunc(tax, 6),
+          tax: formatDecimalTrunc(tax, 2),
           subtotal,
           total,
         };
@@ -350,25 +350,25 @@ export const PurchaseForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    let subtotal = truncDecimal(quantity * unitPrice, 6);
+    let subtotal = truncDecimal(quantity * unitPrice, 2);
     let tax = 0;
     let total = 0;
 
     if (includeIgv) {
       // unitPrice incluye IGV: descomponer (truncando resultados)
-      const totalIncl = truncDecimal(quantity * unitPrice, 6);
-      subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 6);
-      tax = truncDecimal(totalIncl - subtotal, 6);
+      const totalIncl = truncDecimal(quantity * unitPrice, 2);
+      subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
+      tax = truncDecimal(totalIncl - subtotal, 2);
       total = totalIncl;
     } else {
-      tax = truncDecimal(subtotal * IGV_RATE, 6); // Calcular impuesto automáticamente (18%)
-      total = truncDecimal(subtotal + tax, 6);
+      tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
+      total = truncDecimal(subtotal + tax, 2);
     }
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: selectedProduct?.name,
-      tax: formatDecimalTrunc(tax, 6),
+      tax: formatDecimalTrunc(tax, 2),
       subtotal,
       total,
     };
@@ -418,7 +418,7 @@ export const PurchaseForm = ({
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return truncDecimal(sum, 6);
+    return truncDecimal(sum, 2);
   };
 
   const calculateSubtotalTotal = () => {
@@ -426,7 +426,7 @@ export const PurchaseForm = ({
       (sum, detail) => sum + (detail.subtotal || 0),
       0,
     );
-    return truncDecimal(sum, 6);
+    return truncDecimal(sum, 2);
   };
 
   const calculateTaxTotal = () => {
@@ -435,7 +435,7 @@ export const PurchaseForm = ({
         sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
       0,
     );
-    return truncDecimal(sum, 6);
+    return truncDecimal(sum, 2);
   };
 
   // Funciones para cuotas
@@ -460,7 +460,7 @@ export const PurchaseForm = ({
       errorToast(
         `El total de cuotas no puede exceder el total de la compra (${formatDecimalTrunc(
           purchaseTotal,
-          6,
+          2,
         )})`,
       );
       return;
@@ -503,7 +503,7 @@ export const PurchaseForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0,
     );
-    return truncDecimal(sum, 6);
+    return truncDecimal(sum, 2);
   };
 
   // Validar si las cuotas coinciden con el total (si hay cuotas)
@@ -511,7 +511,7 @@ export const PurchaseForm = ({
     if (installments.length === 0) return true; // Si no hay cuotas, está ok
     const purchaseTotal = calculateDetailsTotal();
     const installmentsTotal = calculateInstallmentsTotal();
-    return Math.abs(purchaseTotal - installmentsTotal) < 0.000001; // Tolerancia acorde a 6 decimales
+    return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia acorde a 2 decimales
   };
 
   const handleFormSubmit = (data: any) => {
@@ -542,7 +542,7 @@ export const PurchaseForm = ({
       validInstallments = [
         {
           due_days: "1",
-          amount: formatDecimalTrunc(totalAmount, 6),
+          amount: formatDecimalTrunc(totalAmount, 2),
         },
       ];
     } else {
@@ -773,8 +773,8 @@ export const PurchaseForm = ({
                       name="temp_unit_price"
                       label="P. Unit."
                       type="number"
-                      step="0.000001"
-                      placeholder="0.000000"
+                      step="0.01"
+                      placeholder="0.00"
                       className="h-9"
                     />
                   </div>
@@ -1001,7 +1001,7 @@ export const PurchaseForm = ({
                                 <TableCell className="text-right font-semibold">
                                   {formatDecimalTrunc(
                                     parseFloat(inst.amount),
-                                    6,
+                                    2,
                                   )}
                                 </TableCell>
                                 <TableCell className="text-center">
@@ -1040,7 +1040,7 @@ export const PurchaseForm = ({
                               <TableCell className="text-right font-bold text-lg text-blue-600">
                                 {formatDecimalTrunc(
                                   calculateInstallmentsTotal(),
-                                  6,
+                                  2,
                                 )}
                               </TableCell>
                               <TableCell></TableCell>

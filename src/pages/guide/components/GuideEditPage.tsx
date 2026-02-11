@@ -18,7 +18,7 @@ import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
 import type { GuideSchema } from "../lib/guide.schema";
-import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function GuideEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,13 +31,10 @@ export default function GuideEditPage() {
   const carriers = useAllPersons({
     role_names: ["TRANSPORTISTA"],
   });
-  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const recipients = useAllPersons();
-  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({
     per_page: 1000,
   });
@@ -54,13 +51,9 @@ export default function GuideEditPage() {
     ordersLoading ||
     !warehouses ||
     !motives ||
-    !vehicles ||
-    !carriers ||
-    !drivers ||
     !sales ||
     !purchases ||
     !warehouseDocuments ||
-    !recipients ||
     isFinding;
 
   useEffect(() => {
@@ -149,7 +142,7 @@ export default function GuideEditPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
@@ -164,16 +157,12 @@ export default function GuideEditPage() {
         vehicles.length > 0 &&
         carriers &&
         carriers.length > 0 &&
-        drivers &&
-        drivers.length > 0 &&
         sales &&
         sales.length >= 0 &&
         purchases &&
         purchases.length >= 0 &&
         warehouseDocuments &&
         warehouseDocuments.length >= 0 &&
-        recipients &&
-        recipients.length >= 0 &&
         guide && (
           <GuideForm
             defaultValues={mapGuideToForm(guide)}
@@ -183,17 +172,12 @@ export default function GuideEditPage() {
             mode="update"
             warehouses={warehouses}
             motives={motives}
-            vehicles={vehicles}
-            carriers={carriers}
-            drivers={drivers}
             sales={sales}
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
-            recipients={recipients}
-            remittents={remittents || []}
             orders={orders || []}
           />
         )}
-    </FormWrapper>
+    </PageWrapper>
   );
 }

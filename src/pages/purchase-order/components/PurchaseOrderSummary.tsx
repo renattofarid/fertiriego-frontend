@@ -53,8 +53,8 @@ export function PurchaseOrderSummary({
     : undefined;
 
   const supplierName = selectedSupplier
-    ? selectedSupplier.business_name ??
-      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`
+    ? (selectedSupplier.business_name ??
+      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`)
     : "Sin seleccionar";
 
   // Obtener el almacén seleccionado
@@ -164,8 +164,8 @@ export function PurchaseOrderSummary({
                           "es-PE",
                           {
                             minimumFractionDigits: 2,
-                            maximumFractionDigits: 6,
-                          }
+                            maximumFractionDigits: 2,
+                          },
                         )}
                       </p>
                     </div>
@@ -173,7 +173,7 @@ export function PurchaseOrderSummary({
                       S/.{" "}
                       {detail.subtotal.toLocaleString("es-PE", {
                         minimumFractionDigits: 2,
-                        maximumFractionDigits: 6,
+                        maximumFractionDigits: 2,
                       })}
                     </p>
                   </div>
@@ -191,7 +191,7 @@ export function PurchaseOrderSummary({
               <span className="font-medium">
                 {formatCurrency(subtotalBase, {
                   currencySymbol: "S/.",
-                  decimals: 6,
+                  decimals: 2,
                 })}
               </span>
             </div>
@@ -202,7 +202,7 @@ export function PurchaseOrderSummary({
                 <span className="font-medium">
                   {formatCurrency(igvAmount, {
                     currencySymbol: "S/.",
-                    decimals: 6,
+                    decimals: 2,
                   })}
                 </span>
               </div>
@@ -217,7 +217,7 @@ export function PurchaseOrderSummary({
               <span className="text-xl font-bold text-primary">
                 {formatCurrency(applyIgv ? totalWithIgv : subtotalBase, {
                   currencySymbol: "S/.",
-                  decimals: 6,
+                  decimals: 2,
                 })}
               </span>
             </div>
@@ -235,17 +235,15 @@ export function PurchaseOrderSummary({
               className="w-full"
               size="lg"
               disabled={
-                isSubmitting ||
-                !form.formState.isValid ||
-                (mode === "create" && details.length === 0)
+                isSubmitting || (mode === "create" && details.length === 0)
               }
             >
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
                 : mode === "update"
-                ? "Actualizar Orden"
-                : "Guardar Orden"}
+                  ? "Actualizar Orden"
+                  : "Guardar Orden"}
             </Button>
             <Button
               type="button"
@@ -262,7 +260,7 @@ export function PurchaseOrderSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("issue_date")
                 ? new Date(
-                    form.watch("issue_date") + "T00:00:00"
+                    form.watch("issue_date") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",
@@ -274,7 +272,7 @@ export function PurchaseOrderSummary({
               <p className="text-xs text-center text-muted-foreground mt-1">
                 <span className="font-semibold">Fecha esperada:</span>{" "}
                 {new Date(
-                  form.watch("expected_date") + "T00:00:00"
+                  form.watch("expected_date") + "T00:00:00",
                 ).toLocaleDateString("es-PE", {
                   day: "2-digit",
                   month: "long",

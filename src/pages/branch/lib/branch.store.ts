@@ -39,7 +39,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   error: undefined,
 
   fetchBranches: async (params?: Record<string, any>) => {
-    set({ isLoading: true, error: undefined});
+    set({ isLoading: true, error: undefined });
     try {
       const { data, meta } = await getBranch({ params });
       set({ branches: data, meta: meta, isLoading: false });
@@ -49,7 +49,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   fetchAllBranches: async () => {
-    set({ isLoadingAll: true, error: undefined});
+    set({ isLoadingAll: true, error: undefined });
     try {
       const data = await getAllBranches();
       set({ allBranches: data, isLoadingAll: false });
@@ -59,9 +59,9 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   fetchBranch: async (id: number) => {
-    set({ isFinding: true, error: undefined});
+    set({ isFinding: true, error: undefined });
     try {
-      const { data } = await findBranchById(id);
+      const data = await findBranchById(id);
       set({ branch: data, isFinding: false });
     } catch (err) {
       set({ error: "Error al cargar la sucursal", isFinding: false });
@@ -69,7 +69,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   createBranch: async (data) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await storeBranch(data);
     } catch (err) {
@@ -81,7 +81,7 @@ export const useBranchStore = create<BranchStore>((set) => ({
   },
 
   updateBranch: async (id: number, data: BranchSchema) => {
-    set({ isSubmitting: true, error: undefined});
+    set({ isSubmitting: true, error: undefined });
     try {
       await updateBranch(id, data);
     } catch (err) {

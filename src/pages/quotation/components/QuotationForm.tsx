@@ -1,6 +1,7 @@
 "use client";
 
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormField,
@@ -30,6 +31,10 @@ import {
   type QuotationResource,
   type QuotationDetailResource,
 } from "../lib/quotation.interface";
+import {
+  quotationFormSchema,
+  type QuotationFormValues,
+} from "../lib/quotation.schema";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
@@ -106,7 +111,8 @@ export const QuotationForm = ({
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
-  const form = useForm({
+  const form = useForm<QuotationFormValues>({
+    resolver: zodResolver(quotationFormSchema),
     defaultValues: {
       fecha_emision:
         initialData?.fecha_emision || new Date().toISOString().split("T")[0],
@@ -224,7 +230,7 @@ export const QuotationForm = ({
           <div className="text-right">
             {(
               parseFloat(row.original.unit_price) *
-              (row.original.is_igv ? 1.18 : 1)
+              (!row.original.is_igv ? 1.18 : 1)
             ).toFixed(4)}
           </div>
         ),
@@ -234,8 +240,8 @@ export const QuotationForm = ({
         header: "IGV",
         cell: ({ row }) => (
           <div className="text-center">
-            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
-              {row.original.is_igv ? "Sí" : "No"}
+            <Badge variant={!row.original.is_igv ? "default" : "secondary"}>
+              {!row.original.is_igv ? "Sí" : "No"}
             </Badge>
           </div>
         ),
@@ -408,7 +414,7 @@ export const QuotationForm = ({
     setEditingIndex(null);
   };
 
-  const handleSubmitForm = (formData: Record<string, string>) => {
+  const handleSubmitForm = (formData: QuotationFormValues) => {
     if (details.length === 0) {
       return;
     }
@@ -446,9 +452,9 @@ export const QuotationForm = ({
     PersonResource | undefined
   >(undefined);
 
-  const getTotalAmount = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
-  };
+  // const getTotalAmount = () => {
+  //   return details.reduce((sum, detail) => sum + detail.total, 0);
+  // };
 
   const calculateSubtotalTotal = () => {
     return details.reduce((sum, detail) => sum + detail.subtotal, 0);
@@ -735,12 +741,6 @@ export const QuotationForm = ({
                   isVisibleColumnFilter={false}
                   variant="default"
                 />
-                <div className="flex justify-end items-center gap-4 px-4">
-                  <span className="text-sm font-bold">Total General:</span>
-                  <span className="text-lg font-bold">
-                    {getTotalAmount().toFixed(2)}
-                  </span>
-                </div>
               </div>
             )}
           </GroupFormSection>

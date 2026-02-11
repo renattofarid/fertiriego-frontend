@@ -17,14 +17,11 @@ import {
 import { useGuideStore } from "../lib/guide.store";
 import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
-import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
-import { useAllDrivers } from "@/pages/driver/lib/driver.hook";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
@@ -33,15 +30,10 @@ export default function GuideAddPage() {
 
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
-  const { data: carriers, isLoading: carriersLoading } = useAllSuppliers();
-  const drivers = useAllDrivers();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const recipients = useAllPersons();
-  const remittents = useAllPersons(); // Usar misma lista de personas para remitentes
   const { data: orders, isLoading: ordersLoading } = useOrder({
     per_page: 1000,
   });
@@ -51,21 +43,15 @@ export default function GuideAddPage() {
   const isLoading =
     warehousesLoading ||
     motivesLoading ||
-    vehiclesLoading ||
-    carriersLoading ||
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
     !motives ||
-    !vehicles ||
-    !carriers ||
-    !drivers ||
     !sales ||
     !purchases ||
-    !warehouseDocuments ||
-    !recipients;
+    !warehouseDocuments;
 
   const getDefaultValues = (): Partial<GuideSchema> => ({
     warehouse_id: "",
@@ -105,7 +91,9 @@ export default function GuideAddPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate(ROUTE);
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE);
+      errorToast(
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -125,7 +113,7 @@ export default function GuideAddPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
@@ -136,16 +124,8 @@ export default function GuideAddPage() {
         warehouses.length > 0 &&
         motives &&
         motives.length > 0 &&
-        vehicles &&
-        vehicles.length > 0 &&
-        carriers &&
-        carriers.length > 0 &&
-        drivers &&
-        drivers.length > 0 &&
         warehouseDocuments &&
-        warehouseDocuments.length >= 0 &&
-        recipients &&
-        recipients.length >= 0 && (
+        warehouseDocuments.length >= 0 && (
           <GuideForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
@@ -154,17 +134,12 @@ export default function GuideAddPage() {
             mode="create"
             warehouses={warehouses}
             motives={motives}
-            vehicles={vehicles}
-            carriers={carriers}
-            drivers={drivers}
             sales={sales}
             purchases={purchases}
             warehouseDocuments={warehouseDocuments}
-            recipients={recipients}
-            remittents={remittents || []}
             orders={orders || []}
           />
         )}
-    </FormWrapper>
+    </PageWrapper>
   );
 }

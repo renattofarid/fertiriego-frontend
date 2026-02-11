@@ -92,13 +92,13 @@ export const PurchaseOrderForm = ({
           unit_price_estimated: d.unit_price_estimated,
           // En modo update: usar el subtotal calculado por el backend si existe
           subtotal: d.subtotal_estimated
-            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            ? truncDecimal(parseFloat(d.subtotal_estimated),2)
             : truncDecimal(
                 d.quantity_requested * parseFloat(d.unit_price_estimated),
-                6,
+                2,
               ),
           subtotal_estimated: d.subtotal_estimated
-            ? truncDecimal(parseFloat(d.subtotal_estimated), 6)
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 2)
             : undefined,
         }))
       : [],
@@ -128,6 +128,7 @@ export const PurchaseOrderForm = ({
     ),
     defaultValues: {
       ...defaultValues,
+      observations: defaultValues.observations ?? "",
       details: details.length > 0 ? details : [],
       apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
     },
@@ -221,7 +222,7 @@ export const PurchaseOrderForm = ({
 
     const quantity = parseFloat(currentDetail.quantity_requested);
     const unitPrice = parseFloat(currentDetail.unit_price_estimated);
-    const subtotal = truncDecimal(quantity * unitPrice, 6);
+    const subtotal = truncDecimal(quantity * unitPrice, 2);
 
     const newDetail: DetailRow = {
       ...currentDetail,
@@ -279,15 +280,15 @@ export const PurchaseOrderForm = ({
   // Calcular total desde los detalles actuales
   const calculateTotal = () => {
     const sum = details.reduce((sum, detail) => sum + detail.subtotal, 0);
-    return truncDecimal(sum, 6);
+    return truncDecimal(sum, 2);
   };
 
   // Calcular total desde los detalles actuales
   const subtotalBase = calculateTotal();
 
   // Calcular IGV y total con IGV (siempre desde subtotales en modo create)
-  const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 6);
-  const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 6);
+  const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 2);
+  const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 2);
 
   const handleFormSubmit = (data: any) => {
     if (isSubmitting) return; // Prevenir múltiples envíos
@@ -296,18 +297,18 @@ export const PurchaseOrderForm = ({
     const transformedDetails = details.map((d) => {
       const qty = Number(d.quantity_requested);
       const price = Number(d.unit_price_estimated);
-      const subtotal = truncDecimal(qty * price, 6);
+      const subtotal = truncDecimal(qty * price, 2);
       return {
         product_id: Number(d.product_id),
         quantity_requested: qty,
-        unit_price_estimated: truncDecimal(price, 6),
+        unit_price_estimated: truncDecimal(price, 2),
         subtotal_estimated: subtotal,
       };
     });
 
     const totalEstimated = truncDecimal(
       transformedDetails.reduce((s, it) => s + it.subtotal_estimated, 0),
-      6,
+      2,
     );
 
     onSubmit({
@@ -566,13 +567,13 @@ export const PurchaseOrderForm = ({
                           <TableCell className="text-right">
                             {formatCurrency(
                               parseFloat(detail.unit_price_estimated),
-                              { currencySymbol: "S/.", decimals: 6 },
+                              { currencySymbol: "S/.", decimals:2 },
                             )}
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">
                             {formatCurrency(detail.subtotal, {
                               currencySymbol: "S/.",
-                              decimals: 6,
+                              decimals: 2,
                             })}
                           </TableCell>
                           <TableCell>
@@ -628,6 +629,11 @@ export const PurchaseOrderForm = ({
           />
         </div>
       </form>
+
+      {/* <pre>
+        <code>{JSON.stringify(form.getValues(), null, 2)}</code>
+        <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+      </pre> */}
 
       {/* Modal para crear nuevo proveedor */}
       <SupplierCreateModal

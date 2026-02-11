@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
 import { useQuotationStore } from "../lib/quotation.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import {
@@ -14,15 +13,15 @@ import {
   type UpdateQuotationRequest,
 } from "../lib/quotation.interface";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const QuotationEditPage = () => {
   const { ICON } = QUOTATION;
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { setOpen, setOpenMobile } = useSidebar();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-
   const {
     quotation,
     fetchQuotation,
@@ -56,22 +55,27 @@ export const QuotationEditPage = () => {
     }
   };
 
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
+
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   if (!quotation) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Cotización" mode="update" icon={ICON} />
@@ -80,7 +84,7 @@ export const QuotationEditPage = () => {
         <div className="text-center py-8 text-muted-foreground">
           No se encontró la cotización
         </div>
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 

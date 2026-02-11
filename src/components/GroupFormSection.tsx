@@ -27,7 +27,7 @@ export const GroupFormSection = ({
   children,
   cols = { sm: 2, md: 3, lg: 4 },
   className,
-  gap = "gap-3 md:gap-6",
+  gap = "gap-3 md:gap-3",
   headerExtra,
 }: FormSectionProps) => {
   const gridClasses = [
@@ -64,7 +64,7 @@ export const GroupFormSection = ({
           {headerExtra}
         </div>
       </div>
-      <div className="p-4 md:p-6">
+      <div className="p-3 md:p-3">
         <div className={cn(gridClasses)}>{children}</div>
       </div>
     </div>

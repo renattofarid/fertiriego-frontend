@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useVehicle } from "../lib/vehicle.hook";
 import TitleComponent from "@/components/TitleComponent";
 import VehicleActions from "./VehicleActions";
 import VehicleTable from "./VehicleTable";
@@ -17,6 +16,7 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { VEHICLE } from "../lib/vehicle.interface";
 import VehicleModal from "./VehicleModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useVehicles } from "../lib/vehicle.hook";
 
 const { MODEL, ICON } = VEHICLE;
 
@@ -26,10 +26,10 @@ export default function VehiclePage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useVehicle();
+  const { data, isLoading, refetch } = useVehicles();
 
   useEffect(() => {
-    refetch({ page, search, per_page });
+    refetch();
   }, [page, search, per_page]);
 
   const handleDelete = async () => {
@@ -39,7 +39,10 @@ export default function VehiclePage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete"),
+      );
     } finally {
       setDeleteId(null);
     }
@@ -62,18 +65,18 @@ export default function VehiclePage() {
           onEdit: setEditId,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <VehicleOptions search={search} setSearch={setSearch} />
       </VehicleTable>
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {editId !== null && (
