@@ -36,10 +36,10 @@ export default function CarrierPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
     useState<PersonResource | null>(null);
-  const { data, meta, isLoading, refetch } = useCarriers();
+  const { data, isLoading, refetch } = useCarriers();
 
   useEffect(() => {
-    refetch({ page, search, per_page });
+    refetch();
   }, [page, search, per_page]);
 
   const handleDelete = async () => {
@@ -49,7 +49,10 @@ export default function CarrierPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete"),
+      );
     } finally {
       setDeleteId(null);
     }
@@ -82,18 +85,18 @@ export default function CarrierPage() {
           onDelete: setDeleteId,
           // onManageRoles: handleManageRoles,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <PersonOptions search={search} setSearch={setSearch} />
       </PersonTable>
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {/* Role Assignment Modal */}
