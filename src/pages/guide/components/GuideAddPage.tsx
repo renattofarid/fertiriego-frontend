@@ -21,6 +21,7 @@ import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
@@ -110,7 +111,7 @@ export default function GuideAddPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
@@ -137,6 +138,6 @@ export default function GuideAddPage() {
             orders={orders || []}
           />
         )}
-    </FormWrapper>
+    </PageWrapper>
   );
 }

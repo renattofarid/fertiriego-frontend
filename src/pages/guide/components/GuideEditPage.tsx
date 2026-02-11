@@ -18,6 +18,7 @@ import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
 import type { GuideSchema } from "../lib/guide.schema";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function GuideEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -141,7 +142,7 @@ export default function GuideEditPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
@@ -177,6 +178,6 @@ export default function GuideEditPage() {
             orders={orders || []}
           />
         )}
-    </FormWrapper>
+    </PageWrapper>
   );
 }

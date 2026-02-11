@@ -293,6 +293,17 @@ export const GuideForm = ({
     }
   }, [form]);
 
+  // Establecer almacén por defecto si solo hay uno
+  useEffect(() => {
+    if (
+      warehouses.length === 1 &&
+      !form.getValues("warehouse_id") &&
+      mode === "create"
+    ) {
+      form.setValue("warehouse_id", warehouses[0].id.toString());
+    }
+  }, [warehouses, mode, form]);
+
   // Cargar detalles existentes en modo edición
   useEffect(() => {
     if (mode === "update" && defaultValues.details) {
@@ -410,6 +421,7 @@ export const GuideForm = ({
           title="Información General"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
           <FormSelect
             control={form.control}
@@ -483,6 +495,7 @@ export const GuideForm = ({
           title="Referencias Documentales (Opcional)"
           icon={Package2}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
           <FormSelectAsync
             control={form.control}
@@ -604,6 +617,7 @@ export const GuideForm = ({
           title="Transporte y Direcciones"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
           <FormSelectAsync
             control={form.control}
