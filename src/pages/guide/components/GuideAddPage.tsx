@@ -91,7 +91,9 @@ export default function GuideAddPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate(ROUTE);
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE);
+      errorToast(
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
+      );
     } finally {
       setIsSubmitting(false);
     }

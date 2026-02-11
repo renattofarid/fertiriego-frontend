@@ -129,6 +129,7 @@ import ProductionDocumentEditPage from "./pages/production-document/components/P
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
 import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
 import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
+import { CARRIER } from "./pages/carrier/lib/carrier.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -146,6 +147,7 @@ const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: DriverRoute } = DRIVER;
+const { ROUTE: CarrierRoute } = CARRIER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
@@ -160,7 +162,8 @@ const { ROUTE_ADD: GuideAddRoute } = GUIDE;
 const { ROUTE_UPDATE: GuideUpdateRoute } = GUIDE;
 const { ROUTE: ShippingGuideCarrierRoute } = SHIPPING_GUIDE_CARRIER;
 const { ROUTE_ADD: ShippingGuideCarrierAddRoute } = SHIPPING_GUIDE_CARRIER;
-const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } = SHIPPING_GUIDE_CARRIER;
+const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } =
+  SHIPPING_GUIDE_CARRIER;
 const { ROUTE: ProductionDocumentRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
@@ -483,6 +486,33 @@ export default function App() {
             path="/conductores/editar/:id"
             element={
               <ProtectedRoute path={DriverRoute}>
+                <DriverEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={"/transportistas"}
+            element={
+              <ProtectedRoute path={CarrierRoute}>
+                <DriverPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/transportistas/agregar"
+            element={
+              <ProtectedRoute path={CarrierRoute}>
+                <DriverAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/transportistas/editar/:id"
+            element={
+              <ProtectedRoute path={CarrierRoute}>
                 <DriverEditPage />
               </ProtectedRoute>
             }
