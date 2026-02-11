@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useBranchStore } from "./branch.store";
+import { BRANCH } from "./branch.interface";
+import { useQuery } from "@tanstack/react-query";
+import { findBranchById } from "./branch.actions";
 
 export function useBranch(params?: Record<string, unknown>) {
-  const { branches, meta, isLoading, error, fetchBranches } =
-    useBranchStore();
+  const { branches, meta, isLoading, error, fetchBranches } = useBranchStore();
 
   useEffect(() => {
     if (!branches) fetchBranches(params);
@@ -35,16 +37,9 @@ export function useAllBranches() {
 }
 
 export function useBranchById(id: number) {
-  const { branch, isFinding, error, fetchBranch } = useBranchStore();
-
-  useEffect(() => {
-    fetchBranch(id);
-  }, [id]);
-
-  return {
-    data: branch,
-    isFinding,
-    error,
-    refetch: () => fetchBranch(id),
-  };
+  return useQuery({
+    queryKey: [BRANCH.QUERY_KEY, id],
+    queryFn: () => findBranchById(id),
+    enabled: !!id && id > 0,
+  });
 }

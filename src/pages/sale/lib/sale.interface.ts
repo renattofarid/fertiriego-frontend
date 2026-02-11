@@ -181,6 +181,7 @@ export interface CreateSaleRequest {
   amount_yape: string;
   quotation_id?: number;
   order_id?: number;
+  order_purchase?: string;
   is_anticipado?: boolean;
   is_deduccion?: boolean;
   is_retencionigv?: boolean;
@@ -198,6 +199,7 @@ export interface UpdateSaleRequest {
   payment_type?: string;
   currency?: string;
   observations?: string;
+  order_purchase?: string;
   details?: {
     product_id: number;
     quantity: number;

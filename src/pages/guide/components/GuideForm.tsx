@@ -25,9 +25,7 @@ import { searchUbigeos } from "../lib/ubigeo.actions";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/warehouse-document.interface";
@@ -40,6 +38,12 @@ import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
 import { errorToast } from "@/lib/core.function";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useRemittents } from "@/pages/person/lib/person.hook";
+import { useClients } from "@/pages/client/lib/client.hook";
+import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
+import { useDrivers } from "@/pages/driver/lib/driver.hook";
+import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -49,14 +53,9 @@ interface GuideFormProps {
   mode?: "create" | "update";
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
-  vehicles: VehicleResource[];
-  carriers: PersonResource[];
-  drivers: PersonResource[];
   sales: SaleResource[];
   purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
-  recipients: PersonResource[];
-  remittents: PersonResource[];
   orders: OrderResource[];
 }
 
@@ -77,7 +76,11 @@ const createDetailColumns = (
     accessorKey: "product_id",
     header: "Producto",
     cell: ({ row }) => {
-      return <span className="text-sm">{row.original.product_name || row.original.description || "N/A"}</span>;
+      return (
+        <span className="text-sm">
+          {row.original.product_name || row.original.description || "N/A"}
+        </span>
+      );
     },
   },
   {
@@ -145,14 +148,9 @@ export const GuideForm = ({
   mode = "create",
   warehouses,
   motives,
-  vehicles,
-  carriers,
-  drivers,
   sales,
   purchases,
   warehouseDocuments,
-  recipients,
-  remittents,
   orders,
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -295,6 +293,17 @@ export const GuideForm = ({
     }
   }, [form]);
 
+  // Establecer almacén por defecto si solo hay uno
+  useEffect(() => {
+    if (
+      warehouses.length === 1 &&
+      !form.getValues("warehouse_id") &&
+      mode === "create"
+    ) {
+      form.setValue("warehouse_id", warehouses[0].id.toString());
+    }
+  }, [warehouses, mode, form]);
+
   // Cargar detalles existentes en modo edición
   useEffect(() => {
     if (mode === "update" && defaultValues.details) {
@@ -412,6 +421,7 @@ export const GuideForm = ({
           title="Información General"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
           <FormSelect
             control={form.control}
@@ -485,19 +495,28 @@ export const GuideForm = ({
           title="Referencias Documentales (Opcional)"
           icon={Package2}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="remittent_id"
             label="Remitente"
             placeholder="Seleccione un remitente"
-            options={remittents.map((remittent) => ({
+            useQueryHook={useRemittents}
+            mapOptionFn={(remittent: PersonResource) => ({
               value: remittent.id.toString(),
               label:
                 remittent.business_name ||
                 `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
               description: remittent.number_document,
-            }))}
+            })}
+            // mapOptionFn={remittents.map((remittent) => ({
+            //   value: remittent.id.toString(),
+            //   label:
+            //     remittent.business_name ||
+            //     `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
+            //   description: remittent.number_document,
+            // }))}
             withValue
           />
 
@@ -574,20 +593,21 @@ export const GuideForm = ({
             }))}
           />
 
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="recipient_id"
             label="Destinatario"
             placeholder="Selecciona un destinatario"
-            options={recipients.map((recipient) => ({
-              value: recipient.id.toString(),
+            useQueryHook={useClients}
+            mapOptionFn={(client) => ({
+              value: client.id.toString(),
               label:
-                recipient.business_name ||
-                `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
-              description: recipient.business_name
+                client.business_name ||
+                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+              description: client.business_name
                 ? ""
-                : `${recipient.names} ${recipient.father_surname} ${recipient.mother_surname}`.trim(),
-            }))}
+                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+            })}
             withValue
           />
         </GroupFormSection>
@@ -597,45 +617,49 @@ export const GuideForm = ({
           title="Transporte y Direcciones"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
+          gap="gap-3"
         >
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="carrier_id"
             label="Transportista"
             placeholder="Seleccione un transportista"
-            options={carriers.map((carrier) => ({
+            useQueryHook={useCarriers}
+            mapOptionFn={(carrier) => ({
               value: carrier.id.toString(),
               label:
                 carrier.business_name ||
                 `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-            }))}
+            })}
           />
 
           {transportModality === "PRIVADO" && (
             <>
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="driver_id"
                 label="Conductor"
                 placeholder="Seleccione un conductor"
-                options={drivers.map((driver) => ({
+                useQueryHook={useDrivers}
+                mapOptionFn={(driver) => ({
                   value: driver.id.toString(),
                   label:
                     driver.business_name ||
                     `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-                }))}
+                })}
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="vehicle_id"
                 label="Vehículo"
                 placeholder="Seleccione un vehículo"
-                options={vehicles.map((vehicle) => ({
+                useQueryHook={useVehicles}
+                mapOptionFn={(vehicle) => ({
                   value: vehicle.id.toString(),
                   label: vehicle.plate,
                   description: `${vehicle.brand} ${vehicle.model}`,
-                }))}
+                })}
               />
 
               <FormField
@@ -657,16 +681,17 @@ export const GuideForm = ({
                 )}
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="secondary_vehicle_id"
                 label="Vehículo Secundario (Opcional)"
                 placeholder="Seleccione un vehículo secundario"
-                options={vehicles.map((vehicle) => ({
+                useQueryHook={useVehicles}
+                mapOptionFn={(vehicle) => ({
                   value: vehicle.id.toString(),
                   label: vehicle.plate,
                   description: `${vehicle.brand} ${vehicle.model}`,
-                }))}
+                })}
               />
 
               <FormField

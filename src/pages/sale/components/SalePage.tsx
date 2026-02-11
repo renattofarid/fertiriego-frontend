@@ -22,6 +22,7 @@ import { errorToast } from "@/lib/core.function";
 import PageWrapper from "@/components/PageWrapper";
 import DataTablePagination from "@/components/DataTablePagination";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function SalePage() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export default function SalePage() {
   const [selectedInstallment, setSelectedInstallment] =
     useState<SaleInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
+  const { setOpen, setOpenMobile } = useSidebar();
 
   const {
     data: sales,
@@ -82,6 +84,11 @@ export default function SalePage() {
     }
   };
 
+  useEffect(() => {
+    setOpen(true);
+    setOpenMobile(true);
+  }, []);
+
   const handleManage = (sale: SaleResource) => {
     navigate(`/ventas/gestionar/${sale.id}`);
   };
@@ -95,17 +102,17 @@ export default function SalePage() {
     if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
       errorToast(
         `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(
-          2
+          2,
         )}) no coincide con el total de la venta (${totalAmount.toFixed(
-          2
-        )}). Por favor, sincronice las cuotas.`
+          2,
+        )}). Por favor, sincronice las cuotas.`,
       );
       return;
     }
 
     // Tomar la primera cuota pendiente si existe
     const pendingInstallment = sale.installments?.find(
-      (inst) => inst.pending_amount > 0
+      (inst) => inst.pending_amount > 0,
     );
 
     if (pendingInstallment) {

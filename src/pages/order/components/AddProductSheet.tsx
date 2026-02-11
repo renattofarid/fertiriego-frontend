@@ -62,7 +62,8 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<ProductResource | null>(null);
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductResource | null>(null);
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
@@ -157,7 +158,10 @@ export const AddProductSheet = ({
     }
   }, [quantity, unitPrice, isIgv]);
 
-  const handleAdd = () => {
+  const handleAdd = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+
     const formData = form.getValues();
 
     if (
@@ -169,11 +173,13 @@ export const AddProductSheet = ({
       return;
     }
 
-    if (!selectedProduct) return;
+    // En modo edición, usar el nombre del editingDetail si no hay selectedProduct
+    const productName = selectedProduct?.name ?? editingDetail?.product_name;
+    if (!productName) return;
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
-      product_name: selectedProduct.name,
+      product_name: productName,
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: formData.unit_price,
@@ -216,6 +222,7 @@ export const AddProductSheet = ({
           mapOptionFn={(product: ProductResource) => ({
             value: product.id.toString(),
             label: product.name,
+            description: product.category_name,
           })}
           placeholder="Seleccionar producto"
           onValueChange={(_value, item) => {
@@ -246,7 +253,7 @@ export const AddProductSheet = ({
             name="quantity"
             label="Cantidad"
             type="number"
-            step="0.01"
+            step="0.0001"
             placeholder="0.00"
           />
 
@@ -255,7 +262,7 @@ export const AddProductSheet = ({
             name="unit_price"
             label="Precio Unitario"
             type="number"
-            step="0.01"
+            step="0.0001"
             placeholder="0.00"
           />
 
@@ -265,7 +272,7 @@ export const AddProductSheet = ({
               name="purchase_price"
               label="Precio Compra"
               type="number"
-              step="0.01"
+              step="0.0001"
               placeholder="0.00"
             />
           </div>
@@ -274,9 +281,10 @@ export const AddProductSheet = ({
         <FormSwitch
           control={form.control}
           name="is_igv"
-          text="Incluye IGV"
-          textDescription="El precio unitario incluye el IGV"
+          text="Calcular IGV"
+          textDescription="Calcular IGV para este producto"
           autoHeight
+          negate={true}
         />
 
         {calculatedValues.total > 0 && (
@@ -284,18 +292,18 @@ export const AddProductSheet = ({
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
               <span className="font-medium">
-                S/. {calculatedValues.subtotal.toFixed(2)}
+                S/. {calculatedValues.subtotal.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span>IGV (18%):</span>
               <span className="font-medium">
-                S/. {calculatedValues.tax.toFixed(2)}
+                S/. {calculatedValues.tax.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
-              <span>S/. {calculatedValues.total.toFixed(2)}</span>
+              <span>S/. {calculatedValues.total.toFixed(4)}</span>
             </div>
           </div>
         )}

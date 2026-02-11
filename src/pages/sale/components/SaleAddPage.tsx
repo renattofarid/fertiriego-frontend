@@ -9,13 +9,14 @@ import { useSaleStore } from "../lib/sales.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { findQuotationById } from "@/pages/quotation/lib/quotation.actions";
 import { findOrderById } from "@/pages/order/lib/order.actions";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { SALE } from "../lib/sale.interface";
+import { useSidebar } from "@/components/ui/sidebar";
+import PageWrapper from "@/components/PageWrapper";
 
 export const SaleAddPage = () => {
-  const { ICON } = SALE;
+  const { ICON, MODEL } = SALE;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,6 +25,7 @@ export const SaleAddPage = () => {
     null,
   );
   const [isFetchingSource, setIsFetchingSource] = useState(false);
+  const { setOpen, setOpenMobile } = useSidebar();
 
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
 
@@ -63,14 +65,20 @@ export const SaleAddPage = () => {
     }
   }, [searchParams, navigate]);
 
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
+
   const getDefaultValues = (): Partial<SaleSchema> => ({
     customer_id: "",
     warehouse_id: "",
     document_type: "",
-    issue_date: "",
-    payment_type: "",
+    issue_date: new Date().toISOString().split("T")[0], // Formato YYYY-MM-DD
+    payment_type: "CONTADO",
     currency: "PEN",
     observations: "",
+    order_purchase: "",
     details: [],
     installments: [],
   });
@@ -91,7 +99,11 @@ export const SaleAddPage = () => {
       successToast("Venta creada correctamente");
       navigate("/ventas");
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE);
+      errorToast(
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          ERROR_MESSAGE(MODEL, "create"),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -99,19 +111,19 @@ export const SaleAddPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Venta" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Venta" mode="create" icon={ICON} />
@@ -130,6 +142,6 @@ export const SaleAddPage = () => {
           onCancel={() => navigate("/ventas")}
         />
       )}
-    </FormWrapper>
+    </PageWrapper>
   );
 };

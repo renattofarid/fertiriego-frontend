@@ -1,24 +1,24 @@
 import { useEffect } from "react";
 import { useVehicleStore } from "./vehicle.store";
+import { getVehicles } from "./vehicle.actions";
+import { useQuery } from "@tanstack/react-query";
+import { VEHICLE } from "./vehicle.interface";
 
-export function useVehicle(params?: Record<string, unknown>) {
-  const { vehicles, meta, isLoading, error, fetchVehicles } = useVehicleStore();
-
-  useEffect(() => {
-    if (!vehicles) fetchVehicles(params);
-  }, [vehicles, fetchVehicles]);
-
-  return {
-    data: vehicles,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchVehicles,
-  };
+export function useVehicles(params?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: [VEHICLE.QUERY_KEY, params],
+    queryFn: () =>
+      getVehicles({
+        params: {
+          ...params,
+        },
+      }),
+  });
 }
 
 export function useAllVehicles() {
-  const { allVehicles, isLoadingAll, error, fetchAllVehicles } = useVehicleStore();
+  const { allVehicles, isLoadingAll, error, fetchAllVehicles } =
+    useVehicleStore();
 
   useEffect(() => {
     if (!allVehicles) fetchAllVehicles();

@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { OrderForm } from "./OrderForm";
 import { useOrderStore } from "../lib/order.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -18,8 +17,9 @@ import {
   type OrderResource,
   type UpdateOrderRequest,
 } from "../lib/order.interface";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
+import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const OrderEditPage = () => {
   const { MODEL, ICON } = ORDER;
@@ -27,13 +27,13 @@ export const OrderEditPage = () => {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
 
+  const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
   const { updateOrder, fetchOrder, order, isFinding, isSubmitting } =
     useOrderStore();
 
-  const isLoading = warehousesLoading || quotationsLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -43,6 +43,11 @@ export const OrderEditPage = () => {
 
     fetchOrder(Number(id));
   }, [id, navigate, fetchOrder]);
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   const mapOrderToForm = (data: OrderResource): any => ({
     customer_id: data.customer_id?.toString(),
@@ -82,32 +87,32 @@ export const OrderEditPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   if (!order) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
           <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Pedido no encontrado</p>
         </div>
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
@@ -122,12 +127,11 @@ export const OrderEditPage = () => {
             isSubmitting={isSubmitting}
             mode="update"
             warehouses={warehouses}
-            quotations={quotations}
             order={order}
             onCancel={() => navigate("/pedidos")}
           />
         )}
       </div>
-    </FormWrapper>
+    </PageWrapper>
   );
 };

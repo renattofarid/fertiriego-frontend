@@ -113,6 +113,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
         amount_yape: data.amount_yape || "0",
         quotation_id: data.quotation_id ? Number(data.quotation_id) : undefined,
         order_id: data.order_id ? Number(data.order_id) : undefined,
+        order_purchase: data.order_purchase,
         is_anticipado: data.is_anticipado || false,
         is_deduccion: data.is_deduccion || false,
         is_retencionigv: data.is_retencionigv || false,
@@ -153,6 +154,9 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.currency && { currency: data.currency }),
         ...(data.observations !== undefined && {
           observations: data.observations,
+        }),
+        ...(data.order_purchase !== undefined && {
+          order_purchase: data.order_purchase,
         }),
         ...(data.details &&
           data.details.length > 0 && {

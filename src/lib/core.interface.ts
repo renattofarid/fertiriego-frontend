@@ -4,7 +4,7 @@ export interface ModelInterface {
   name: string;
   description?: string;
   plural?: string;
-  gender: boolean; // true for F and false for M
+  gender: boolean; // true for FEMALE and false for MALE
 }
 
 export interface TitleInterface {

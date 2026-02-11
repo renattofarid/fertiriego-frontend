@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDrivers } from "../lib/driver.hook";
 import TitleComponent from "@/components/TitleComponent";
-import DriverActions from "./DriverActions";
+import CarrierActions from "./CarrierActions";
 import PersonTable from "@/pages/person/components/PersonTable";
 import PersonOptions from "@/pages/person/components/PersonOptions";
 import { deletePerson } from "@/pages/person/lib/person.actions";
@@ -21,14 +20,15 @@ import {
 } from "@/lib/core.function";
 import { PersonColumns } from "@/pages/person/components/PersonColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { DRIVER, DRIVER_ROLE_ID } from "../lib/driver.interface";
 import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssignment";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
+import { useCarriers } from "../lib/carrier.hook";
 
-const { MODEL, ICON } = DRIVER;
+const { MODEL, ICON } = CARRIER;
 
-export default function DriverPage() {
+export default function CarrierPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -36,7 +36,7 @@ export default function DriverPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
     useState<PersonResource | null>(null);
-  const { data, isLoading, refetch } = useDrivers();
+  const { data, isLoading, refetch } = useCarriers();
 
   useEffect(() => {
     refetch();
@@ -45,7 +45,7 @@ export default function DriverPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await deletePerson(deleteId, DRIVER_ROLE_ID);
+      await deletePerson(deleteId, CARRIER_ROLE_ID);
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
@@ -75,7 +75,7 @@ export default function DriverPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <DriverActions />
+        <CarrierActions />
       </div>
 
       <PersonTable

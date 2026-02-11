@@ -8,13 +8,14 @@ import { type SaleUpdateSchema } from "../lib/sale.schema";
 import { useSaleStore } from "../lib/sales.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { SALE, type SaleResource } from "../lib/sale.interface";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { errorToast } from "@/lib/core.function";
+import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
 import { format, parse } from "date-fns";
+import { useSidebar } from "@/components/ui/sidebar";
+import PageWrapper from "@/components/PageWrapper";
 
 export const SaleEditPage = () => {
-  const { ICON } = SALE;
+  const { ICON, MODEL } = SALE;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +24,7 @@ export const SaleEditPage = () => {
 
   const { updateSale, fetchSale, sale, isFinding } = useSaleStore();
 
+  const { setOpen, setOpenMobile } = useSidebar();
   const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
@@ -32,6 +34,11 @@ export const SaleEditPage = () => {
     }
     fetchSale(Number(id));
   }, [id, navigate, fetchSale]);
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   // Validar que la venta no tenga pagos registrados en sus cuotas
   useEffect(() => {
@@ -61,6 +68,7 @@ export const SaleEditPage = () => {
     payment_type: data.payment_type,
     currency: data.currency,
     observations: data.observations || "",
+    order_purchase: data.order_purchase || "",
     details:
       data.details?.map((detail) => ({
         product_id: detail.product_id.toString(),
@@ -85,7 +93,9 @@ export const SaleEditPage = () => {
       navigate("/ventas");
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al actualizar la venta",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          ERROR_MESSAGE(MODEL, "update"),
       );
     } finally {
       setIsSubmitting(false);
@@ -94,32 +104,32 @@ export const SaleEditPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Venta" mode="update" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   if (!sale) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
           <TitleFormComponent title="Venta" mode="update" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Venta no encontrada</p>
         </div>
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Venta" mode="update" icon={ICON} />
@@ -140,6 +150,6 @@ export const SaleEditPage = () => {
           />
         )}
       </div>
-    </FormWrapper>
+    </PageWrapper>
   );
 };

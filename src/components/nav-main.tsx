@@ -14,6 +14,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -34,19 +35,25 @@ export function NavMain({
   }[];
 }) {
   const location = useLocation();
+  const { state, setOpen } = useSidebar();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
 
   // Función para verificar si algún subitem coincide con la ruta actual
-  const isItemActive = (item: typeof items[0]): boolean => {
+  const isItemActive = (item: (typeof items)[0]): boolean => {
     if (!item.items) {
       return location.pathname === item.url;
     }
-    return item.items.some((subItem) => location.pathname.startsWith(subItem.url));
+    return item.items.some(
+      (subItem) =>
+        location.pathname === subItem.url ||
+        location.pathname.startsWith(subItem.url + "/"),
+    );
   };
 
   // Función para verificar si un subitem está activo
   const isSubItemActive = (url: string): boolean => {
-    return location.pathname.startsWith(url);
+    // Coincidencia exacta o coincidencia con sub-ruta (seguida de /)
+    return location.pathname === url || location.pathname.startsWith(url + "/");
   };
 
   // Efecto para abrir automáticamente el collapsible que contiene la ruta actual
@@ -61,6 +68,25 @@ export function NavMain({
     setOpenItems(newOpenItems);
   }, [location.pathname, items]);
 
+  // Función para manejar el clic en un item cuando el sidebar está colapsado
+  const handleItemClick = (itemTitle: string, isOpen: boolean) => {
+    if (state === "collapsed") {
+      // Si el sidebar está colapsado, abrirlo primero
+      setOpen(true);
+      // Luego abrir el item
+      setOpenItems((prev) => ({
+        ...prev,
+        [itemTitle]: true,
+      }));
+    } else {
+      // Si el sidebar está expandido, comportamiento normal de toggle
+      setOpenItems((prev) => ({
+        ...prev,
+        [itemTitle]: isOpen,
+      }));
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarMenu>
@@ -71,14 +97,11 @@ export function NavMain({
               asChild
               open={openItems[item.title]}
               onOpenChange={(isOpen) => {
-                setOpenItems((prev) => ({
-                  ...prev,
-                  [item.title]: isOpen,
-                }));
+                handleItemClick(item.title, isOpen);
               }}
               className="group/collapsible"
             >
-              <SidebarMenuItem>
+              <SidebarMenuItem className="p-0">
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
                     tooltip={item.title}
@@ -90,10 +113,13 @@ export function NavMain({
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <SidebarMenuSub>
+                  <SidebarMenuSub className="pr-0 mr-0">
                     {item.items?.map((subItem) => (
                       <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton asChild isActive={isSubItemActive(subItem.url)}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={isSubItemActive(subItem.url)}
+                        >
                           <Link to={subItem.url}>
                             {subItem.icon && <subItem.icon />}
                             <span>{subItem.title}</span>
@@ -107,14 +133,18 @@ export function NavMain({
             </Collapsible>
           ) : (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title} isActive={isItemActive(item)}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={isItemActive(item)}
+              >
                 <Link to={item.url}>
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          )
+          ),
         )}
       </SidebarMenu>
     </SidebarGroup>

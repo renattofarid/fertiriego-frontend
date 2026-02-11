@@ -1,15 +1,15 @@
-import { DRIVER, DRIVER_ROLE_CODE } from "./driver.interface";
 import { useQuery } from "@tanstack/react-query";
 import { getPersons } from "@/pages/person/lib/person.actions";
+import { CARRIER, CARRIER_ROLE_CODE } from "./carrier.interface";
 
-export function useDrivers(params?: Record<string, unknown>) {
+export function useCarriers(params?: Record<string, unknown>) {
   return useQuery({
-    queryKey: [DRIVER.QUERY_KEY, params],
+    queryKey: [CARRIER.QUERY_KEY, params],
     queryFn: () =>
       getPersons({
         params: {
           ...params,
-          role_names: [DRIVER_ROLE_CODE],
+          role_names: [CARRIER_ROLE_CODE],
         },
       }),
   });

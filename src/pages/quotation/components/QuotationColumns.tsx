@@ -1,15 +1,10 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreVertical, Trash2, Eye, Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { QuotationResource } from "../lib/quotation.interface";
 import ExportButtons from "@/components/ExportButtons";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface QuotationColumnsProps {
   onEdit: (quotation: QuotationResource) => void;
@@ -104,7 +99,7 @@ export const getQuotationColumns = ({
     header: "Estado",
     cell: ({ row }) => {
       const getStatusVariant = (
-        status: string
+        status: string,
       ): "default" | "green" | "destructive" | "secondary" => {
         switch (status) {
           case "Pendiente":
@@ -151,37 +146,17 @@ export const getQuotationColumns = ({
           pdfFileName={`cotizacion-${row.original.quotation_number}.pdf`}
           variant="separate"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Abrir menú</span>
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              onClick={() => onViewDetails(row.original)}
-              className="cursor-pointer"
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              Ver Detalles
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onEdit(row.original)}
-              className="cursor-pointer"
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onDelete(row.original.id)}
-              className="cursor-pointer text-red-600"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ButtonAction
+          icon={Eye}
+          onClick={() => onViewDetails(row.original)}
+          tooltip="Ver Detalles"
+        />
+        <ButtonAction
+          icon={Pencil}
+          onClick={() => onEdit(row.original)}
+          tooltip="Editar"
+        />
+        <DeleteButton onClick={() => onDelete(row.original.id)} />
       </div>
     ),
   },
