@@ -2,9 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   ShoppingCart,
   User,
@@ -12,8 +19,8 @@ import {
   Calendar,
   Package,
   ArrowLeft,
-  Loader,
   FileText,
+  Activity,
 } from "lucide-react";
 import type { OrderResource } from "../lib/order.interface";
 import { findOrderById } from "../lib/order.actions";
@@ -21,6 +28,8 @@ import TraceabilityTimeline from "@/components/TraceabilityTimeline";
 import PageWrapper from "@/components/PageWrapper";
 import TitleComponent from "@/components/TitleComponent";
 import { ORDER } from "../lib/order.interface";
+import FormSkeleton from "@/components/FormSkeleton";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -60,13 +69,7 @@ export default function OrderDetailPage() {
   const { ICON } = ORDER;
 
   if (isLoading) {
-    return (
-      <PageWrapper>
-        <div className="flex items-center justify-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      </PageWrapper>
-    );
+    return <FormSkeleton />;
   }
 
   if (!order) {
@@ -115,7 +118,9 @@ export default function OrderDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs text-muted-foreground">N° Pedido</p>
-                  <p className="font-mono font-semibold">{order.order_number}</p>
+                  <p className="font-mono font-semibold">
+                    {order.order_number}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Estado</p>
@@ -126,9 +131,7 @@ export default function OrderDetailPage() {
                   <p className="font-medium">{formatDate(order.order_date)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">
-                    Fecha Entrega
-                  </p>
+                  <p className="text-xs text-muted-foreground">Fecha Entrega</p>
                   <Badge variant="secondary">
                     {formatDate(order.order_delivery_date)}
                   </Badge>
@@ -167,7 +170,9 @@ export default function OrderDetailPage() {
               {order.customer.number_document && (
                 <div>
                   <p className="text-xs text-muted-foreground">Documento</p>
-                  <p className="font-medium">{order.customer.number_document}</p>
+                  <p className="font-medium">
+                    {order.customer.number_document}
+                  </p>
                 </div>
               )}
             </CardContent>
@@ -266,7 +271,10 @@ export default function OrderDetailPage() {
                   <span className="font-bold text-2xl text-primary">
                     {currency}{" "}
                     {order.order_details
-                      .reduce((sum, detail) => sum + parseFloat(detail.total), 0)
+                      .reduce(
+                        (sum, detail) => sum + parseFloat(detail.total),
+                        0,
+                      )
                       .toFixed(2)}
                   </span>
                 </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuotation } from "../lib/quotation.hook";
+import { useQuotations } from "../lib/quotation.hook";
 import QuotationTable from "./QuotationTable";
 import { getQuotationColumns } from "./QuotationColumns";
 import { useQuotationStore } from "../lib/quotation.store";
@@ -30,24 +30,14 @@ export default function QuotationPage() {
   const { setOpen, setOpenMobile } = useSidebar();
   const { removeQuotation } = useQuotationStore();
 
-  const {
-    data: quotations,
-    isLoading,
-    refetch,
-    meta,
-  } = useQuotation({
+  const { data, isLoading, refetch } = useQuotations({
     page,
     search,
     per_page,
   });
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-    };
-    refetch(filterParams);
+    refetch();
   }, [page, search, per_page]);
 
   useEffect(() => {
@@ -111,7 +101,7 @@ export default function QuotationPage() {
 
       <QuotationTable
         columns={columns}
-        data={quotations || []}
+        data={data?.data || []}
         isLoading={isLoading}
       >
         <div className="flex items-center gap-2 mb-4">
@@ -126,11 +116,11 @@ export default function QuotationPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       <SimpleDeleteDialog

@@ -1,38 +1,19 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useQuotationStore } from "./quotation.store";
-import type { GetQuotationsParams } from "./quotation.actions";
+import { getQuotations } from "./quotation.actions";
+import { QUOTATION } from "./quotation.interface";
 
-export function useQuotation(params?: GetQuotationsParams) {
-  const { quotations, meta, isLoading, error, fetchQuotations } =
-    useQuotationStore();
-
-  useEffect(() => {
-    if (!quotations) fetchQuotations(params);
-  }, [quotations, fetchQuotations]);
-
-  return {
-    data: quotations,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchQuotations,
-  };
-}
-
-export function useAllQuotations() {
-  const { allQuotations, isLoadingAll, error, fetchAllQuotations } =
-    useQuotationStore();
-
-  useEffect(() => {
-    if (!allQuotations) fetchAllQuotations();
-  }, [allQuotations, fetchAllQuotations]);
-
-  return {
-    data: allQuotations,
-    isLoading: isLoadingAll,
-    error,
-    refetch: fetchAllQuotations,
-  };
+export function useQuotations(params?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: [QUOTATION.QUERY_KEY, params],
+    queryFn: () =>
+      getQuotations({
+        params: {
+          ...params,
+        },
+      }),
+  });
 }
 
 export function useQuotationById(id: number) {

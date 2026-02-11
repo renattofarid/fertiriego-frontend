@@ -13,19 +13,11 @@ import { QUOTATION_ENDPOINT } from "./quotation.interface";
 // ============================================
 
 export interface GetQuotationsParams {
-  page?: number;
-  per_page?: number;
-  search?: string;
-  status?: string;
-  payment_type?: string;
-  customer_id?: number;
-  warehouse_id?: number;
-  date_from?: string;
-  date_to?: string;
+  params?: Record<any, unknown>;
 }
 
 export const getQuotations = async (
-  params?: GetQuotationsParams
+  params?: GetQuotationsParams,
 ): Promise<QuotationResponse> => {
   const response = await api.get<QuotationResponse>(QUOTATION_ENDPOINT, {
     params,
@@ -41,16 +33,16 @@ export const getAllQuotations = async (): Promise<QuotationResource[]> => {
 };
 
 export const findQuotationById = async (
-  id: number
+  id: number,
 ): Promise<QuotationResourceById> => {
   const response = await api.get<QuotationResourceById>(
-    `${QUOTATION_ENDPOINT}/${id}`
+    `${QUOTATION_ENDPOINT}/${id}`,
   );
   return response.data;
 };
 
 export const storeQuotation = async (
-  data: CreateQuotationRequest
+  data: CreateQuotationRequest,
 ): Promise<{ message: string; data: QuotationResource }> => {
   const response = await api.post<{
     message: string;
@@ -61,20 +53,20 @@ export const storeQuotation = async (
 
 export const updateQuotation = async (
   id: number,
-  data: UpdateQuotationRequest
+  data: UpdateQuotationRequest,
 ): Promise<{ message: string }> => {
   const response = await api.put<{ message: string }>(
     `${QUOTATION_ENDPOINT}/${id}`,
-    data
+    data,
   );
   return response.data;
 };
 
 export const deleteQuotation = async (
-  id: number
+  id: number,
 ): Promise<{ message: string }> => {
   const response = await api.delete<{ message: string }>(
-    `${QUOTATION_ENDPOINT}/${id}`
+    `${QUOTATION_ENDPOINT}/${id}`,
   );
   return response.data;
 };

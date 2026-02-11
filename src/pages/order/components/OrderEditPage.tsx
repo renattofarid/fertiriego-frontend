@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { OrderForm } from "./OrderForm";
 import { useOrderStore } from "../lib/order.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -30,12 +29,11 @@ export const OrderEditPage = () => {
 
   const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
   const { updateOrder, fetchOrder, order, isFinding, isSubmitting } =
     useOrderStore();
 
-  const isLoading = warehousesLoading || quotationsLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -129,7 +127,6 @@ export const OrderEditPage = () => {
             isSubmitting={isSubmitting}
             mode="update"
             warehouses={warehouses}
-            quotations={quotations}
             order={order}
             onCancel={() => navigate("/pedidos")}
           />

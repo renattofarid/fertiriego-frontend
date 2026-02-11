@@ -4,7 +4,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { OrderForm } from "./OrderForm";
 import { useOrderStore } from "../lib/order.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllQuotations } from "@/pages/quotation/lib/quotation.hook";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import { ORDER, type CreateOrderRequest } from "../lib/order.interface";
@@ -17,11 +16,10 @@ export const OrderAddPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
   const { createOrder } = useOrderStore();
 
-  const isLoading = warehousesLoading || quotationsLoading;
+  const isLoading = warehousesLoading;
 
   const handleSubmit = async (data: CreateOrderRequest) => {
     setIsSubmitting(true);
@@ -68,7 +66,6 @@ export const OrderAddPage = () => {
           onCancel={() => navigate("/pedidos")}
           isSubmitting={isSubmitting}
           warehouses={warehouses}
-          quotations={quotations}
         />
       )}
     </PageWrapper>

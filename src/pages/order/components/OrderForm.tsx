@@ -1,5 +1,4 @@
 "use client";
-
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -44,13 +43,13 @@ import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useQuotations } from "@/pages/quotation/lib/quotation.hook";
 
 interface OrderFormProps {
   onSubmit: (data: CreateOrderRequest) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
   warehouses: WarehouseResource[];
-  quotations?: QuotationResource[];
   defaultValues?: any;
   mode?: "create" | "update";
   order?: any;
@@ -73,7 +72,6 @@ export const OrderForm = ({
   onSubmit,
   isSubmitting = false,
   warehouses,
-  quotations,
   defaultValues,
   mode = "create",
   order,
@@ -87,6 +85,8 @@ export const OrderForm = ({
   const [editingIndex, setEditingIndex] = useState<number | undefined>(
     undefined,
   );
+  const { data: quotationsResponse } = useQuotations();
+  const quotations = quotationsResponse?.data;
 
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
@@ -94,6 +94,12 @@ export const OrderForm = ({
   const [customersList, setCustomersList] = useState<PersonResource[]>([]);
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
+  const [defaultCustomerOption, setDefaultCustomerOption] = useState<
+    { value: string; label: string } | undefined
+  >(undefined);
+  const [preloadCustomerId, setPreloadCustomerId] = useState<
+    string | undefined
+  >(undefined);
 
   const form = useForm<any>({
     defaultValues: defaultValues || {
@@ -157,8 +163,32 @@ export const OrderForm = ({
         }),
       );
       setDetails(orderDetails);
+
+      // Setear quotation_id si existe en el pedido
+      if (order.quotation_id) {
+        form.setValue("quotation_id", order.quotation_id.toString());
+      }
+
+      // Establecer defaultCustomerOption si existe el cliente en el pedido
+      if (order.customer) {
+        const customerLabel =
+          order.customer.business_name ||
+          order.customer.names +
+            " " +
+            (order.customer.father_surname || "") +
+            " " +
+            (order.customer.mother_surname || "");
+
+        setDefaultCustomerOption({
+          value: order.customer_id.toString(),
+          label: customerLabel,
+        });
+
+        // Establecer el ID para precargar automáticamente
+        setPreloadCustomerId(order.customer_id.toString());
+      }
     }
-  }, [mode, order]);
+  }, [mode, order, form]);
 
   useEffect(() => {
     if (quotationId && quotations) {
@@ -166,33 +196,59 @@ export const OrderForm = ({
         (q) => q.id === parseInt(quotationId),
       );
 
-      if (selectedQuotation && mode === "create") {
-        // Prellenar datos del formulario
-        form.setValue("customer_id", selectedQuotation.customer_id.toString());
-        form.setValue(
-          "warehouse_id",
-          selectedQuotation.warehouse_id.toString(),
-        );
-        form.setValue("currency", selectedQuotation.currency);
-        form.setValue("address", selectedQuotation.address || "");
-        form.setValue("observations", selectedQuotation.observations || "");
+      if (selectedQuotation) {
+        // Establecer el cliente con su información para que aparezca en el dropdown
+        const customerLabel =
+          selectedQuotation.customer?.business_name ||
+          selectedQuotation.customer?.names +
+            " " +
+            (selectedQuotation.customer?.father_surname || "") +
+            " " +
+            (selectedQuotation.customer?.mother_surname || "");
 
-        // Prellenar los detalles de productos
-        const quotationDetails: DetailRow[] =
-          selectedQuotation.quotation_details.map((detail) => ({
-            product_id: detail.product_id.toString(),
-            product_name: detail.product.name,
-            is_igv: detail.is_igv,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
-            purchase_price: detail.purchase_price,
-            subtotal: parseFloat(detail.subtotal),
-            tax: parseFloat(detail.tax),
-            total: parseFloat(detail.total),
-          }));
+        setDefaultCustomerOption({
+          value: selectedQuotation.customer_id.toString(),
+          label: customerLabel,
+        });
 
-        setDetails(quotationDetails);
+        // Establecer el ID para precargar automáticamente
+        setPreloadCustomerId(selectedQuotation.customer_id.toString());
+
+        if (mode === "create") {
+          // Prellenar datos del formulario
+          form.setValue(
+            "customer_id",
+            selectedQuotation.customer_id.toString(),
+          );
+          form.setValue(
+            "warehouse_id",
+            selectedQuotation.warehouse_id.toString(),
+          );
+          form.setValue("currency", selectedQuotation.currency);
+          form.setValue("address", selectedQuotation.address || "");
+          form.setValue("observations", selectedQuotation.observations || "");
+
+          // Prellenar los detalles de productos
+          const quotationDetails: DetailRow[] =
+            selectedQuotation.quotation_details.map((detail) => ({
+              product_id: detail.product_id.toString(),
+              product_name: detail.product.name,
+              is_igv: detail.is_igv,
+              quantity: detail.quantity,
+              unit_price: detail.unit_price,
+              purchase_price: detail.purchase_price,
+              subtotal: parseFloat(detail.subtotal),
+              tax: parseFloat(detail.tax),
+              total: parseFloat(detail.total),
+            }));
+
+          setDetails(quotationDetails);
+        }
       }
+    } else {
+      // Limpiar cuando se quita la cotización
+      setDefaultCustomerOption(undefined);
+      setPreloadCustomerId(undefined);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [quotationId, quotations]);
@@ -322,6 +378,18 @@ export const OrderForm = ({
               lg: 3,
             }}
           >
+            <FormSelectAsync
+              control={form.control}
+              name="quotation_id"
+              label="Cotización"
+              useQueryHook={useQuotations}
+              mapOptionFn={(q: QuotationResource) => ({
+                value: q.id.toString(),
+                label: `#${q.id} - ${q.quotation_number} - ${q.customer?.business_name || q.customer?.names || "Cliente"}`,
+              })}
+              placeholder="Seleccionar cotización"
+            />
+
             <div className="flex gap-2 items-end max-w-full">
               <div className="flex-1 min-w-0">
                 <FormSelectAsync
@@ -340,6 +408,8 @@ export const OrderForm = ({
                         (c.mother_surname || ""),
                   })}
                   placeholder="Seleccionar cliente"
+                  defaultOption={defaultCustomerOption}
+                  preloadItemId={preloadCustomerId}
                 />
               </div>
               {mode === "create" && (
@@ -383,19 +453,6 @@ export const OrderForm = ({
                 </Button>
               )}
             </div>
-
-            {quotations && quotations.length > 0 && (
-              <FormSelect
-                control={form.control}
-                name="quotation_id"
-                label="Cotización"
-                options={quotations.map((q) => ({
-                  value: q.id.toString(),
-                  label: `#${q.id} - ${q.quotation_number}`,
-                }))}
-                placeholder="Seleccionar cotización"
-              />
-            )}
 
             <DatePickerFormField
               control={form.control}
@@ -498,8 +555,8 @@ export const OrderForm = ({
                   <TableRow>
                     <TableHead>Producto</TableHead>
                     <TableHead className="text-right">Cantidad</TableHead>
+                    <TableHead className="text-right">V. Unitario</TableHead>
                     <TableHead className="text-right">P. Unitario</TableHead>
-                    <TableHead className="text-right">P. Compra</TableHead>
                     <TableHead className="text-center">IGV</TableHead>
                     <TableHead className="text-right">Subtotal</TableHead>
                     <TableHead className="text-right">IGV</TableHead>
@@ -518,13 +575,16 @@ export const OrderForm = ({
                         {parseFloat(detail.unit_price).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {parseFloat(detail.purchase_price).toFixed(4)}
+                        {(
+                          parseFloat(detail.unit_price) *
+                          (!detail.is_igv ? 1.18 : 1)
+                        ).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={detail.is_igv ? "default" : "secondary"}
+                          variant={!detail.is_igv ? "default" : "secondary"}
                         >
-                          {detail.is_igv ? "Sí" : "No"}
+                          {!detail.is_igv ? "Sí" : "No"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

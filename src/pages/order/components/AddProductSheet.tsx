@@ -142,7 +142,7 @@ export const AddProductSheet = ({
     const price = parseFloat(unitPrice) || 0;
 
     if (qty > 0 && price > 0) {
-      if (isIgv) {
+      if (!isIgv) {
         const subtotal = qty * price;
         const tax = subtotal * 0.18;
         const total = subtotal + tax;
@@ -284,6 +284,7 @@ export const AddProductSheet = ({
           text="Calcular IGV"
           textDescription="Calcular IGV para este producto"
           autoHeight
+          negate={true}
         />
 
         {calculatedValues.total > 0 && (
