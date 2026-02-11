@@ -14,11 +14,11 @@ import {
   successToast,
   errorToast,
 } from "@/lib/core.function";
-import { DRIVER, DRIVER_ROLE_ID } from "../lib/carrier.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
+import { DRIVER, DRIVER_ROLE_ID } from "@/pages/driver/lib/driver.interface";
 
 const { MODEL, ICON } = DRIVER;
 
@@ -77,7 +77,7 @@ export default function DriverEditPage() {
 
       await updatePerson(personData.id, updatePersonData);
       successToast(
-        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "update")
+        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "update"),
       );
       navigate("/conductores");
     } catch (error: any) {
@@ -88,7 +88,7 @@ export default function DriverEditPage() {
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Conductor", gender: false }, "update")
+        ERROR_MESSAGE({ name: "Conductor", gender: false }, "update"),
       );
     } finally {
       setIsSubmitting(false);

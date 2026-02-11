@@ -12,8 +12,8 @@ import {
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import { DRIVER, DRIVER_ROLE_ID } from "../lib/carrier.interface";
 import FormWrapper from "@/components/FormWrapper";
+import { DRIVER, DRIVER_ROLE_ID } from "@/pages/driver/lib/driver.interface";
 
 const { MODEL, ICON } = DRIVER;
 
