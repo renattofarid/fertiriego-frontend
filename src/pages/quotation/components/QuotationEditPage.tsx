@@ -14,15 +14,15 @@ import {
   type UpdateQuotationRequest,
 } from "../lib/quotation.interface";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const QuotationEditPage = () => {
   const { ICON } = QUOTATION;
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { setOpen, setOpenMobile } = useSidebar();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-
   const {
     quotation,
     fetchQuotation,
@@ -55,6 +55,11 @@ export const QuotationEditPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   if (isLoading) {
     return (

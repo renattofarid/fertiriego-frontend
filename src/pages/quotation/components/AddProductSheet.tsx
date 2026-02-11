@@ -212,7 +212,7 @@ export const AddProductSheet = ({
       icon="Package"
       size="lg"
     >
-      <div className="flex flex-col gap-4 px-4">
+      <div className="flex flex-col gap-4">
         <FormSelectAsync
           control={form.control}
           name="product_id"
@@ -221,6 +221,7 @@ export const AddProductSheet = ({
           mapOptionFn={(product: ProductResource) => ({
             value: product.id.toString(),
             label: product.name,
+            description: product.category_name,
           })}
           placeholder="Seleccionar producto"
           onValueChange={(_value, item) => {
@@ -251,7 +252,7 @@ export const AddProductSheet = ({
             name="quantity"
             label="Cantidad"
             type="number"
-            step="0.01"
+            step="0.0001"
             placeholder="0.00"
           />
 
@@ -264,16 +265,16 @@ export const AddProductSheet = ({
             placeholder="0.00"
           />
 
-          <div className="col-span-2">
+          {/* <div className="col-span-2">
             <FormInput
               control={form.control}
               name="purchase_price"
               label="Precio Compra"
               type="number"
-              step="0.01"
+              step="0.0001"
               placeholder="0.00"
             />
-          </div>
+          </div> */}
 
           <div className="col-span-2">
             <FormInput
@@ -299,21 +300,21 @@ export const AddProductSheet = ({
               <span>Subtotal:</span>
               <span className="font-medium">
                 {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.subtotal.toFixed(2)}
+                {calculatedValues.subtotal.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span>IGV (18%):</span>
               <span className="font-medium">
                 {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.tax.toFixed(2)}
+                {calculatedValues.tax.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
               <span>
                 {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.total.toFixed(2)}
+                {calculatedValues.total.toFixed(4)}
               </span>
             </div>
           </div>

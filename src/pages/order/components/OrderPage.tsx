@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import ExportButtons from "@/components/ExportButtons";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import DataTablePagination from "@/components/DataTablePagination";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function OrderPage() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function OrderPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const { setOpen, setOpenMobile } = useSidebar();
 
   const {
     data: orders,
@@ -63,6 +65,11 @@ export default function OrderPage() {
   const handleGenerateSale = (order: OrderResource) => {
     navigate(`/ventas/agregar?order_id=${order.id}`);
   };
+
+  useEffect(() => {
+    setOpen(true);
+    setOpenMobile(true);
+  }, []);
 
   const confirmDelete = async () => {
     if (orderToDelete) {

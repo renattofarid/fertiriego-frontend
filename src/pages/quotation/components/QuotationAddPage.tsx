@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { QuotationForm } from "./QuotationForm";
@@ -11,16 +11,15 @@ import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast, successToast } from "@/lib/core.function";
 import { QUOTATION } from "../lib/quotation.interface";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const QuotationAddPage = () => {
   const { ICON } = QUOTATION;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-
   const { createQuotation } = useQuotationStore();
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const isLoading = warehousesLoading;
 
   const handleSubmit = async (data: any) => {
@@ -37,6 +36,11 @@ export const QuotationAddPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   if (isLoading) {
     return (

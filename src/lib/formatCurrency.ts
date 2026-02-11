@@ -14,7 +14,7 @@ export type FormatCurrencyOptions = {
  */
 export function formatNumber(
   value: number,
-  decimals = 6,
+  decimals = 2,
   locale: string = APP_LOCALE
 ): string {
   if (!isFinite(value) || isNaN(value)) return String(value);

@@ -20,6 +20,8 @@ import {
 } from "../lib/order.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
+import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const OrderEditPage = () => {
   const { MODEL, ICON } = ORDER;
@@ -27,6 +29,7 @@ export const OrderEditPage = () => {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
 
+  const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: quotations, isLoading: quotationsLoading } = useAllQuotations();
 
@@ -43,6 +46,11 @@ export const OrderEditPage = () => {
 
     fetchOrder(Number(id));
   }, [id, navigate, fetchOrder]);
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   const mapOrderToForm = (data: OrderResource): any => ({
     customer_id: data.customer_id?.toString(),
@@ -107,7 +115,7 @@ export const OrderEditPage = () => {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
@@ -128,6 +136,6 @@ export const OrderEditPage = () => {
           />
         )}
       </div>
-    </FormWrapper>
+    </PageWrapper>
   );
 };

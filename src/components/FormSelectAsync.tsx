@@ -204,7 +204,6 @@ export function FormSelectAsync({
             ? selectedOption
             : null);
 
-
         return (
           <FormItem className="flex flex-col justify-between">
             {label && typeof label === "function"
@@ -256,7 +255,7 @@ export function FormSelectAsync({
                 </PopoverTrigger>
 
                 <PopoverContent
-                  className="p-0 w-(--radix-popover-trigger-width)!"
+                  className="p-0 min-w-(--radix-popover-trigger-width)! w-auto"
                   onWheel={(e) => e.stopPropagation()}
                   onWheelCapture={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}
@@ -302,7 +301,9 @@ export function FormSelectAsync({
                                 setSelectedOption(newValue ? option : null);
                                 // Llamar onValueChange si existe, pasando el item completo
                                 if (onValueChange) {
-                                  const selectedItem = rawItemsMap.current.get(option.value);
+                                  const selectedItem = rawItemsMap.current.get(
+                                    option.value,
+                                  );
                                   onValueChange(newValue, selectedItem);
                                 }
                                 setOpen(false);

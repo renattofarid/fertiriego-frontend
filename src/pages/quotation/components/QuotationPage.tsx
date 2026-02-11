@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import ExportButtons from "@/components/ExportButtons";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import DataTablePagination from "@/components/DataTablePagination";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function QuotationPage() {
   const navigate = useNavigate();
@@ -24,8 +25,10 @@ export default function QuotationPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
   const [quotationToDelete, setQuotationToDelete] = useState<number | null>(
-    null
+    null,
   );
+  const { setOpen, setOpenMobile } = useSidebar();
+  const { removeQuotation } = useQuotationStore();
 
   const {
     data: quotations,
@@ -47,7 +50,10 @@ export default function QuotationPage() {
     refetch(filterParams);
   }, [page, search, per_page]);
 
-  const { removeQuotation } = useQuotationStore();
+  useEffect(() => {
+    setOpen(true);
+    setOpenMobile(true);
+  }, []);
 
   const handleEdit = (quotation: QuotationResource) => {
     navigate(`/cotizaciones/actualizar/${quotation.id}`);
