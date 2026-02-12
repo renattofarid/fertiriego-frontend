@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
-import TitleComponent from "@/components/TitleComponent";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
@@ -11,10 +9,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, CreditCard, Wallet, Pencil, RefreshCw } from "lucide-react";
+import {
+  PackageOpen,
+  CreditCard,
+  Wallet,
+  Pencil,
+  RefreshCw,
+} from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
-import type { PurchaseInstallmentResource } from "../lib/purchase.interface";
+import {
+  PURCHASE,
+  type PurchaseInstallmentResource,
+} from "../lib/purchase.interface";
 import { errorToast, successToast } from "@/lib/core.function";
 import {
   Tooltip,
@@ -22,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export const PurchaseDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +38,7 @@ export const PurchaseDetailViewPage = () => {
   const [selectedInstallment, setSelectedInstallment] =
     useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
-
+  const { ROUTE } = PURCHASE;
   const { purchase, fetchPurchase, isFinding } = usePurchaseStore();
   const { details, fetchDetails } = usePurchaseDetailStore();
   const { installments, fetchInstallments, updateInstallment } =
@@ -53,7 +61,7 @@ export const PurchaseDetailViewPage = () => {
   };
 
   const handleViewInstallmentPayments = (
-    installment: PurchaseInstallmentResource
+    installment: PurchaseInstallmentResource,
   ) => {
     setSelectedInstallment(installment);
     setIsPaymentSheetOpen(true);
@@ -61,7 +69,7 @@ export const PurchaseDetailViewPage = () => {
 
   const handleSyncInstallment = async (
     installmentId: number,
-    newAmount: number
+    newAmount: number,
   ) => {
     if (!purchase) return;
 
@@ -73,7 +81,7 @@ export const PurchaseDetailViewPage = () => {
       fetchInstallments(Number(id));
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al sincronizar la cuota"
+        error.response?.data?.message || "Error al sincronizar la cuota",
       );
     }
   };
@@ -85,7 +93,7 @@ export const PurchaseDetailViewPage = () => {
       parseFloat(installment.pending_amount) === parseFloat(installment.amount);
     const hasDifference =
       Math.abs(
-        parseFloat(installment.amount) - parseFloat(purchase.total_amount)
+        parseFloat(installment.amount) - parseFloat(purchase.total_amount),
       ) > 0.01;
     return isCash && hasNoPayments && hasDifference;
   };
@@ -93,12 +101,12 @@ export const PurchaseDetailViewPage = () => {
   if (isFinding) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/compras" />
-            <TitleComponent title="Detalle de Compra" />
-          </div>
-        </div>
+        <TitleFormComponent
+          title="Detalle de Compra"
+          mode="detail"
+          icon="PackageOpen"
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -107,10 +115,12 @@ export const PurchaseDetailViewPage = () => {
   if (!purchase) {
     return (
       <FormWrapper>
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/compras" />
-          <TitleComponent title="Detalle de Compra" />
-        </div>
+        <TitleFormComponent
+          title="Detalle de Compra"
+          mode="detail"
+          icon="PackageOpen"
+          backRoute={ROUTE}
+        />
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
         </div>
@@ -123,8 +133,12 @@ export const PurchaseDetailViewPage = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <BackButton to="/compras" />
-            <TitleComponent title={`Compra ${purchase.correlativo}`} />
+            <TitleFormComponent
+              title={`Compra ${purchase.correlativo}`}
+              mode="detail"
+              icon="PackageOpen"
+              backRoute={ROUTE}
+            />
           </div>
           <Button onClick={handleEditPurchase} variant="outline">
             <Pencil className="h-4 w-4 mr-2" />
@@ -209,8 +223,8 @@ export const PurchaseDetailViewPage = () => {
                   {purchase.currency === "PEN"
                     ? "Soles (S/.)"
                     : purchase.currency === "USD"
-                    ? "Dólares ($)"
-                    : "Euros (€)"}
+                      ? "Dólares ($)"
+                      : "Euros (€)"}
                 </p>
               </div>
               <div>
@@ -219,8 +233,8 @@ export const PurchaseDetailViewPage = () => {
                   {purchase.currency === "PEN"
                     ? "S/."
                     : purchase.currency === "USD"
-                    ? "$"
-                    : "€"}
+                      ? "$"
+                      : "€"}
                   {parseFloat(purchase.total_amount).toFixed(2)}
                 </p>
               </div>
@@ -232,8 +246,8 @@ export const PurchaseDetailViewPage = () => {
                   {purchase.currency === "PEN"
                     ? "S/."
                     : purchase.currency === "USD"
-                    ? "$"
-                    : "€"}
+                      ? "$"
+                      : "€"}
                   {parseFloat(purchase.current_amount).toFixed(2)}
                 </p>
               </div>
@@ -245,8 +259,8 @@ export const PurchaseDetailViewPage = () => {
                       purchase.status === "PAGADA"
                         ? "default"
                         : purchase.status === "CANCELADO"
-                        ? "destructive"
-                        : "secondary"
+                          ? "destructive"
+                          : "secondary"
                     }
                   >
                     {purchase.status}
@@ -322,7 +336,7 @@ export const PurchaseDetailViewPage = () => {
                     (() => {
                       const totalAmount = parseFloat(purchase.total_amount);
                       const installmentAmount = parseFloat(
-                        installments[0]?.amount || "0"
+                        installments[0]?.amount || "0",
                       );
                       const hasNoPayments =
                         parseFloat(installments[0]?.pending_amount || "0") ===
@@ -363,8 +377,8 @@ export const PurchaseDetailViewPage = () => {
                                   installment.status === "PAGADO"
                                     ? "default"
                                     : installment.status === "VENCIDO"
-                                    ? "destructive"
-                                    : "secondary"
+                                      ? "destructive"
+                                      : "secondary"
                                 }
                               >
                                 {installment.status}
@@ -382,8 +396,8 @@ export const PurchaseDetailViewPage = () => {
                                           handleSyncInstallment(
                                             installment.id,
                                             parseFloat(
-                                              purchase?.total_amount || "0"
-                                            )
+                                              purchase?.total_amount || "0",
+                                            ),
                                           )
                                         }
                                         className="text-blue-600 hover:text-blue-700"
@@ -422,7 +436,7 @@ export const PurchaseDetailViewPage = () => {
                               </span>
                               <p className="font-semibold">
                                 {new Date(
-                                  installment.due_date
+                                  installment.due_date,
                                 ).toLocaleDateString("es-ES")}
                               </p>
                             </div>
@@ -448,7 +462,7 @@ export const PurchaseDetailViewPage = () => {
                               </span>
                               <p className="font-semibold text-lg text-orange-600">
                                 {parseFloat(installment.pending_amount).toFixed(
-                                  2
+                                  2,
                                 )}
                               </p>
                             </div>
@@ -481,8 +495,8 @@ export const PurchaseDetailViewPage = () => {
                       {purchase.currency === "PEN"
                         ? "S/."
                         : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
+                          ? "$"
+                          : "€"}{" "}
                       {parseFloat(purchase.total_amount).toFixed(2)}
                     </span>
                   </div>
@@ -493,8 +507,8 @@ export const PurchaseDetailViewPage = () => {
                       {purchase.currency === "PEN"
                         ? "S/."
                         : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
+                          ? "$"
+                          : "€"}{" "}
                       {(
                         parseFloat(purchase.total_amount) -
                         parseFloat(purchase.current_amount)
@@ -508,8 +522,8 @@ export const PurchaseDetailViewPage = () => {
                       {purchase.currency === "PEN"
                         ? "S/."
                         : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
+                          ? "$"
+                          : "€"}{" "}
                       {parseFloat(purchase.current_amount).toFixed(2)}
                     </span>
                   </div>

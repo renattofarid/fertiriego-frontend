@@ -24,7 +24,7 @@ interface BrandFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
 }
 
 export const BrandForm = ({

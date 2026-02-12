@@ -133,7 +133,7 @@ export default function GuideEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -145,7 +145,7 @@ export default function GuideEditPage() {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 
@@ -169,7 +169,7 @@ export default function GuideEditPage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate(ROUTE)}
             isSubmitting={isSubmitting}
-            mode="update"
+            mode="edit"
             warehouses={warehouses}
             motives={motives}
             sales={sales}

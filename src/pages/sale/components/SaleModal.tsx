@@ -4,7 +4,7 @@ import { GeneralModal } from "@/components/GeneralModal";
 
 interface SaleModalProps {
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   open: boolean;
   onClose: () => void;
   saleId?: number;

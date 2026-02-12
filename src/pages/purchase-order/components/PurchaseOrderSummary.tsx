@@ -19,7 +19,7 @@ interface DetailRow {
 
 interface PurchaseOrderSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
@@ -77,7 +77,7 @@ export function PurchaseOrderSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">Orden de Compra</p>
@@ -241,7 +241,7 @@ export function PurchaseOrderSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                   ? "Actualizar Orden"
                   : "Guardar Orden"}
             </Button>

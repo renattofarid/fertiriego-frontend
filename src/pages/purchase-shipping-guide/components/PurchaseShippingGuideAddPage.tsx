@@ -10,10 +10,12 @@ import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
+import { PURCHASE_SHIPPING_GUIDE } from "../lib/purchase-shipping-guide.interface";
 
 export const PurchaseShippingGuideAddPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { ROUTE, ICON } = PURCHASE_SHIPPING_GUIDE;
 
   const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
 
@@ -58,8 +60,8 @@ export const PurchaseShippingGuideAddPage = () => {
         <TitleFormComponent
           title="Guía de Compra"
           mode="create"
-          icon="Truck"
-          handleBack={() => navigate("/guias-compra")}
+          icon={ICON}
+          backRoute={ROUTE}
         />
         <FormSkeleton />
       </FormWrapper>
@@ -71,8 +73,8 @@ export const PurchaseShippingGuideAddPage = () => {
       <TitleFormComponent
         title="Guía de Compra"
         mode="create"
-        icon="Truck"
-        handleBack={() => navigate("/guias-compra")}
+        icon={ICON}
+        backRoute={ROUTE}
       />
 
       <PurchaseShippingGuideForm

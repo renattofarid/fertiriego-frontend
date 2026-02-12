@@ -22,7 +22,7 @@ interface UserBoxAssignmentFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   preselectedBoxId?: number;
   preselectedBoxName?: string;
 }

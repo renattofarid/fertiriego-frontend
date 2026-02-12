@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useBoxShiftById } from "../lib/box-shift.hook";
 import { useBoxMovement } from "@/pages/box-movement/lib/box-movement.hook";
 import { useBoxMovementStore } from "@/pages/box-movement/lib/box-movement.store";
@@ -15,18 +15,26 @@ import { useState } from "react";
 import BoxMovementCreateModal from "@/pages/box-movement/components/BoxMovementCreateModal";
 import FormSkeleton from "@/components/FormSkeleton";
 import TitleFormComponent from "@/components/TitleFormComponent";
-import { successToast } from "@/lib/core.function";
+import {
+  ERROR_MESSAGE,
+  errorToast,
+  SUCCESS_MESSAGE,
+  successToast,
+} from "@/lib/core.function";
 import { GeneralModal } from "@/components/GeneralModal";
 import type { BoxMovementResource } from "@/pages/box-movement/lib/box-movement.interface";
+import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function BoxShiftDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { ROUTE, ICON } = BOX_SHIFT;
   const shiftId = parseInt(id || "0");
   const [createMovementModal, setCreateMovementModal] = useState(false);
   const [viewMovementModal, setViewMovementModal] = useState(false);
   const [selectedMovement, setSelectedMovement] =
     useState<BoxMovementResource | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data: shift, isFinding } = useBoxShiftById(shiftId);
   const {
@@ -36,19 +44,20 @@ export default function BoxShiftDetailPage() {
   } = useBoxMovement({
     box_shift_id: shiftId,
   });
+  const { MODEL } = BOX_MOVEMENT;
 
   const { deleteBoxMovement } = useBoxMovementStore();
 
   const handleDeleteMovement = async (id: number) => {
     try {
       await deleteBoxMovement(id);
-      successToast(
-        "Movimiento eliminado",
-        "El movimiento se eliminó correctamente",
-      );
+      successToast(SUCCESS_MESSAGE(MODEL, "delete"));
       refetch();
-    } catch (error) {
-      console.error("Error al eliminar movimiento:", error);
+    } catch (error: any) {
+      errorToast(
+        error?.response?.data?.message || ERROR_MESSAGE(MODEL, "delete"),
+      );
+      console.error(error);
     }
   };
 
@@ -63,18 +72,30 @@ export default function BoxShiftDetailPage() {
   if (isFinding) return <FormSkeleton />;
 
   if (!shift) {
-    return <div className="text-center py-8">No se encontró el turno</div>;
+    return (
+      <PageWrapper>
+        <TitleFormComponent
+          title="Turno no encontrado"
+          mode="detail"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
+        <p className="text-center text-muted-foreground">
+          No se encontró el turno con ID {id}.
+        </p>
+      </PageWrapper>
+    );
   }
 
   return (
-    <div className="space-y-6">
+    <PageWrapper>
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
           <TitleFormComponent
             title={`Turno #${shift.id}`}
             mode="detail"
-            handleBack={() => navigate(BOX_SHIFT.ROUTE)}
-            icon={BOX_SHIFT.ICON}
+            backRoute={ROUTE}
+            icon={ICON}
           />
         </div>
         <Badge
@@ -204,7 +225,7 @@ export default function BoxShiftDetailPage() {
 
         <BoxMovementTable
           columns={BoxMovementColumns({
-            onDelete: handleDeleteMovement,
+            onDelete: setDeleteId,
             onView: handleViewMovement,
           })}
           data={movements || []}
@@ -221,6 +242,14 @@ export default function BoxShiftDetailPage() {
             setCreateMovementModal(false);
             refetch();
           }}
+        />
+      )}
+
+      {deleteId && (
+        <SimpleDeleteDialog
+          open={!!deleteId}
+          onOpenChange={(open) => !open && setDeleteId(null)}
+          onConfirm={() => handleDeleteMovement(deleteId)}
         />
       )}
 
@@ -403,6 +432,6 @@ export default function BoxShiftDetailPage() {
           </div>
         </GeneralModal>
       )}
-    </div>
+    </PageWrapper>
   );
 }

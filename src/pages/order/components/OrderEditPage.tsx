@@ -71,14 +71,14 @@ export const OrderEditPage = () => {
 
     try {
       await updateOrder(Number(id), data);
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
       // Navegar después de un breve delay para que el usuario vea el toast
       setTimeout(() => {
         navigate("/pedidos");
       }, 500);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update"),
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"),
       );
       // Solo resetear el ref en caso de error (en éxito, navega)
       isSubmittingRef.current = false;
@@ -90,7 +90,7 @@ export const OrderEditPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -102,7 +102,7 @@ export const OrderEditPage = () => {
     return (
       <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Pedido no encontrado</p>
@@ -115,7 +115,7 @@ export const OrderEditPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 
@@ -125,7 +125,7 @@ export const OrderEditPage = () => {
             defaultValues={mapOrderToForm(order)}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
-            mode="update"
+            mode="edit"
             warehouses={warehouses}
             order={order}
             onCancel={() => navigate("/pedidos")}

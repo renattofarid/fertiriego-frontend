@@ -110,8 +110,8 @@ export const useQuotationStore = create<QuotationStore>((set) => ({
       await updateQuotation(id, data);
       set({ isSubmitting: false });
     } catch (error) {
-      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "update"));
+      set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "edit"));
       throw error;
     }
   },

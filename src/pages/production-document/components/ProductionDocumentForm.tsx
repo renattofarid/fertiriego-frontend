@@ -30,6 +30,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useWorkers } from "@/pages/worker/lib/worker.hook";
 
 export type ProductionDocumentFormValues = {
   warehouse_origin_id: string;
@@ -66,7 +67,7 @@ const defaultValues: ProductionDocumentFormValues = {
 };
 
 interface ProductionDocumentFormProps {
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   onSubmit: (values: ProductionDocumentFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ProductionDocumentFormValues;
@@ -81,7 +82,6 @@ export function ProductionDocumentForm({
   isSubmitting = false,
   initialValues,
   warehouses,
-  users,
   responsibles,
 }: ProductionDocumentFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_DOCUMENT;
@@ -306,7 +306,12 @@ export function ProductionDocumentForm({
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} />
+          <TitleFormComponent
+            title={MODEL.name}
+            mode={mode}
+            icon={ICON}
+            backRoute={ROUTE}
+          />
         </div>
       </div>
 
@@ -358,16 +363,17 @@ export function ProductionDocumentForm({
               withValue
             />
 
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="user_id"
               label="Usuario"
               placeholder="Seleccione usuario"
-              options={users.map((u) => ({
+              useQueryHook={useWorkers}
+              mapOptionFn={(u: PersonResource) => ({
                 value: u.id.toString(),
                 label: u.business_name || `${u.names} ${u.father_surname}`,
                 description: u.email,
-              }))}
+              })}
               withValue
             />
 

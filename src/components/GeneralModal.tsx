@@ -34,7 +34,7 @@ interface GeneralModalProps {
   modal?: boolean;
   icon?: keyof typeof LucideReact;
   titleComponent?: boolean;
-  mode?: "create" | "update" | "detail";
+  mode?: "create" | "edit" | "detail";
 }
 
 type Size = "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
@@ -90,12 +90,7 @@ export function GeneralModal({
         >
           <DialogHeader>
             {titleComponent ? (
-              <TitleFormComponent
-                title={title}
-                icon={icon}
-                mode={mode}
-                back={false}
-              />
+              <TitleFormComponent title={title} icon={icon} mode={mode} />
             ) : (
               <div className="flex items-start gap-2">
                 {icon && IconComponent && (

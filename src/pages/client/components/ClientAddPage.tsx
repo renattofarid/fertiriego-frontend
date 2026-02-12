@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
@@ -16,7 +15,7 @@ import {
 import { CLIENT, CLIENT_ROLE_ID } from "../lib/client.interface";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL } = CLIENT;
+const { MODEL, ROUTE } = CLIENT;
 
 export default function ClientAddPage() {
   const navigate = useNavigate();
@@ -49,7 +48,7 @@ export default function ClientAddPage() {
 
       await createPersonWithRole(createPersonData, Number(data.role_id));
       successToast(
-        SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "create"),
       );
       navigate("/clientes");
     } catch (error: any) {
@@ -59,7 +58,7 @@ export default function ClientAddPage() {
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Cliente", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Cliente", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -70,8 +69,11 @@ export default function ClientAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/clientes" />
-          <TitleFormComponent title={MODEL.name} mode="create" />
+          <TitleFormComponent
+            title={MODEL.name}
+            mode="create"
+            backRoute={ROUTE}
+          />
         </div>
       </div>
 

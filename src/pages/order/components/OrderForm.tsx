@@ -51,7 +51,7 @@ interface OrderFormProps {
   isSubmitting?: boolean;
   warehouses: WarehouseResource[];
   defaultValues?: any;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   order?: any;
 }
 
@@ -148,7 +148,7 @@ export const OrderForm = ({
 
   // Load order details when in edit mode
   useEffect(() => {
-    if (mode === "update" && order && order.order_details) {
+    if (mode === "edit" && order && order.order_details) {
       const orderDetails: DetailRow[] = order.order_details.map(
         (detail: any) => ({
           product_id: detail.product_id.toString(),

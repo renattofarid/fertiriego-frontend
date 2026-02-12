@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import {
@@ -19,8 +18,9 @@ import { CLIENT, CLIENT_ROLE_ID } from "../lib/client.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
+import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL } = CLIENT;
+const { MODEL, ICON, ROUTE } = CLIENT;
 
 export default function ClientEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -76,18 +76,17 @@ export default function ClientEditPage() {
       };
 
       await updatePerson(personData.id, updatePersonData);
-      successToast(
-        SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "update")
-      );
+      successToast(SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "edit"));
       navigate("/clientes");
     } catch (error: any) {
       const errorMessage =
-          ((error.response.data.message ?? error.response.data.error) as string)
-          ?? "Error al actualizar cliente";
+        ((error.response.data.message ??
+          error.response.data.error) as string) ??
+        "Error al actualizar cliente";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Cliente", gender: false }, "update")
+        ERROR_MESSAGE({ name: "Cliente", gender: false }, "edit"),
       );
     } finally {
       setIsSubmitting(false);
@@ -95,23 +94,17 @@ export default function ClientEditPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+    return <FormSkeleton />;
   }
 
   return (
     <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/clientes" />
-          <TitleFormComponent title={MODEL.name} mode="update" />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="edit"
+        icon={ICON}
+        backRoute={ROUTE}
+      />
 
       <PersonForm
         initialData={personData}

@@ -74,7 +74,7 @@ interface SaleFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   warehouses: WarehouseResource[];
   sourceData?: any; // QuotationResourceById | OrderResourceById
   sourceType?: "quotation" | "order" | null;
@@ -382,7 +382,7 @@ export const SaleForm = ({
 
   // Inicializar detalles y cuotas desde defaultValues (para modo edición)
   useEffect(() => {
-    if (mode === "update" && defaultValues) {
+    if (mode === "edit" && defaultValues) {
       // Inicializar detalles
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
@@ -877,7 +877,7 @@ export const SaleForm = ({
                         customer.business_name ??
                         `${customer.names} ${customer.father_surname} ${customer.mother_surname}`,
                     })}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                     onValueChange={(_value, item) => {
                       setSelectedCustomer(item ?? null);
                     }}
@@ -908,7 +908,7 @@ export const SaleForm = ({
                       value: warehouse.id.toString(),
                       label: warehouse.name,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (

@@ -50,7 +50,7 @@ interface GuideFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
   sales: SaleResource[];
@@ -306,7 +306,7 @@ export const GuideForm = ({
 
   // Cargar detalles existentes en modo edición
   useEffect(() => {
-    if (mode === "update" && defaultValues.details) {
+    if (mode === "edit" && defaultValues.details) {
       const formattedDetails = defaultValues.details.map((detail: any) => ({
         product_id: detail.product_id || 0,
         product_name: detail.description || "",

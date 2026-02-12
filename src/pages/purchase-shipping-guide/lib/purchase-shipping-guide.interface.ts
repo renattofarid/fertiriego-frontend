@@ -145,33 +145,51 @@ export interface PurchaseShippingGuideResourceById {
 
 // ===== MODEL COMPLETE =====
 
-export const PURCHASE_SHIPPING_GUIDE: ModelComplete<any> = {
-  MODEL: {
-    name: NAME,
-    description: "Gestión de guías de compra del sistema.",
-    plural: "Guías de Compra",
-    gender: false,
-  },
-  ICON: "Truck",
-  ICON_REACT: Truck,
-  ENDPOINT: PURCHASE_SHIPPING_GUIDE_ENDPOINT,
-  QUERY_KEY: PURCHASE_SHIPPING_GUIDE_QUERY_KEY,
-  ROUTE: PurchaseShippingGuideRoute,
-  ROUTE_ADD: PurchaseShippingGuideAddRoute,
-  ROUTE_UPDATE: PurchaseShippingGuideEditRoute,
-  TITLES: {
-    create: {
-      title: `Crear ${NAME}`,
-      subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+export const PURCHASE_SHIPPING_GUIDE: ModelComplete<CreatePurchaseShippingGuideRequest> =
+  {
+    MODEL: {
+      name: NAME,
+      description: "Gestión de guías de compra del sistema.",
+      plural: "Guías de Compra",
+      gender: false,
     },
-    update: {
-      title: `Actualizar ${NAME}`,
-      subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+    ICON: "Truck",
+    ICON_REACT: Truck,
+    ENDPOINT: PURCHASE_SHIPPING_GUIDE_ENDPOINT,
+    QUERY_KEY: PURCHASE_SHIPPING_GUIDE_QUERY_KEY,
+    ROUTE: PurchaseShippingGuideRoute,
+    ROUTE_ADD: PurchaseShippingGuideAddRoute,
+    ROUTE_UPDATE: PurchaseShippingGuideEditRoute,
+    TITLES: {
+      create: {
+        title: `Crear ${NAME}`,
+        subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+      },
+      update: {
+        title: `Actualizar ${NAME}`,
+        subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+      },
+      delete: {
+        title: `Eliminar ${NAME}`,
+        subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+      },
     },
-    delete: {
-      title: `Eliminar ${NAME}`,
-      subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+    EMPTY: {
+      purchase_id: null,
+      guide_number: "",
+      issue_date: "",
+      transfer_date: "",
+      motive: "",
+      carrier_name: "",
+      carrier_ruc: "",
+      vehicle_plate: "",
+      driver_name: "",
+      driver_license: "",
+      origin_address: "",
+      destination_address: "",
+      total_weight: 0,
+      observations: "",
+      status: GUIDE_STATUS.EMITIDA,
+      details: [],
     },
-  },
-  EMPTY: {} as any,
-};
+  };

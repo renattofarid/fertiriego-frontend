@@ -90,7 +90,7 @@ export function SimpleDeleteDialog({
             Cancelar
           </Button>
           <Button
-            variant="destructive"
+            variant={"destructive"}
             onClick={handleConfirm}
             disabled={loading}
           >

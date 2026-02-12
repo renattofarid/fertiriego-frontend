@@ -51,14 +51,14 @@ export default function CreditNoteEditPage() {
   const handleSubmit = async (data: CreditNoteSchema) => {
     await updateCreditNote(creditNoteId, data)
       .then(() => {
-        successToast(SUCCESS_MESSAGE(MODEL, "update"));
+        successToast(SUCCESS_MESSAGE(MODEL, "edit"));
         navigate("/notas-credito");
       })
       .catch((error: any) => {
         errorToast(
           error.response?.data?.message ??
             error.response?.data?.error ??
-            ERROR_MESSAGE(MODEL, "update")
+            ERROR_MESSAGE(MODEL, "edit")
         );
       });
   };
@@ -82,7 +82,7 @@ export default function CreditNoteEditPage() {
           defaultValues={mapCreditNoteToForm(creditNote)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="update"
+          mode="edit"
           creditNoteReasons={creditNoteReasons || []}
           onCancel={handleCancel}
         />

@@ -39,6 +39,8 @@ import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import { toast } from "sonner";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useDrivers } from "@/pages/driver/lib/driver.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -105,14 +107,13 @@ const defaultValues: ShippingGuideCarrierFormValues = {
 };
 
 interface ShippingGuideCarrierFormProps {
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   onSubmit: (values: ShippingGuideCarrierFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
   carriers: PersonResource[];
   remittents: PersonResource[];
   recipients: PersonResource[];
-  drivers: PersonResource[];
   vehicles: VehicleResource[];
   guides: GuideResource[];
 }
@@ -125,7 +126,6 @@ export function ShippingGuideCarrierForm({
   carriers,
   remittents,
   recipients,
-  drivers,
   vehicles,
   guides,
 }: ShippingGuideCarrierFormProps) {
@@ -208,8 +208,7 @@ export function ShippingGuideCarrierForm({
         if (guide.details && guide.details.length > 0) {
           const mappedDetails: DetailRow[] = guide.details.map((detail) => ({
             product_id: detail.product_id.toString(),
-            product_name:
-              detail.product_name || "Producto desconocido",
+            product_name: detail.product_name || "Producto desconocido",
             description: detail.description || "",
             quantity: parseFloat(detail.quantity) || 0,
             unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
@@ -521,16 +520,17 @@ export function ShippingGuideCarrierForm({
 
               {transportModality === "PRIVADO" && (
                 <>
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="driver_id"
                     label="Conductor"
                     placeholder="Seleccione conductor"
-                    options={drivers.map((d) => ({
+                    useQueryHook={useDrivers}
+                    mapOptionFn={(d: PersonResource) => ({
                       value: d.id.toString(),
                       label: `${d.names} ${d.father_surname}`,
                       description: d.number_document,
-                    }))}
+                    })}
                     withValue
                   />
 

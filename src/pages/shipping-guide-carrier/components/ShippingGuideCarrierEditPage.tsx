@@ -13,7 +13,6 @@ import {
   type ShippingGuideCarrierFormValues,
 } from "./ShippingGuideCarrierForm";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
@@ -29,7 +28,6 @@ export default function ShippingGuideCarrierEditPage() {
   // Hooks para datos
   const { data: suppliers = [], isLoading: loadingSuppliers } =
     useAllSuppliers();
-  const workers = useAllWorkers();
   const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
@@ -46,7 +44,6 @@ export default function ShippingGuideCarrierEditPage() {
     loadingSuppliers ||
     loadingVehicles ||
     loadingGuides ||
-    !workers ||
     !remittents ||
     !recipients ||
     isFinding;
@@ -55,11 +52,11 @@ export default function ShippingGuideCarrierEditPage() {
     if (!id) return;
     try {
       await updateGuide(parseInt(id), values as any);
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"),
       );
     }
   };
@@ -97,14 +94,13 @@ export default function ShippingGuideCarrierEditPage() {
 
   return (
     <ShippingGuideCarrierForm
-      mode="update"
+      mode="edit"
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       initialValues={initialValues}
       carriers={suppliers || []}
       remittents={remittents || []}
       recipients={recipients || []}
-      drivers={workers || []}
       vehicles={vehicles || []}
       guides={guides || []}
     />

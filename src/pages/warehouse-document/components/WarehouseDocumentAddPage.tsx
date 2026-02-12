@@ -1,24 +1,37 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import WarehouseDocumentForm from "./WarehouseDocumentForm";
-import TitleComponent from "@/components/TitleComponent";
-import { BackButton } from "@/components/BackButton";
-import PageWrapper from "@/components/PageWrapper";
 import { WAREHOUSE_DOCUMENT } from "../lib/warehouse-document.interface";
 import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
 import { storeWarehouseDocument } from "../lib/warehouse-document.actions";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { successToast, errorToast } from "@/lib/core.function";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
+import TitleFormComponent from "@/components/TitleFormComponent";
+import FormWrapper from "@/components/FormWrapper";
 
-const { ICON, EMPTY, TITLES } = WAREHOUSE_DOCUMENT;
+const { ICON, EMPTY, TITLES, ROUTE } = WAREHOUSE_DOCUMENT;
 
 export default function WarehouseDocumentAddPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: warehouses } = useAllWarehouses();
-  const persons = useAllWorkers();
+
+  // Calcular valores por defecto dinámicamente
+  const defaultValues = useMemo(() => {
+    // Fecha actual en formato YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
+
+    // Si solo hay un almacén, seleccionarlo automáticamente
+    const defaultWarehouse =
+      warehouses && warehouses.length === 1 ? warehouses[0].id.toString() : "";
+
+    return {
+      ...EMPTY,
+      warehouse_id: defaultWarehouse,
+      document_date: today,
+    };
+  }, [warehouses]);
 
   const handleSubmit = async (data: WarehouseDocumentSchema) => {
     setIsSubmitting(true);
@@ -53,28 +66,23 @@ export default function WarehouseDocumentAddPage() {
   };
 
   return (
-    <PageWrapper>
-      <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <BackButton />
-          <TitleComponent
-            title={TITLES.create.title}
-            subtitle={TITLES.create.subtitle}
-            icon={ICON}
-          />
-        </div>
+    <FormWrapper>
+      <TitleFormComponent
+        title={TITLES.create.title}
+        mode="create"
+        backRoute={ROUTE}
+        icon={ICON}
+      />
 
-        {warehouses && persons && (
-          <WarehouseDocumentForm
-            onSubmit={handleSubmit}
-            defaultValues={EMPTY}
-            isSubmitting={isSubmitting}
-            mode="create"
-            warehouses={warehouses}
-            persons={persons}
-          />
-        )}
-      </div>
-    </PageWrapper>
+      {warehouses && (
+        <WarehouseDocumentForm
+          onSubmit={handleSubmit}
+          defaultValues={defaultValues}
+          isSubmitting={isSubmitting}
+          mode="create"
+          warehouses={warehouses}
+        />
+      )}
+    </FormWrapper>
   );
 }

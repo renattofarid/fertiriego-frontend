@@ -26,7 +26,7 @@ interface CategoryFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   categories: CategoryResource[];
 }
 

@@ -77,7 +77,7 @@ export default function DriverEditPage() {
 
       await updatePerson(personData.id, updatePersonData);
       successToast(
-        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "update"),
+        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "edit"),
       );
       navigate("/conductores");
     } catch (error: any) {
@@ -88,7 +88,7 @@ export default function DriverEditPage() {
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Conductor", gender: false }, "update"),
+        ERROR_MESSAGE({ name: "Conductor", gender: false }, "edit"),
       );
     } finally {
       setIsSubmitting(false);
@@ -99,7 +99,7 @@ export default function DriverEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
 
         <FormSkeleton />
@@ -110,7 +110,7 @@ export default function DriverEditPage() {
   return (
     <FormWrapper>
       <div className="flex items-center gap-4 mb-6">
-        <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+        <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
       </div>
 
       <PersonForm

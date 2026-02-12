@@ -90,10 +90,10 @@ export const usePurchaseInstallmentStore = create<PurchaseInstallmentStore>((set
     try {
       await updatePurchaseInstallment(id, data);
       set({ isSubmitting: false });
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
     } catch (error) {
-      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "update"));
+      set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
+      errorToast(ERROR_MESSAGE(MODEL, "edit"));
       throw error;
     }
   },

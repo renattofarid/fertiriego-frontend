@@ -57,7 +57,7 @@ interface PurchaseOrderFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   purchaseOrder?: PurchaseOrderResource;
@@ -84,7 +84,7 @@ export const PurchaseOrderForm = ({
   purchaseOrder,
 }: PurchaseOrderFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>(
-    mode === "update" && purchaseOrder
+    mode === "edit" && purchaseOrder
       ? purchaseOrder.details.map((d) => ({
           product_id: d.product_id.toString(),
           product_name: d.product_name,
@@ -353,7 +353,7 @@ export const PurchaseOrderForm = ({
                           " " +
                           supplier.mother_surname,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (
@@ -381,7 +381,7 @@ export const PurchaseOrderForm = ({
                       value: warehouse.id.toString(),
                       label: warehouse.name,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (

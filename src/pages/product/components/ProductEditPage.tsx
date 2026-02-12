@@ -56,13 +56,13 @@ export default function ProductEditPage() {
     setIsSubmitting(true);
     try {
       await updateProduct(Number(id), data);
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
       navigate("/productos");
     } catch (error: any) {
       const errorMessage =
         error.response.data.message ??
         error.response.data.error ??
-        ERROR_MESSAGE(MODEL, "update");
+        ERROR_MESSAGE(MODEL, "edit");
       errorToast(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -74,7 +74,7 @@ export default function ProductEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -86,7 +86,7 @@ export default function ProductEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Producto no encontrado</p>
@@ -99,7 +99,7 @@ export default function ProductEditPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 
@@ -108,7 +108,7 @@ export default function ProductEditPage() {
           defaultValues={mapProductToForm(product)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="update"
+          mode="edit"
           units={units}
           product={product}
           onCancel={() => navigate("/productos")}

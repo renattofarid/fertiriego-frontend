@@ -1,9 +1,3 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { WarehouseDocumentResource } from "../lib/warehouse-document.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +5,9 @@ import {
   getDocumentTypeLabel,
   getDocumentStatusVariant,
 } from "../lib/warehouse-document.constants";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Eye, Pencil, XCircle } from "lucide-react";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const WarehouseDocumentColumns = ({
   onEdit,
@@ -108,39 +104,40 @@ export const WarehouseDocumentColumns = ({
       const status = row.original.status;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onView(id)}>
-              Ver Detalles
-            </DropdownMenuItem>
-            {status === "BORRADOR" && (
-              <>
-                <DropdownMenuItem onClick={() => onEdit(id)}>
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onConfirm(id)}>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Confirmar
-                </DropdownMenuItem>
-              </>
-            )}
-            {status === "CONFIRMADO" && (
-              <DropdownMenuItem onClick={() => onCancel(id)}>
-                <XCircle className="mr-2 h-4 w-4" />
-                Cancelar
-              </DropdownMenuItem>
-            )}
-            {status === "BORRADOR" && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => onDelete(id)}>
-                  Eliminar
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuGroup>
-        </SelectActions>
+        <div className="flex items-center gap-2">
+          <ButtonAction
+            icon={Eye}
+            tooltip="Ver Detalles"
+            onClick={() => onView(id)}
+          />
+
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar Documento"
+            onClick={() => onEdit(id)}
+            canRender={status === "BORRADOR"}
+          />
+
+          <ButtonAction
+            icon={CheckCircle}
+            tooltip="Confirmar Documento"
+            color="green"
+            onClick={() => onConfirm(id)}
+            canRender={status === "BORRADOR"}
+          />
+
+          <ButtonAction
+            icon={XCircle}
+            tooltip="Cancelar"
+            onClick={() => onCancel(id)}
+            color="orange"
+            canRender={status === "CONFIRMADO"}
+          />
+
+          {status === "BORRADOR" && (
+            <DeleteButton onClick={() => onDelete(id)} />
+          )}
+        </div>
       );
     },
   },

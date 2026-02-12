@@ -59,7 +59,7 @@ interface PurchaseFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   purchaseOrders: PurchaseOrderResource[];
@@ -607,7 +607,7 @@ export const PurchaseForm = ({
                           " " +
                           supplier.mother_surname,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (
@@ -635,7 +635,7 @@ export const PurchaseForm = ({
                       value: warehouse.id.toString(),
                       label: warehouse.name,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (

@@ -17,7 +17,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
   onCloseModal: () => void;
 }
@@ -85,7 +85,7 @@ export default function ProductModal({
       await updateProduct(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchProduct();
           refetch();
         })
@@ -93,7 +93,7 @@ export default function ProductModal({
           errorToast(
             error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              ERROR_MESSAGE(MODEL, "edit")
           );
         });
     }
@@ -119,7 +119,7 @@ export default function ProductModal({
           mode={mode}
           onCancel={onCloseModal}
           units={units}
-          product={mode === "update" && product ? product : undefined}
+          product={mode === "edit" && product ? product : undefined}
         />
       ) : (
         <FormSkeleton />

@@ -25,7 +25,7 @@ interface InstallmentRow {
 
 interface SaleSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   selectedCustomer?: PersonResource;
   warehouses: WarehouseResource[];
@@ -103,7 +103,7 @@ export function SaleSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -272,7 +272,7 @@ export function SaleSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                   ? "Actualizar Venta"
                   : "Guardar Venta"}
             </Button>

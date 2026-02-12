@@ -17,7 +17,7 @@ interface DetailRow {
 
 interface CreditNoteSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   selectedSale?: SaleResource;
   creditNoteReasons: CreditNoteReason[];
@@ -84,7 +84,7 @@ export function CreditNoteSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">Nota de Crédito</p>
@@ -216,7 +216,7 @@ export function CreditNoteSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                 ? "Actualizar Nota de Crédito"
                 : "Guardar Nota de Crédito"}
             </Button>

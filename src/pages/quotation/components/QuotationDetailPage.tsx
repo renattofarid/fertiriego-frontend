@@ -27,6 +27,7 @@ export default function QuotationDetailPage() {
   const navigate = useNavigate();
   const [quotation, setQuotation] = useState<QuotationResource | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { ROUTE, ICON } = QUOTATION;
 
   useEffect(() => {
     const fetchQuotation = async () => {
@@ -61,8 +62,6 @@ export default function QuotationDetailPage() {
         ? "$"
         : "€";
 
-  const { ICON } = QUOTATION;
-
   if (isLoading) {
     return <FormSkeleton />;
   }
@@ -92,7 +91,7 @@ export default function QuotationDetailPage() {
           <TitleFormComponent
             title={`Cotización ${quotation.quotation_number}`}
             mode="detail"
-            handleBack={() => navigate("/cotizaciones")}
+            backRoute={ROUTE}
             icon={ICON}
           />
         </div>
@@ -204,7 +203,9 @@ export default function QuotationDetailPage() {
                         <TableRow key={detail.id}>
                           <TableCell>
                             <div>
-                              <p className="font-medium">{detail.product.name}</p>
+                              <p className="font-medium">
+                                {detail.product.name}
+                              </p>
                               {detail.description && (
                                 <p className="text-xs text-muted-foreground mt-0.5">
                                   {detail.description}

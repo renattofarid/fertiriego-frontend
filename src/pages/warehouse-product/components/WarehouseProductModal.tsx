@@ -22,7 +22,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
   preselectedProductId?: number;
 }
@@ -84,7 +84,7 @@ export default function WarehouseProductModal({
       await updateWarehouseProduct(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchWarehouseProduct();
           refetch();
         })
@@ -92,7 +92,7 @@ export default function WarehouseProductModal({
           errorToast(
             (error.response.data.message ?? error.response.data.error) ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              ERROR_MESSAGE(MODEL, "edit")
           );
         });
     }

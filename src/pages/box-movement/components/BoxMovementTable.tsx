@@ -16,11 +16,7 @@ export default function BoxMovementTable({
   children,
 }: BoxMovementTableProps) {
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      isLoading={isLoading}
-    >
+    <DataTable columns={columns} data={data} isLoading={isLoading}>
       {children}
     </DataTable>
   );

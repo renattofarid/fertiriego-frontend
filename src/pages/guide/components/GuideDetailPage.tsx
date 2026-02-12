@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import TitleComponent from "@/components/TitleComponent";
 import {
   FileText,
   Calendar,
@@ -19,7 +18,7 @@ import { useGuideById } from "../lib/guide.hook";
 import { GUIDE, type GuideDetailResource } from "../lib/guide.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { BackButton } from "@/components/BackButton";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export default function GuideDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -70,11 +69,11 @@ export default function GuideDetailPage() {
   return (
     <FormWrapper>
       <div className="flex justify-between items-center gap-2">
-        <BackButton to={ROUTE} />
-        <TitleComponent
+        <TitleFormComponent
           title={`${MODEL.name} - ${guide.full_guide_number}`}
-          subtitle={`Detalle de la ${MODEL.name.toLowerCase()}`}
+          mode="detail"
           icon={ICON}
+          backRoute={ROUTE}
         />
       </div>
 
@@ -131,10 +130,14 @@ export default function GuideDetailPage() {
                     Modalidad
                   </p>
                   <Badge
-                    variant={modalityVariants[guide.transport_modality] || "default"}
+                    variant={
+                      modalityVariants[guide.transport_modality] || "default"
+                    }
                     className="text-sm"
                   >
-                    {guide.transport_modality === "PUBLICO" ? "🚌 Público" : "🚗 Privado"}
+                    {guide.transport_modality === "PUBLICO"
+                      ? "🚌 Público"
+                      : "🚗 Privado"}
                   </Badge>
                 </div>
                 <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
@@ -156,8 +159,12 @@ export default function GuideDetailPage() {
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Número de Documento</p>
-                <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
+                <p className="text-xs text-muted-foreground">
+                  Número de Documento
+                </p>
+                <p className="font-mono font-bold text-lg">
+                  {guide.full_guide_number}
+                </p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Motivo</p>
@@ -231,10 +238,14 @@ export default function GuideDetailPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">RUC</p>
-                <p className="font-mono font-semibold">{guide.carrier?.number_document}</p>
+                <p className="font-mono font-semibold">
+                  {guide.carrier?.number_document}
+                </p>
               </div>
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">🚗 Placa del Vehículo</p>
+                <p className="text-xs text-muted-foreground">
+                  🚗 Placa del Vehículo
+                </p>
                 <p className="font-mono font-bold text-lg text-primary">
                   {guide.vehicle?.plate}
                 </p>
@@ -245,18 +256,18 @@ export default function GuideDetailPage() {
 
         {/* Información del Conductor */}
         <Card className="!gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Información del Conductor
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Nombre</p>
-                  <p className="font-semibold">{guide.driver?.business_name}</p>
-                </div>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Información del Conductor
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Nombre</p>
+                <p className="font-semibold">{guide.driver?.business_name}</p>
+              </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Documento</p>
                 <p className="font-mono">{guide.driver?.number_document}</p>
@@ -265,8 +276,8 @@ export default function GuideDetailPage() {
                 <p className="text-xs text-muted-foreground">Licencia</p>
                 <p className="font-mono">{guide.driver_license}</p>
               </div>
-              </div>
-            </CardContent>
+            </div>
+          </CardContent>
         </Card>
         {/* Ubicaciones */}
         <Card className="!gap-0">
@@ -292,7 +303,7 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.originUbigeo?.cadena || '-'}
+                      {guide.originUbigeo?.cadena || "-"}
                     </Badge>
                   </div>
                 </div>
@@ -314,7 +325,7 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.destinationUbigeo?.cadena || '-'}
+                      {guide.destinationUbigeo?.cadena || "-"}
                     </Badge>
                   </div>
                 </div>
@@ -365,7 +376,7 @@ export default function GuideDetailPage() {
                           {detail.quantity}
                         </p>
                         <Badge variant="secondary" className="mt-1">
-                          {detail.unit_measure || 'UND'}
+                          {detail.unit_measure || "UND"}
                         </Badge>
                       </div>
                     </div>

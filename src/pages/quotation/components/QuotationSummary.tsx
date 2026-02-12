@@ -23,7 +23,7 @@ interface DetailRow {
 
 interface QuotationSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   warehouses: WarehouseResource[];
   details: DetailRow[];
@@ -92,7 +92,7 @@ export function QuotationSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">Cotización</p>
@@ -248,7 +248,7 @@ export function QuotationSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                   ? "Actualizar Cotización"
                   : "Guardar Cotización"}
             </Button>

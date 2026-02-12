@@ -12,7 +12,6 @@ import {
   type ShippingGuideCarrierFormValues,
 } from "./ShippingGuideCarrierForm";
 import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
 import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
@@ -26,7 +25,6 @@ export default function ShippingGuideCarrierAddPage() {
   // Hooks para datos
   const { data: suppliers = [], isLoading: loadingSuppliers } =
     useAllSuppliers();
-  const workers = useAllWorkers();
   const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
@@ -36,7 +34,6 @@ export default function ShippingGuideCarrierAddPage() {
     loadingSuppliers ||
     loadingVehicles ||
     loadingGuides ||
-    !workers ||
     !remittents ||
     !recipients;
 
@@ -47,7 +44,7 @@ export default function ShippingGuideCarrierAddPage() {
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
       );
     }
   };
@@ -64,7 +61,6 @@ export default function ShippingGuideCarrierAddPage() {
       carriers={suppliers || []}
       remittents={remittents || []}
       recipients={recipients || []}
-      drivers={workers || []}
       vehicles={vehicles || []}
       guides={guides || []}
     />
