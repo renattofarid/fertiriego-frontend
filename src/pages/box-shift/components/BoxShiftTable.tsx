@@ -16,7 +16,14 @@ export default function BoxShiftTable({
   children,
 }: BoxShiftTableProps) {
   return (
-    <DataTable columns={columns} data={data} isLoading={isLoading}>
+    <DataTable
+      columns={columns}
+      data={data}
+      isLoading={isLoading}
+      initialColumnVisibility={{
+        id: false,
+      }}
+    >
       {children}
     </DataTable>
   );
