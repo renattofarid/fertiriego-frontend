@@ -44,14 +44,7 @@ export const BoxMovementColumns = ({
     cell: ({ row }) => {
       const type = row.original.type;
       const isIncome = type === "INGRESO";
-      return (
-        <Badge
-          variant={isIncome ? "default" : "secondary"}
-          className={isIncome ? "bg-green-600" : "bg-red-600"}
-        >
-          {type}
-        </Badge>
-      );
+      return <Badge color={isIncome ? "green" : "red"}>{type}</Badge>;
     },
   },
   {
@@ -67,9 +60,14 @@ export const BoxMovementColumns = ({
       const type = row.original.type;
       const isIncome = type === "INGRESO";
       return (
-        <span className={`font-semibold ${isIncome ? "text-green-600" : "text-red-600"}`}>
-          {isIncome ? "+" : "-"}{formatCurrency(amount)}
-        </span>
+        <Badge
+          variant="ghost"
+          color={isIncome ? "green" : "red"}
+          className={`font-semibold`}
+        >
+          {isIncome ? "+" : "-"}
+          {formatCurrency(amount)}
+        </Badge>
       );
     },
   },
