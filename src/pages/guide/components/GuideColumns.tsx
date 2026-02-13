@@ -9,6 +9,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { Eye, Pencil, RefreshCcw } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { ColumnActions } from "@/components/SelectActions";
+import ExportButtons from "@/components/ExportButtons";
 
 interface GuideColumnsProps {
   onEdit: (id: number) => void;
@@ -129,6 +130,11 @@ export const GuideColumns = ({
     header: "Acciones",
     cell: ({ row }) => (
       <ColumnActions>
+        <ExportButtons
+          pdfEndpoint={`/shipping-guide-remit/${row.original.id}/pdf`}
+          pdfFileName={`guia-${row.original.full_guide_number}.pdf`}
+          variant="separate"
+        />
         <ButtonAction
           icon={Eye}
           tooltip="Ver Detalle"

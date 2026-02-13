@@ -20,6 +20,7 @@ import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const kardexColumns: ColumnDef<WarehouseKardexResource>[] = [
   {
@@ -184,6 +185,12 @@ export default function WarehouseKardexPage() {
   const [selectedMovementType, setSelectedMovementType] = useState("");
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const { setOpen, setOpenMobile } = useSidebar();
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   const { data: warehouses } = useAllWarehouses();
 

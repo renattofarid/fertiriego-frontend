@@ -23,7 +23,9 @@ export const WarehouseColumns = ({
   {
     accessorKey: "address",
     header: "Dirección",
-    cell: ({ getValue }) => getValue() as string,
+    cell: ({ getValue }) => (
+      <span className="font-semibold text-wrap!">{getValue() as string}</span>
+    ),
   },
   {
     accessorKey: "capacity",

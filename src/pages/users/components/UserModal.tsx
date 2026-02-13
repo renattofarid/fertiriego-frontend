@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import FormSkeleton from "@/components/FormSkeleton";
 import { GeneralModal } from "@/components/GeneralModal";
 import {
@@ -5,6 +6,7 @@ import {
   errorToast,
   SUCCESS_MESSAGE,
   successToast,
+  warningToast,
 } from "@/lib/core.function";
 import { UserForm } from "./UserForm";
 import { USER, type UserResource } from "../lib/User.interface";
@@ -25,17 +27,20 @@ const { MODEL, EMPTY } = USER;
 
 export default function UserModal({ id, open, title, mode, onClose }: Props) {
   const { refetch } = useUsers();
+  const errorShownRef = useRef(false);
 
   const {
     data: user,
-    isFinding: findingUser,
+    isLoading: findingUser,
     refetch: refetchUser,
+    error: userError,
   } = mode === "create"
-    ? {
+    ? ({
         data: EMPTY,
-        isFinding: false,
+        isLoading: false,
         refetch: refetch,
-      }
+        error: null,
+      } as any)
     : useUser(id!);
 
   const mapUserToForm = (data: UserResource): Partial<UserSchema> => {
@@ -68,9 +73,10 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -83,9 +89,10 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "edit")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "edit"),
           );
         });
     }
@@ -94,6 +101,15 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
   const { data: typeUsers, isLoading: typeUsersLoading } = useAllTypeUsers();
 
   const isLoadingAny = isSubmitting || findingUser || typeUsersLoading;
+
+  useEffect(() => {
+    if (userError && mode === "edit" && !errorShownRef.current) {
+      const error = userError as any;
+      warningToast(error?.response?.data?.message ?? "Error al cargar el usuario");
+      errorShownRef.current = true;
+      onClose();
+    }
+  }, [userError, mode, onClose]);
 
   return (
     <GeneralModal

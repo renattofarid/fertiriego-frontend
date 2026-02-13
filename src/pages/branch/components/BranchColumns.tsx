@@ -22,7 +22,9 @@ export const BranchColumns = ({
   {
     accessorKey: "address",
     header: "Dirección",
-    cell: ({ getValue }) => getValue() as string,
+    cell: ({ getValue }) => (
+      <span className="font-semibold text-wrap!">{getValue() as string}</span>
+    ),
   },
   {
     accessorKey: "phone",

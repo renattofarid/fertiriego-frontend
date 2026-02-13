@@ -1,10 +1,11 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Calendar, Wallet, Eye } from "lucide-react";
 import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 import { parse } from "date-fns";
 import formatCurrency from "@/lib/formatCurrency";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
 
 export const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -31,7 +32,7 @@ export const getStatusBadge = (installment: PurchaseInstallmentResource) => {
 
 export const getAccountsPayableColumns = (
   onOpenPayment: (installment: PurchaseInstallmentResource) => void,
-  onOpenQuickView: (installment: PurchaseInstallmentResource) => void
+  onOpenQuickView: (installment: PurchaseInstallmentResource) => void,
 ): ColumnDef<PurchaseInstallmentResource>[] => [
   {
     accessorKey: "purchase_correlativo",
@@ -72,10 +73,10 @@ export const getAccountsPayableColumns = (
                 (parse(
                   row.original.due_date,
                   "yyyy-MM-dd",
-                  new Date()
+                  new Date(),
                 ).getTime() -
                   new Date().getTime()) /
-                  (1000 * 60 * 60 * 24)
+                  (1000 * 60 * 60 * 24),
               );
 
               if (row.original.status === "PAGADO") {
@@ -134,28 +135,22 @@ export const getAccountsPayableColumns = (
     cell: ({ row }) => {
       const isPending = parseFloat(row.original.pending_amount) > 0;
       return (
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
+        <ColumnActions>
+          <ButtonAction
+            icon={Eye}
+            tooltip="Ver detalles de la cuota"
             onClick={() => onOpenQuickView(row.original)}
-            title="Vista rápida de pagos"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Ver
-          </Button>
-          {isPending && (
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onOpenPayment(row.original)}
-              title="Gestionar pagos"
-            >
-              <Wallet className="h-4 w-4 mr-1" />
-              Pagar
-            </Button>
-          )}
-        </div>
+          />
+
+          <ButtonAction
+            icon={Wallet}
+            tooltip="Gestionar pagos"
+            onClick={() => onOpenPayment(row.original)}
+            disabled={!isPending}
+            variant="default"
+            color="primary"
+          />
+        </ColumnActions>
       );
     },
   },

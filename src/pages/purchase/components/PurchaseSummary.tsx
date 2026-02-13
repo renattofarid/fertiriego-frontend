@@ -59,8 +59,8 @@ export function PurchaseSummary({
   const currencyWatch = form.watch("currency");
 
   const supplierName = selectedSupplier
-    ? selectedSupplier.business_name ??
-      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`
+    ? (selectedSupplier.business_name ??
+      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`)
     : "Sin seleccionar";
 
   // Obtener el almacén seleccionado
@@ -252,7 +252,6 @@ export function PurchaseSummary({
               size="lg"
               disabled={
                 isSubmitting ||
-                !form.formState.isValid ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
                   selectedPaymentType === "CREDITO" &&
@@ -267,8 +266,8 @@ export function PurchaseSummary({
               {isSubmitting
                 ? "Guardando..."
                 : mode === "edit"
-                ? "Actualizar Compra"
-                : "Guardar Compra"}
+                  ? "Actualizar Compra"
+                  : "Guardar Compra"}
             </Button>
             <Button
               type="button"
@@ -285,7 +284,7 @@ export function PurchaseSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("issue_date")
                 ? new Date(
-                    form.watch("issue_date") + "T00:00:00"
+                    form.watch("issue_date") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",

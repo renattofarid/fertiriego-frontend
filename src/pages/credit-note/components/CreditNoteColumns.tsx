@@ -1,15 +1,12 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { CreditNoteResource } from "../lib/credit-note.interface";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { ColumnActions } from "@/components/SelectActions";
+import ExportButtons from "@/components/ExportButtons";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface CreditNoteColumnsProps {
   onDelete: (id: number) => void;
@@ -93,8 +90,8 @@ export const CreditNoteColumns = ({
               status === "PROCESADO"
                 ? "default"
                 : status === "PENDIENTE"
-                ? "secondary"
-                : "destructive"
+                  ? "secondary"
+                  : "destructive"
             }
           >
             {status}
@@ -123,26 +120,21 @@ export const CreditNoteColumns = ({
         const creditNote = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Abrir menú</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() =>
-                  navigate(`/notas-credito/actualizar/${creditNote.id}`)
-                }
-              >
-                Editar
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDelete(creditNote.id)}>
-                Eliminar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <ColumnActions>
+            <ExportButtons
+              pdfEndpoint={`/credit-notes/${row.original.id}/pdf`}
+              pdfFileName={`nota-credito-${row.original.document_number}.pdf`}
+              variant="separate"
+            />
+            <ButtonAction
+              icon={Pencil}
+              tooltip="Editar"
+              onClick={() =>
+                navigate(`/notas-credito/actualizar/${creditNote.id}`)
+              }
+            />
+            <DeleteButton onClick={() => onDelete(row.original.id)} />
+          </ColumnActions>
         );
       },
     },

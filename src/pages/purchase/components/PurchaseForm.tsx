@@ -54,6 +54,10 @@ import { PurchaseSummary } from "./PurchaseSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
+import { PurchaseDetailModal } from "./PurchaseDetailModal";
+import { PurchaseDetailTable } from "./PurchaseDetailTable";
+import { PurchaseInstallmentModal } from "./PurchaseInstallmentModal";
+import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -65,6 +69,12 @@ interface PurchaseFormProps {
   purchaseOrders: PurchaseOrderResource[];
   purchase?: PurchaseResource;
   currentUserId: number;
+  // Props para modo edit
+  purchaseId?: number;
+  detailsFromStore?: any[];
+  installmentsFromStore?: any[];
+  onRefreshDetails?: () => void;
+  onRefreshInstallments?: () => void;
 }
 
 interface DetailRow {
@@ -91,12 +101,26 @@ export const PurchaseForm = ({
   warehouses,
   purchaseOrders,
   currentUserId,
+  purchase,
+  purchaseId,
+  detailsFromStore = [],
+  installmentsFromStore = [],
+  onRefreshDetails,
+  onRefreshInstallments,
 }: PurchaseFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [includeIgv, setIncludeIgv] = useState<boolean>(false);
 
   const IGV_RATE = 0.18;
+
+  // Estados para modales (modo edit)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [editingDetailId, setEditingDetailId] = useState<number | null>(null);
+  const [isInstallmentModalOpen, setIsInstallmentModalOpen] = useState(false);
+  const [editingInstallmentId, setEditingInstallmentId] = useState<
+    number | null
+  >(null);
 
   // Estado para modales
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
@@ -319,7 +343,7 @@ export const PurchaseForm = ({
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
-          unit_price: detail.unit_price_estimated,
+          unit_price: detail.unit_price_estimated.toString(),
           tax: formatDecimalTrunc(tax, 2),
           subtotal,
           total,
@@ -418,23 +442,6 @@ export const PurchaseForm = ({
     return truncDecimal(sum, 2);
   };
 
-  const calculateSubtotalTotal = () => {
-    const sum = details.reduce(
-      (sum, detail) => sum + (detail.subtotal || 0),
-      0,
-    );
-    return truncDecimal(sum, 2);
-  };
-
-  const calculateTaxTotal = () => {
-    const sum = details.reduce(
-      (sum, detail) =>
-        sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
-      0,
-    );
-    return truncDecimal(sum, 2);
-  };
-
   // Funciones para cuotas
   const handleAddInstallment = () => {
     if (!currentInstallment.due_days || !currentInstallment.amount) {
@@ -511,7 +518,44 @@ export const PurchaseForm = ({
     return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia acorde a 2 decimales
   };
 
+  // Datos y funciones para el resumen (dependiendo del modo)
+  const summaryDetails = mode === "edit" ? detailsFromStore : details;
+  const summaryInstallments =
+    mode === "edit" ? installmentsFromStore : installments;
+
+  const calculateSummarySubtotalTotal = () => {
+    const sum = summaryDetails.reduce(
+      (sum, detail: any) => sum + (parseFloat(detail.subtotal) || 0),
+      0,
+    );
+    return truncDecimal(sum, 2);
+  };
+
+  const calculateSummaryTaxTotal = () => {
+    const sum = summaryDetails.reduce(
+      (sum, detail: any) =>
+        sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
+      0,
+    );
+    return truncDecimal(sum, 2);
+  };
+
+  const calculateSummaryDetailsTotal = () => {
+    const sum = summaryDetails.reduce(
+      (sum, detail: any) => sum + (parseFloat(detail.total) || 0),
+      0,
+    );
+    return truncDecimal(sum, 2);
+  };
+
   const handleFormSubmit = (data: any) => {
+    // En modo edit, solo enviar datos del formulario principal
+    if (mode === "edit") {
+      onSubmit(data);
+      return;
+    }
+
+    // Validaciones para modo create
     // Validar que si es a crédito, debe tener cuotas
     if (selectedPaymentType === "CREDITO" && installments.length === 0) {
       errorToast("Para pagos a crédito, debe agregar al menos una cuota");
@@ -559,6 +603,43 @@ export const PurchaseForm = ({
     });
   };
 
+  // Handlers para modales (modo edit)
+  const handleAddDetailEdit = () => {
+    setEditingDetailId(null);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleEditDetailEdit = (detailId: number) => {
+    setEditingDetailId(detailId);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDetailModalClose = () => {
+    setIsDetailModalOpen(false);
+    setEditingDetailId(null);
+    if (onRefreshDetails) {
+      onRefreshDetails();
+    }
+  };
+
+  const handleAddInstallmentEdit = () => {
+    setEditingInstallmentId(null);
+    setIsInstallmentModalOpen(true);
+  };
+
+  const handleEditInstallmentEdit = (installmentId: number) => {
+    setEditingInstallmentId(installmentId);
+    setIsInstallmentModalOpen(true);
+  };
+
+  const handleInstallmentModalClose = () => {
+    setIsInstallmentModalOpen(false);
+    setEditingInstallmentId(null);
+    if (onRefreshInstallments) {
+      onRefreshInstallments();
+    }
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="w-full">
@@ -601,6 +682,9 @@ export const PurchaseForm = ({
                         p.business_name ?? `${p.names} ${p.father_surname}`,
                       description: p.number_document,
                     })}
+                    preloadItemId={
+                      mode === "edit" ? defaultValues.supplier_id : undefined
+                    }
                     disabled={mode === "edit"}
                   />
                 </div>
@@ -1064,6 +1148,53 @@ export const PurchaseForm = ({
                 </div>
               </GroupFormSection>
             )}
+
+            {/* Detalles en modo edit */}
+            {mode === "edit" && (
+              <GroupFormSection
+                title="Detalles de la Compra"
+                icon={Package}
+                cols={{ sm: 1 }}
+              >
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddDetailEdit} type="button">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar Detalle
+                    </Button>
+                  </div>
+                  <PurchaseDetailTable
+                    details={detailsFromStore}
+                    onEdit={handleEditDetailEdit}
+                    onRefresh={onRefreshDetails || (() => {})}
+                  />
+                </div>
+              </GroupFormSection>
+            )}
+
+            {/* Cuotas en modo edit */}
+            {mode === "edit" && (
+              <GroupFormSection
+                title="Cuotas"
+                icon={CalendarDays}
+                cols={{ sm: 1 }}
+              >
+                <div className="space-y-4">
+                  <div className="flex justify-end">
+                    <Button onClick={handleAddInstallmentEdit} type="button">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Agregar Cuota
+                    </Button>
+                  </div>
+                  <PurchaseInstallmentTable
+                    installments={installmentsFromStore}
+                    onEdit={handleEditInstallmentEdit}
+                    onRefresh={onRefreshInstallments || (() => {})}
+                    isCashPayment={purchase?.payment_type === "CONTADO"}
+                  />
+                </div>
+              </GroupFormSection>
+            )}
           </div>
 
           {/* Columna derecha: Resumen - sticky */}
@@ -1072,11 +1203,11 @@ export const PurchaseForm = ({
             mode={mode}
             isSubmitting={isSubmitting}
             warehouses={warehouses}
-            details={details}
-            installments={installments}
-            calculateSubtotalTotal={calculateSubtotalTotal}
-            calculateTaxTotal={calculateTaxTotal}
-            calculateDetailsTotal={calculateDetailsTotal}
+            details={summaryDetails}
+            installments={summaryInstallments}
+            calculateSubtotalTotal={calculateSummarySubtotalTotal}
+            calculateTaxTotal={calculateSummaryTaxTotal}
+            calculateDetailsTotal={calculateSummaryDetailsTotal}
             installmentsMatchTotal={installmentsMatchTotal}
             selectedSupplier={selectedSupplier}
             onCancel={onCancel}
@@ -1098,6 +1229,29 @@ export const PurchaseForm = ({
         onClose={() => setIsWarehouseModalOpen(false)}
         onWarehouseCreated={handleWarehouseCreated}
       />
+
+      {/* Modales para modo edit */}
+      {mode === "edit" && purchaseId && (
+        <>
+          {isDetailModalOpen && (
+            <PurchaseDetailModal
+              open={isDetailModalOpen}
+              onClose={handleDetailModalClose}
+              purchaseId={purchaseId}
+              detailId={editingDetailId}
+            />
+          )}
+
+          {isInstallmentModalOpen && (
+            <PurchaseInstallmentModal
+              open={isInstallmentModalOpen}
+              onClose={handleInstallmentModalClose}
+              purchaseId={purchaseId}
+              installmentId={editingInstallmentId}
+            />
+          )}
+        </>
+      )}
     </Form>
   );
 };

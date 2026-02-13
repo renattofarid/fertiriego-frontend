@@ -33,7 +33,14 @@ export const PurchaseTable = ({
 
   return (
     <div className="border-none text-muted-foreground max-w-full">
-      <DataTable columns={columns} data={data} isLoading={isLoading}>
+      <DataTable
+        columns={columns}
+        data={data}
+        isLoading={isLoading}
+        initialColumnVisibility={{
+          warehouse_name: false,
+        }}
+      >
         {children}
       </DataTable>
     </div>

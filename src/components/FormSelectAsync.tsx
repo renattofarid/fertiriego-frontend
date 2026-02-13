@@ -63,6 +63,7 @@ interface FormSelectAsyncProps {
   defaultOption?: Option; // Opción inicial para mostrar cuando se edita
   additionalParams?: Record<string, any>; // Parámetros adicionales para el hook
   onValueChange?: (value: string, item?: any) => void; // Callback cuando cambia el valor
+  preloadItemId?: string; // ID del item a precargar buscando en todas las páginas
 }
 
 export function FormSelectAsync({
@@ -85,6 +86,7 @@ export function FormSelectAsync({
   defaultOption,
   additionalParams = {},
   onValueChange,
+  preloadItemId,
 }: FormSelectAsyncProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -160,6 +162,32 @@ export function FormSelectAsync({
       }
     }
   }, [data, page, mapOptionFn]);
+
+  // Precargar item específico buscando en todas las páginas
+  useEffect(() => {
+    if (
+      preloadItemId &&
+      !isLoading &&
+      !isFetching &&
+      data?.meta?.last_page &&
+      page < data.meta.last_page
+    ) {
+      // Verificar si el item ya está cargado
+      const itemFound = allOptions.some((opt) => opt.value === preloadItemId);
+
+      if (!itemFound) {
+        // Cargar siguiente página para buscar el item
+        setPage((prev) => prev + 1);
+      }
+    }
+  }, [
+    preloadItemId,
+    allOptions,
+    isLoading,
+    isFetching,
+    data?.meta?.last_page,
+    page,
+  ]);
 
   // Manejar scroll para cargar más
   const handleScroll = useCallback(

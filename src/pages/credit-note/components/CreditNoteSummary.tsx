@@ -89,7 +89,10 @@ export function CreditNoteSummary({
           </div>
           <p className="text-xs text-muted-foreground">Nota de Crédito</p>
           {affectsStockWatch !== undefined && (
-            <Badge variant={affectsStockWatch ? "default" : "secondary"} className="w-fit">
+            <Badge
+              variant={affectsStockWatch ? "default" : "secondary"}
+              className="w-fit"
+            >
               {affectsStockWatch ? "Afecta Stock" : "No afecta stock"}
             </Badge>
           )}
@@ -135,7 +138,7 @@ export function CreditNoteSummary({
               ) : (
                 details.map((detail, index) => {
                   const saleDetail = selectedSale?.details?.find(
-                    (d) => d.id.toString() === detail.sale_detail_id
+                    (d) => d.id.toString() === detail.sale_detail_id,
                   );
                   const productName = saleDetail?.product?.name ?? "Producto";
                   const total = detail.quantity * detail.unit_price * 1.18;
@@ -208,17 +211,15 @@ export function CreditNoteSummary({
               className="w-full"
               size="lg"
               disabled={
-                isSubmitting ||
-                !form.formState.isValid ||
-                (mode === "create" && details.length === 0)
+                isSubmitting || (mode === "create" && details.length === 0)
               }
             >
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
                 : mode === "edit"
-                ? "Actualizar Nota de Crédito"
-                : "Guardar Nota de Crédito"}
+                  ? "Actualizar Nota de Crédito"
+                  : "Guardar Nota de Crédito"}
             </Button>
             <Button
               type="button"
@@ -235,7 +236,7 @@ export function CreditNoteSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("issue_date")
                 ? new Date(
-                    form.watch("issue_date") + "T00:00:00"
+                    form.watch("issue_date") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",
