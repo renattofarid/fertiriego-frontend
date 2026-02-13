@@ -103,54 +103,20 @@ export const PurchaseShippingGuideForm = ({
 
   const detailTempForm = useForm({
     defaultValues: {
-      temp_product_id: currentDetail.product_id,
-      temp_quantity: currentDetail.quantity,
-      temp_unit: currentDetail.unit,
+      temp_product_id: "",
+      temp_quantity: "",
+      temp_unit: "NIU",
     },
   });
 
-  // Watchers
-  const selectedProductId = detailTempForm.watch("temp_product_id");
-  const selectedQuantity = detailTempForm.watch("temp_quantity");
-  const selectedUnit = detailTempForm.watch("temp_unit");
-
-  // Sincronizar detalles
+  // Sincronizar solo cuando se edita un detalle (una sola vez)
   useEffect(() => {
-    detailTempForm.setValue("temp_product_id", currentDetail.product_id);
-    detailTempForm.setValue("temp_quantity", currentDetail.quantity);
-    detailTempForm.setValue("temp_unit", currentDetail.unit);
-  }, [currentDetail, detailTempForm]);
-
-  // Observers
-  useEffect(() => {
-    setCurrentDetail((prev) => {
-      if (selectedProductId !== prev.product_id) {
-        return {
-          ...prev,
-          product_id: selectedProductId || "",
-        };
-      }
-      return prev;
-    });
-  }, [selectedProductId]);
-
-  useEffect(() => {
-    setCurrentDetail((prev) => {
-      if (selectedQuantity !== prev.quantity) {
-        return { ...prev, quantity: selectedQuantity || "" };
-      }
-      return prev;
-    });
-  }, [selectedQuantity]);
-
-  useEffect(() => {
-    setCurrentDetail((prev) => {
-      if (selectedUnit !== prev.unit) {
-        return { ...prev, unit: selectedUnit || "" };
-      }
-      return prev;
-    });
-  }, [selectedUnit]);
+    if (editingDetailIndex !== null) {
+      detailTempForm.setValue("temp_product_id", currentDetail.product_id);
+      detailTempForm.setValue("temp_quantity", currentDetail.quantity);
+      detailTempForm.setValue("temp_unit", currentDetail.unit);
+    }
+  }, [editingDetailIndex]);
 
   const [productSelected, setProductSelected] = useState<
     ProductResource | undefined
@@ -158,16 +124,18 @@ export const PurchaseShippingGuideForm = ({
 
   // Funciones para detalles
   const handleAddDetail = () => {
-    if (
-      !currentDetail.product_id ||
-      !currentDetail.quantity ||
-      !currentDetail.unit
-    ) {
+    const productId = detailTempForm.getValues("temp_product_id");
+    const quantity = detailTempForm.getValues("temp_quantity");
+    const unit = detailTempForm.getValues("temp_unit");
+
+    if (!productId || !quantity || !unit) {
       return;
     }
 
     const newDetail: DetailRow = {
-      ...currentDetail,
+      product_id: productId,
+      quantity: quantity,
+      unit: unit,
       product_name: productSelected?.name,
     };
 
@@ -183,6 +151,13 @@ export const PurchaseShippingGuideForm = ({
       form.setValue("details", updatedDetails);
     }
 
+    // Resetear el formulario temporal
+    detailTempForm.reset({
+      temp_product_id: "",
+      temp_quantity: "",
+      temp_unit: "NIU",
+    });
+    setProductSelected(undefined);
     setCurrentDetail({
       product_id: "",
       quantity: "",
@@ -245,6 +220,15 @@ export const PurchaseShippingGuideForm = ({
                 );
                 setDetails(purchaseDetails);
                 form.setValue("details", purchaseDetails);
+
+                // Calcular y setear el peso total sumando todas las cantidades
+                const totalWeight = item.details.reduce(
+                  (sum: number, detail: PurchaseDetailResource) => {
+                    return sum + parseFloat(detail.quantity || "0");
+                  },
+                  0,
+                );
+                form.setValue("total_weight", totalWeight.toString());
               }
             }}
           />
@@ -268,19 +252,19 @@ export const PurchaseShippingGuideForm = ({
           />
 
           <DatePickerFormField
-            control={form.control as any}
+            control={form.control}
             name="issue_date"
             label="Fecha de Emisión"
           />
 
           <DatePickerFormField
-            control={form.control as any}
+            control={form.control}
             name="transfer_date"
             label="Fecha de Traslado"
           />
 
           <FormField
-            control={form.control as any}
+            control={form.control}
             name="motive"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
@@ -570,6 +554,9 @@ export const PurchaseShippingGuideForm = ({
                   label="Producto"
                   placeholder="Seleccione"
                   useQueryHook={useProduct}
+                  additionalParams={{
+                    per_page: 100,
+                  }}
                   mapOptionFn={(product: ProductResource) => ({
                     value: product.id.toString(),
                     label: product.name,
@@ -578,9 +565,27 @@ export const PurchaseShippingGuideForm = ({
                   onValueChange={(_value, item) => {
                     setProductSelected(item);
                   }}
+                  preloadItemId={
+                    editingDetailIndex !== null
+                      ? currentDetail.product_id
+                      : undefined
+                  }
+                  defaultOption={
+                    editingDetailIndex !== null && currentDetail.product_name
+                      ? {
+                          value: currentDetail.product_id.toString(),
+                          label: currentDetail.product_name,
+                          description: "",
+                        }
+                      : undefined
+                  }
                 />
               </Form>
             </div>
+
+            <pre>
+              <code>{JSON.stringify(detailTempForm.watch(), null, 2)}</code>
+            </pre>
 
             <FormField
               control={detailTempForm.control}
@@ -614,9 +619,9 @@ export const PurchaseShippingGuideForm = ({
                 variant="default"
                 onClick={handleAddDetail}
                 disabled={
-                  !currentDetail.product_id ||
-                  !currentDetail.quantity ||
-                  !currentDetail.unit
+                  !detailTempForm.watch("temp_product_id") ||
+                  !detailTempForm.watch("temp_quantity") ||
+                  !detailTempForm.watch("temp_unit")
                 }
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -679,11 +684,6 @@ export const PurchaseShippingGuideForm = ({
             </div>
           </GroupFormSection>
         )}
-
-        <pre>
-          <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
-          <code>{JSON.stringify(form.getValues(), null, 2)}</code>
-        </pre>
 
         {/* Botones de Acción */}
         <div className="flex justify-end gap-2">
