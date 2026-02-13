@@ -404,23 +404,22 @@ export function ShippingGuideCarrierForm({
                 }))}
               />
 
-              {transportModality === "PUBLICO" && (
-                <FormSelectAsync
-                  control={form.control}
-                  name="carrier_id"
-                  label="Transportista"
-                  placeholder="Seleccione transportista"
-                  useQueryHook={useCarriers}
-                  mapOptionFn={(c: PersonResource) => ({
-                    value: c.id.toString(),
-                    label:
-                      c.business_name ??
-                      `${c.names} ${c.father_surname} ${c.mother_surname}`,
-                    description: c.number_document,
-                  })}
-                  withValue
-                />
-              )}
+              <FormSelectAsync
+                control={form.control}
+                name="carrier_id"
+                label="Transportista"
+                placeholder="Seleccione un transportista"
+                useQueryHook={useCarriers}
+                mapOptionFn={(carrier) => ({
+                  value: carrier.id.toString(),
+                  label:
+                    carrier.business_name ||
+                    `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                  description: carrier.number_document,
+                })}
+                withValue
+                preloadItemId={initialValues?.carrier_id}
+              />
 
               <FormSelectAsync
                 control={form.control}
@@ -434,6 +433,7 @@ export function ShippingGuideCarrierForm({
                   description: p.number_document,
                 })}
                 withValue
+                preloadItemId={initialValues?.remittent_id}
               />
 
               <FormSelect
@@ -472,10 +472,13 @@ export function ShippingGuideCarrierForm({
                     useQueryHook={useDrivers}
                     mapOptionFn={(d: PersonResource) => ({
                       value: d.id.toString(),
-                      label: `${d.names} ${d.father_surname}`,
+                      label:
+                        d.business_name ??
+                        `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
                       description: d.number_document,
                     })}
                     withValue
+                    preloadItemId={initialValues?.driver_id}
                   />
 
                   <FormSelectAsync
@@ -490,6 +493,7 @@ export function ShippingGuideCarrierForm({
                       description: `${vehicle.brand} ${vehicle.model}`,
                     })}
                     withValue
+                    preloadItemId={initialValues?.vehicle_id}
                   />
 
                   <FormSelectAsync
@@ -504,6 +508,7 @@ export function ShippingGuideCarrierForm({
                       description: `${vehicle.brand} ${vehicle.model}`,
                     })}
                     withValue
+                    preloadItemId={initialValues?.secondary_vehicle_id}
                   />
 
                   <FormField
@@ -612,6 +617,7 @@ export function ShippingGuideCarrierForm({
                   label: item.name,
                   description: item.cadena,
                 })}
+                preloadItemId={initialValues?.origin_ubigeo_id}
               />
 
               <FormSelectAsync
@@ -625,6 +631,7 @@ export function ShippingGuideCarrierForm({
                   label: item.name,
                   description: item.cadena,
                 })}
+                preloadItemId={initialValues?.destination_ubigeo_id}
               />
 
               <FormField

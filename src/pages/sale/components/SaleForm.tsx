@@ -76,8 +76,8 @@ interface SaleFormProps {
   isSubmitting?: boolean;
   mode?: "create" | "edit";
   warehouses: WarehouseResource[];
-  sourceData?: any; // QuotationResourceById | OrderResourceById
-  sourceType?: "quotation" | "order" | null;
+  sourceData?: any; // QuotationResourceById | OrderResourceById | GuideResourceById
+  sourceType?: "quotation" | "order" | "guide" | null;
   sale?: SaleResource;
 }
 
@@ -467,65 +467,109 @@ export const SaleForm = ({
     detailTempForm.setValue("temp_price_category_id", "");
   }, [selectedProductId, detailTempForm]);
 
-  // Auto-completar datos desde sourceData (orden o cotización)
+  // Auto-completar datos desde sourceData (orden, cotización o guía)
   useEffect(() => {
     if (sourceData && sourceType && mode === "create") {
-      // Auto-completar campos comunes
-      form.setValue("customer_id", sourceData.customer_id.toString());
-      form.setValue("warehouse_id", sourceData.warehouse_id.toString());
-      form.setValue("currency", sourceData.currency);
-      form.setValue("observations", sourceData.observations || "");
+      if (sourceType === "quotation" || sourceType === "order") {
+        // Auto-completar campos comunes
+        form.setValue("customer_id", sourceData.customer_id.toString());
+        form.setValue("warehouse_id", sourceData.warehouse_id.toString());
+        form.setValue("currency", sourceData.currency);
+        form.setValue("observations", sourceData.observations || "");
 
-      if (sourceType === "quotation") {
-        form.setValue("payment_type", sourceData.payment_type);
+        if (sourceType === "quotation") {
+          form.setValue("payment_type", sourceData.payment_type);
 
-        // Auto-completar detalles desde cotización
-        const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
-          (detail: any) => {
-            const quantity = parseFloat(detail.quantity);
-            const unitPrice = parseFloat(detail.unit_price);
-            const subtotal = roundTo6Decimals(quantity * unitPrice);
-            const igv = roundTo6Decimals(subtotal * 0.18);
-            const total = roundTo6Decimals(subtotal + igv);
+          // Auto-completar detalles desde cotización
+          const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
+            (detail: any) => {
+              const quantity = parseFloat(detail.quantity);
+              const unitPrice = parseFloat(detail.unit_price);
+              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const igv = roundTo6Decimals(subtotal * 0.18);
+              const total = roundTo6Decimals(subtotal + igv);
 
-            return {
-              product_id: detail.product_id.toString(),
-              product_name: detail.product?.name,
-              quantity: detail.quantity,
-              unit_price: detail.unit_price,
-              subtotal,
-              igv,
-              total,
-            };
-          },
-        );
+              return {
+                product_id: detail.product_id.toString(),
+                product_name: detail.product?.name,
+                quantity: detail.quantity,
+                unit_price: detail.unit_price,
+                subtotal,
+                igv,
+                total,
+              };
+            },
+          );
 
-        setDetails(quotationDetails);
-        form.setValue("details", quotationDetails);
-      } else if (sourceType === "order") {
-        // Auto-completar detalles desde orden
-        const orderDetails: DetailRow[] = sourceData.order_details.map(
-          (detail: any) => {
-            const quantity = parseFloat(detail.quantity);
-            const unitPrice = parseFloat(detail.unit_price);
-            const subtotal = roundTo6Decimals(quantity * unitPrice);
-            const igv = roundTo6Decimals(subtotal * 0.18);
-            const total = roundTo6Decimals(subtotal + igv);
+          setDetails(quotationDetails);
+          form.setValue("details", quotationDetails);
+        } else if (sourceType === "order") {
+          // Auto-completar detalles desde orden
+          const orderDetails: DetailRow[] = sourceData.order_details.map(
+            (detail: any) => {
+              const quantity = parseFloat(detail.quantity);
+              const unitPrice = parseFloat(detail.unit_price);
+              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const igv = roundTo6Decimals(subtotal * 0.18);
+              const total = roundTo6Decimals(subtotal + igv);
 
-            return {
-              product_id: detail.product_id.toString(),
-              product_name: detail.product?.name,
-              quantity: detail.quantity,
-              unit_price: detail.unit_price,
-              subtotal,
-              igv,
-              total,
-            };
-          },
-        );
+              return {
+                product_id: detail.product_id.toString(),
+                product_name: detail.product?.name,
+                quantity: detail.quantity,
+                unit_price: detail.unit_price,
+                subtotal,
+                igv,
+                total,
+              };
+            },
+          );
 
-        setDetails(orderDetails);
-        form.setValue("details", orderDetails);
+          setDetails(orderDetails);
+          form.setValue("details", orderDetails);
+        }
+      } else if (sourceType === "guide") {
+        // Auto-completar desde guía de remisión
+        // El cliente viene de la venta asociada a la guía
+        if (sourceData.sale?.customer_id) {
+          form.setValue("customer_id", sourceData.sale.customer_id.toString());
+        }
+
+        // El almacén viene de la guía
+        if (sourceData.warehouse?.id) {
+          form.setValue("warehouse_id", sourceData.warehouse.id.toString());
+        }
+
+        // Prellenar moneda y observaciones si existen
+        form.setValue("currency", sourceData.sale?.currency || "PEN");
+        form.setValue("observations", sourceData.observations || "");
+
+        // Auto-completar detalles desde guía
+        if (sourceData.details && sourceData.details.length > 0) {
+          const guideDetails: DetailRow[] = sourceData.details.map(
+            (detail: any) => {
+              const quantity = parseFloat(detail.quantity);
+              // Para guías no tenemos precio unitario, se deja en 0 para que el usuario lo ingrese
+              const unitPrice = 0;
+              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const igv = roundTo6Decimals(subtotal * 0.18);
+              const total = roundTo6Decimals(subtotal + igv);
+
+              return {
+                product_id: detail.product_id.toString(),
+                product_name: detail.product_name,
+                quantity: detail.quantity,
+                unit_price: unitPrice.toString(),
+                subtotal,
+                igv,
+                total,
+              };
+            },
+          );
+
+          setDetails(guideDetails);
+          form.setValue("details", guideDetails);
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -836,6 +880,7 @@ export const SaleForm = ({
       guides: guides.length > 0 ? guides : undefined,
       order_id: data.order_id ? parseInt(data.order_id) : undefined,
       quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
+      guide_id: data.guide_id ? parseInt(data.guide_id) : undefined,
     });
   };
 
@@ -873,6 +918,11 @@ export const SaleForm = ({
                     onValueChange={(_value, item) => {
                       setSelectedCustomer(item ?? null);
                     }}
+                    preloadItemId={
+                      mode === "edit" || (sourceData && sourceType === "guide")
+                        ? form.getValues("customer_id")
+                        : undefined
+                    }
                   />
                 </div>
                 {mode === "create" && (

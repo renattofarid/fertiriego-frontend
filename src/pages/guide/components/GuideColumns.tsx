@@ -6,7 +6,7 @@ import type {
 } from "../lib/guide.interface";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Eye, Pencil, RefreshCcw } from "lucide-react";
+import { Eye, Pencil, RefreshCcw, BanknoteArrowUp } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { ColumnActions } from "@/components/SelectActions";
 import ExportButtons from "@/components/ExportButtons";
@@ -16,6 +16,7 @@ interface GuideColumnsProps {
   onDelete: (id: number) => void;
   onView: (id: number) => void;
   onChangeStatus: (id: number, status: GuideStatus) => void;
+  onGenerateSale: (guide: GuideResource) => void;
 }
 
 export const GuideColumns = ({
@@ -23,6 +24,7 @@ export const GuideColumns = ({
   onDelete,
   onView,
   onChangeStatus,
+  onGenerateSale,
 }: GuideColumnsProps): ColumnDef<GuideResource>[] => [
   {
     accessorKey: "full_guide_number",
@@ -139,6 +141,12 @@ export const GuideColumns = ({
           icon={Eye}
           tooltip="Ver Detalle"
           onClick={() => onView(row.original.id)}
+        />
+        <ButtonAction
+          icon={BanknoteArrowUp}
+          tooltip="Generar Venta"
+          onClick={() => onGenerateSale(row.original)}
+          color="primary"
         />
         <ButtonAction
           icon={RefreshCcw}
