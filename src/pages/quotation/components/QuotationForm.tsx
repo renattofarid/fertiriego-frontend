@@ -754,6 +754,11 @@ export const QuotationForm = ({
             editIndex={editingIndex}
             onEdit={handleUpdateDetail}
             currency={currency}
+            customerId={
+              form.watch("customer_id")
+                ? parseInt(form.watch("customer_id"))
+                : undefined
+            }
           />
 
           <TechnicalSheetsDialog

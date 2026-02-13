@@ -32,7 +32,7 @@ import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useState, useEffect } from "react";
-import { useAllWarehouseProducts, useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
 import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
@@ -129,12 +129,6 @@ export const SaleForm = ({
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
-  // Obtener productos del almacén seleccionado
-  const { data: warehouseProducts } =
-    useAllWarehouseProducts(
-      selectedWarehouseId ? { warehouse_id: selectedWarehouseId } : undefined,
-    );
-
   // Obtener guías de remisión
   const { data: guidesRemision, isLoading: isLoadingGuidesRemision } =
     useAllGuides();
@@ -145,6 +139,9 @@ export const SaleForm = ({
 
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
+
+  const [productSelected, setProductSelected] =
+    useState<WarehouseProductResource | null>(null);
 
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
@@ -437,8 +434,6 @@ export const SaleForm = ({
     }
   }, [watchedWarehouseId, selectedWarehouseId]);
 
-
-
   // Watch para la moneda seleccionada
   const selectedCurrency = form.watch("currency");
 
@@ -565,9 +560,6 @@ export const SaleForm = ({
       return;
     }
 
-    const wp = warehouseProducts?.find(
-      (wp) => wp.product_id.toString() === currentDetail.product_id,
-    );
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
 
@@ -578,7 +570,7 @@ export const SaleForm = ({
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: wp?.product_name,
+      product_name: productSelected?.product_name,
       subtotal,
       igv,
       total,
@@ -976,10 +968,7 @@ export const SaleForm = ({
                   <FormItem>
                     <FormLabel>Orden de Compra</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="Ingrese número de orden"
-                        {...field}
-                      />
+                      <Input placeholder="Ingrese número de orden" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -1063,6 +1052,9 @@ export const SaleForm = ({
                     })}
                     additionalParams={{
                       warehouse_id: selectedWarehouseId,
+                    }}
+                    onValueChange={(_value, item) => {
+                      setProductSelected(item ?? null);
                     }}
                     disabled={!selectedWarehouseId}
                   />

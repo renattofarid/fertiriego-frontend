@@ -8,7 +8,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { History, Loader2 } from "lucide-react";
+import { History, Loader2, Users, Store } from "lucide-react";
 import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { ProductSalesHistoryItem } from "../lib/quotation.interface";
@@ -20,6 +20,7 @@ interface ProductSalesHistoryDialogProps {
   onOpenChange: (open: boolean) => void;
   productId: number;
   productName: string;
+  customerId?: number;
 }
 
 export function ProductSalesHistoryDialog({
@@ -27,14 +28,17 @@ export function ProductSalesHistoryDialog({
   onOpenChange,
   productId,
   productName,
+  customerId,
 }: ProductSalesHistoryDialogProps) {
   const [page, setPage] = useState(1);
+  const [filterByCustomer, setFilterByCustomer] = useState(false);
 
   const { data, isLoading, error } = useProductSalesHistory(
     {
       productId,
       page,
       per_page: 10,
+      ...(filterByCustomer && customerId && { customer_id: customerId }),
     },
     open,
   );
@@ -69,7 +73,11 @@ export function ProductSalesHistoryDialog({
         header: "P. Unit.",
         cell: ({ row }) => (
           <div className="text-right">
-            {row.original.moneda === "PEN" ? "S/" : row.original.moneda === "USD" ? "$" : "€"}{" "}
+            {row.original.moneda === "PEN"
+              ? "S/"
+              : row.original.moneda === "USD"
+                ? "$"
+                : "€"}{" "}
             {parseFloat(row.original.precio_unitario).toFixed(2)}
           </div>
         ),
@@ -79,7 +87,11 @@ export function ProductSalesHistoryDialog({
         header: "Total",
         cell: ({ row }) => (
           <div className="text-right font-semibold">
-            {row.original.moneda === "PEN" ? "S/" : row.original.moneda === "USD" ? "$" : "€"}{" "}
+            {row.original.moneda === "PEN"
+              ? "S/"
+              : row.original.moneda === "USD"
+                ? "$"
+                : "€"}{" "}
             {parseFloat(row.original.total).toFixed(2)}
           </div>
         ),
@@ -88,7 +100,10 @@ export function ProductSalesHistoryDialog({
         accessorKey: "cliente",
         header: "Cliente",
         cell: ({ row }) => (
-          <div className="text-sm max-w-[200px] truncate" title={row.original.cliente}>
+          <div
+            className="text-sm max-w-[200px] truncate"
+            title={row.original.cliente}
+          >
             {row.original.cliente}
           </div>
         ),
@@ -127,16 +142,51 @@ export function ProductSalesHistoryDialog({
     setPage(newPage);
   };
 
+  const handleToggleFilter = () => {
+    setFilterByCustomer(!filterByCustomer);
+    setPage(1); // Reset page when changing filter
+  };
+
   return (
     <GeneralModal
       open={open}
       onClose={() => onOpenChange(false)}
       title={`Histórico de Ventas - ${productName}`}
+      subtitle="Consulta el histórico de ventas de este producto"
       icon="History"
       size="4xl"
       className="max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-4">
+        {/* Barra de acciones */}
+        {customerId && (
+          <div className="flex items-center justify-between pb-3 border-b">
+            <div className="text-sm text-muted-foreground">
+              {filterByCustomer
+                ? "Mostrando solo precios de este cliente"
+                : "Mostrando todos los precios"}
+            </div>
+            <Button
+              variant={filterByCustomer ? "default" : "outline"}
+              size="sm"
+              onClick={handleToggleFilter}
+              className="gap-2"
+            >
+              {!filterByCustomer ? (
+                <>
+                  <Users className="h-4 w-4" />
+                  Buscar del cliente
+                </>
+              ) : (
+                <>
+                  <Store className="h-4 w-4" />
+                  Buscar todos los precios
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />

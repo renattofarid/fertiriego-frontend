@@ -4,7 +4,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Pencil, Plus, History } from "lucide-react";
+import { Pencil, Plus, History, Package } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
@@ -12,6 +12,7 @@ import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { ProductSalesHistoryDialog } from "./ProductSalesHistoryDialog";
+import { ProductStockDialog } from "./ProductStockDialog";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface AddProductSheetProps {
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
   currency: string;
+  customerId?: number;
 }
 
 export interface ProductDetail {
@@ -47,6 +49,7 @@ export const AddProductSheet = ({
   editIndex = null,
   onEdit,
   currency,
+  customerId,
 }: AddProductSheetProps) => {
   const isEditMode = editingDetail !== null && editIndex !== null;
 
@@ -171,6 +174,7 @@ export const AddProductSheet = ({
     useState<ProductResource | null>(null);
 
   const [showSalesHistory, setShowSalesHistory] = useState(false);
+  const [showStock, setShowStock] = useState(false);
 
   const handleSave = () => {
     const formData = form.getValues();
@@ -248,16 +252,27 @@ export const AddProductSheet = ({
 
         {productId && (
           <>
-            {/* Botón para ver historial de ventas */}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowSalesHistory(true)}
-              className="w-full gap-2"
-            >
-              <History className="h-4 w-4" />
-              Ver Historial de Ventas/Precios
-            </Button>
+            {/* Botones para ver historial de ventas y stock */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowSalesHistory(true)}
+                className="gap-2"
+              >
+                <History className="h-4 w-4" />
+                Ver Historial
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowStock(true)}
+                className="gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Ver Stock
+              </Button>
+            </div>
 
             {priceCategories && priceCategories.length > 0 && (
               <FormSelect
@@ -370,12 +385,21 @@ export const AddProductSheet = ({
 
       {/* Dialog de historial de ventas */}
       {productId && selectedProduct && (
-        <ProductSalesHistoryDialog
-          open={showSalesHistory}
-          onOpenChange={setShowSalesHistory}
-          productId={parseInt(productId)}
-          productName={selectedProduct.name}
-        />
+        <>
+          <ProductSalesHistoryDialog
+            open={showSalesHistory}
+            onOpenChange={setShowSalesHistory}
+            productId={parseInt(productId)}
+            productName={selectedProduct.name}
+            customerId={customerId}
+          />
+          <ProductStockDialog
+            open={showStock}
+            onOpenChange={setShowStock}
+            productId={parseInt(productId)}
+            productName={selectedProduct.name}
+          />
+        </>
       )}
     </GeneralSheet>
   );

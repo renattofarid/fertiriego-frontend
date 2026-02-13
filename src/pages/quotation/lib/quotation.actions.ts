@@ -80,12 +80,14 @@ export interface GetProductSalesHistoryParams {
   productId: number;
   page?: number;
   per_page?: number;
+  customer_id?: number;
 }
 
 export const getProductSalesHistory = async ({
   productId,
   page = 1,
   per_page = 15,
+  customer_id,
 }: GetProductSalesHistoryParams): Promise<ProductSalesHistoryResponse> => {
   const response = await api.get<ProductSalesHistoryResponse>(
     `/products/${productId}/sales-history`,
@@ -93,6 +95,7 @@ export const getProductSalesHistory = async ({
       params: {
         page,
         per_page,
+        ...(customer_id && { customer_id }),
       },
     },
   );
