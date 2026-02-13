@@ -42,6 +42,7 @@ import { useClients } from "@/pages/client/lib/client.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
 
 interface GuideFormProps {
@@ -582,6 +583,20 @@ export const GuideForm = ({
               label:
                 carrier.business_name ||
                 `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+            })}
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="dispatcher_id"
+            label="Despachador (Opcional)"
+            placeholder="Seleccione un despachador"
+            useQueryHook={useSuppliers}
+            mapOptionFn={(supplier) => ({
+              value: supplier.id.toString(),
+              label:
+                supplier.business_name ||
+                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
             })}
           />
 

@@ -11,6 +11,13 @@ import { useAllProductPriceCategories } from "@/pages/product-price-category/lib
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { GeneralModal } from "@/components/GeneralModal";
+import { ProductForm } from "@/pages/product/components/ProductForm";
+import { useProductStore } from "@/pages/product/lib/product.store";
+import { useAllUnits } from "@/pages/unit/lib/unit.hook";
+import { successToast, errorToast } from "@/lib/core.function";
+import { useQueryClient } from "@tanstack/react-query";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -64,6 +71,12 @@ export const AddProductSheet = ({
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+
+  // Hooks para crear producto
+  const { createProduct, isSubmitting: isCreatingProduct } = useProductStore();
+  const { data: units } = useAllUnits();
+  const queryClient = useQueryClient();
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
@@ -200,6 +213,18 @@ export const AddProductSheet = ({
     onClose();
   };
 
+  const handleCreateProduct = async (data: any) => {
+    try {
+      await createProduct(data);
+      successToast("Producto creado exitosamente");
+      // Invalidar el cache de react-query para refrescar la lista
+      await queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
+      setShowCreateProductModal(false);
+    } catch (error) {
+      errorToast("Error al crear el producto");
+    }
+  };
+
   return (
     <GeneralSheet
       open={open}
@@ -214,21 +239,34 @@ export const AddProductSheet = ({
       size="lg"
     >
       <div className="flex flex-col gap-4 px-4">
-        <FormSelectAsync
-          control={form.control}
-          name="product_id"
-          label="Producto"
-          useQueryHook={useProduct}
-          mapOptionFn={(product: ProductResource) => ({
-            value: product.id.toString(),
-            label: product.name,
-            description: product.category_name,
-          })}
-          placeholder="Seleccionar producto"
-          onValueChange={(_value, item) => {
-            setSelectedProduct(item ?? null);
-          }}
-        />
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <FormSelectAsync
+              control={form.control}
+              name="product_id"
+              label="Producto"
+              useQueryHook={useProduct}
+              mapOptionFn={(product: ProductResource) => ({
+                value: product.id.toString(),
+                label: product.name,
+                description: product.category_name,
+              })}
+              placeholder="Seleccionar producto"
+              onValueChange={(_value, item) => {
+                setSelectedProduct(item ?? null);
+              }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 shrink-0"
+            onClick={() => setShowCreateProductModal(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
 
         {productId && (
           <>
@@ -336,6 +374,42 @@ export const AddProductSheet = ({
           </Button>
         </div>
       </div>
+
+      {/* Modal para crear producto */}
+      {showCreateProductModal && units && (
+        <GeneralModal
+          open={showCreateProductModal}
+          onClose={() => setShowCreateProductModal(false)}
+          title="Crear Nuevo Producto"
+          subtitle="Complete los datos del nuevo producto"
+          icon="Package"
+          size="3xl"
+        >
+          <div
+            onSubmit={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <ProductForm
+              defaultValues={{
+                name: "",
+                category_id: "",
+                brand_id: "",
+                unit_id: "",
+                product_type_id: "",
+                is_igv: false,
+                observations: "",
+                technical_sheet: [],
+              }}
+              onSubmit={handleCreateProduct}
+              onCancel={() => setShowCreateProductModal(false)}
+              isSubmitting={isCreatingProduct}
+              mode="create"
+              units={units}
+            />
+          </div>
+        </GeneralModal>
+      )}
     </GeneralSheet>
   );
 };

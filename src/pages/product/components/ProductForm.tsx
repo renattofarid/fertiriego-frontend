@@ -159,7 +159,7 @@ export const ProductForm = ({
           </div>
 
           <div className="flex gap-2 items-end">
-            <div className="flex-1">
+            <div className="flex-1 truncate">
               <FormSelectAsync
                 control={form.control}
                 name="category_id"
@@ -184,7 +184,7 @@ export const ProductForm = ({
           </div>
 
           <div className="flex gap-2 items-end">
-            <div className="flex-1">
+            <div className="flex-1 truncate">
               <FormSelectAsync
                 control={form.control}
                 name="product_type_id"
@@ -209,7 +209,7 @@ export const ProductForm = ({
           </div>
 
           <div className="flex gap-2 items-end">
-            <div className="flex-1">
+            <div className="flex-1 truncate">
               <FormSelectAsync
                 control={form.control}
                 name="brand_id"
@@ -234,7 +234,7 @@ export const ProductForm = ({
           </div>
 
           <div className="flex gap-2 items-end">
-            <div className="flex-1">
+            <div className="flex-1 truncate">
               <FormSelect
                 control={form.control}
                 name="unit_id"

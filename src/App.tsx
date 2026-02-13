@@ -924,7 +924,7 @@ export default function App() {
           />
 
           <Route
-            path="/guias/:id"
+            path={`${GuideRoute}/:id`}
             element={
               <ProtectedRoute path={GuideRoute}>
                 <GuideDetailPage />
