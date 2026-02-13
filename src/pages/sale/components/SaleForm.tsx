@@ -760,7 +760,8 @@ export const SaleForm = ({
     if (installments.length === 0) return true;
     const saleTotal = calculateDetailsTotal();
     const installmentsTotal = calculateInstallmentsTotal();
-    return Math.abs(saleTotal - installmentsTotal) < 0.000001;
+    // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
+    return Math.abs(saleTotal - installmentsTotal) < 0.01;
   };
 
   // Funciones para guías
@@ -820,7 +821,8 @@ export const SaleForm = ({
     if (selectedPaymentType !== "CONTADO") return true;
     const saleTotal = calculateDetailsTotal();
     const paymentTotal = calculatePaymentTotal();
-    return Math.abs(saleTotal - paymentTotal) < 0.000001;
+    // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
+    return Math.abs(saleTotal - paymentTotal) < 0.01;
   };
 
   const handleFormSubmit = (data: any) => {

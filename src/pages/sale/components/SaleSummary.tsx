@@ -191,16 +191,11 @@ export function SaleSummary({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {detail.quantity} x {currencySymbol}{" "}
-                        {parseFloat(detail.unit_price).toLocaleString("es-PE", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {formatNumber(parseFloat(detail.unit_price))}
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      {currencySymbol}{" "}
-                      {detail.total.toLocaleString("es-PE", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {currencySymbol} {formatNumber(detail.total)}
                     </p>
                   </div>
                 ))
