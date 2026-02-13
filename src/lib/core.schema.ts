@@ -10,7 +10,7 @@ export const optionalNumericId = (message: string) =>
     z
       .number()
       .optional()
-      .refine((val) => val !== undefined, { message })
+      .refine((val) => val !== undefined, { message }),
   );
 
 export const phoneSchemaRequired = z
@@ -32,7 +32,7 @@ export const phoneSchemaOptional = z
 export const optionalStringId = (message: string) =>
   z.preprocess(
     (val) => (val === "" ? undefined : val),
-    z.string().min(1, message).optional()
+    z.string().min(1, message).optional(),
   );
 
 export const requiredStringId = (message: string) =>
@@ -48,7 +48,7 @@ export const requiredNumberId = (message: string) =>
       const parsed = Number(val);
       return isNaN(parsed) ? val : parsed;
     },
-    z.number().refine((val) => val !== undefined && !isNaN(val), { message })
+    z.number().refine((val) => val !== undefined && !isNaN(val), { message }),
   );
 
 export const onlyLettersSchema = (field: string) =>
@@ -68,4 +68,13 @@ export const dateStringSchema = (field: string) =>
       message: `${field} no es una fecha válida`,
     })
     .optional()
+    .or(z.literal(""));
+
+export const dateStringSchemaRequired = (field: string) =>
+  z
+    .string()
+    .min(1, { message: `${field} es requerido` })
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: `${field} no es una fecha válida`,
+    })
     .or(z.literal(""));

@@ -5,13 +5,10 @@ import type {
   UpdatePurchaseRequest,
 } from "./purchase.interface";
 import {
-  getPurchases,
-  getAllPurchases,
   findPurchaseById,
   storePurchase,
   updatePurchase,
   deletePurchase,
-  type GetPurchasesParams,
 } from "./purchase.actions";
 import type { PurchaseSchema, PurchaseUpdateSchema } from "./purchase.schema";
 import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
@@ -33,8 +30,6 @@ interface PurchaseStore {
   error?: string;
 
   // Actions
-  fetchAllPurchases: () => Promise<void>;
-  fetchPurchases: (params?: GetPurchasesParams) => Promise<void>;
   fetchPurchase: (id: number) => Promise<void>;
   createPurchase: (data: PurchaseSchema) => Promise<void>;
   updatePurchase: (
@@ -56,32 +51,6 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
   isFinding: false,
   isSubmitting: false,
   error: undefined,
-
-  // Fetch all purchases (no pagination)
-  fetchAllPurchases: async () => {
-    set({ isLoadingAll: true, error: undefined });
-    try {
-      const data = await getAllPurchases();
-      set({ allPurchases: data, isLoadingAll: false });
-    } catch (error) {
-      set({ error: "Error al cargar las compras", isLoadingAll: false });
-      errorToast("Error al cargar las compras");
-    }
-  },
-
-  // Fetch purchases with pagination
-  fetchPurchases: async (params?: GetPurchasesParams) => {
-    set({ isLoading: true, error: undefined });
-    try {
-      const response = await getPurchases(params);
-      const meta = response.meta;
-      set({ purchases: response.data, meta, isLoading: false });
-    } catch (error) {
-      set({ error: "Error al cargar las compras", isLoading: false });
-      errorToast("Error al cargar las compras");
-    }
-  },
-
   // Fetch single purchase by ID
   fetchPurchase: async (id: number) => {
     set({ isFinding: true, error: undefined });
@@ -157,7 +126,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
       await updatePurchase(id, request);
       set({ isSubmitting: false });
     } catch (error) {
-      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
+      set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
       throw error;
     }
   },

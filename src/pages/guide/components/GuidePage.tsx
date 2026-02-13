@@ -16,7 +16,7 @@ import {
 } from "@/lib/core.function";
 import { GuideColumns } from "./GuideColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { GUIDE, type GuideStatus } from "../lib/guide.interface";
+import { GUIDE, type GuideStatus, type GuideResource } from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = GUIDE;
@@ -64,6 +64,10 @@ export default function GuidePage() {
     setStatusChangeData({ id, currentStatus });
   };
 
+  const handleGenerateSale = (guide: GuideResource) => {
+    navigate(`/ventas/agregar?guide_id=${guide.id}`);
+  };
+
   const confirmStatusChange = async (newStatus: GuideStatus) => {
     if (!statusChangeData) return;
     try {
@@ -108,6 +112,7 @@ export default function GuidePage() {
           onDelete: setDeleteId,
           onView: handleView,
           onChangeStatus: handleChangeStatus,
+          onGenerateSale: handleGenerateSale,
         })}
         data={data || []}
       >

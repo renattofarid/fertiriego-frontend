@@ -24,20 +24,25 @@ export const DeleteButton = ({
   onClick,
   icon: Icon = Trash2,
   variant = "outline",
+  tooltip = "Eliminar",
+  disabled = false,
 }: {
   onClick: () => void;
   icon?: LucideIcon;
   variant?: "ghost" | "outline" | "default" | "destructive";
+  tooltip?: string;
+  disabled?: boolean;
 }) => {
   return (
     <Button
       type="button"
-      tooltip="Eliminar"
+      tooltip={tooltip}
       variant={variant}
       size="icon"
       color="red"
       className="size-7"
       onClick={onClick}
+      disabled={disabled}
     >
       {Icon && <Icon className="size-5" />}
     </Button>
@@ -90,7 +95,7 @@ export function SimpleDeleteDialog({
             Cancelar
           </Button>
           <Button
-            variant="destructive"
+            variant={"destructive"}
             onClick={handleConfirm}
             disabled={loading}
           >

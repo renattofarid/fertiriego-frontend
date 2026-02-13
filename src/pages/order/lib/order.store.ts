@@ -110,7 +110,7 @@ export const useOrderStore = create<OrderStore>((set) => ({
       await updateOrder(id, data);
       set({ isSubmitting: false });
     } catch (error) {
-      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
+      set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
       throw error;
     }
   },

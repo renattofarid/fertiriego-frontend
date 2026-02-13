@@ -82,7 +82,7 @@ export default function ProductPriceCategoryPage() {
           open={true}
           onClose={() => setEditId(null)}
           title={MODEL.name}
-          mode="update"
+          mode="edit"
         />
       )}
 

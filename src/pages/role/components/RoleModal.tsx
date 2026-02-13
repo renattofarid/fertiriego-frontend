@@ -28,7 +28,7 @@ export default function RoleModal({
   onSuccess,
 }: Props) {
   const { refetch } = useRoles();
-  const mode = roleId ? "update" : "create";
+  const mode = roleId ? "edit" : "create";
   const title = roleId ? MODEL.name : MODEL.name;
 
   const { data: role, isFinding: findingRole } =
@@ -59,7 +59,7 @@ export default function RoleModal({
     } else {
       await updateRole(roleId!, data)
         .then(() => {
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetch({});
           onSuccess?.();
           onOpenChange(false);
@@ -67,7 +67,7 @@ export default function RoleModal({
         .catch((error) => {
           errorToast(
             (error.response.data.message ?? error.response.data.error),
-            ERROR_MESSAGE(MODEL, "update")
+            ERROR_MESSAGE(MODEL, "edit")
           );
         });
     }

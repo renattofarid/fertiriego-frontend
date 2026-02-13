@@ -5,21 +5,25 @@ import { z } from "zod";
 export const shippingGuideCarrierDetailSchema = z.object({
   product_id: requiredStringId("Debe seleccionar un producto"),
   description: z.string().min(1, { message: "La descripción es requerida" }),
-  quantity: z.string().refine((val) => {
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed > 0;
-  }, {
-    message: "La cantidad debe ser un número mayor a 0",
-  }),
-  unit: z
-    .string()
-    .min(1, { message: "La unidad de medida es requerida" }),
-  weight: z.string().refine((val) => {
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed >= 0;
-  }, {
-    message: "El peso debe ser un número válido",
-  }),
+  quantity: z.string().refine(
+    (val) => {
+      const parsed = Number(val);
+      return !isNaN(parsed) && parsed > 0;
+    },
+    {
+      message: "La cantidad debe ser un número mayor a 0",
+    },
+  ),
+  unit: z.string().min(1, { message: "La unidad de medida es requerida" }),
+  weight: z.string().refine(
+    (val) => {
+      const parsed = Number(val);
+      return !isNaN(parsed) && parsed >= 0;
+    },
+    {
+      message: "El peso debe ser un número válido",
+    },
+  ),
 });
 
 // Schema principal para crear/actualizar guía de transportista con validaciones condicionales
@@ -29,9 +33,9 @@ export const shippingGuideCarrierSchema = z
       .string()
       .min(1, { message: "La modalidad de transporte es requerida" }),
     // Campos condicionales
-    carrier_id: z.string().optional(),
-    driver_id: z.string().optional(),
-    vehicle_id: z.string().optional(),
+    carrier_id: requiredStringId("Debe seleccionar un transportista"),
+    driver_id: optionalStringId("Debe seleccionar un conductor"),
+    vehicle_id: optionalStringId("Debe seleccionar un vehículo"),
     vehicle_plate: z.string().max(20).optional(),
     vehicle_brand: z.string().max(100).optional(),
     vehicle_model: z.string().max(100).optional(),
@@ -47,11 +51,11 @@ export const shippingGuideCarrierSchema = z
     remittent_id: requiredStringId("Debe seleccionar un remitente"),
     recipient_id: optionalStringId("Debe seleccionar un destinatario"),
     secondary_vehicle_id: optionalStringId(
-      "Debe seleccionar un vehículo secundario"
+      "Debe seleccionar un vehículo secundario",
     ),
     order_id: optionalStringId("Debe seleccionar un pedido"),
     shipping_guide_remittent_id: optionalStringId(
-      "Debe seleccionar una guía de remitente"
+      "Debe seleccionar una guía de remitente",
     ),
     // Direcciones
     origin_address: z
@@ -64,7 +68,7 @@ export const shippingGuideCarrierSchema = z
       .min(1, { message: "La dirección de destino es requerida" })
       .max(500),
     destination_ubigeo_id: requiredStringId(
-      "Debe seleccionar un ubigeo de destino"
+      "Debe seleccionar un ubigeo de destino",
     ),
     observations: z.string().max(1000).optional(),
     details: z
@@ -82,7 +86,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "El transportista es requerido para transporte público",
       path: ["carrier_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -95,7 +99,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "El conductor es requerido para transporte privado",
       path: ["driver_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -108,7 +112,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "El vehículo es requerido para transporte privado",
       path: ["vehicle_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -121,7 +125,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "La licencia del conductor es requerida para transporte privado",
       path: ["driver_license"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -134,7 +138,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "La placa del vehículo es requerida para transporte privado",
       path: ["vehicle_plate"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -147,7 +151,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "La marca del vehículo es requerida para transporte privado",
       path: ["vehicle_brand"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -160,7 +164,7 @@ export const shippingGuideCarrierSchema = z
     {
       message: "El modelo del vehículo es requerido para transporte privado",
       path: ["vehicle_model"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -173,8 +177,12 @@ export const shippingGuideCarrierSchema = z
     {
       message: "El certificado MTC es requerido para transporte privado",
       path: ["vehicle_mtc"],
-    }
+    },
   );
 
-export type ShippingGuideCarrierSchema = z.infer<typeof shippingGuideCarrierSchema>;
-export type ShippingGuideCarrierDetailSchema = z.infer<typeof shippingGuideCarrierDetailSchema>;
+export type ShippingGuideCarrierSchema = z.infer<
+  typeof shippingGuideCarrierSchema
+>;
+export type ShippingGuideCarrierDetailSchema = z.infer<
+  typeof shippingGuideCarrierDetailSchema
+>;

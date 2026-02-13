@@ -7,7 +7,6 @@ import {
   DollarSign,
   TrendingDown,
 } from "lucide-react";
-import { usePurchase } from "@/pages/purchase/lib/purchase.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllProducts } from "@/pages/product/lib/product.hook";
 import { cn } from "@/lib/utils";
@@ -16,6 +15,7 @@ import { TopProductsChart } from "./TopProductsChart";
 import { PaymentMethodsChart } from "./PaymentMethodsChart";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
+import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 
 // Tipos
 interface MonthData {
@@ -86,7 +86,8 @@ function MetricCard({
 }
 
 export default function HomePage() {
-  const { data: purchases, isLoading: purchasesLoading } = usePurchase();
+  const { data: purchases = [], isLoading: purchasesLoading } =
+    useAllPurchases();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 
@@ -116,23 +117,23 @@ export default function HomePage() {
   useEffect(() => {
     if (purchases && sales && products) {
       // Calcular estadísticas de compras
-      const totalPurchaseAmount = purchases.reduce(
+      const totalPurchaseAmount = purchases?.reduce(
         (sum, p) => sum + parseFloat(p.total_amount),
-        0
+        0,
       );
-      const purchasePendingAmount = purchases.reduce(
+      const purchasePendingAmount = purchases?.reduce(
         (sum, p) => sum + parseFloat(p.current_amount),
-        0
+        0,
       );
 
       // Calcular estadísticas de ventas
       const totalSaleAmount = sales.reduce(
         (sum, s) => sum + parseFloat(s.total_amount.toString()),
-        0
+        0,
       );
       const salePendingAmount = sales.reduce(
         (sum, s) => sum + parseFloat(s.current_amount.toString()),
-        0
+        0,
       );
 
       const balance = totalSaleAmount - totalPurchaseAmount;
@@ -145,10 +146,10 @@ export default function HomePage() {
 
       // Calcular porcentajes de métodos de pago
       const cashSales = sales.filter(
-        (s) => s.payment_type === "CONTADO"
+        (s) => s.payment_type === "CONTADO",
       ).length;
       const creditSales = sales.filter(
-        (s) => s.payment_type === "CREDITO"
+        (s) => s.payment_type === "CREDITO",
       ).length;
       const cashSalesPercentage =
         sales.length > 0 ? (cashSales / sales.length) * 100 : 0;
@@ -197,7 +198,7 @@ export default function HomePage() {
           ventas: Number(data.sales.toFixed(2)),
         }))
         .sort(
-          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+          (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
         );
 
       setAllTransactionsByDate(dateData);
@@ -247,7 +248,7 @@ export default function HomePage() {
         ([type, count]) => ({
           name: type,
           value: count,
-        })
+        }),
       );
 
       setSalesByPaymentType(salePaymentData);
@@ -332,7 +333,7 @@ export default function HomePage() {
             title="Productos en Catálogo"
             value={stats.totalProducts.toString()}
             description={`Ticket promedio: S/ ${formatCurrency(
-              stats.averageTicketSale
+              stats.averageTicketSale,
             )}`}
             icon={Package}
             variant="gray"

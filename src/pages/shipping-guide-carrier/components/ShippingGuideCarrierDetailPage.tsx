@@ -1,5 +1,4 @@
 import { useParams } from "react-router-dom";
-import TitleComponent from "@/components/TitleComponent";
 import {
   FileText,
   Calendar,
@@ -12,7 +11,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { BackButton } from "@/components/BackButton";
 import { DataTable } from "@/components/DataTable";
 import type { ColumnDef } from "@tanstack/react-table";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -21,6 +19,7 @@ import {
   SHIPPING_GUIDE_CARRIER,
   type ShippingGuideCarrierDetailResource,
 } from "../lib/shipping-guide-carrier.interface";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export default function ShippingGuideCarrierDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -65,14 +64,12 @@ export default function ShippingGuideCarrierDetailPage() {
 
   return (
     <FormWrapper>
-      <div className="flex justify-between items-center gap-2">
-        <BackButton to={ROUTE} />
-        <TitleComponent
-          title={`${MODEL.name} - ${guide.full_guide_number}`}
-          subtitle={`Detalle de la ${MODEL.name.toLowerCase()}`}
-          icon={ICON}
-        />
-      </div>
+      <TitleFormComponent
+        title={`${MODEL.name} - ${guide.full_guide_number}`}
+        backRoute={ROUTE}
+        mode="detail"
+        icon={ICON}
+      />
 
       <div className="space-y-4">
         {/* Resumen */}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import {
@@ -20,7 +19,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import FormWrapper from "@/components/FormWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 
-const { MODEL } = SUPPLIER;
+const { MODEL, ROUTE } = SUPPLIER;
 
 export default function SupplierEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -77,17 +76,18 @@ export default function SupplierEditPage() {
 
       await updatePerson(personData.id, updatePersonData);
       successToast(
-        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "update")
+        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "edit"),
       );
       navigate("/proveedores");
     } catch (error: any) {
       const errorMessage =
-          ((error.response.data.message ?? error.response.data.error) as string)
-          ?? "Error al actualizar proveedor";
+        ((error.response.data.message ??
+          error.response.data.error) as string) ??
+        "Error al actualizar proveedor";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "update")
+        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "edit"),
       );
     } finally {
       setIsSubmitting(false);
@@ -106,10 +106,7 @@ export default function SupplierEditPage() {
 
   return (
     <FormWrapper>
-      <div className="flex items-center gap-4 mb-6">
-        <BackButton to="/proveedores" />
-        <TitleFormComponent title={MODEL.name} mode="update" />
-      </div>
+      <TitleFormComponent title={MODEL.name} mode="edit" backRoute={ROUTE} />
 
       <PersonForm
         initialData={personData}

@@ -1,34 +1,24 @@
-// hooks/useUsers.ts
-import { useEffect } from "react";
-import { useUserStore } from "./Users.store";
+import { useQuery } from "@tanstack/react-query";
+import { USER } from "./User.interface";
+import { findUserById, getUser } from "./User.actions";
 
 export function useUsers(params?: Record<string, unknown>) {
-  const { Users, meta, isLoading, error, fetchUsers } = useUserStore();
-
-  useEffect(() => {
-    if (!Users) fetchUsers(params);
-  }, [Users, fetchUsers]);
-
-  return {
-    data: Users,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchUsers,
-  };
+  return useQuery({
+    queryKey: [USER.QUERY_KEY, params],
+    queryFn: () =>
+      getUser({
+        params: {
+          ...params,
+        },
+      }),
+  });
 }
 
 export function useUser(id: number) {
-  const { User, isFinding, error, fetchUser } = useUserStore();
-
-  useEffect(() => {
-    fetchUser(id);
-  }, [id]);
-
-  return {
-    data: User,
-    isFinding,
-    error,
-    refetch: () => fetchUser(id),
-  };
+  return useQuery({
+    queryKey: [USER.QUERY_KEY, id],
+    queryFn: () => findUserById(id),
+    enabled: !!id,
+    retry: false,
+  });
 }

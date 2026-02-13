@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
@@ -16,7 +15,7 @@ import {
 import { WORKER, WORKER_ROLE_ID } from "../lib/worker.interface";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL } = WORKER;
+const { MODEL, ROUTE } = WORKER;
 
 export default function WorkerAddPage() {
   const navigate = useNavigate();
@@ -49,17 +48,17 @@ export default function WorkerAddPage() {
 
       await createPersonWithRole(createPersonData, Number(data.role_id));
       successToast(
-        SUCCESS_MESSAGE({ name: "Trabajador", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Trabajador", gender: false }, "create"),
       );
       navigate("/trabajadores");
     } catch (error: any) {
       const errorMessage =
-          ((error.response.data.message ?? error.response.data.error) as string)
-          ?? "Error al crear trabajador";
+        ((error.response.data.message ??
+          error.response.data.error) as string) ?? "Error al crear trabajador";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Trabajador", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Trabajador", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -68,12 +67,7 @@ export default function WorkerAddPage() {
 
   return (
     <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/trabajadores" />
-          <TitleFormComponent title={MODEL.name} mode="create" />
-        </div>
-      </div>
+      <TitleFormComponent title={MODEL.name} mode="create" backRoute={ROUTE} />
 
       <PersonForm
         onSubmit={handleSubmit}

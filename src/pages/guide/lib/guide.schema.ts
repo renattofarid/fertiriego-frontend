@@ -51,6 +51,7 @@ export const guideSchema = z
     remittent_id: requiredStringId("Debe seleccionar un remitente"),
     recipient_id: optionalStringId("Debe seleccionar un destinatario"),
     shipping_guide_remittent_id: optionalStringId("Debe seleccionar un remitente de guía"),
+    dispatcher_id: optionalStringId("Debe seleccionar un despachador"),
 
     // ===============================
     // TRANSPORTE

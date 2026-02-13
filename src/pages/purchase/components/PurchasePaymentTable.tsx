@@ -124,7 +124,7 @@ export function PurchasePaymentTable({
                 </TableCell>
               </TableRow>
             ))}
-            <TableRow className="bg-sidebar">
+            <TableRow className="bg-muted">
               <TableCell colSpan={8} className="text-right font-bold">
                 TOTAL PAGADO:
               </TableCell>

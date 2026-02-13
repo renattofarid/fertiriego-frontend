@@ -30,11 +30,11 @@ export default function UserPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const { data, meta, isLoading, refetch } = useUsers();
+  const { data, isLoading, refetch } = useUsers();
 
   useEffect(() => {
-    refetch({ page, search, per_page });
-  }, [page, search, per_page]);
+    setPage(1);
+  }, [search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -43,7 +43,10 @@ export default function UserPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete"),
+      );
     } finally {
       setDeleteId(null);
     }
@@ -69,18 +72,18 @@ export default function UserPage() {
       <UserTable
         isLoading={isLoading}
         columns={UserColumns({ onEdit: setEditId, onDelete: setDeleteId })}
-        data={data || []}
+        data={data?.data || []}
       >
         <UserOptions search={search} setSearch={setSearch} />
       </UserTable>
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {/* Formularios */}
@@ -90,7 +93,7 @@ export default function UserPage() {
           open={true}
           onClose={() => setEditId(null)}
           title={MODEL.name}
-          mode="update"
+          mode="edit"
         />
       )}
 

@@ -18,11 +18,11 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { DRIVER, DRIVER_ROLE_ID } from "@/pages/driver/lib/driver.interface";
+import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 
-const { MODEL, ICON } = DRIVER;
+const { MODEL, ICON } = CARRIER;
 
-export default function DriverEditPage() {
+export default function CarrierEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function DriverEditPage() {
   useEffect(() => {
     const loadPersonData = async () => {
       if (!id) {
-        navigate("/conductores");
+        navigate("/transportistas");
         return;
       }
 
@@ -42,8 +42,8 @@ export default function DriverEditPage() {
         const person = response.data;
         setPersonData(person);
       } catch {
-        errorToast("Error al cargar los datos del conductor");
-        navigate("/conductores");
+        errorToast("Error al cargar los datos del transportista");
+        navigate("/transportistas");
       } finally {
         setIsLoading(false);
       }
@@ -77,18 +77,18 @@ export default function DriverEditPage() {
 
       await updatePerson(personData.id, updatePersonData);
       successToast(
-        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "update"),
+        SUCCESS_MESSAGE({ name: "Transportista", gender: false }, "edit"),
       );
-      navigate("/conductores");
+      navigate("/transportistas");
     } catch (error: any) {
       const errorMessage =
         ((error.response.data.message ??
           error.response.data.error) as string) ??
-        "Error al actualizar conductor";
+        "Error al actualizar transportista";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Conductor", gender: false }, "update"),
+        ERROR_MESSAGE({ name: "Transportista", gender: false }, "edit"),
       );
     } finally {
       setIsSubmitting(false);
@@ -99,7 +99,7 @@ export default function DriverEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
         </div>
 
         <FormSkeleton />
@@ -110,15 +110,15 @@ export default function DriverEditPage() {
   return (
     <FormWrapper>
       <div className="flex items-center gap-4 mb-6">
-        <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
+        <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
       </div>
 
       <PersonForm
         initialData={personData}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onCancel={() => navigate("/conductores")}
-        roleId={DRIVER_ROLE_ID}
+        onCancel={() => navigate("/transportistas")}
+        roleId={CARRIER_ROLE_ID}
         isWorker={true}
       />
     </FormWrapper>

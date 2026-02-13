@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseForm } from "./PurchaseForm";
 import { type PurchaseSchema } from "../lib/purchase.schema";
 import { usePurchaseStore } from "../lib/purchase.store";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
@@ -20,15 +19,13 @@ export const PurchaseAddPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { ICON } = PURCHASE;
   const { user } = useAuthStore();
-  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
     useAllPurchaseOrders();
 
   const { createPurchase } = usePurchaseStore();
 
-  const isLoading =
-    suppliersLoading || warehousesLoading || purchaseOrdersLoading;
+  const isLoading = warehousesLoading || purchaseOrdersLoading;
 
   const getDefaultValues = (): Partial<PurchaseSchema> => ({
     supplier_id: "",
@@ -79,23 +76,18 @@ export const PurchaseAddPage = () => {
         </div>
       </div>
 
-      {suppliers &&
-        suppliers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 &&
-        user && (
-          <PurchaseForm
-            defaultValues={getDefaultValues()}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            mode="create"
-            suppliers={suppliers}
-            warehouses={warehouses}
-            purchaseOrders={purchaseOrders || []}
-            currentUserId={user.id}
-            onCancel={() => navigate("/compras")}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && user && (
+        <PurchaseForm
+          defaultValues={getDefaultValues()}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="create"
+          warehouses={warehouses}
+          purchaseOrders={purchaseOrders || []}
+          currentUserId={user.id}
+          onCancel={() => navigate("/compras")}
+        />
+      )}
     </FormWrapper>
   );
 };

@@ -1,12 +1,11 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
+import { ColumnActions } from "@/components/SelectActions";
 import type { BoxResource } from "../lib/box.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { ButtonAction } from "@/components/ButtonAction";
+import { ListOrdered, Pencil, UserPlus } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const BoxColumns = ({
   onEdit,
@@ -84,26 +83,29 @@ export const BoxColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            {onViewAssignments && (
-              <DropdownMenuItem onClick={() => onViewAssignments(id)}>
-                Ver Asignaciones
-              </DropdownMenuItem>
-            )}
-            {onAssign && (
-              <DropdownMenuItem onClick={() => onAssign(id)}>
-                Asignar Usuario
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={ListOrdered}
+            tooltip="Ver asignaciones"
+            onClick={() => onViewAssignments?.(id)}
+            canRender={!!onViewAssignments}
+          />
+
+          <ButtonAction
+            icon={UserPlus}
+            tooltip="Asignar Usuario"
+            onClick={() => onAssign?.(id)}
+            canRender={!!onAssign}
+          />
+
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

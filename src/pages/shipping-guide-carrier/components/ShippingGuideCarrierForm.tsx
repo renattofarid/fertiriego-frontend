@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
@@ -27,18 +27,21 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
-import { searchUbigeos } from "@/pages/guide/lib/ubigeo.actions";
 import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { GuideResource } from "@/pages/guide/lib/guide.interface";
 import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import { toast } from "sonner";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useDrivers } from "@/pages/driver/lib/driver.hook";
+import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
+import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
+import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
+import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -81,8 +84,8 @@ const defaultValues: ShippingGuideCarrierFormValues = {
   vehicle_model: "",
   vehicle_mtc: "",
   driver_license: "",
-  issue_date: "",
-  transfer_start_date: "",
+  issue_date: new Date().toISOString().split("T")[0],
+  transfer_start_date: new Date().toISOString().split("T")[0],
   remittent_id: "",
   recipient_id: "",
   secondary_vehicle_id: "",
@@ -105,15 +108,12 @@ const defaultValues: ShippingGuideCarrierFormValues = {
 };
 
 interface ShippingGuideCarrierFormProps {
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   onSubmit: (values: ShippingGuideCarrierFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
-  carriers: PersonResource[];
   remittents: PersonResource[];
   recipients: PersonResource[];
-  drivers: PersonResource[];
-  vehicles: VehicleResource[];
   guides: GuideResource[];
 }
 
@@ -122,11 +122,7 @@ export function ShippingGuideCarrierForm({
   onSubmit,
   isSubmitting = false,
   initialValues,
-  carriers,
-  remittents,
   recipients,
-  drivers,
-  vehicles,
   guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
@@ -153,14 +149,6 @@ export function ShippingGuideCarrierForm({
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
   );
-
-  // Estado para ubigeos
-  const [originUbigeos, setOriginUbigeos] = useState<UbigeoResource[]>([]);
-  const [destinationUbigeos, setDestinationUbigeos] = useState<
-    UbigeoResource[]
-  >([]);
-  const [isSearchingOrigin, setIsSearchingOrigin] = useState(false);
-  const [isSearchingDestination, setIsSearchingDestination] = useState(false);
 
   const form = useForm<ShippingGuideCarrierFormValues>({
     resolver: zodResolver(
@@ -208,8 +196,7 @@ export function ShippingGuideCarrierForm({
         if (guide.details && guide.details.length > 0) {
           const mappedDetails: DetailRow[] = guide.details.map((detail) => ({
             product_id: detail.product_id.toString(),
-            product_name:
-              detail.product_name || "Producto desconocido",
+            product_name: detail.product_name || "Producto desconocido",
             description: detail.description || "",
             quantity: parseFloat(detail.quantity) || 0,
             unit: detail.unit_measure || UNIT_MEASUREMENTS[0].value,
@@ -230,54 +217,6 @@ export function ShippingGuideCarrierForm({
 
     loadGuideDetails();
   }, [selectedGuideId]);
-
-  // Buscar ubigeos origen
-  const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
-    if (!searchTerm || searchTerm.length < 3) {
-      setOriginUbigeos([]);
-      return;
-    }
-    setIsSearchingOrigin(true);
-    try {
-      const response = await searchUbigeos(searchTerm);
-      setOriginUbigeos(response.data);
-    } catch (error) {
-      console.error("Error searching origin ubigeos:", error);
-      setOriginUbigeos([]);
-    } finally {
-      setIsSearchingOrigin(false);
-    }
-  }, []);
-
-  // Buscar ubigeos destino
-  const handleSearchDestinationUbigeos = useCallback(
-    async (searchTerm: string) => {
-      if (!searchTerm || searchTerm.length < 3) {
-        setDestinationUbigeos([]);
-        return;
-      }
-      setIsSearchingDestination(true);
-      try {
-        const response = await searchUbigeos(searchTerm);
-        setDestinationUbigeos(response.data);
-      } catch (error) {
-        console.error("Error searching destination ubigeos:", error);
-        setDestinationUbigeos([]);
-      } finally {
-        setIsSearchingDestination(false);
-      }
-    },
-    [],
-  );
-
-  // Formatear label ubigeo
-  const formatUbigeoLabel = (ubigeo: UbigeoResource): string => {
-    const parts = ubigeo.cadena.split("-");
-    if (parts.length >= 4) {
-      return `${parts[1]} > ${parts[2]} > ${parts[3]}`;
-    }
-    return ubigeo.cadena;
-  };
 
   // Agregar/Actualizar detalle
   const handleAddOrUpdateDetail = () => {
@@ -465,32 +404,36 @@ export function ShippingGuideCarrierForm({
                 }))}
               />
 
-              {transportModality === "PUBLICO" && (
-                <FormSelect
-                  control={form.control}
-                  name="carrier_id"
-                  label="Transportista"
-                  placeholder="Seleccione transportista"
-                  options={carriers.map((c) => ({
-                    value: c.id.toString(),
-                    label: c.business_name || `${c.names} ${c.father_surname}`,
-                    description: c.number_document,
-                  }))}
-                  withValue
-                />
-              )}
+              <FormSelectAsync
+                control={form.control}
+                name="carrier_id"
+                label="Transportista"
+                placeholder="Seleccione un transportista"
+                useQueryHook={useCarriers}
+                mapOptionFn={(carrier) => ({
+                  value: carrier.id.toString(),
+                  label:
+                    carrier.business_name ||
+                    `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                  description: carrier.number_document,
+                })}
+                withValue
+                preloadItemId={initialValues?.carrier_id}
+              />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="remittent_id"
                 label="Remitente"
                 placeholder="Seleccione remitente"
-                options={remittents.map((p) => ({
+                useQueryHook={useSuppliers}
+                mapOptionFn={(p: PersonResource) => ({
                   value: p.id.toString(),
-                  label: p.business_name || `${p.names} ${p.father_surname}`,
+                  label: p.business_name ?? `${p.names} ${p.father_surname}`,
                   description: p.number_document,
-                }))}
+                })}
                 withValue
+                preloadItemId={initialValues?.remittent_id}
               />
 
               <FormSelect
@@ -521,43 +464,59 @@ export function ShippingGuideCarrierForm({
 
               {transportModality === "PRIVADO" && (
                 <>
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="driver_id"
                     label="Conductor"
                     placeholder="Seleccione conductor"
-                    options={drivers.map((d) => ({
+                    useQueryHook={useDrivers}
+                    mapOptionFn={(d: PersonResource) => ({
                       value: d.id.toString(),
-                      label: `${d.names} ${d.father_surname}`,
+                      label:
+                        d.business_name ??
+                        `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
                       description: d.number_document,
-                    }))}
+                    })}
                     withValue
+                    preloadItemId={initialValues?.driver_id}
                   />
 
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="vehicle_id"
                     label="Vehículo"
                     placeholder="Seleccione vehículo"
-                    options={vehicles.map((v) => ({
-                      value: v.id.toString(),
-                      label: v.plate,
-                      description: `${v.brand} ${v.model}`,
-                    }))}
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
+                    onValueChange={(_value, vehicle: any) => {
+                      if (vehicle) {
+                        form.setValue("vehicle_plate", vehicle.plate || "");
+                        form.setValue("vehicle_brand", vehicle.brand || "");
+                        form.setValue("vehicle_model", vehicle.model || "");
+                        form.setValue("vehicle_mtc", vehicle.mtc_certificate || "");
+                      }
+                    }}
                     withValue
+                    preloadItemId={initialValues?.vehicle_id}
                   />
 
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="secondary_vehicle_id"
                     label="Vehículo Secundario (Opcional)"
                     placeholder="Seleccione vehículo secundario"
-                    options={vehicles.map((v) => ({
-                      value: v.id.toString(),
-                      label: v.plate,
-                      description: `${v.brand} ${v.model}`,
-                    }))}
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
                     withValue
+                    preloadItemId={initialValues?.secondary_vehicle_id}
                   />
 
                   <FormField
@@ -655,6 +614,34 @@ export function ShippingGuideCarrierForm({
                 placeholder="Seleccione fecha"
               />
 
+              <FormSelectAsync
+                control={form.control}
+                name="origin_ubigeo_id"
+                label="Ubigeo de Origen"
+                placeholder="Buscar ubigeo..."
+                useQueryHook={useUbigeosFrom}
+                mapOptionFn={(item: UbigeoResource) => ({
+                  value: item.id.toString(),
+                  label: item.name,
+                  description: item.cadena,
+                })}
+                preloadItemId={initialValues?.origin_ubigeo_id}
+              />
+
+              <FormSelectAsync
+                control={form.control}
+                name="destination_ubigeo_id"
+                label="Ubigeo de Destino"
+                placeholder="Buscar ubigeo..."
+                useQueryHook={useUbigeosTo}
+                mapOptionFn={(item: UbigeoResource) => ({
+                  value: item.id.toString(),
+                  label: item.name,
+                  description: item.cadena,
+                })}
+                preloadItemId={initialValues?.destination_ubigeo_id}
+              />
+
               <FormField
                 control={form.control}
                 name="origin_address"
@@ -681,30 +668,6 @@ export function ShippingGuideCarrierForm({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-
-              <SelectSearchForm
-                control={form.control}
-                name="origin_ubigeo_id"
-                label="Ubigeo de Origen"
-                placeholder="Buscar ubigeo..."
-                isSearching={isSearchingOrigin}
-                items={originUbigeos}
-                onSearch={handleSearchOriginUbigeos}
-                formatLabel={(item) => formatUbigeoLabel(item)}
-                getItemId={(item) => item.id}
-              />
-
-              <SelectSearchForm
-                control={form.control}
-                name="destination_ubigeo_id"
-                label="Ubigeo de Destino"
-                placeholder="Buscar ubigeo..."
-                isSearching={isSearchingDestination}
-                items={destinationUbigeos}
-                onSearch={handleSearchDestinationUbigeos}
-                formatLabel={(item) => formatUbigeoLabel(item)}
-                getItemId={(item) => item.id}
               />
             </div>
           </GroupFormSection>

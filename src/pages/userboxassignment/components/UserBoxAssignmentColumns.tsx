@@ -1,11 +1,10 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { UserBoxAssignmentResource } from "../lib/userboxassignment.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Pencil } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const UserBoxAssignmentColumns = ({
   onEdit,
@@ -25,9 +24,7 @@ export const UserBoxAssignmentColumns = ({
     accessorKey: "box_name",
     header: "Caja",
     cell: ({ getValue }) => (
-      <Badge variant="secondary">
-        {getValue() as string}
-      </Badge>
+      <Badge variant="secondary">{getValue() as string}</Badge>
     ),
   },
   {
@@ -50,12 +47,12 @@ export const UserBoxAssignmentColumns = ({
     header: "Fecha de Asignación",
     cell: ({ getValue }) => {
       const date = new Date(getValue() as string);
-      return date.toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     },
   },
@@ -66,12 +63,12 @@ export const UserBoxAssignmentColumns = ({
       const value = getValue() as string | null;
       if (!value) return <span className="text-muted-foreground">-</span>;
       const date = new Date(value);
-      return date.toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
+      return date.toLocaleDateString("es-PE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       });
     },
   },
@@ -82,16 +79,14 @@ export const UserBoxAssignmentColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

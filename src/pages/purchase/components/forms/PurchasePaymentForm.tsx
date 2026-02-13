@@ -215,7 +215,7 @@ export function PurchasePaymentForm({
           />
         </div>
 
-        <div className="bg-sidebar p-4 rounded-lg">
+        <div className="bg-muted p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="font-bold text-lg">Total a Pagar:</span>
             <span className="text-2xl font-bold text-primary">

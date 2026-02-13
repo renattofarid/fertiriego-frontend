@@ -26,7 +26,7 @@ export default function ProductTypePage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"create" | "update">("create");
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedProductTypeId, setSelectedProductTypeId] = useState<
     number | null
   >(null);
@@ -57,7 +57,7 @@ export default function ProductTypePage() {
   };
 
   const handleEditProductType = (id: number) => {
-    setModalMode("update");
+    setModalMode("edit");
     setSelectedProductTypeId(id);
     setModalOpen(true);
   };

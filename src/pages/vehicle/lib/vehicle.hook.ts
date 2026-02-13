@@ -16,22 +16,6 @@ export function useVehicles(params?: Record<string, unknown>) {
   });
 }
 
-export function useAllVehicles() {
-  const { allVehicles, isLoadingAll, error, fetchAllVehicles } =
-    useVehicleStore();
-
-  useEffect(() => {
-    if (!allVehicles) fetchAllVehicles();
-  }, [allVehicles, fetchAllVehicles]);
-
-  return {
-    data: allVehicles,
-    isLoading: isLoadingAll,
-    error,
-    refetch: fetchAllVehicles,
-  };
-}
-
 export function useVehicleById(id: number) {
   const { vehicle, isFinding, error, fetchVehicle } = useVehicleStore();
 

@@ -21,8 +21,8 @@ export async function getPersons({
 }: GetPersonsProps): Promise<PersonResponse> {
   const config: AxiosRequestConfig = {
     params: {
-      ...params,
       per_page: DEFAULT_PER_PAGE,
+      ...params,
     },
   };
   const { data } = await api.get<PersonResponse>(ENDPOINT, config);
@@ -48,11 +48,11 @@ export async function findPersonById(id: number): Promise<PersonResourceById> {
 }
 
 export async function createPerson(
-  data: CreatePersonRequest
+  data: CreatePersonRequest,
 ): Promise<{ message: string; data?: { id: number } }> {
   const response = await api.post<{ message: string; data?: { id: number } }>(
     ENDPOINT,
-    data
+    data,
   );
   return response.data;
 }
@@ -60,7 +60,7 @@ export async function createPerson(
 // Helper function to create person and assign specific role
 export async function createPersonWithRole(
   data: CreatePersonRequest,
-  roleId: number
+  roleId: number,
 ): Promise<{ message: string; data?: PersonResource }> {
   // First create the person
   const createResponse = await createPerson(data);
@@ -91,49 +91,49 @@ export async function createPersonWithRole(
 
 export async function updatePerson(
   id: number,
-  data: UpdatePersonRequest
+  data: UpdatePersonRequest,
 ): Promise<{ message: string }> {
   const response = await api.put<{ message: string }>(
     `${ENDPOINT}/${id}`,
-    data
+    data,
   );
   return response.data;
 }
 
 export async function deletePerson(
   id: number,
-  role_id: number
+  role_id: number,
 ): Promise<{ message: string }> {
   const { data } = await api.delete<{ message: string }>(
-    `${ENDPOINT}/${id}/${role_id}`
+    `${ENDPOINT}/${id}/${role_id}`,
   );
   return data;
 }
 
 // Person Roles Management
 export async function getPersonRoles(
-  personId: number
+  personId: number,
 ): Promise<PersonRolesResponse> {
   const { data } = await api.get<PersonRolesResponse>(
-    `${ENDPOINT}/${personId}/roles`
+    `${ENDPOINT}/${personId}/roles`,
   );
   return data;
 }
 
 export async function updatePersonRoles(
   personId: number,
-  request: UpdatePersonRolesRequest
+  request: UpdatePersonRolesRequest,
 ): Promise<{ message: string }> {
   const { data } = await api.post<{ message: string }>(
     `${ENDPOINT}/${personId}/roles`,
-    request
+    request,
   );
   return data;
 }
 
 // New function using the personrole endpoint
 export async function getPersonRoleDetails(
-  personId: number
+  personId: number,
 ): Promise<PersonRoleDetailResource[]> {
   const config: AxiosRequestConfig = {
     params: {
@@ -143,7 +143,7 @@ export async function getPersonRoleDetails(
   };
   const { data } = await api.get<PersonRoleDetailResource[]>(
     "/personrole",
-    config
+    config,
   );
   return data;
 }

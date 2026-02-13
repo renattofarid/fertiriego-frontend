@@ -34,7 +34,15 @@ export const GUIDE_STATUS_OPTIONS = [
   { value: "CANCELADA", label: "Cancelada" },
 ];
 
+export const TRANSPORT_MODALITY_OPTIONS = [
+  { value: "PRIVADO", label: "Privado" },
+  { value: "PUBLICO", label: "Público" },
+];
+
 export const UNIT_OPTIONS = [
+  { value: "NIU", label: "Unidad (NIU)" },
+  { value: "KGM", label: "Kilogramo (KGM)" },
+  { value: "BX", label: "Caja (BX)" },
   { value: "unidad", label: "Unidad" },
   { value: "kg", label: "Kilogramo (kg)" },
   { value: "caja", label: "Caja" },
@@ -74,11 +82,14 @@ export interface PurchaseShippingGuideResource {
   issue_date: string;
   transfer_date: string;
   motive: string;
+  carrier_id: number;
   carrier_name: string;
   carrier_ruc: string;
-  vehicle_plate: string;
+  driver_id: number;
   driver_name: string;
   driver_license: string;
+  vehicle_id: number;
+  vehicle_plate: string;
   origin_address: string;
   destination_address: string;
   total_weight: string;
@@ -92,20 +103,23 @@ export interface PurchaseShippingGuideResource {
 
 export interface CreatePurchaseShippingGuideRequest {
   purchase_id?: number | null;
-  guide_number: string;
+  guide_number?: string;
   issue_date: string;
   transfer_date: string;
   motive: string;
-  carrier_name: string;
-  carrier_ruc: string;
-  vehicle_plate: string;
-  driver_name: string;
-  driver_license: string;
+  carrier_id: number;
+  carrier_name?: string;
+  carrier_ruc?: string;
+  driver_id: number;
+  driver_name?: string;
+  driver_license?: string;
+  vehicle_id: number;
+  vehicle_plate?: string;
   origin_address: string;
   destination_address: string;
   total_weight: number;
   observations?: string;
-  status: string;
+  status?: string;
   details: PurchaseShippingGuideDetail[];
 }
 
@@ -115,16 +129,20 @@ export interface UpdatePurchaseShippingGuideRequest {
   issue_date?: string;
   transfer_date?: string;
   motive?: string;
+  carrier_id?: number;
   carrier_name?: string;
   carrier_ruc?: string;
-  vehicle_plate?: string;
+  driver_id?: number;
   driver_name?: string;
   driver_license?: string;
+  vehicle_id?: number;
+  vehicle_plate?: string;
   origin_address?: string;
   destination_address?: string;
   total_weight?: number;
   observations?: string;
   status?: string;
+  details?: PurchaseShippingGuideDetail[];
 }
 
 export interface AssignPurchaseRequest {
@@ -145,33 +163,46 @@ export interface PurchaseShippingGuideResourceById {
 
 // ===== MODEL COMPLETE =====
 
-export const PURCHASE_SHIPPING_GUIDE: ModelComplete<any> = {
-  MODEL: {
-    name: NAME,
-    description: "Gestión de guías de compra del sistema.",
-    plural: "Guías de Compra",
-    gender: false,
-  },
-  ICON: "Truck",
-  ICON_REACT: Truck,
-  ENDPOINT: PURCHASE_SHIPPING_GUIDE_ENDPOINT,
-  QUERY_KEY: PURCHASE_SHIPPING_GUIDE_QUERY_KEY,
-  ROUTE: PurchaseShippingGuideRoute,
-  ROUTE_ADD: PurchaseShippingGuideAddRoute,
-  ROUTE_UPDATE: PurchaseShippingGuideEditRoute,
-  TITLES: {
-    create: {
-      title: `Crear ${NAME}`,
-      subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+export const PURCHASE_SHIPPING_GUIDE: ModelComplete<CreatePurchaseShippingGuideRequest> =
+  {
+    MODEL: {
+      name: NAME,
+      description: "Gestión de guías de compra del sistema.",
+      plural: "Guías de Compra",
+      gender: false,
     },
-    update: {
-      title: `Actualizar ${NAME}`,
-      subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+    ICON: "Truck",
+    ICON_REACT: Truck,
+    ENDPOINT: PURCHASE_SHIPPING_GUIDE_ENDPOINT,
+    QUERY_KEY: PURCHASE_SHIPPING_GUIDE_QUERY_KEY,
+    ROUTE: PurchaseShippingGuideRoute,
+    ROUTE_ADD: PurchaseShippingGuideAddRoute,
+    ROUTE_UPDATE: PurchaseShippingGuideEditRoute,
+    TITLES: {
+      create: {
+        title: `Crear ${NAME}`,
+        subtitle: `Complete los campos para crear una nueva ${NAME.toLowerCase()}`,
+      },
+      update: {
+        title: `Actualizar ${NAME}`,
+        subtitle: `Actualice los campos para modificar la ${NAME.toLowerCase()}`,
+      },
+      delete: {
+        title: `Eliminar ${NAME}`,
+        subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+      },
     },
-    delete: {
-      title: `Eliminar ${NAME}`,
-      subtitle: `Confirme para eliminar la ${NAME.toLowerCase()}`,
+    EMPTY: {
+      issue_date: "",
+      transfer_date: "",
+      motive: "",
+      carrier_id: 0,
+      driver_id: 0,
+      vehicle_id: 0,
+      origin_address: "",
+      destination_address: "",
+      total_weight: 0,
+      observations: "",
+      details: [],
     },
-  },
-  EMPTY: {} as any,
-};
+  };

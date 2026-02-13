@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { requiredNumberId } from "@/lib/core.schema";
+import { requiredNumberId, requiredStringId } from "@/lib/core.schema";
 
 export const boxMovementSchemaCreate = z
   .object({
     box_id: requiredNumberId("Debe seleccionar una caja"),
-    customer_id: z.number().optional(),
+    customer_id: requiredStringId("Debe seleccionar un cliente"),
     type: z.enum(
       ["INGRESO", "EGRESO"],
-      "Debe seleccionar un tipo de movimiento"
+      "Debe seleccionar un tipo de movimiento",
     ),
     concept: z
       .string()
@@ -61,7 +61,7 @@ export const boxMovementSchemaCreate = z
     },
     {
       message: "Debe ingresar al menos un monto en algún método de pago",
-    }
+    },
   );
 
 export type BoxMovementSchemaCreate = z.infer<typeof boxMovementSchemaCreate>;

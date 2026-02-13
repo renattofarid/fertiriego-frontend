@@ -17,7 +17,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
 }
 
@@ -72,7 +72,7 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
       await updateBranch(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchBranch();
           refetch();
         })
@@ -81,7 +81,7 @@ export default function BranchModal({ id, open, title, mode, onClose }: Props) {
             error.response.data.message ??
               error.response.data.error ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update"),
+              ERROR_MESSAGE(MODEL, "edit"),
           );
         });
     }

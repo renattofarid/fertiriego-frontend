@@ -119,7 +119,7 @@ export default function BoxAssignmentsSheet({
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.id}
-                    className="flex items-center justify-between p-3 bg-sidebar rounded-lg border"
+                    className="flex items-center justify-between p-3 bg-muted rounded-lg border"
                   >
                     <div className="flex-1">
                       <p className="font-semibold">{assignment.user_name}</p>

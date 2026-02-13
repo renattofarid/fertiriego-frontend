@@ -1,12 +1,9 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { formatNumber } from "@/lib/formatCurrency";
-import { SelectActions } from "@/components/SelectActions";
 import type { WarehouseProductResource } from "../lib/warehouse-product.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { ColumnActions } from "@/components/SelectActions";
 
 export const WarehouseProductColumns = ({
   onDelete,
@@ -77,13 +74,9 @@ export const WarehouseProductColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

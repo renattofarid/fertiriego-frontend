@@ -169,7 +169,7 @@ export function PurchaseDetailTable({
                 </TableCell>
               </TableRow>
             ))}
-            <TableRow className="bg-sidebar">
+            <TableRow className="bg-muted">
               <TableCell colSpan={6} className="text-right font-bold">
                 TOTAL:
               </TableCell>

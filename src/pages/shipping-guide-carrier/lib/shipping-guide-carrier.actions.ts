@@ -89,7 +89,7 @@ export const changeShippingGuideCarrierStatus = async (
   id: number,
   data: ChangeShippingGuideCarrierStatusRequest
 ): Promise<{ message: string }> => {
-  const response = await api.put<{ message: string }>(
+  const response = await api.patch<{ message: string }>(
     `${SHIPPING_GUIDE_CARRIER_ENDPOINT}/${id}/status`,
     data
   );

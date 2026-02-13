@@ -35,29 +35,6 @@ export const usePurchaseShippingGuide = (
 };
 
 /**
- * Hook to fetch all purchase shipping guides (no pagination)
- */
-export const useAllPurchaseShippingGuides = () => {
-  const { allGuides, isLoadingAll, error, fetchAllGuides } =
-    usePurchaseShippingGuideStore();
-
-  useEffect(() => {
-    fetchAllGuides();
-  }, []);
-
-  const refetch = async () => {
-    await fetchAllGuides();
-  };
-
-  return {
-    data: allGuides as PurchaseShippingGuideResource[] | null,
-    isLoading: isLoadingAll,
-    error,
-    refetch,
-  };
-};
-
-/**
  * Hook to fetch a single purchase shipping guide by ID
  */
 export const usePurchaseShippingGuideById = (id: number) => {

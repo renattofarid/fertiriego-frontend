@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
@@ -16,7 +15,7 @@ import {
 import { SUPPLIER, SUPPLIER_ROLE_ID } from "../lib/supplier.interface";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL } = SUPPLIER;
+const { MODEL, ROUTE } = SUPPLIER;
 
 export default function SupplierAddPage() {
   const navigate = useNavigate();
@@ -49,17 +48,17 @@ export default function SupplierAddPage() {
 
       await createPersonWithRole(createPersonData, Number(data.role_id));
       successToast(
-        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
       navigate("/proveedores");
     } catch (error: any) {
       const errorMessage =
-          ((error.response.data.message ?? error.response.data.error) as string)
-          ?? "Error al crear proveedor";
+        ((error.response.data.message ??
+          error.response.data.error) as string) ?? "Error al crear proveedor";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -68,12 +67,7 @@ export default function SupplierAddPage() {
 
   return (
     <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/proveedores" />
-          <TitleFormComponent title={MODEL.name} mode="create" />
-        </div>
-      </div>
+      <TitleFormComponent title={MODEL.name} mode="create" backRoute={ROUTE} />
 
       <PersonForm
         onSubmit={handleSubmit}

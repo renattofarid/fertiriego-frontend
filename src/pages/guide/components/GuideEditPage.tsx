@@ -7,9 +7,7 @@ import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useGuideMotives } from "../lib/guide.hook";
-import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import FormWrapper from "@/components/FormWrapper";
@@ -27,12 +25,10 @@ export default function GuideEditPage() {
   const { MODEL, ROUTE, ICON } = GUIDE;
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
   const carriers = useAllPersons({
     role_names: ["TRANSPORTISTA"],
   });
   const { data: sales, isLoading: salesLoading } = useAllSales();
-  const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const { data: orders, isLoading: ordersLoading } = useOrder({
@@ -44,15 +40,12 @@ export default function GuideEditPage() {
   const isLoading =
     warehousesLoading ||
     motivesLoading ||
-    vehiclesLoading ||
     salesLoading ||
-    purchasesLoading ||
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
     !motives ||
     !sales ||
-    !purchases ||
     !warehouseDocuments ||
     isFinding;
 
@@ -131,11 +124,12 @@ export default function GuideEditPage() {
   if (isLoading) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
-          </div>
-        </div>
+        <TitleFormComponent
+          title={MODEL.name}
+          mode="edit"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -143,24 +137,21 @@ export default function GuideEditPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="update" icon={ICON} />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="edit"
+        icon={ICON}
+        backRoute={ROUTE}
+      />
 
       {warehouses &&
         warehouses.length > 0 &&
         motives &&
         motives.length > 0 &&
-        vehicles &&
-        vehicles.length > 0 &&
         carriers &&
         carriers.length > 0 &&
         sales &&
         sales.length >= 0 &&
-        purchases &&
-        purchases.length >= 0 &&
         warehouseDocuments &&
         warehouseDocuments.length >= 0 &&
         guide && (
@@ -169,11 +160,10 @@ export default function GuideEditPage() {
             onSubmit={handleSubmit}
             onCancel={() => navigate(ROUTE)}
             isSubmitting={isSubmitting}
-            mode="update"
+            mode="edit"
             warehouses={warehouses}
             motives={motives}
             sales={sales}
-            purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             orders={orders || []}
           />

@@ -22,7 +22,7 @@ interface DetailRow {
 
 interface OrderSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   customers: PersonResource[];
   warehouses: WarehouseResource[];
@@ -95,7 +95,7 @@ export function OrderSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">Pedido</p>
@@ -240,7 +240,7 @@ export function OrderSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                 ? "Actualizar Pedido"
                 : "Guardar Pedido"}
             </Button>

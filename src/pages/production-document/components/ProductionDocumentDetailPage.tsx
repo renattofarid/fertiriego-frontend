@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { useProductionDocumentStore } from "../lib/production-document.store";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { BackButton } from "@/components/BackButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/DataTable";
@@ -14,7 +13,7 @@ import { Package, Factory, AlertCircle } from "lucide-react";
 import { successToast, errorToast } from "@/lib/core.function";
 import { PRODUCTION_DOCUMENT } from "../lib/production-document.interface";
 import type { ProductionDocumentComponentResource } from "../lib/production-document.interface";
-import TitleComponent from "@/components/TitleComponent";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 const statusVariants: Record<
   string,
@@ -25,7 +24,7 @@ const statusVariants: Record<
 };
 
 export default function ProductionDocumentDetailPage() {
-  const { ROUTE } = PRODUCTION_DOCUMENT;
+  const { ROUTE, ICON } = PRODUCTION_DOCUMENT;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
@@ -53,7 +52,7 @@ export default function ProductionDocumentDetailPage() {
       fetchDocument(parseInt(id));
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al cancelar el documento"
+        error.response?.data?.message || "Error al cancelar el documento",
       );
     } finally {
       setIsSubmitting(false);
@@ -118,10 +117,11 @@ export default function ProductionDocumentDetailPage() {
     <FormWrapper>
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <BackButton onClick={() => navigate(ROUTE)} />
-          <TitleComponent
+          <TitleFormComponent
             title={`${guide.document_number} - ${guide.product_name}`}
-            subtitle={`Fecha: ${guide.production_date_formatted}`}
+            mode="detail"
+            icon={ICON}
+            backRoute={ROUTE}
           />
         </div>
         <div className="flex gap-2">

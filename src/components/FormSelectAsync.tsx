@@ -180,7 +180,14 @@ export function FormSelectAsync({
         setPage((prev) => prev + 1);
       }
     }
-  }, [preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
+  }, [
+    preloadItemId,
+    allOptions,
+    isLoading,
+    isFetching,
+    data?.meta?.last_page,
+    page,
+  ]);
 
   // Manejar scroll para cargar más
   const handleScroll = useCallback(
