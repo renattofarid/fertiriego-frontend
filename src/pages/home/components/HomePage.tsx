@@ -86,7 +86,8 @@ function MetricCard({
 }
 
 export default function HomePage() {
-  const { data: purchases = [], isLoading: purchasesLoading } = useAllPurchases();
+  const { data: purchases = [], isLoading: purchasesLoading } =
+    useAllPurchases();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: products, isLoading: productsLoading } = useAllProducts();
 

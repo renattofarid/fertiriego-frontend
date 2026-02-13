@@ -8,7 +8,6 @@ import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useGuideMotives } from "../lib/guide.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import FormWrapper from "@/components/FormWrapper";
@@ -30,7 +29,6 @@ export default function GuideEditPage() {
     role_names: ["TRANSPORTISTA"],
   });
   const { data: sales, isLoading: salesLoading } = useAllSales();
-  const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const { data: orders, isLoading: ordersLoading } = useOrder({
@@ -43,13 +41,11 @@ export default function GuideEditPage() {
     warehousesLoading ||
     motivesLoading ||
     salesLoading ||
-    purchasesLoading ||
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
     !motives ||
     !sales ||
-    !purchases ||
     !warehouseDocuments ||
     isFinding;
 
@@ -156,8 +152,6 @@ export default function GuideEditPage() {
         carriers.length > 0 &&
         sales &&
         sales.length >= 0 &&
-        purchases &&
-        purchases.length >= 0 &&
         warehouseDocuments &&
         warehouseDocuments.length >= 0 &&
         guide && (
@@ -170,7 +164,6 @@ export default function GuideEditPage() {
             warehouses={warehouses}
             motives={motives}
             sales={sales}
-            purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             orders={orders || []}
           />

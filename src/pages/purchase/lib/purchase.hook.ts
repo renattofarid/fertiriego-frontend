@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
-import { getPurchases } from "./purchase.actions";
+import { getAllPurchases, getPurchases } from "./purchase.actions";
 import { useQuery } from "@tanstack/react-query";
 import { PURCHASE, type PurchaseResource } from "./purchase.interface";
 
@@ -19,23 +19,10 @@ export function usePurchases(params?: Record<string, unknown>) {
  * Hook to fetch all purchases (no pagination)
  */
 export const useAllPurchases = () => {
-  const { allPurchases, isLoadingAll, error, fetchAllPurchases } =
-    usePurchaseStore();
-
-  useEffect(() => {
-    fetchAllPurchases();
-  }, []);
-
-  const refetch = async () => {
-    await fetchAllPurchases();
-  };
-
-  return {
-    data: allPurchases as PurchaseResource[] | null,
-    isLoading: isLoadingAll,
-    error,
-    refetch,
-  };
+  return useQuery({
+    queryKey: [PURCHASE.QUERY_KEY, "all"],
+    queryFn: () => getAllPurchases(),
+  });
 };
 
 /**

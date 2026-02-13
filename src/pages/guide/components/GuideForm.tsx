@@ -44,6 +44,7 @@ import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
+import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -54,7 +55,6 @@ interface GuideFormProps {
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
   sales: SaleResource[];
-  purchases: PurchaseResource[];
   warehouseDocuments: WarehouseDocumentResource[];
   orders: OrderResource[];
 }
@@ -149,7 +149,6 @@ export const GuideForm = ({
   warehouses,
   motives,
   sales,
-  purchases,
   warehouseDocuments,
   orders,
 }: GuideFormProps) => {
@@ -508,16 +507,17 @@ export const GuideForm = ({
             withValue
           />
 
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="purchase_id"
             label="Compra"
             placeholder="Selecciona una compra"
-            options={purchases.map((purchase) => ({
+            useQueryHook={usePurchases}
+            mapOptionFn={(purchase: PurchaseResource) => ({
               value: purchase.id.toString(),
               label: purchase.document_number || `Compra #${purchase.id}`,
               description: purchase.supplier_fullname,
-            }))}
+            })}
             withValue
           />
 

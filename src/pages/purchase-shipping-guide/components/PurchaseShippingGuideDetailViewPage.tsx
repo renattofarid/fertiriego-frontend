@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { usePurchaseShippingGuideStore } from "../lib/purchase-shipping-guide.store";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,6 @@ export const PurchaseShippingGuideDetailViewPage = () => {
   const { ROUTE, ICON } = PURCHASE_SHIPPING_GUIDE;
   const { guide, fetchGuide, isFinding, assignPurchaseToGuide, isSubmitting } =
     usePurchaseShippingGuideStore();
-  const { data: purchases } = useAllPurchases();
 
   useEffect(() => {
     if (!id) {
@@ -324,15 +322,14 @@ export const PurchaseShippingGuideDetailViewPage = () => {
         </Card>
       </div>
 
-      {purchases && (
+      
         <AssignPurchaseModal
           open={isAssignModalOpen}
           onClose={() => setIsAssignModalOpen(false)}
           onSubmit={handleAssignPurchase}
-          purchases={purchases}
           isSubmitting={isSubmitting}
         />
-      )}
+      
     </FormWrapper>
   );
 };

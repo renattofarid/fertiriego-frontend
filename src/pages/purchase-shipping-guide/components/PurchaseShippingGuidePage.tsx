@@ -12,7 +12,6 @@ import type { PurchaseShippingGuideResource } from "../lib/purchase-shipping-gui
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { errorToast } from "@/lib/core.function";
 import { AssignPurchaseModal } from "./AssignPurchaseModal";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 
 export const PurchaseShippingGuidePage = () => {
   const navigate = useNavigate();
@@ -21,12 +20,13 @@ export const PurchaseShippingGuidePage = () => {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [selectedGuide, setSelectedGuide] = useState<PurchaseShippingGuideResource | null>(null);
+  const [selectedGuide, setSelectedGuide] =
+    useState<PurchaseShippingGuideResource | null>(null);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   const { data, meta, isLoading, refetch } = usePurchaseShippingGuide();
-  const { removeGuide, assignPurchaseToGuide, isSubmitting } = usePurchaseShippingGuideStore();
-  const { data: purchases } = useAllPurchases();
+  const { removeGuide, assignPurchaseToGuide, isSubmitting } =
+    usePurchaseShippingGuideStore();
 
   useEffect(() => {
     const filterParams = {
@@ -50,7 +50,8 @@ export const PurchaseShippingGuidePage = () => {
       };
       await refetch(filterParams);
     } catch (error: any) {
-      const errorMessage = error.response?.data?.message || "Error al eliminar la guía";
+      const errorMessage =
+        error.response?.data?.message || "Error al eliminar la guía";
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -136,18 +137,15 @@ export const PurchaseShippingGuidePage = () => {
         />
       )}
 
-      {purchases && (
-        <AssignPurchaseModal
-          open={isAssignModalOpen}
-          onClose={() => {
-            setIsAssignModalOpen(false);
-            setSelectedGuide(null);
-          }}
-          onSubmit={handleAssignPurchaseSubmit}
-          purchases={purchases}
-          isSubmitting={isSubmitting}
-        />
-      )}
+      <AssignPurchaseModal
+        open={isAssignModalOpen}
+        onClose={() => {
+          setIsAssignModalOpen(false);
+          setSelectedGuide(null);
+        }}
+        onSubmit={handleAssignPurchaseSubmit}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 };
