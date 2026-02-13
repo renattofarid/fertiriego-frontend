@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import GeneralSheet from "@/components/GeneralSheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus, PackageOpen, CreditCard } from "lucide-react";
@@ -211,19 +205,15 @@ export function PurchaseManagementSheet({
   const canAddInstallments = !isPaid && !isCash;
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-4xl overflow-y-auto p-6">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <PackageOpen className="h-5 w-5" />
-            Gestión de Compra {currentPurchase.correlativo}
-          </SheetTitle>
-          <SheetDescription>
-            Administra los detalles, cuotas y pagos de esta compra
-          </SheetDescription>
-        </SheetHeader>
-
-        <div className="mt-6 space-y-4">
+    <GeneralSheet
+      open={open}
+      onClose={onClose}
+      title={`Gestión de Compra ${currentPurchase.correlativo}`}
+      subtitle="Administra los detalles, cuotas y pagos de esta compra"
+      icon="PackageOpen"
+      size="4xl"
+    >
+      <div className="space-y-4">
           {/* Información General */}
           <Card>
             <CardHeader>
@@ -443,7 +433,6 @@ export function PurchaseManagementSheet({
             </TabsContent>
           </Tabs>
         </div>
-      </SheetContent>
-    </Sheet>
+    </GeneralSheet>
   );
 }

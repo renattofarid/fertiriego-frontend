@@ -784,6 +784,7 @@ export const PurchaseForm = ({
                   text="Los precios incluyen IGV"
                   textDescription="El precio unitario de los productos incluye el IGV (18%)"
                   autoHeight
+                  negate
                 />
               </div>
 
