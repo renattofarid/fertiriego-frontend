@@ -1,11 +1,10 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { PersonResource } from "../lib/person.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { ButtonAction } from "@/components/ButtonAction";
+import { ColumnActions } from "@/components/SelectActions";
+import { Pencil } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const PersonColumns = ({
   onEdit,
@@ -111,22 +110,17 @@ export const PersonColumns = ({
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-      const person = row.original;
+      const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            {/* <DropdownMenuItem onClick={() => onManageRoles(person)}>
-              Gestionar Roles
-            </DropdownMenuItem> */}
-            <DropdownMenuItem onClick={() => onEdit(person.id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(person.id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

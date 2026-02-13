@@ -4,13 +4,11 @@ import type {
   GuideResource,
   GuideStatus,
 } from "../lib/guide.interface";
-import { SelectActions } from "@/components/SelectActions";
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Eye, Pencil, RefreshCcw } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { ColumnActions } from "@/components/SelectActions";
 
 interface GuideColumnsProps {
   onEdit: (id: number) => void;
@@ -92,12 +90,12 @@ export const GuideColumns = ({
   },
   {
     accessorKey: "carrier",
-      header: "Transportista",
-      cell: ({ getValue }) => {
-        const carrier = getValue() as Carrier;
-        return (
-          <span className="text-sm text-wrap">
-            {carrier?.names ?? carrier?.business_name}
+    header: "Transportista",
+    cell: ({ getValue }) => {
+      const carrier = getValue() as Carrier;
+      return (
+        <span className="text-sm text-wrap">
+          {carrier?.names ?? carrier?.business_name}
         </span>
       );
     },
@@ -130,32 +128,24 @@ export const GuideColumns = ({
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (
-      <SelectActions>
-
-        
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => onView(row.original.id)}>
-            Ver Detalle
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onChangeStatus(row.original.id, row.original.status)}
-          >
-            Cambiar Estado
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
-            Editar
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => onDelete(row.original.id)}
-            className="text-destructive"
-          >
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </SelectActions>
+      <ColumnActions>
+        <ButtonAction
+          icon={Eye}
+          tooltip="Ver Detalle"
+          onClick={() => onView(row.original.id)}
+        />
+        <ButtonAction
+          icon={RefreshCcw}
+          tooltip="Cambiar Estado"
+          onClick={() => onChangeStatus(row.original.id, row.original.status)}
+        />
+        <ButtonAction
+          icon={Pencil}
+          tooltip="Editar"
+          onClick={() => onEdit(row.original.id)}
+        />
+        <DeleteButton onClick={() => onDelete(row.original.id)} />
+      </ColumnActions>
     ),
   },
 ];

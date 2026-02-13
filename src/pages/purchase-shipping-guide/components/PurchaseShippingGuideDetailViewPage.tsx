@@ -200,7 +200,7 @@ export const PurchaseShippingGuideDetailViewPage = () => {
               <span className="text-sm text-muted-foreground">
                 Motivo de Traslado
               </span>
-              <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+              <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                 {guide.motive}
               </p>
             </div>
@@ -210,7 +210,7 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 <span className="text-sm text-muted-foreground">
                   Observaciones
                 </span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                   {guide.observations}
                 </p>
               </div>
@@ -266,7 +266,7 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 <span className="text-sm text-muted-foreground">
                   Dirección de Origen
                 </span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                   {guide.origin_address}
                 </p>
               </div>
@@ -274,7 +274,7 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 <span className="text-sm text-muted-foreground">
                   Dirección de Destino
                 </span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                   {guide.destination_address}
                 </p>
               </div>

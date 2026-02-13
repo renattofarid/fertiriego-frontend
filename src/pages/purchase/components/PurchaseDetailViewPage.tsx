@@ -274,7 +274,7 @@ export const PurchaseDetailViewPage = () => {
                 <span className="text-sm text-muted-foreground">
                   Observaciones
                 </span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                   {purchase.observations}
                 </p>
               </div>
@@ -489,7 +489,7 @@ export const PurchaseDetailViewPage = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-sidebar rounded-lg">
+                  <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
                     <span className="font-semibold">Total de la Compra:</span>
                     <span className="text-2xl font-bold">
                       {purchase.currency === "PEN"

@@ -160,7 +160,7 @@ export function PurchaseOrderDetailTable({
                   <TableCell></TableCell>
                 </TableRow>
 
-                <TableRow className="bg-sidebar">
+                <TableRow className="bg-muted">
                   <TableCell colSpan={4} className="text-right font-bold">
                     TOTAL (con IGV):
                   </TableCell>

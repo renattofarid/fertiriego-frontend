@@ -907,7 +907,7 @@ export const PurchaseForm = ({
                 cols={{ sm: 1 }}
               >
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
                     <FormItem>
                       <FormLabel>Días de Vencimiento</FormLabel>
                       <FormControl>

@@ -1,11 +1,10 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { formatNumber } from "@/lib/formatCurrency";
-import { SelectActions } from "@/components/SelectActions";
 import type { WarehouseResource } from "../lib/warehouse.interface";
 import type { ColumnDef } from "@tanstack/react-table";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Pencil } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const WarehouseColumns = ({
   onEdit,
@@ -29,11 +28,9 @@ export const WarehouseColumns = ({
   {
     accessorKey: "capacity",
     header: "Capacidad",
-      cell: ({ getValue }) => {
+    cell: ({ getValue }) => {
       const capacity = getValue() as number;
-      return (
-        <span className="font-mono">{formatNumber(capacity, 0)}</span>
-      );
+      return <span className="font-mono">{formatNumber(capacity, 0)}</span>;
     },
   },
   {
@@ -61,16 +58,14 @@ export const WarehouseColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

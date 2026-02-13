@@ -1036,7 +1036,7 @@ export const SaleForm = ({
               sm: 1,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-sidebar rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
               <div className="md:col-span-2">
                 <Form {...detailTempForm}>
                   <FormSelectAsync
@@ -1226,7 +1226,7 @@ export const SaleForm = ({
               sm: 1,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
               <Form {...guideTempForm}>
                 <FormSelect
                   control={guideTempForm.control}
@@ -1414,7 +1414,7 @@ export const SaleForm = ({
 
               {/* Mostrar total de pagos vs total de venta */}
               {details.length > 0 && (
-                <div className="mt-4 p-4 bg-sidebar rounded-lg space-y-2">
+                <div className="mt-4 p-4 bg-muted rounded-lg space-y-2">
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total de la Venta:</span>
                     <span className="text-lg font-bold text-primary">
@@ -1446,7 +1446,7 @@ export const SaleForm = ({
                 sm: 1,
               }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-sidebar rounded-lg">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
                 <FormField
                   control={installmentTempForm.control}
                   name="temp_due_days"

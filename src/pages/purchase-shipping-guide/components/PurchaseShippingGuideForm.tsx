@@ -8,11 +8,9 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   purchaseShippingGuideSchemaCreate,
   purchaseShippingGuideSchemaUpdate,
@@ -58,6 +56,7 @@ import type {
   PurchaseResource,
   PurchaseDetailResource,
 } from "@/pages/purchase/lib/purchase.interface";
+import { FormInput } from "@/components/FormInput";
 
 interface PurchaseShippingGuideFormProps {
   defaultValues: Partial<PurchaseShippingGuideSchema>;
@@ -233,22 +232,12 @@ export const PurchaseShippingGuideForm = ({
             }}
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="guide_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Guía</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="T001-00000001"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Número de Guía"
+            placeholder="T001-00000001"
+            uppercase
           />
 
           <DatePickerFormField
@@ -263,22 +252,12 @@ export const PurchaseShippingGuideForm = ({
             label="Fecha de Traslado"
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="motive"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Motivo</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="Ej: Compra de materiales"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Motivo"
+            placeholder="Ej: Compra de materiales"
+            uppercase
           />
 
           <FormSelect
@@ -301,7 +280,7 @@ export const PurchaseShippingGuideForm = ({
           <FormSelectAsync
             control={form.control as any}
             name="carrier_id"
-            label="Seleccionar Transportista"
+            label="Transportista"
             placeholder="Buscar transportista..."
             useQueryHook={useCarriers}
             mapOptionFn={(carrier: PersonResource) => ({
@@ -317,47 +296,27 @@ export const PurchaseShippingGuideForm = ({
             }}
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="carrier_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Transportista</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="Ej: Transporte Los Andes S.A.C."
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Nombre del Transportista"
+            placeholder="Se llenará automáticamente"
+            disabled
+            uppercase
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="carrier_ruc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RUC del Transportista</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="20123456789"
-                    maxLength={11}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="RUC del Transportista"
+            placeholder="Se llenará automáticamente"
+            disabled
           />
 
           <FormSelectAsync
             control={form.control as any}
             name="driver_id"
-            label="Seleccionar Conductor"
+            label="Conductor"
             placeholder="Buscar conductor..."
             useQueryHook={useDrivers}
             mapOptionFn={(driver: PersonResource) => ({
@@ -378,47 +337,28 @@ export const PurchaseShippingGuideForm = ({
             }}
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="driver_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Conductor</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="Ej: Carlos Pérez"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Nombre del Conductor"
+            placeholder="Se llenará automáticamente"
+            disabled
+            uppercase
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="driver_license"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Licencia del Conductor</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="D12345678"
-                    maxLength={20}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Licencia del Conductor"
+            // placeholder="Ej: D12345678 (Opcional)"
+            placeholder="Ej: D12345678"
+            uppercase
           />
 
           <FormSelectAsync
             control={form.control as any}
             name="vehicle_id"
-            label="Seleccionar Vehículo"
+            label="Vehículo"
             placeholder="Buscar vehículo..."
             useQueryHook={useVehicles}
             mapOptionFn={(vehicle: VehicleResource) => ({
@@ -433,23 +373,13 @@ export const PurchaseShippingGuideForm = ({
             }}
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="vehicle_plate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Placa del Vehículo</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="ABC-123"
-                    maxLength={10}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Placa del Vehículo"
+            placeholder="Se llenará automáticamente"
+            disabled
+            uppercase
           />
         </GroupFormSection>
 
@@ -459,81 +389,37 @@ export const PurchaseShippingGuideForm = ({
           icon={Car}
           cols={{ md: 2 }}
         >
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="origin_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Origen</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de origen"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Dirección de Origen"
+            placeholder="Ingrese la dirección de origen"
+            uppercase
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="destination_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Destino</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de destino"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Dirección de Destino"
+            placeholder="Ingrese la dirección de destino"
+            uppercase
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="total_weight"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Peso Total (kg)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Peso Total (kg)"
+            placeholder="0.00"
+            type="number"
+            step="0.01"
           />
 
-          <FormField
-            control={form.control as any}
+          <FormInput
+            control={form.control}
             name="observations"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    value={field.value || ""}
-                    placeholder="Opcional"
-                    rows={2}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Observaciones"
+            placeholder="Ingrese observaciones adicionales"
+            uppercase
           />
         </GroupFormSection>
 
@@ -565,11 +451,6 @@ export const PurchaseShippingGuideForm = ({
                   onValueChange={(_value, item) => {
                     setProductSelected(item);
                   }}
-                  preloadItemId={
-                    editingDetailIndex !== null
-                      ? currentDetail.product_id
-                      : undefined
-                  }
                   defaultOption={
                     editingDetailIndex !== null && currentDetail.product_name
                       ? {
@@ -582,10 +463,6 @@ export const PurchaseShippingGuideForm = ({
                 />
               </Form>
             </div>
-
-            <pre>
-              <code>{JSON.stringify(detailTempForm.watch(), null, 2)}</code>
-            </pre>
 
             <FormField
               control={detailTempForm.control}

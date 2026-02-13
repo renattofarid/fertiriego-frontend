@@ -1,12 +1,10 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { TypeUserResource } from "../lib/typeUser.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Lock, Pencil } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const TypeUserColumns = ({
   onEdit,
@@ -46,19 +44,19 @@ export const TypeUserColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onPermissions(id)}>
-              Permisos
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <ButtonAction
+            icon={Lock}
+            tooltip="Permisos"
+            onClick={() => onPermissions(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

@@ -3,12 +3,10 @@ import type {
   ShippingGuideCarrierResource,
   ShippingGuideCarrierStatus,
 } from "../lib/shipping-guide-carrier.interface";
-import { SelectActions } from "@/components/SelectActions";
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Eye, Pencil, RefreshCcw } from "lucide-react";
 
 interface ShippingGuideCarrierColumnsProps {
   onEdit: (id: number) => void;
@@ -142,22 +140,27 @@ export const ShippingGuideCarrierColumns = ({
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => (
-      <SelectActions>
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => onView(row.original.id)}>
-            Ver Detalle
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onChangeStatus(row.original.id, row.original.status)}
-          >
-            Cambiar Estado
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
-            Editar
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-      </SelectActions>
-    ),
+    cell: ({ row }) => {
+      const id = row.original.id;
+      return (
+        <ColumnActions>
+          <ButtonAction
+            icon={Eye}
+            tooltip="Ver Detalle"
+            onClick={() => onView(id)}
+          />
+          <ButtonAction
+            icon={RefreshCcw}
+            tooltip="Actualizar Estado"
+            onClick={() => onChangeStatus(id, row.original.status)}
+          />
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+        </ColumnActions>
+      );
+    },
   },
 ];

@@ -109,24 +109,20 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
     createGuide: async (data: PurchaseShippingGuideSchema) => {
       set({ isSubmitting: true, error: undefined });
       try {
-        const request: CreatePurchaseShippingGuideRequest & {
-          carrier_id?: number;
-          driver_id?: number;
-          vehicle_id?: number;
-        } = {
+        const request: CreatePurchaseShippingGuideRequest = {
           ...(data.purchase_id && { purchase_id: Number(data.purchase_id) }),
           ...(data.guide_number && { guide_number: data.guide_number }),
           issue_date: data.issue_date,
           transfer_date: data.transfer_date,
           motive: data.motive,
-          ...(data.carrier_id && { carrier_id: Number(data.carrier_id) }),
-          carrier_name: data.carrier_name,
-          carrier_ruc: data.carrier_ruc,
-          ...(data.driver_id && { driver_id: Number(data.driver_id) }),
-          driver_name: data.driver_name,
-          driver_license: data.driver_license,
-          ...(data.vehicle_id && { vehicle_id: Number(data.vehicle_id) }),
-          vehicle_plate: data.vehicle_plate,
+          carrier_id: Number(data.carrier_id),
+          ...(data.carrier_name && { carrier_name: data.carrier_name }),
+          ...(data.carrier_ruc && { carrier_ruc: data.carrier_ruc }),
+          driver_id: Number(data.driver_id),
+          ...(data.driver_name && { driver_name: data.driver_name }),
+          ...(data.driver_license && { driver_license: data.driver_license }),
+          vehicle_id: Number(data.vehicle_id),
+          ...(data.vehicle_plate && { vehicle_plate: data.vehicle_plate }),
           origin_address: data.origin_address,
           destination_address: data.destination_address,
           total_weight: Number(data.total_weight),
@@ -155,11 +151,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
     ) => {
       set({ isSubmitting: true, error: undefined });
       try {
-        const request: UpdatePurchaseShippingGuideRequest & {
-          carrier_id?: number;
-          driver_id?: number;
-          vehicle_id?: number;
-        } = {};
+        const request: UpdatePurchaseShippingGuideRequest = {};
 
         if (data.purchase_id !== undefined) {
           request.purchase_id = data.purchase_id ? Number(data.purchase_id) : null;

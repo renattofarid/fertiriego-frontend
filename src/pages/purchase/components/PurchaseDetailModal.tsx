@@ -237,7 +237,7 @@ export function PurchaseDetailModal({
               )}
             />
 
-            <div className="bg-sidebar p-4 rounded-lg space-y-2">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
               <div className="flex justify-between items-center">
                 <span className="font-semibold">Subtotal:</span>
                 <span className="text-lg font-semibold">

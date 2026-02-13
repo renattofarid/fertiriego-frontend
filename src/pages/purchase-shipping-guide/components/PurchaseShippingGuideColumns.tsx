@@ -109,6 +109,7 @@ export const getPurchaseShippingGuideColumns = ({
           icon={LinkIcon}
           tooltip="Asignar Compra"
           onClick={() => onAssignPurchase(row.original)}
+          disabled={!!row.original.purchase_id} // Deshabilitar si ya tiene una compra asignada
         />
         <ButtonAction
           icon={Pencil}

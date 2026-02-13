@@ -266,7 +266,7 @@ export default function WarehouseDocumentDetailPage() {
               <span className="text-sm text-muted-foreground">
                 Observaciones
               </span>
-              <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+              <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                 {document.observations}
               </p>
             </div>

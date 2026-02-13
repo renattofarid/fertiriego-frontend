@@ -82,11 +82,14 @@ export interface PurchaseShippingGuideResource {
   issue_date: string;
   transfer_date: string;
   motive: string;
+  carrier_id: number;
   carrier_name: string;
   carrier_ruc: string;
-  vehicle_plate: string;
+  driver_id: number;
   driver_name: string;
   driver_license: string;
+  vehicle_id: number;
+  vehicle_plate: string;
   origin_address: string;
   destination_address: string;
   total_weight: string;
@@ -104,11 +107,14 @@ export interface CreatePurchaseShippingGuideRequest {
   issue_date: string;
   transfer_date: string;
   motive: string;
-  carrier_name: string;
-  carrier_ruc: string;
-  vehicle_plate: string;
-  driver_name: string;
-  driver_license: string;
+  carrier_id: number;
+  carrier_name?: string;
+  carrier_ruc?: string;
+  driver_id: number;
+  driver_name?: string;
+  driver_license?: string;
+  vehicle_id: number;
+  vehicle_plate?: string;
   origin_address: string;
   destination_address: string;
   total_weight: number;
@@ -123,11 +129,14 @@ export interface UpdatePurchaseShippingGuideRequest {
   issue_date?: string;
   transfer_date?: string;
   motive?: string;
+  carrier_id?: number;
   carrier_name?: string;
   carrier_ruc?: string;
-  vehicle_plate?: string;
+  driver_id?: number;
   driver_name?: string;
   driver_license?: string;
+  vehicle_id?: number;
+  vehicle_plate?: string;
   origin_address?: string;
   destination_address?: string;
   total_weight?: number;
@@ -187,11 +196,9 @@ export const PURCHASE_SHIPPING_GUIDE: ModelComplete<CreatePurchaseShippingGuideR
       issue_date: "",
       transfer_date: "",
       motive: "",
-      carrier_name: "",
-      carrier_ruc: "",
-      vehicle_plate: "",
-      driver_name: "",
-      driver_license: "",
+      carrier_id: 0,
+      driver_id: 0,
+      vehicle_id: 0,
       origin_address: "",
       destination_address: "",
       total_weight: 0,

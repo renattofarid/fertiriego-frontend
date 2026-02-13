@@ -1,11 +1,9 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { BranchResource } from "../lib/branch.interface";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Check, X } from "lucide-react";
+import { Check, Pencil, X } from "lucide-react";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const BranchColumns = ({
   onEdit,
@@ -50,9 +48,7 @@ export const BranchColumns = ({
           ) : (
             <X className="h-4 w-4 text-red-600" />
           )}
-          <span className="text-sm">
-            {canInvoice ? "Sí" : "No"}
-          </span>
+          <span className="text-sm">{canInvoice ? "Sí" : "No"}</span>
         </div>
       );
     },
@@ -72,16 +68,14 @@ export const BranchColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

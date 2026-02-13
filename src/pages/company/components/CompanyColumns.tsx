@@ -1,11 +1,9 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { CompanyResource } from "../lib/company.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { ButtonAction } from "@/components/ButtonAction";
+import { Pencil } from "lucide-react";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 export const CompanyColumns = ({
   onEdit,
@@ -55,16 +53,14 @@ export const CompanyColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <div className="flex items-center gap-2">
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar empresa"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </div>
       );
     },
   },

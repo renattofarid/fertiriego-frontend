@@ -1,3 +1,4 @@
+import { dateStringSchemaRequired } from "@/lib/core.schema";
 import { z } from "zod";
 
 // ===== DETAIL SCHEMA =====
@@ -22,42 +23,17 @@ export type PurchaseShippingGuideDetailSchema = z.infer<
 export const purchaseShippingGuideSchemaCreate = z.object({
   purchase_id: z.string().optional().nullable(),
   guide_number: z.string().optional(),
-  issue_date: z.coerce
-    .string()
-    .min(1, { message: "La fecha de emisión es requerida" })
-    .refine((val) => !isNaN(Date.parse(val)), {
-      message: "La fecha de emisión no es válida",
-    }),
-  transfer_date: z.coerce
-    .string()
-    .min(1, { message: "La fecha de traslado es requerida" })
-    .refine((val) => !isNaN(Date.parse(val)), {
-      message: "La fecha de traslado no es válida",
-    }),
+  issue_date: dateStringSchemaRequired("fecha de emisión"),
+  transfer_date: dateStringSchemaRequired("fecha de traslado"),
   motive: z.string().min(1, { message: "El motivo es requerido" }).max(500),
-  carrier_id: z.string().optional(),
-  carrier_name: z
-    .string()
-    .min(1, { message: "El nombre del transportista es requerido" })
-    .max(255),
-  carrier_ruc: z
-    .string()
-    .min(1, { message: "El RUC del transportista es requerido" })
-    .max(11),
-  driver_id: z.string().optional(),
-  driver_name: z
-    .string()
-    .min(1, { message: "El nombre del conductor es requerido" })
-    .max(255),
-  driver_license: z
-    .string()
-    .min(1, { message: "La licencia del conductor es requerida" })
-    .max(20),
-  vehicle_id: z.string().optional(),
-  vehicle_plate: z
-    .string()
-    .min(1, { message: "La placa del vehículo es requerida" })
-    .max(10),
+  carrier_id: z.string().min(1, { message: "El transportista es requerido" }),
+  carrier_name: z.string().optional(),
+  carrier_ruc: z.string().optional(),
+  driver_id: z.string().min(1, { message: "El conductor es requerido" }),
+  driver_name: z.string().optional(),
+  driver_license: z.string().optional(),
+  vehicle_id: z.string().min(1, { message: "El vehículo es requerido" }),
+  vehicle_plate: z.string().optional(),
   origin_address: z
     .string()
     .min(1, { message: "La dirección de origen es requerida" })
