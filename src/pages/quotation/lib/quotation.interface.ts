@@ -2,6 +2,44 @@
 // QUOTATION - Interfaces, Types & Routes
 // ============================================
 
+// ===== PRODUCT SALES HISTORY =====
+
+export interface ProductSalesHistoryItem {
+  id: number;
+  documento: string;
+  tipo_documento: string;
+  fecha: string;
+  cantidad: string;
+  precio_unitario: string;
+  subtotal: string;
+  total: string;
+  cliente: string;
+  usuario: string;
+  estado: string;
+  moneda: string;
+  ganancia: string;
+  margen_ganancia: string;
+}
+
+export interface ProductSalesHistoryPagination {
+  total: number;
+  per_page: number;
+  current_page: number;
+  last_page: number;
+  from: number;
+  to: number;
+}
+
+export interface ProductSalesHistoryResponse {
+  success: boolean;
+  data: ProductSalesHistoryItem[];
+  pagination: ProductSalesHistoryPagination;
+  product: {
+    id: number;
+    name: string;
+  };
+}
+
 // ===== API RESOURCES =====
 
 export interface QuotationDetailResource {

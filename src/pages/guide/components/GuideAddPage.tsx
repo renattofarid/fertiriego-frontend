@@ -102,11 +102,12 @@ export default function GuideAddPage() {
   if (isLoading) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-          </div>
-        </div>
+        <TitleFormComponent
+          title={MODEL.name}
+          mode="create"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -114,11 +115,12 @@ export default function GuideAddPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="create"
+        icon={ICON}
+        backRoute={ROUTE}
+      />
 
       {warehouses &&
         warehouses.length > 0 &&
@@ -129,7 +131,7 @@ export default function GuideAddPage() {
           <GuideForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
-            onCancel={() => navigate(GUIDE.ROUTE)}
+            onCancel={() => navigate(ROUTE)}
             isSubmitting={isSubmitting}
             mode="create"
             warehouses={warehouses}

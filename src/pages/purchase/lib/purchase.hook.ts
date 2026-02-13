@@ -1,36 +1,19 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
-import type { GetPurchasesParams } from "./purchase.actions";
-import type { PurchaseResource } from "./purchase.interface";
-import type { Meta } from "@/lib/pagination.interface";
+import { getPurchases } from "./purchase.actions";
+import { useQuery } from "@tanstack/react-query";
+import { PURCHASE, type PurchaseResource } from "./purchase.interface";
 
 // ============================================
 // PURCHASE HOOKS
 // ============================================
 
-/**
- * Hook to fetch purchases with pagination and filters
- */
-export const usePurchase = (params?: GetPurchasesParams) => {
-  const { purchases, meta, isLoading, error, fetchPurchases } =
-    usePurchaseStore();
-
-  useEffect(() => {
-    fetchPurchases(params);
-  }, []);
-
-  const refetch = async (newParams?: GetPurchasesParams) => {
-    await fetchPurchases(newParams || params);
-  };
-
-  return {
-    data: purchases as PurchaseResource[] | null,
-    meta: meta as Meta | null,
-    isLoading,
-    error,
-    refetch,
-  };
-};
+export function usePurchases(params?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: [PURCHASE.QUERY_KEY, params],
+    queryFn: () => getPurchases({ params }),
+  });
+}
 
 /**
  * Hook to fetch all purchases (no pagination)

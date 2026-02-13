@@ -131,6 +131,8 @@ export const GuideColumns = ({
     header: "Acciones",
     cell: ({ row }) => (
       <SelectActions>
+
+        
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => onView(row.original.id)}>
             Ver Detalle

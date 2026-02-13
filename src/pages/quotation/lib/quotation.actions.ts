@@ -5,6 +5,7 @@ import type {
   QuotationResourceById,
   CreateQuotationRequest,
   UpdateQuotationRequest,
+  ProductSalesHistoryResponse,
 } from "./quotation.interface";
 import { QUOTATION_ENDPOINT } from "./quotation.interface";
 
@@ -67,6 +68,33 @@ export const deleteQuotation = async (
 ): Promise<{ message: string }> => {
   const response = await api.delete<{ message: string }>(
     `${QUOTATION_ENDPOINT}/${id}`,
+  );
+  return response.data;
+};
+
+// ============================================
+// PRODUCT SALES HISTORY
+// ============================================
+
+export interface GetProductSalesHistoryParams {
+  productId: number;
+  page?: number;
+  per_page?: number;
+}
+
+export const getProductSalesHistory = async ({
+  productId,
+  page = 1,
+  per_page = 15,
+}: GetProductSalesHistoryParams): Promise<ProductSalesHistoryResponse> => {
+  const response = await api.get<ProductSalesHistoryResponse>(
+    `/products/${productId}/sales-history`,
+    {
+      params: {
+        page,
+        per_page,
+      },
+    },
   );
   return response.data;
 };

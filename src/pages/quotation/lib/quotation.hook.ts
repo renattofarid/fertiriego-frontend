@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useQuotationStore } from "./quotation.store";
-import { getQuotations } from "./quotation.actions";
+import {
+  getQuotations,
+  getProductSalesHistory,
+  type GetProductSalesHistoryParams,
+} from "./quotation.actions";
 import { QUOTATION } from "./quotation.interface";
 
 export function useQuotations(params?: Record<string, unknown>) {
@@ -29,4 +33,16 @@ export function useQuotationById(id: number) {
     error,
     refetch: () => fetchQuotation(id),
   };
+}
+
+export function useProductSalesHistory(
+  params: GetProductSalesHistoryParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["product-sales-history", params],
+    queryFn: () => getProductSalesHistory(params),
+    enabled: enabled && params.productId > 0,
+    refetchOnWindowFocus: false,
+  });
 }

@@ -4,13 +4,14 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, History } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { ProductSalesHistoryDialog } from "./ProductSalesHistoryDialog";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -169,6 +170,8 @@ export const AddProductSheet = ({
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
 
+  const [showSalesHistory, setShowSalesHistory] = useState(false);
+
   const handleSave = () => {
     const formData = form.getValues();
 
@@ -196,13 +199,23 @@ export const AddProductSheet = ({
 
     if (isEditMode && onEdit && editIndex !== null) {
       onEdit(detail, editIndex);
+      // En modo edición, cerrar el modal después de actualizar
+      onClose();
     } else {
       onAdd(detail);
+      // En modo agregar, limpiar el formulario pero mantener el modal abierto
+      form.reset({
+        product_id: "",
+        price_category_id: "",
+        quantity: "",
+        unit_price: "",
+        purchase_price: "0",
+        description: "",
+        is_igv: defaultIsIgv,
+      });
+      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+      setSelectedProduct(null);
     }
-
-    form.reset();
-    setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
-    onClose();
   };
 
   return (
@@ -213,6 +226,8 @@ export const AddProductSheet = ({
       subtitle="Complete los datos del producto"
       icon="Package"
       size="lg"
+      modal={false}
+      preventAutoClose={!isEditMode}
     >
       <div className="flex flex-col gap-4">
         <FormSelectAsync
@@ -233,6 +248,17 @@ export const AddProductSheet = ({
 
         {productId && (
           <>
+            {/* Botón para ver historial de ventas */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowSalesHistory(true)}
+              className="w-full gap-2"
+            >
+              <History className="h-4 w-4" />
+              Ver Historial de Ventas/Precios
+            </Button>
+
             {priceCategories && priceCategories.length > 0 && (
               <FormSelect
                 control={form.control}
@@ -341,6 +367,16 @@ export const AddProductSheet = ({
           </Button>
         </div>
       </div>
+
+      {/* Dialog de historial de ventas */}
+      {productId && selectedProduct && (
+        <ProductSalesHistoryDialog
+          open={showSalesHistory}
+          onOpenChange={setShowSalesHistory}
+          productId={parseInt(productId)}
+          productName={selectedProduct.name}
+        />
+      )}
     </GeneralSheet>
   );
 };

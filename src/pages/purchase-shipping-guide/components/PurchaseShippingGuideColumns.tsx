@@ -1,14 +1,9 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Pencil, MoreVertical, Trash2, Eye, Link as LinkIcon } from "lucide-react";
+import { Pencil, Eye, Link as LinkIcon } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseShippingGuideResource } from "../lib/purchase-shipping-guide.interface";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface PurchaseShippingGuideColumnsProps {
   onEdit: (guide: PurchaseShippingGuideResource) => void;
@@ -46,12 +41,16 @@ export const getPurchaseShippingGuideColumns = ({
   {
     accessorKey: "carrier_name",
     header: "Transportista",
-    cell: ({ row }) => <div className="max-w-[200px] truncate">{row.original.carrier_name}</div>,
+    cell: ({ row }) => (
+      <div className="max-w-[200px] truncate">{row.original.carrier_name}</div>
+    ),
   },
   {
     accessorKey: "vehicle_plate",
     header: "Placa",
-    cell: ({ row }) => <div className="font-mono">{row.original.vehicle_plate}</div>,
+    cell: ({ row }) => (
+      <div className="font-mono">{row.original.vehicle_plate}</div>
+    ),
   },
   {
     accessorKey: "issue_date",
@@ -91,44 +90,34 @@ export const getPurchaseShippingGuideColumns = ({
     accessorKey: "details",
     header: "Detalles",
     cell: ({ row }) => (
-      <Badge variant="outline">{row.original.details?.length || 0} producto(s)</Badge>
+      <Badge variant="outline">
+        {row.original.details?.length || 0} producto(s)
+      </Badge>
     ),
   },
   {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-            <Eye className="mr-2 h-4 w-4" />
-            Ver Detalles
-          </DropdownMenuItem>
-          {!row.original.purchase_id && (
-            <DropdownMenuItem onClick={() => onAssignPurchase(row.original)}>
-              <LinkIcon className="mr-2 h-4 w-4" />
-              Asignar Compra
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={() => onEdit(row.original)}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Editar
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => onDelete(row.original.id)}
-            className="text-red-600"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Eliminar
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <ButtonAction
+          icon={Eye}
+          tooltip="Ver Detalles"
+          onClick={() => onViewDetails(row.original)}
+        />
+        <ButtonAction
+          icon={LinkIcon}
+          tooltip="Asignar Compra"
+          onClick={() => onAssignPurchase(row.original)}
+        />
+        <ButtonAction
+          icon={Pencil}
+          tooltip="Editar"
+          onClick={() => onEdit(row.original)}
+        />
+
+        <DeleteButton onClick={() => onDelete(row.original.id)} />
+      </div>
     ),
   },
 ];

@@ -48,7 +48,7 @@ interface PurchaseShippingGuideStore {
   createGuide: (data: PurchaseShippingGuideSchema) => Promise<void>;
   updateGuide: (
     id: number,
-    data: Partial<PurchaseShippingGuideUpdateSchema>
+    data: Partial<PurchaseShippingGuideUpdateSchema>,
   ) => Promise<void>;
   removeGuide: (id: number) => Promise<void>;
   assignPurchaseToGuide: (id: number, purchaseId: number) => Promise<void>;
@@ -70,7 +70,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Fetch all guides (no pagination)
     fetchAllGuides: async () => {
-      set({ isLoadingAll: true, error: undefined});
+      set({ isLoadingAll: true, error: undefined });
       try {
         const data = await getAllPurchaseShippingGuides();
         set({ allGuides: data, isLoadingAll: false });
@@ -82,7 +82,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Fetch guides with pagination
     fetchGuides: async (params?: GetPurchaseShippingGuidesParams) => {
-      set({ isLoading: true, error: undefined});
+      set({ isLoading: true, error: undefined });
       try {
         const response = await getPurchaseShippingGuides(params);
         const meta = response.meta;
@@ -95,7 +95,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Fetch single guide by ID
     fetchGuide: async (id: number) => {
-      set({ isFinding: true, error: undefined});
+      set({ isFinding: true, error: undefined });
       try {
         const response = await findPurchaseShippingGuideById(id);
         set({ guide: response.data, isFinding: false });
@@ -107,29 +107,35 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Create new guide
     createGuide: async (data: PurchaseShippingGuideSchema) => {
-      set({ isSubmitting: true, error: undefined});
+      set({ isSubmitting: true, error: undefined });
       try {
-        const request: CreatePurchaseShippingGuideRequest = {
-          transport_modality: data.transport_modality,
+        const request: CreatePurchaseShippingGuideRequest & {
+          carrier_id?: number;
+          driver_id?: number;
+          vehicle_id?: number;
+        } = {
+          ...(data.purchase_id && { purchase_id: Number(data.purchase_id) }),
+          ...(data.guide_number && { guide_number: data.guide_number }),
           issue_date: data.issue_date,
-          transfer_start_date: data.transfer_start_date,
-          remittent_id: Number(data.remittent_id),
-          recipient_id: Number(data.recipient_id),
-          carrier_id: Number(data.carrier_id),
-          driver_id: Number(data.driver_id),
+          transfer_date: data.transfer_date,
+          motive: data.motive,
+          ...(data.carrier_id && { carrier_id: Number(data.carrier_id) }),
+          carrier_name: data.carrier_name,
+          carrier_ruc: data.carrier_ruc,
+          ...(data.driver_id && { driver_id: Number(data.driver_id) }),
+          driver_name: data.driver_name,
           driver_license: data.driver_license,
-          vehicle_id: Number(data.vehicle_id),
+          ...(data.vehicle_id && { vehicle_id: Number(data.vehicle_id) }),
+          vehicle_plate: data.vehicle_plate,
           origin_address: data.origin_address,
-          origin_ubigeo_id: Number(data.origin_ubigeo_id),
           destination_address: data.destination_address,
-          destination_ubigeo_id: Number(data.destination_ubigeo_id),
+          total_weight: Number(data.total_weight),
           observations: data.observations || "",
+          ...(data.status && { status: data.status }),
           details: data.details.map((detail) => ({
             product_id: Number(detail.product_id),
-            description: detail.description,
             quantity: Number(detail.quantity),
             unit: detail.unit,
-            weight: Number(detail.weight),
           })),
         };
 
@@ -138,7 +144,6 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
         successToast(SUCCESS_MESSAGE(MODEL, "create"));
       } catch (error) {
         set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
-        errorToast(ERROR_MESSAGE(MODEL, "create"));
         throw error;
       }
     },
@@ -146,33 +151,77 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
     // Update guide
     updateGuide: async (
       id: number,
-      data: Partial<PurchaseShippingGuideUpdateSchema>
+      data: Partial<PurchaseShippingGuideUpdateSchema>,
     ) => {
-      set({ isSubmitting: true, error: undefined});
+      set({ isSubmitting: true, error: undefined });
       try {
-        const request: UpdatePurchaseShippingGuideRequest = {
-          ...(data.purchase_id !== undefined && {
-            purchase_id: data.purchase_id ? Number(data.purchase_id) : null,
-          }),
-          ...(data.guide_number && { guide_number: data.guide_number }),
-          ...(data.issue_date && { issue_date: data.issue_date }),
-          ...(data.transfer_date && { transfer_date: data.transfer_date }),
-          ...(data.motive && { motive: data.motive }),
-          ...(data.carrier_name && { carrier_name: data.carrier_name }),
-          ...(data.carrier_ruc && { carrier_ruc: data.carrier_ruc }),
-          ...(data.vehicle_plate && { vehicle_plate: data.vehicle_plate }),
-          ...(data.driver_name && { driver_name: data.driver_name }),
-          ...(data.driver_license && { driver_license: data.driver_license }),
-          ...(data.origin_address && { origin_address: data.origin_address }),
-          ...(data.destination_address && {
-            destination_address: data.destination_address,
-          }),
-          ...(data.total_weight && { total_weight: Number(data.total_weight) }),
-          ...(data.observations !== undefined && {
-            observations: data.observations,
-          }),
-          ...(data.status && { status: data.status }),
-        };
+        const request: UpdatePurchaseShippingGuideRequest & {
+          carrier_id?: number;
+          driver_id?: number;
+          vehicle_id?: number;
+        } = {};
+
+        if (data.purchase_id !== undefined) {
+          request.purchase_id = data.purchase_id ? Number(data.purchase_id) : null;
+        }
+        if (data.guide_number) {
+          request.guide_number = data.guide_number;
+        }
+        if (data.issue_date) {
+          request.issue_date = data.issue_date;
+        }
+        if (data.transfer_date) {
+          request.transfer_date = data.transfer_date;
+        }
+        if (data.motive) {
+          request.motive = data.motive;
+        }
+        if (data.carrier_id) {
+          request.carrier_id = Number(data.carrier_id);
+        }
+        if (data.carrier_name) {
+          request.carrier_name = data.carrier_name;
+        }
+        if (data.carrier_ruc) {
+          request.carrier_ruc = data.carrier_ruc;
+        }
+        if (data.driver_id) {
+          request.driver_id = Number(data.driver_id);
+        }
+        if (data.driver_name) {
+          request.driver_name = data.driver_name;
+        }
+        if (data.driver_license) {
+          request.driver_license = data.driver_license;
+        }
+        if (data.vehicle_id) {
+          request.vehicle_id = Number(data.vehicle_id);
+        }
+        if (data.vehicle_plate) {
+          request.vehicle_plate = data.vehicle_plate;
+        }
+        if (data.origin_address) {
+          request.origin_address = data.origin_address;
+        }
+        if (data.destination_address) {
+          request.destination_address = data.destination_address;
+        }
+        if (data.total_weight) {
+          request.total_weight = Number(data.total_weight);
+        }
+        if (data.observations !== undefined) {
+          request.observations = data.observations;
+        }
+        if (data.status) {
+          request.status = data.status;
+        }
+        if (data.details && data.details.length > 0) {
+          request.details = data.details.map((detail) => ({
+            product_id: Number(detail.product_id),
+            quantity: Number(detail.quantity),
+            unit: detail.unit,
+          }));
+        }
 
         await updatePurchaseShippingGuide(id, request);
         set({ isSubmitting: false });
@@ -186,7 +235,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Delete guide
     removeGuide: async (id: number) => {
-      set({ isSubmitting: true, error: undefined});
+      set({ isSubmitting: true, error: undefined });
       try {
         await deletePurchaseShippingGuide(id);
         set({ isSubmitting: false });
@@ -200,7 +249,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Assign purchase to guide
     assignPurchaseToGuide: async (id: number, purchaseId: number) => {
-      set({ isSubmitting: true, error: undefined});
+      set({ isSubmitting: true, error: undefined });
       try {
         await assignPurchase(id, { purchase_id: purchaseId });
         set({ isSubmitting: false });
@@ -214,7 +263,7 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
 
     // Reset guide state
     resetGuide: () => {
-      set({ guide: null, error: undefined});
+      set({ guide: null, error: undefined });
     },
-  })
+  }),
 );

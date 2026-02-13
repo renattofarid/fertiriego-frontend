@@ -131,11 +131,12 @@ export default function GuideEditPage() {
   if (isLoading) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
-          </div>
-        </div>
+        <TitleFormComponent
+          title={MODEL.name}
+          mode="edit"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -143,11 +144,12 @@ export default function GuideEditPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="edit"
+        icon={ICON}
+        backRoute={ROUTE}
+      />
 
       {warehouses &&
         warehouses.length > 0 &&
