@@ -23,7 +23,6 @@ import {
   Plus,
   Trash2,
   Pencil,
-  Search,
   Info,
   BadgeInfo,
   Box,
@@ -32,9 +31,7 @@ import {
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import { useState, useEffect } from "react";
-import { searchRUC, isValidData } from "@/lib/document-search.service";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -45,12 +42,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  GUIDE_STATUS_OPTIONS,
   UNIT_OPTIONS,
+  TRANSPORT_MODALITY_OPTIONS,
 } from "../lib/purchase-shipping-guide.interface";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
+import { useDrivers } from "@/pages/driver/lib/driver.hook";
+import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import { useRemittents } from "@/pages/person/lib/person.hook";
 import { GroupFormSection } from "@/components/GroupFormSection";
+import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
+import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
 
 interface PurchaseShippingGuideFormProps {
   defaultValues: Partial<PurchaseShippingGuideSchema>;
@@ -58,14 +63,15 @@ interface PurchaseShippingGuideFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "edit";
-  purchases?: PurchaseResource[];
 }
 
 interface DetailRow {
   product_id: string;
   product_name?: string;
+  description: string;
   quantity: string;
   unit: string;
+  weight: string;
 }
 
 export const PurchaseShippingGuideForm = ({
@@ -74,7 +80,6 @@ export const PurchaseShippingGuideForm = ({
   onCancel,
   isSubmitting = false,
   mode = "create",
-  purchases = [],
 }: PurchaseShippingGuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
@@ -82,12 +87,10 @@ export const PurchaseShippingGuideForm = ({
   );
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     product_id: "",
+    description: "",
     quantity: "",
-    unit: "",
-  });
-  const [isSearching, setIsSearching] = useState(false);
-  const [fieldsFromSearch, setFieldsFromSearch] = useState({
-    carrier_name: false,
+    unit: "NIU",
+    weight: "",
   });
 
   const form = useForm({
@@ -103,60 +106,27 @@ export const PurchaseShippingGuideForm = ({
   const detailTempForm = useForm({
     defaultValues: {
       temp_product_id: currentDetail.product_id,
+      temp_description: currentDetail.description,
       temp_quantity: currentDetail.quantity,
       temp_unit: currentDetail.unit,
+      temp_weight: currentDetail.weight,
     },
   });
 
   // Watchers
   const selectedProductId = detailTempForm.watch("temp_product_id");
+  const selectedDescription = detailTempForm.watch("temp_description");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnit = detailTempForm.watch("temp_unit");
-  const selectedPurchaseId = form.watch("purchase_id");
-
-  // Auto-llenar datos cuando se selecciona una compra
-  useEffect(() => {
-    if (!selectedPurchaseId || selectedPurchaseId === "" || mode !== "create") {
-      return;
-    }
-
-    const selectedPurchase = purchases.find(
-      (p) => p.id.toString() === selectedPurchaseId,
-    );
-
-    if (!selectedPurchase) return;
-
-    // Auto-llenar datos del proveedor en dirección de origen
-    if (selectedPurchase.supplier_fullname) {
-      form.setValue(
-        "origin_address",
-        `Proveedor: ${selectedPurchase.supplier_fullname}`,
-      );
-    }
-
-    // Auto-llenar detalles de productos de la compra
-    if (selectedPurchase.details && selectedPurchase.details.length > 0) {
-      const purchaseDetails: DetailRow[] = selectedPurchase.details.map(
-        (detail) => {
-          return {
-            product_id: detail.product_id.toString(),
-            product_name: detail.product_name,
-            quantity: detail.quantity,
-            unit: "UND", // Unidad por defecto
-          };
-        },
-      );
-
-      setDetails(purchaseDetails);
-      form.setValue("details", purchaseDetails);
-    }
-  }, [selectedPurchaseId, purchases, form, mode]);
+  const selectedWeight = detailTempForm.watch("temp_weight");
 
   // Sincronizar detalles
   useEffect(() => {
     detailTempForm.setValue("temp_product_id", currentDetail.product_id);
+    detailTempForm.setValue("temp_description", currentDetail.description);
     detailTempForm.setValue("temp_quantity", currentDetail.quantity);
     detailTempForm.setValue("temp_unit", currentDetail.unit);
+    detailTempForm.setValue("temp_weight", currentDetail.weight);
   }, [currentDetail, detailTempForm]);
 
   // Observers
@@ -170,6 +140,15 @@ export const PurchaseShippingGuideForm = ({
   }, [selectedProductId]);
 
   useEffect(() => {
+    if (selectedDescription !== currentDetail.description) {
+      setCurrentDetail({
+        ...currentDetail,
+        description: selectedDescription || "",
+      });
+    }
+  }, [selectedDescription]);
+
+  useEffect(() => {
     if (selectedQuantity !== currentDetail.quantity) {
       setCurrentDetail({ ...currentDetail, quantity: selectedQuantity || "" });
     }
@@ -181,6 +160,12 @@ export const PurchaseShippingGuideForm = ({
     }
   }, [selectedUnit]);
 
+  useEffect(() => {
+    if (selectedWeight !== currentDetail.weight) {
+      setCurrentDetail({ ...currentDetail, weight: selectedWeight || "" });
+    }
+  }, [selectedWeight]);
+
   const [productSelected, setProductSelected] = useState<
     ProductResource | undefined
   >(undefined);
@@ -189,8 +174,10 @@ export const PurchaseShippingGuideForm = ({
   const handleAddDetail = () => {
     if (
       !currentDetail.product_id ||
+      !currentDetail.description ||
       !currentDetail.quantity ||
-      !currentDetail.unit
+      !currentDetail.unit ||
+      !currentDetail.weight
     ) {
       return;
     }
@@ -214,8 +201,10 @@ export const PurchaseShippingGuideForm = ({
 
     setCurrentDetail({
       product_id: "",
+      description: "",
       quantity: "",
-      unit: "",
+      unit: "NIU",
+      weight: "",
     });
   };
 
@@ -250,18 +239,12 @@ export const PurchaseShippingGuideForm = ({
             md: 3,
           }}
         >
-          <FormField
+          <FormSelect
             control={form.control}
-            name="guide_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Guía</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="T001-00000001" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            name="transport_modality"
+            label="Modalidad de Transporte"
+            placeholder="Seleccione"
+            options={TRANSPORT_MODALITY_OPTIONS}
           />
 
           <DatePickerFormField
@@ -272,45 +255,30 @@ export const PurchaseShippingGuideForm = ({
 
           <DatePickerFormField
             control={form.control}
-            name="transfer_date"
-            label="Fecha de Traslado"
+            name="transfer_start_date"
+            label="Fecha de Inicio de Traslado"
           />
 
-          {mode === "create" && purchases && purchases.length > 0 && (
-            <FormSelect
-              control={form.control}
-              name="purchase_id"
-              label="Compra (Opcional)"
-              placeholder="Seleccione una compra"
-              options={[
-                { value: "", label: "Sin compra" },
-                ...purchases.map((purchase) => ({
-                  value: purchase.id.toString(),
-                  label: `${purchase.correlativo} - ${purchase.supplier_fullname}`,
-                })),
-              ]}
-            />
-          )}
-
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
-            name="status"
-            label="Estado"
+            name="remittent_id"
+            label="Remitente"
             placeholder="Seleccione"
-            options={GUIDE_STATUS_OPTIONS}
+            useQueryHook={useRemittents}
+            mapOptionFn={(person: PersonResource) => ({
+              value: person.id.toString(),
+              label:
+                person.business_name ??
+                `${person.names} ${person.father_surname} ${person.mother_surname}`,
+            })}
           />
 
+          {/* recipient_id se envía automáticamente con valor 777 */}
           <FormField
             control={form.control}
-            name="motive"
+            name="recipient_id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Motivo de Traslado</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Ej: Compra de materiales" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
+              <input type="hidden" {...field} value="777" />
             )}
           />
         </GroupFormSection>
@@ -323,111 +291,32 @@ export const PurchaseShippingGuideForm = ({
             md: 3,
           }}
         >
-          <FormField
+          <FormSelectAsync
             control={form.control}
-            name="carrier_ruc"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>RUC del Transportista</FormLabel>
-                <FormControl>
-                  <div className="flex gap-2">
-                    <Input
-                      {...field}
-                      placeholder="20123456789"
-                      maxLength={11}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      disabled={
-                        !field.value || field.value.length !== 11 || isSearching
-                      }
-                      onClick={async () => {
-                        if (field.value && field.value.length === 11) {
-                          setIsSearching(true);
-                          try {
-                            const response = await searchRUC({
-                              search: field.value,
-                            });
-                            if (response.data) {
-                              const newFieldsFromSearch = {
-                                ...fieldsFromSearch,
-                              };
-                              if (isValidData(response.data.business_name)) {
-                                form.setValue(
-                                  "carrier_name",
-                                  response.data.business_name,
-                                );
-                                newFieldsFromSearch.carrier_name = true;
-                              }
-                              setFieldsFromSearch(newFieldsFromSearch);
-                            }
-                          } catch (error) {
-                            console.error("Error searching RUC:", error);
-                          } finally {
-                            setIsSearching(false);
-                          }
-                        }
-                      }}
-                    >
-                      {isSearching ? (
-                        <Loader className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Search className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            name="carrier_id"
+            label="Transportista"
+            placeholder="Seleccione"
+            useQueryHook={useCarriers}
+            mapOptionFn={(person: PersonResource) => ({
+              value: person.id.toString(),
+              label:
+                person.business_name ||
+                `${person.names} ${person.father_surname} ${person.mother_surname}`,
+            })}
           />
 
-          <FormField
+          <FormSelectAsync
             control={form.control}
-            name="carrier_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Transportista</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="Nombre o Razón Social"
-                    disabled={fieldsFromSearch.carrier_name}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="vehicle_plate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Placa del Vehículo</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="ABC-123" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="driver_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre del Conductor</FormLabel>
-                <FormControl>
-                  <Input {...field} placeholder="Nombre completo" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            name="driver_id"
+            label="Conductor"
+            placeholder="Seleccione"
+            useQueryHook={useDrivers}
+            mapOptionFn={(person: PersonResource) => ({
+              value: person.id.toString(),
+              label:
+                person.business_name ??
+                `${person.names} ${person.father_surname} ${person.mother_surname}`,
+            })}
           />
 
           <FormField
@@ -443,6 +332,18 @@ export const PurchaseShippingGuideForm = ({
               </FormItem>
             )}
           />
+
+          <FormSelectAsync
+            control={form.control}
+            name="vehicle_id"
+            label="Vehículo"
+            placeholder="Seleccione"
+            useQueryHook={useVehicles}
+            mapOptionFn={(vehicle: VehicleResource) => ({
+              value: vehicle.id.toString(),
+              label: vehicle.plate,
+            })}
+          />
         </GroupFormSection>
 
         {/* Información de Traslado */}
@@ -451,6 +352,32 @@ export const PurchaseShippingGuideForm = ({
           icon={Car}
           cols={{ md: 2 }}
         >
+          <FormSelectAsync
+            control={form.control}
+            name="origin_ubigeo_id"
+            label="Ubigeo de Origen"
+            placeholder="Buscar ubigeo..."
+            useQueryHook={useUbigeosFrom}
+            mapOptionFn={(item: UbigeoResource) => ({
+              value: item.id.toString(),
+              label: item.name,
+              description: item.cadena,
+            })}
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="destination_ubigeo_id"
+            label="Ubigeo de Destino"
+            placeholder="Buscar ubigeo..."
+            useQueryHook={useUbigeosTo}
+            mapOptionFn={(item: UbigeoResource) => ({
+              value: item.id.toString(),
+              label: item.name,
+              description: item.cadena,
+            })}
+          />
+
           <FormField
             control={form.control}
             name="origin_address"
@@ -458,10 +385,11 @@ export const PurchaseShippingGuideForm = ({
               <FormItem>
                 <FormLabel>Dirección de Origen</FormLabel>
                 <FormControl>
-                  <Textarea
+                  <Input
+                    placeholder="Ingrese la dirección de origen"
                     {...field}
-                    placeholder="Dirección completa"
-                    rows={2}
+                    value={field.value || ""}
+                    maxLength={500}
                   />
                 </FormControl>
                 <FormMessage />
@@ -476,29 +404,11 @@ export const PurchaseShippingGuideForm = ({
               <FormItem>
                 <FormLabel>Dirección de Destino</FormLabel>
                 <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Dirección completa"
-                    rows={2}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="total_weight"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Peso Total (kg)</FormLabel>
-                <FormControl>
                   <Input
+                    placeholder="Ingrese la dirección de destino"
                     {...field}
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
+                    value={field.value || ""}
+                    maxLength={500}
                   />
                 </FormControl>
                 <FormMessage />
@@ -510,7 +420,7 @@ export const PurchaseShippingGuideForm = ({
             control={form.control}
             name="observations"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Observaciones</FormLabel>
                 <FormControl>
                   <Textarea {...field} placeholder="Opcional" rows={2} />
@@ -527,7 +437,7 @@ export const PurchaseShippingGuideForm = ({
             title="Productos a Transportar"
             icon={Box}
             cols={{
-              md: 4,
+              md: 5,
             }}
           >
             <div className="md:col-span-2">
@@ -541,13 +451,32 @@ export const PurchaseShippingGuideForm = ({
                   mapOptionFn={(product: ProductResource) => ({
                     value: product.id.toString(),
                     label: product.name,
+                    description: product.category_name,
                   })}
                   onValueChange={(_value, item) => {
                     setProductSelected(item);
+                    // Auto-llenar descripción
+                    detailTempForm.setValue(
+                      "temp_description",
+                      item?.name || "",
+                    );
                   }}
                 />
               </Form>
             </div>
+
+            <FormField
+              control={detailTempForm.control}
+              name="temp_description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descripción</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Descripción del producto" {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={detailTempForm.control}
@@ -567,8 +496,8 @@ export const PurchaseShippingGuideForm = ({
               )}
             />
 
-            <div className="flex gap-2 items-end w-full">
-              <div className="w-full">
+            <div className="flex gap-2">
+              <div className="w-1/2">
                 <FormSelect
                   control={detailTempForm.control}
                   name="temp_unit"
@@ -578,21 +507,43 @@ export const PurchaseShippingGuideForm = ({
                 />
               </div>
 
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="default"
-                  onClick={handleAddDetail}
-                  disabled={
-                    !currentDetail.product_id ||
-                    !currentDetail.quantity ||
-                    !currentDetail.unit
-                  }
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
-                </Button>
+              <div className="w-1/2">
+                <FormField
+                  control={detailTempForm.control}
+                  name="temp_weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso (kg)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="0.0"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
+            </div>
+
+            <div className="col-span-full flex justify-end">
+              <Button
+                type="button"
+                variant="default"
+                onClick={handleAddDetail}
+                disabled={
+                  !currentDetail.product_id ||
+                  !currentDetail.description ||
+                  !currentDetail.quantity ||
+                  !currentDetail.unit ||
+                  !currentDetail.weight
+                }
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                {editingDetailIndex !== null ? "Actualizar" : "Agregar"}
+              </Button>
             </div>
 
             <div className="col-span-full">
@@ -602,8 +553,10 @@ export const PurchaseShippingGuideForm = ({
                     <TableHeader>
                       <TableRow>
                         <TableHead>Producto</TableHead>
+                        <TableHead>Descripción</TableHead>
                         <TableHead className="text-right">Cantidad</TableHead>
                         <TableHead>Unidad</TableHead>
+                        <TableHead className="text-right">Peso (kg)</TableHead>
                         <TableHead className="text-center">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -611,10 +564,14 @@ export const PurchaseShippingGuideForm = ({
                       {details.map((detail, index) => (
                         <TableRow key={index}>
                           <TableCell>{detail.product_name}</TableCell>
+                          <TableCell>{detail.description}</TableCell>
                           <TableCell className="text-right font-semibold">
                             {detail.quantity}
                           </TableCell>
                           <TableCell>{detail.unit}</TableCell>
+                          <TableCell className="text-right">
+                            {detail.weight}
+                          </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
                               <Button

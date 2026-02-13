@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
 import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
 import { usePurchaseOrderStore } from "../lib/purchase-order.store";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import {
   ERROR_MESSAGE,
@@ -23,12 +22,11 @@ export default function PurchaseOrderAddPage() {
   const isSubmittingRef = useRef(false);
   const { MODEL, ICON } = PURCHASE_ORDER;
 
-  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
 
   const { createPurchaseOrder, isSubmitting } = usePurchaseOrderStore();
 
-  const isLoading = suppliersLoading || warehousesLoading;
+  const isLoading = warehousesLoading;
 
   const getDefaultValues = (): Partial<PurchaseOrderSchema> => ({
     supplier_id: "",
@@ -83,20 +81,16 @@ export default function PurchaseOrderAddPage() {
         </div>
       </div>
 
-      {suppliers &&
-        suppliers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 && (
-          <PurchaseOrderForm
-            defaultValues={getDefaultValues()}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            mode="create"
-            suppliers={suppliers}
-            warehouses={warehouses}
-            onCancel={() => navigate("/ordenes-compra")}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && (
+        <PurchaseOrderForm
+          defaultValues={getDefaultValues()}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="create"
+          warehouses={warehouses}
+          onCancel={() => navigate("/ordenes-compra")}
+        />
+      )}
     </FormWrapper>
   );
 }

@@ -36,11 +36,15 @@ export default function CarrierPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
     useState<PersonResource | null>(null);
-  const { data, isLoading, refetch } = useCarriers();
+  const { data, isLoading, refetch } = useCarriers({
+    page,
+    search,
+    per_page,
+  });
 
   useEffect(() => {
-    refetch();
-  }, [page, search, per_page]);
+    setPage(1);
+  }, [search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -83,7 +87,6 @@ export default function CarrierPage() {
         columns={PersonColumns({
           onEdit: (person) => navigate(`/conductores/editar/${person}`),
           onDelete: setDeleteId,
-          // onManageRoles: handleManageRoles,
         })}
         data={data?.data || []}
       >
@@ -93,10 +96,10 @@ export default function CarrierPage() {
       <DataTablePagination
         page={page}
         totalPages={data?.meta?.last_page || 1}
+        totalData={data?.meta?.total || 0}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={data?.meta?.total || 0}
       />
 
       {/* Role Assignment Modal */}

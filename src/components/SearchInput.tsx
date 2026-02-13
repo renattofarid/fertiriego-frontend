@@ -1,22 +1,20 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useEffect, useRef, useState } from "react";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { SearchIcon } from "lucide-react";
 
 export default function SearchInput({
   value,
   onChange,
   placeholder = "Buscar...",
+  label,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  label?: string;
 }) {
   const [inputValue, setInputValue] = useState(value);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -33,16 +31,14 @@ export default function SearchInput({
   }, [value]);
 
   return (
-    <InputGroup className="w-full md:w-64">
-      <InputGroupInput
-        className="w-full md:w-64 h-8 text-sm md:text-sm"
+    <div className="flex flex-col gap-1.5">
+      {label && <Label className="text-sm font-medium">{label}</Label>}
+      <Input
+        className="w-full md:w-64 h-8 text-xs md:text-sm"
         placeholder={placeholder}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />
-      <InputGroupAddon>
-        <SearchIcon />
-      </InputGroupAddon>
-    </InputGroup>
+    </div>
   );
 }

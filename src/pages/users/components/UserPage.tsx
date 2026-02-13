@@ -33,8 +33,8 @@ export default function UserPage() {
   const { data, isLoading, refetch } = useUsers();
 
   useEffect(() => {
-    refetch();
-  }, [page, search, per_page]);
+    setPage(1);
+  }, [search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;

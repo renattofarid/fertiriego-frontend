@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { formatNumber } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -27,7 +27,6 @@ interface PurchaseSummaryProps {
   form: UseFormReturn<any>;
   mode: "create" | "edit";
   isSubmitting: boolean;
-  suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -35,6 +34,7 @@ interface PurchaseSummaryProps {
   calculateTaxTotal: () => number;
   calculateDetailsTotal: () => number;
   installmentsMatchTotal?: () => boolean;
+  selectedSupplier?: PersonResource;
   onCancel?: () => void;
   selectedPaymentType?: string;
 }
@@ -43,7 +43,6 @@ export function PurchaseSummary({
   form,
   mode,
   isSubmitting,
-  suppliers,
   warehouses,
   details,
   installments = [],
@@ -51,18 +50,13 @@ export function PurchaseSummary({
   calculateTaxTotal,
   calculateDetailsTotal,
   installmentsMatchTotal,
+  selectedSupplier,
   onCancel,
   selectedPaymentType,
 }: PurchaseSummaryProps) {
-  const supplierWatch = form.watch("supplier_id");
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
-
-  // Obtener el proveedor seleccionado
-  const selectedSupplier = supplierWatch
-    ? suppliers.find((s) => s.id.toString() === supplierWatch)
-    : undefined;
 
   const supplierName = selectedSupplier
     ? selectedSupplier.business_name ??

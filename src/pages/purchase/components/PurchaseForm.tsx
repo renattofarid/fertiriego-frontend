@@ -53,6 +53,7 @@ import { FormInput } from "@/components/FormInput";
 import { PurchaseSummary } from "./PurchaseSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -60,7 +61,6 @@ interface PurchaseFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "edit";
-  suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   purchaseOrders: PurchaseOrderResource[];
   purchase?: PurchaseResource;
@@ -88,7 +88,6 @@ export const PurchaseForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  suppliers,
   warehouses,
   purchaseOrders,
   currentUserId,
@@ -102,8 +101,6 @@ export const PurchaseForm = ({
   // Estado para modales
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [suppliersList, setSuppliersList] =
-    useState<PersonResource[]>(suppliers);
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
@@ -166,6 +163,13 @@ export const PurchaseForm = ({
 
   // Watch para el switch de IGV
   const watchIncludeIgv = igvForm.watch("include_igv");
+
+  // Obtener proveedor seleccionado
+  const supplierWatch = form.watch("supplier_id");
+  const { data: suppliersData } = useSuppliers();
+  const selectedSupplier = supplierWatch
+    ? suppliersData?.data?.find((s) => s.id.toString() === supplierWatch)
+    : undefined;
 
   // Watch para los campos temporales de detalle
   const watchTempProductId = detailTempForm.watch("temp_product_id");
@@ -239,26 +243,19 @@ export const PurchaseForm = ({
     }
   }, [watchTempUnitPrice, currentDetail.unit_price]);
 
-  // Actualizar listas cuando cambien las props
-  useEffect(() => {
-    setSuppliersList(suppliers);
-  }, [suppliers]);
-
   useEffect(() => {
     setWarehousesList(warehouses);
   }, [warehouses]);
 
-  // Handlers para modales
-  const handleSupplierCreated = (newSupplier: PersonResource) => {
-    setSuppliersList((prev) => [...prev, newSupplier]);
-    form.setValue("supplier_id", newSupplier.id.toString(), {
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
       shouldValidate: true,
     });
   };
 
-  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
-    setWarehousesList((prev) => [...prev, newWarehouse]);
-    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    form.setValue("supplier_id", newSupplier.id.toString(), {
       shouldValidate: true,
     });
   };
@@ -310,7 +307,7 @@ export const PurchaseForm = ({
         if (includeIgvValue) {
           // unitPrice incluye IGV: descomponer (truncando resultados)
           const totalIncl = truncDecimal(quantity * unitPrice, 2);
-          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE),2);
+          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
           tax = truncDecimal(totalIncl - subtotal, 2);
           total = totalIncl;
         } else {
@@ -337,7 +334,7 @@ export const PurchaseForm = ({
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
   >(undefined);
-  
+
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
@@ -592,21 +589,18 @@ export const PurchaseForm = ({
 
               <div className="flex gap-2 items-end">
                 <div className="flex-1 truncate">
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="supplier_id"
                     label="Proveedor"
                     placeholder="Seleccione un proveedor"
-                    options={suppliersList.map((supplier) => ({
-                      value: supplier.id.toString(),
+                    useQueryHook={useSuppliers}
+                    mapOptionFn={(p: PersonResource) => ({
+                      value: p.id.toString(),
                       label:
-                        supplier.business_name ??
-                        supplier.names +
-                          " " +
-                          supplier.father_surname +
-                          " " +
-                          supplier.mother_surname,
-                    }))}
+                        p.business_name ?? `${p.names} ${p.father_surname}`,
+                      description: p.number_document,
+                    })}
                     disabled={mode === "edit"}
                   />
                 </div>
@@ -1077,7 +1071,6 @@ export const PurchaseForm = ({
             form={form}
             mode={mode}
             isSubmitting={isSubmitting}
-            suppliers={suppliers}
             warehouses={warehouses}
             details={details}
             installments={installments}
@@ -1085,6 +1078,7 @@ export const PurchaseForm = ({
             calculateTaxTotal={calculateTaxTotal}
             calculateDetailsTotal={calculateDetailsTotal}
             installmentsMatchTotal={installmentsMatchTotal}
+            selectedSupplier={selectedSupplier}
             onCancel={onCancel}
             selectedPaymentType={selectedPaymentType}
           />

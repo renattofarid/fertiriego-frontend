@@ -13,11 +13,11 @@ import {
   successToast,
 } from "@/lib/core.function";
 import FormWrapper from "@/components/FormWrapper";
-import { DRIVER, DRIVER_ROLE_ID } from "@/pages/driver/lib/driver.interface";
+import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 
-const { MODEL, ICON } = DRIVER;
+const { MODEL, ICON } = CARRIER;
 
-export default function DriverAddPage() {
+export default function CarrierAddPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -48,17 +48,18 @@ export default function DriverAddPage() {
 
       await createPersonWithRole(createPersonData, Number(data.role_id));
       successToast(
-        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Transportista", gender: false }, "create"),
       );
-      navigate("/conductores");
+      navigate("/transportistas");
     } catch (error: any) {
       const errorMessage =
         ((error.response.data.message ??
-          error.response.data.error) as string) ?? "Error al crear conductor";
+          error.response.data.error) as string) ??
+        "Error al crear transportista";
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Conductor", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Transportista", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -76,8 +77,8 @@ export default function DriverAddPage() {
       <PersonForm
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onCancel={() => navigate("/conductores")}
-        roleId={DRIVER_ROLE_ID}
+        onCancel={() => navigate("/transportistas")}
+        roleId={CARRIER_ROLE_ID}
         isWorker={true}
       />
     </FormWrapper>

@@ -28,10 +28,11 @@ export const PersonColumns = ({
             {typeDocument === "RUC"
               ? person.business_name
               : typeDocument === "PASAPORTE"
-              ? person.names
-              : typeDocument === "CE"
-              ? person.names
-              : `${person.names} ${person.father_surname} ${person.mother_surname}`}
+                ? person.names
+                : typeDocument === "CE"
+                  ? person.names
+                  : (person.business_name ??
+                    `${person.names} ${person.father_surname} ${person.mother_surname}`)}
           </div>
           <div className="text-sm text-muted-foreground">
             {typeDocument}: {person.number_document}

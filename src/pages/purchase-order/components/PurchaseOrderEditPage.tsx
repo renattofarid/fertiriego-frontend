@@ -6,7 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseOrderForm } from "./PurchaseOrderForm";
 import { type PurchaseOrderSchema } from "../lib/purchase-order.schema";
 import { usePurchaseOrderStore } from "../lib/purchase-order.store";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import {
   ERROR_MESSAGE,
@@ -27,7 +26,6 @@ export default function PurchaseOrderEditPage() {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
 
-  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
 
   const {
@@ -38,7 +36,7 @@ export default function PurchaseOrderEditPage() {
     isSubmitting,
   } = usePurchaseOrderStore();
 
-  const isLoading = suppliersLoading || warehousesLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -78,9 +76,7 @@ export default function PurchaseOrderEditPage() {
         navigate("/ordenes-compra");
       }, 500);
     } catch (error: any) {
-      errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"),
-      );
+      errorToast(error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"));
       // Solo resetear el ref en caso de error (en éxito, navega)
       isSubmittingRef.current = false;
     }
@@ -120,21 +116,17 @@ export default function PurchaseOrderEditPage() {
         </div>
       </div>
 
-      {suppliers &&
-        suppliers.length > 0 &&
-        warehouses &&
-        warehouses.length > 0 && (
-          <PurchaseOrderForm
-            defaultValues={mapPurchaseOrderToForm(purchaseOrder)}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            mode="edit"
-            suppliers={suppliers}
-            warehouses={warehouses}
-            purchaseOrder={purchaseOrder}
-            onCancel={() => navigate("/ordenes-compra")}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && (
+        <PurchaseOrderForm
+          defaultValues={mapPurchaseOrderToForm(purchaseOrder)}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          mode="edit"
+          warehouses={warehouses}
+          purchaseOrder={purchaseOrder}
+          onCancel={() => navigate("/ordenes-compra")}
+        />
+      )}
     </FormWrapper>
   );
 }

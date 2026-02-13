@@ -34,7 +34,15 @@ export const GUIDE_STATUS_OPTIONS = [
   { value: "CANCELADA", label: "Cancelada" },
 ];
 
+export const TRANSPORT_MODALITY_OPTIONS = [
+  { value: "PRIVADO", label: "Privado" },
+  { value: "PUBLICO", label: "Público" },
+];
+
 export const UNIT_OPTIONS = [
+  { value: "NIU", label: "Unidad (NIU)" },
+  { value: "KGM", label: "Kilogramo (KGM)" },
+  { value: "BX", label: "Caja (BX)" },
   { value: "unidad", label: "Unidad" },
   { value: "kg", label: "Kilogramo (kg)" },
   { value: "caja", label: "Caja" },
@@ -48,8 +56,10 @@ export const UNIT_OPTIONS = [
 
 export interface PurchaseShippingGuideDetail {
   product_id: number;
+  description: string;
   quantity: number;
   unit: string;
+  weight: number;
 }
 
 export interface PurchaseShippingGuideDetailResource {
@@ -91,21 +101,20 @@ export interface PurchaseShippingGuideResource {
 // ===== REQUEST INTERFACES =====
 
 export interface CreatePurchaseShippingGuideRequest {
-  purchase_id?: number | null;
-  guide_number: string;
+  transport_modality: string;
   issue_date: string;
-  transfer_date: string;
-  motive: string;
-  carrier_name: string;
-  carrier_ruc: string;
-  vehicle_plate: string;
-  driver_name: string;
+  transfer_start_date: string;
+  remittent_id: number;
+  recipient_id: number;
+  carrier_id: number;
+  driver_id: number;
   driver_license: string;
+  vehicle_id: number;
   origin_address: string;
+  origin_ubigeo_id: number;
   destination_address: string;
-  total_weight: number;
+  destination_ubigeo_id: number;
   observations?: string;
-  status: string;
   details: PurchaseShippingGuideDetail[];
 }
 
@@ -175,21 +184,20 @@ export const PURCHASE_SHIPPING_GUIDE: ModelComplete<CreatePurchaseShippingGuideR
       },
     },
     EMPTY: {
-      purchase_id: null,
-      guide_number: "",
+      transport_modality: "PRIVADO",
       issue_date: "",
-      transfer_date: "",
-      motive: "",
-      carrier_name: "",
-      carrier_ruc: "",
-      vehicle_plate: "",
-      driver_name: "",
+      transfer_start_date: "",
+      remittent_id: 0,
+      recipient_id: 777,
+      carrier_id: 0,
+      driver_id: 0,
       driver_license: "",
+      vehicle_id: 0,
       origin_address: "",
+      origin_ubigeo_id: 0,
       destination_address: "",
-      total_weight: 0,
+      destination_ubigeo_id: 0,
       observations: "",
-      status: GUIDE_STATUS.EMITIDA,
       details: [],
     },
   };

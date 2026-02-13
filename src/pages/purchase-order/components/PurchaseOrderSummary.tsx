@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { formatCurrency } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -21,13 +21,13 @@ interface PurchaseOrderSummaryProps {
   form: UseFormReturn<any>;
   mode: "create" | "edit";
   isSubmitting: boolean;
-  suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   details: DetailRow[];
   subtotalBase: number;
   igvAmount: number;
   totalWithIgv: number;
   applyIgv: boolean;
+  selectedSupplier?: PersonResource;
   onCancel?: () => void;
 }
 
@@ -35,22 +35,16 @@ export function PurchaseOrderSummary({
   form,
   mode,
   isSubmitting,
-  suppliers,
   warehouses,
   details,
   subtotalBase,
   igvAmount,
   totalWithIgv,
   applyIgv,
+  selectedSupplier,
   onCancel,
 }: PurchaseOrderSummaryProps) {
-  const supplierWatch = form.watch("supplier_id");
   const warehouseWatch = form.watch("warehouse_id");
-
-  // Obtener el proveedor seleccionado
-  const selectedSupplier = supplierWatch
-    ? suppliers.find((s) => s.id.toString() === supplierWatch)
-    : undefined;
 
   const supplierName = selectedSupplier
     ? (selectedSupplier.business_name ??

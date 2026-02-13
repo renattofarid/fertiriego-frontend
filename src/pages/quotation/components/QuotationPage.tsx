@@ -37,8 +37,8 @@ export default function QuotationPage() {
   });
 
   useEffect(() => {
-    refetch();
-  }, [page, search, per_page]);
+    setPage(1);
+  }, [search, per_page]);
 
   useEffect(() => {
     setOpen(true);

@@ -254,7 +254,6 @@ export function SaleSummary({
               size="lg"
               disabled={
                 isSubmitting ||
-                !form.formState.isValid ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
                   selectedPaymentType === "CREDITO" &&

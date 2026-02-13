@@ -110,25 +110,26 @@ export const usePurchaseShippingGuideStore = create<PurchaseShippingGuideStore>(
       set({ isSubmitting: true, error: undefined});
       try {
         const request: CreatePurchaseShippingGuideRequest = {
-          purchase_id: data.purchase_id ? Number(data.purchase_id) : null,
-          guide_number: data.guide_number,
+          transport_modality: data.transport_modality,
           issue_date: data.issue_date,
-          transfer_date: data.transfer_date,
-          motive: data.motive,
-          carrier_name: data.carrier_name,
-          carrier_ruc: data.carrier_ruc,
-          vehicle_plate: data.vehicle_plate,
-          driver_name: data.driver_name,
+          transfer_start_date: data.transfer_start_date,
+          remittent_id: Number(data.remittent_id),
+          recipient_id: Number(data.recipient_id),
+          carrier_id: Number(data.carrier_id),
+          driver_id: Number(data.driver_id),
           driver_license: data.driver_license,
+          vehicle_id: Number(data.vehicle_id),
           origin_address: data.origin_address,
+          origin_ubigeo_id: Number(data.origin_ubigeo_id),
           destination_address: data.destination_address,
-          total_weight: Number(data.total_weight),
+          destination_ubigeo_id: Number(data.destination_ubigeo_id),
           observations: data.observations || "",
-          status: data.status,
           details: data.details.map((detail) => ({
             product_id: Number(detail.product_id),
+            description: detail.description,
             quantity: Number(detail.quantity),
             unit: detail.unit,
+            weight: Number(detail.weight),
           })),
         };
 

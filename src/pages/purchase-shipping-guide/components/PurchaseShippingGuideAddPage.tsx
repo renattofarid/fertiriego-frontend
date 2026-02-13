@@ -24,21 +24,20 @@ export const PurchaseShippingGuideAddPage = () => {
   const isLoading = purchasesLoading;
 
   const getDefaultValues = (): Partial<PurchaseShippingGuideSchema> => ({
-    purchase_id: "",
-    guide_number: "",
+    transport_modality: "PRIVADO",
     issue_date: new Date().toISOString().split("T")[0],
-    transfer_date: new Date().toISOString().split("T")[0],
-    motive: "",
-    carrier_name: "",
-    carrier_ruc: "",
-    vehicle_plate: "",
-    driver_name: "",
+    transfer_start_date: new Date().toISOString().split("T")[0],
+    remittent_id: "",
+    recipient_id: "777",
+    carrier_id: "",
+    driver_id: "",
     driver_license: "",
+    vehicle_id: "",
     origin_address: "",
+    origin_ubigeo_id: "",
     destination_address: "",
-    total_weight: "",
+    destination_ubigeo_id: "",
     observations: "",
-    status: "EMITIDA",
     details: [],
   });
 
@@ -82,7 +81,6 @@ export const PurchaseShippingGuideAddPage = () => {
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         mode="create"
-        purchases={purchases || []}
         onCancel={() => navigate("/guias-compra")}
       />
     </FormWrapper>

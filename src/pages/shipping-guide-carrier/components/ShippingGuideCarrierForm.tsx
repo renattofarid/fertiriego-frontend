@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import FormWrapper from "@/components/FormWrapper";
@@ -27,9 +27,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
-import { searchUbigeos } from "@/pages/guide/lib/ubigeo.actions";
 import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
@@ -41,6 +39,9 @@ import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
+import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
+import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
+import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -111,7 +112,6 @@ interface ShippingGuideCarrierFormProps {
   onSubmit: (values: ShippingGuideCarrierFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
-  carriers: PersonResource[];
   remittents: PersonResource[];
   recipients: PersonResource[];
   vehicles: VehicleResource[];
@@ -123,8 +123,6 @@ export function ShippingGuideCarrierForm({
   onSubmit,
   isSubmitting = false,
   initialValues,
-  carriers,
-  remittents,
   recipients,
   vehicles,
   guides,
@@ -153,14 +151,6 @@ export function ShippingGuideCarrierForm({
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
   );
-
-  // Estado para ubigeos
-  const [originUbigeos, setOriginUbigeos] = useState<UbigeoResource[]>([]);
-  const [destinationUbigeos, setDestinationUbigeos] = useState<
-    UbigeoResource[]
-  >([]);
-  const [isSearchingOrigin, setIsSearchingOrigin] = useState(false);
-  const [isSearchingDestination, setIsSearchingDestination] = useState(false);
 
   const form = useForm<ShippingGuideCarrierFormValues>({
     resolver: zodResolver(
@@ -229,54 +219,6 @@ export function ShippingGuideCarrierForm({
 
     loadGuideDetails();
   }, [selectedGuideId]);
-
-  // Buscar ubigeos origen
-  const handleSearchOriginUbigeos = useCallback(async (searchTerm: string) => {
-    if (!searchTerm || searchTerm.length < 3) {
-      setOriginUbigeos([]);
-      return;
-    }
-    setIsSearchingOrigin(true);
-    try {
-      const response = await searchUbigeos(searchTerm);
-      setOriginUbigeos(response.data);
-    } catch (error) {
-      console.error("Error searching origin ubigeos:", error);
-      setOriginUbigeos([]);
-    } finally {
-      setIsSearchingOrigin(false);
-    }
-  }, []);
-
-  // Buscar ubigeos destino
-  const handleSearchDestinationUbigeos = useCallback(
-    async (searchTerm: string) => {
-      if (!searchTerm || searchTerm.length < 3) {
-        setDestinationUbigeos([]);
-        return;
-      }
-      setIsSearchingDestination(true);
-      try {
-        const response = await searchUbigeos(searchTerm);
-        setDestinationUbigeos(response.data);
-      } catch (error) {
-        console.error("Error searching destination ubigeos:", error);
-        setDestinationUbigeos([]);
-      } finally {
-        setIsSearchingDestination(false);
-      }
-    },
-    [],
-  );
-
-  // Formatear label ubigeo
-  const formatUbigeoLabel = (ubigeo: UbigeoResource): string => {
-    const parts = ubigeo.cadena.split("-");
-    if (parts.length >= 4) {
-      return `${parts[1]} > ${parts[2]} > ${parts[3]}`;
-    }
-    return ubigeo.cadena;
-  };
 
   // Agregar/Actualizar detalle
   const handleAddOrUpdateDetail = () => {
@@ -465,30 +407,34 @@ export function ShippingGuideCarrierForm({
               />
 
               {transportModality === "PUBLICO" && (
-                <FormSelect
+                <FormSelectAsync
                   control={form.control}
                   name="carrier_id"
                   label="Transportista"
                   placeholder="Seleccione transportista"
-                  options={carriers.map((c) => ({
+                  useQueryHook={useCarriers}
+                  mapOptionFn={(c: PersonResource) => ({
                     value: c.id.toString(),
-                    label: c.business_name || `${c.names} ${c.father_surname}`,
+                    label:
+                      c.business_name ??
+                      `${c.names} ${c.father_surname} ${c.mother_surname}`,
                     description: c.number_document,
-                  }))}
+                  })}
                   withValue
                 />
               )}
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="remittent_id"
                 label="Remitente"
                 placeholder="Seleccione remitente"
-                options={remittents.map((p) => ({
+                useQueryHook={useSuppliers}
+                mapOptionFn={(p: PersonResource) => ({
                   value: p.id.toString(),
-                  label: p.business_name || `${p.names} ${p.father_surname}`,
+                  label: p.business_name ?? `${p.names} ${p.father_surname}`,
                   description: p.number_document,
-                }))}
+                })}
                 withValue
               />
 
@@ -655,6 +601,32 @@ export function ShippingGuideCarrierForm({
                 placeholder="Seleccione fecha"
               />
 
+              <FormSelectAsync
+                control={form.control}
+                name="origin_ubigeo_id"
+                label="Ubigeo de Origen"
+                placeholder="Buscar ubigeo..."
+                useQueryHook={useUbigeosFrom}
+                mapOptionFn={(item: UbigeoResource) => ({
+                  value: item.id.toString(),
+                  label: item.name,
+                  description: item.cadena,
+                })}
+              />
+
+              <FormSelectAsync
+                control={form.control}
+                name="destination_ubigeo_id"
+                label="Ubigeo de Destino"
+                placeholder="Buscar ubigeo..."
+                useQueryHook={useUbigeosTo}
+                mapOptionFn={(item: UbigeoResource) => ({
+                  value: item.id.toString(),
+                  label: item.name,
+                  description: item.cadena,
+                })}
+              />
+
               <FormField
                 control={form.control}
                 name="origin_address"
@@ -681,30 +653,6 @@ export function ShippingGuideCarrierForm({
                     <FormMessage />
                   </FormItem>
                 )}
-              />
-
-              <SelectSearchForm
-                control={form.control}
-                name="origin_ubigeo_id"
-                label="Ubigeo de Origen"
-                placeholder="Buscar ubigeo..."
-                isSearching={isSearchingOrigin}
-                items={originUbigeos}
-                onSearch={handleSearchOriginUbigeos}
-                formatLabel={(item) => formatUbigeoLabel(item)}
-                getItemId={(item) => item.id}
-              />
-
-              <SelectSearchForm
-                control={form.control}
-                name="destination_ubigeo_id"
-                label="Ubigeo de Destino"
-                placeholder="Buscar ubigeo..."
-                isSearching={isSearchingDestination}
-                items={destinationUbigeos}
-                onSearch={handleSearchDestinationUbigeos}
-                formatLabel={(item) => formatUbigeoLabel(item)}
-                getItemId={(item) => item.id}
               />
             </div>
           </GroupFormSection>

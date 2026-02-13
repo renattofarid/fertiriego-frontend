@@ -130,6 +130,9 @@ import ProductionDocumentDetailPage from "./pages/production-document/components
 import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
 import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
 import { CARRIER } from "./pages/carrier/lib/carrier.interface";
+import CarrierPage from "./pages/carrier/components/CarrierPage";
+import CarrierAddPage from "./pages/carrier/components/CarrierAddPage";
+import CarrierEditPage from "./pages/carrier/components/CarrierEditPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -495,7 +498,7 @@ export default function App() {
             path={"/transportistas"}
             element={
               <ProtectedRoute path={CarrierRoute}>
-                <DriverPage />
+                <CarrierPage />
               </ProtectedRoute>
             }
           />
@@ -504,7 +507,7 @@ export default function App() {
             path="/transportistas/agregar"
             element={
               <ProtectedRoute path={CarrierRoute}>
-                <DriverAddPage />
+                <CarrierAddPage />
               </ProtectedRoute>
             }
           />
@@ -513,7 +516,7 @@ export default function App() {
             path="/transportistas/editar/:id"
             element={
               <ProtectedRoute path={CarrierRoute}>
-                <DriverEditPage />
+                <CarrierEditPage />
               </ProtectedRoute>
             }
           />

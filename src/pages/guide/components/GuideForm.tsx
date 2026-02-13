@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Form,
@@ -21,7 +21,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { guideSchema, type GuideSchema } from "../lib/guide.schema";
-import { searchUbigeos } from "../lib/ubigeo.actions";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
@@ -32,7 +31,6 @@ import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/w
 import type { OrderResource } from "@/pages/order/lib/order.interface";
 import { format } from "date-fns";
 import { SearchableSelect } from "@/components/SearchableSelect";
-import { SelectSearchForm } from "@/components/SelectSearchForm";
 import { DataTable } from "@/components/DataTable";
 import { getPendingOrderDetails } from "@/pages/order/lib/order.actions";
 import { errorToast } from "@/lib/core.function";
@@ -44,6 +42,7 @@ import { useClients } from "@/pages/client/lib/client.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -168,53 +167,6 @@ export const GuideForm = ({
   // Estado para pedido seleccionado
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [hasNoPendingDetails, setHasNoPendingDetails] = useState(false);
-
-  // Estado local para ubigeos de origen
-  const [originUbigeos, setOriginUbigeos] = useState<UbigeoResource[]>([]);
-  const [isSearchingOrigin, setIsSearchingOrigin] = useState(false);
-
-  // Estado local para ubigeos de destino
-  const [destinationUbigeos, setDestinationUbigeos] = useState<
-    UbigeoResource[]
-  >([]);
-  const [isSearchingDestination, setIsSearchingDestination] = useState(false);
-
-  const formatUbigeoLabel = (ubigeo: UbigeoResource): string => {
-    const parts = ubigeo.cadena.split("-");
-    if (parts.length >= 4) {
-      return `${parts[1]} > ${parts[2]} > ${parts[3]}`;
-    }
-    return ubigeo.cadena;
-  };
-
-  const handleSearchOriginUbigeos = useCallback(async (cadena?: string) => {
-    setIsSearchingOrigin(true);
-    try {
-      const response = await searchUbigeos(cadena, 15);
-      setOriginUbigeos(response.data);
-    } catch (error) {
-      console.error("Error searching origin ubigeos:", error);
-      setOriginUbigeos([]);
-    } finally {
-      setIsSearchingOrigin(false);
-    }
-  }, []);
-
-  const handleSearchDestinationUbigeos = useCallback(
-    async (cadena?: string) => {
-      setIsSearchingDestination(true);
-      try {
-        const response = await searchUbigeos(cadena, 15);
-        setDestinationUbigeos(response.data);
-      } catch (error) {
-        console.error("Error searching destination ubigeos:", error);
-        setDestinationUbigeos([]);
-      } finally {
-        setIsSearchingDestination(false);
-      }
-    },
-    [],
-  );
 
   const form = useForm({
     resolver: zodResolver(guideSchema) as any,
@@ -772,11 +724,37 @@ export const GuideForm = ({
             </>
           )}
 
+          <FormSelectAsync
+            control={form.control}
+            name="origin_ubigeo_id"
+            label="Ubigeo de Origen"
+            placeholder="Buscar ubigeo..."
+            useQueryHook={useUbigeosFrom}
+            mapOptionFn={(item: UbigeoResource) => ({
+              value: item.id.toString(),
+              label: item.name,
+              description: item.cadena,
+            })}
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="destination_ubigeo_id"
+            label="Ubigeo de Destino"
+            placeholder="Buscar ubigeo..."
+            useQueryHook={useUbigeosTo}
+            mapOptionFn={(item: UbigeoResource) => ({
+              value: item.id.toString(),
+              label: item.name,
+              description: item.cadena,
+            })}
+          />
+
           <FormField
             control={form.control}
             name="origin_address"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem>
                 <FormLabel>Dirección de Origen</FormLabel>
                 <FormControl>
                   <Input
@@ -791,23 +769,11 @@ export const GuideForm = ({
             )}
           />
 
-          <SelectSearchForm
-            control={form.control}
-            name="origin_ubigeo_id"
-            label="Ubigeo de Origen"
-            placeholder="Buscar ubigeo..."
-            isSearching={isSearchingOrigin}
-            items={originUbigeos}
-            onSearch={handleSearchOriginUbigeos}
-            formatLabel={formatUbigeoLabel}
-            getItemId={(ubigeo) => ubigeo.id}
-          />
-
           <FormField
             control={form.control}
             name="destination_address"
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem>
                 <FormLabel>Dirección de Destino</FormLabel>
                 <FormControl>
                   <Input
@@ -820,18 +786,6 @@ export const GuideForm = ({
                 <FormMessage />
               </FormItem>
             )}
-          />
-
-          <SelectSearchForm
-            control={form.control}
-            name="destination_ubigeo_id"
-            label="Ubigeo de Destino"
-            placeholder="Buscar ubigeo..."
-            isSearching={isSearchingDestination}
-            items={destinationUbigeos}
-            onSearch={handleSearchDestinationUbigeos}
-            formatLabel={formatUbigeoLabel}
-            getItemId={(ubigeo) => ubigeo.id}
           />
         </GroupFormSection>
 

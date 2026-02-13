@@ -8,7 +8,6 @@ import { type PurchaseSchema } from "../lib/purchase.schema";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
-import { useAllSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
@@ -38,7 +37,6 @@ export const PurchaseEditPage = () => {
   >(null);
 
   const { user } = useAuthStore();
-  const { data: suppliers, isLoading: suppliersLoading } = useAllSuppliers();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
     useAllPurchaseOrders();
@@ -48,8 +46,7 @@ export const PurchaseEditPage = () => {
   const { fetchDetails, details } = usePurchaseDetailStore();
   const { fetchInstallments, installments } = usePurchaseInstallmentStore();
 
-  const isLoading =
-    suppliersLoading || warehousesLoading || purchaseOrdersLoading || isFinding;
+  const isLoading = warehousesLoading || purchaseOrdersLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -176,24 +173,19 @@ export const PurchaseEditPage = () => {
 
       <div className="space-y-6">
         {/* Main Form */}
-        {suppliers &&
-          suppliers.length > 0 &&
-          warehouses &&
-          warehouses.length > 0 &&
-          user && (
-            <PurchaseForm
-              defaultValues={mapPurchaseToForm(purchase)}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-              mode="edit"
-              suppliers={suppliers}
-              warehouses={warehouses}
-              purchaseOrders={purchaseOrders || []}
-              purchase={purchase}
-              currentUserId={user.id}
-              onCancel={() => navigate("/compras")}
-            />
-          )}
+        {warehouses && warehouses.length > 0 && user && (
+          <PurchaseForm
+            defaultValues={mapPurchaseToForm(purchase)}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            mode="edit"
+            warehouses={warehouses}
+            purchaseOrders={purchaseOrders || []}
+            purchase={purchase}
+            currentUserId={user.id}
+            onCancel={() => navigate("/compras")}
+          />
+        )}
 
         {/* Details Section */}
         <Card>
