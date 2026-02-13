@@ -84,8 +84,8 @@ const defaultValues: ShippingGuideCarrierFormValues = {
   vehicle_model: "",
   vehicle_mtc: "",
   driver_license: "",
-  issue_date: "",
-  transfer_start_date: "",
+  issue_date: new Date().toISOString().split("T")[0],
+  transfer_start_date: new Date().toISOString().split("T")[0],
   remittent_id: "",
   recipient_id: "",
   secondary_vehicle_id: "",
@@ -492,6 +492,14 @@ export function ShippingGuideCarrierForm({
                       label: vehicle.plate,
                       description: `${vehicle.brand} ${vehicle.model}`,
                     })}
+                    onValueChange={(_value, vehicle: any) => {
+                      if (vehicle) {
+                        form.setValue("vehicle_plate", vehicle.plate || "");
+                        form.setValue("vehicle_brand", vehicle.brand || "");
+                        form.setValue("vehicle_model", vehicle.model || "");
+                        form.setValue("vehicle_mtc", vehicle.mtc_certificate || "");
+                      }
+                    }}
                     withValue
                     preloadItemId={initialValues?.vehicle_id}
                   />
