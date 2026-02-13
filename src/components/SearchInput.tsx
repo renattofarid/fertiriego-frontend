@@ -14,7 +14,7 @@ export default function SearchInput({
   label?: string;
 }) {
   const [inputValue, setInputValue] = useState(value);
-  const debounceRef = useRef<number | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
