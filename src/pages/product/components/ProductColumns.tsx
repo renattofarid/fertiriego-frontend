@@ -52,7 +52,7 @@ export const ProductColumns = ({
     cell: ({ getValue }) => {
       const type = getValue() as string;
       const getVariant = (
-        type: string
+        type: string,
       ): "default" | "destructive" | "secondary" | "outline" => {
         switch (type) {
           case "Normal":
@@ -121,16 +121,19 @@ export const ProductColumns = ({
           <ButtonAction
             onClick={() => onView(id)}
             icon={Eye}
+            tooltip="Ver Detalles"
             canRender={!!onView}
           />
           <ButtonAction
             onClick={() => onEdit(id)}
             icon={Pencil}
+            tooltip="Editar"
             canRender={!!onEdit}
           />
           <ButtonAction
             onClick={() => onAssignStock?.(id)}
             icon={ShoppingCart}
+            tooltip="Asignar Stock"
             canRender={!!onAssignStock}
           />
           <DeleteButton onClick={() => onDelete(id)} />

@@ -25,6 +25,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
 import { parse } from "date-fns";
 import ExportButtons from "@/components/ExportButtons";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface SaleColumnsProps {
   onEdit: (sale: SaleResource) => void;
@@ -119,10 +121,10 @@ export const getSaleColumns = ({
         row.original.currency === "PEN"
           ? "S/."
           : row.original.currency === "USD"
-          ? "$"
-          : row.original.currency === "EUR"
-          ? "€"
-          : row.original.currency;
+            ? "$"
+            : row.original.currency === "EUR"
+              ? "€"
+              : row.original.currency;
       return (
         <span className="font-semibold">
           {currency} {row.original.total_amount.toFixed(2)}
@@ -138,8 +140,8 @@ export const getSaleColumns = ({
         row.original.currency === "PEN"
           ? "S/."
           : row.original.currency === "USD"
-          ? "$"
-          : "€";
+            ? "$"
+            : "€";
       const currentAmount = row.original.current_amount;
       const isPaid = currentAmount === 0;
 
@@ -200,7 +202,7 @@ export const getSaleColumns = ({
       }
 
       const hasPendingPayments = row.original.installments?.some(
-        (inst) => inst.pending_amount > 0
+        (inst) => inst.pending_amount > 0,
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
@@ -208,7 +210,7 @@ export const getSaleColumns = ({
       const sumOfInstallments =
         row.original.installments?.reduce(
           (sum, inst) => sum + inst.amount,
-          0
+          0,
         ) || 0;
       const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
 
@@ -286,7 +288,7 @@ export const getSaleColumns = ({
       // (si pending_amount es menor que amount, significa que tiene pagos)
       const hasPayments =
         row.original.installments?.some(
-          (inst) => inst.pending_amount < inst.amount
+          (inst) => inst.pending_amount < inst.amount,
         ) ?? false;
 
       return (
@@ -296,6 +298,38 @@ export const getSaleColumns = ({
             pdfFileName={`venta-${row.original.full_document_number}.pdf`}
             variant="separate"
           />
+          <ButtonAction
+            icon={Eye}
+            onClick={() => onViewDetails(row.original)}
+            tooltip="Ver Detalle"
+          />
+
+          <ButtonAction
+            icon={Settings}
+            onClick={() => onManage(row.original)}
+            tooltip="Gestionar"
+          />
+
+          <ButtonAction
+            icon={Pencil}
+            onClick={() => onEdit(row.original)}
+            tooltip={
+              hasPayments ? "No se puede editar (tiene pagos)" : "Editar"
+            }
+            disabled={hasPayments}
+          />
+
+          <DeleteButton
+            icon={Trash2}
+            onClick={() => onDelete(row.original.id)}
+            tooltip={
+              isPaid || hasPayments
+                ? "No se puede eliminar (pagada o tiene pagos)"
+                : "Eliminar"
+            }
+            disabled={isPaid || hasPayments}
+          />
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">

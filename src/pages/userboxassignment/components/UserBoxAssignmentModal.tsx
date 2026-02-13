@@ -16,7 +16,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
   preselectedBoxId?: number;
   preselectedBoxName?: string;
@@ -65,12 +65,12 @@ export default function UserBoxAssignmentModal({ id, open, title, mode, onClose,
       await updateUserBoxAssignment(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchUserBoxAssignment();
           refetch();
         })
         .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+          errorToast(ERROR_MESSAGE(MODEL, "edit"));
         });
     }
   };

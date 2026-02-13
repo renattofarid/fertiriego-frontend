@@ -116,7 +116,7 @@ export interface GetBoxMovementProps {
 
 export interface CreateBoxMovementProps {
   box_id: number;
-  customer_id?: number;
+  customer_id: string;
   type: string;
   concept: string;
   amount_cash?: number;

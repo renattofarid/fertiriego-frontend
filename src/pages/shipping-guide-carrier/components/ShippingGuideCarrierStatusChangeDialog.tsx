@@ -54,7 +54,7 @@ export function ShippingGuideCarrierStatusChangeDialog({
   };
 
   const currentStatusLabel = SHIPPING_GUIDE_CARRIER_STATUSES.find(
-    (s) => s.value === currentStatus
+    (s) => s.value === currentStatus,
   )?.label;
 
   return (
@@ -75,7 +75,7 @@ export function ShippingGuideCarrierStatusChangeDialog({
                 setSelectedStatus(value as ShippingGuideCarrierStatus)
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

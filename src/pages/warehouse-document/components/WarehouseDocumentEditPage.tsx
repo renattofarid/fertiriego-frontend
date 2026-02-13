@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import WarehouseDocumentForm from "./WarehouseDocumentForm";
-import TitleComponent from "@/components/TitleComponent";
-import { BackButton } from "@/components/BackButton";
 import PageWrapper from "@/components/PageWrapper";
 import { WAREHOUSE_DOCUMENT } from "../lib/warehouse-document.interface";
 import type { WarehouseDocumentSchema } from "../lib/warehouse-document.schema";
@@ -11,9 +9,9 @@ import { useWarehouseDocumentStore } from "../lib/warehouse-document.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { successToast, errorToast } from "@/lib/core.function";
 import PageSkeleton from "@/components/PageSkeleton";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
-const { ICON, TITLES } = WAREHOUSE_DOCUMENT;
+const { ICON, TITLES, ROUTE } = WAREHOUSE_DOCUMENT;
 
 export default function WarehouseDocumentEditPage() {
   const navigate = useNavigate();
@@ -21,7 +19,6 @@ export default function WarehouseDocumentEditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: warehouses } = useAllWarehouses();
-  const persons = useAllWorkers();
 
   const { data: document, isFinding } = useWarehouseDocumentById(parseInt(id!));
   const { updateDocument } = useWarehouseDocumentStore();
@@ -95,22 +92,21 @@ export default function WarehouseDocumentEditPage() {
     <PageWrapper>
       <div className="space-y-4">
         <div className="flex items-center gap-4">
-          <BackButton />
-          <TitleComponent
+          <TitleFormComponent
             title={TITLES.update.title}
-            subtitle={TITLES.update.subtitle}
+            mode="edit"
+            backRoute={ROUTE}
             icon={ICON}
           />
         </div>
 
-        {warehouses && persons && (
+        {warehouses && (
           <WarehouseDocumentForm
             onSubmit={handleSubmit}
             defaultValues={defaultValues}
             isSubmitting={isSubmitting}
-            mode="update"
+            mode="edit"
             warehouses={warehouses}
-            persons={persons}
           />
         )}
       </div>

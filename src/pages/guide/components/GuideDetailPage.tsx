@@ -1,25 +1,23 @@
 import { useParams } from "react-router-dom";
-import TitleComponent from "@/components/TitleComponent";
 import {
   FileText,
   Calendar,
   Truck,
-  User,
   Package,
   Clock,
-  Building,
   Route as RouteIcon,
   CircleDot,
   Flag,
   FileCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useGuideById } from "../lib/guide.hook";
 import { GUIDE, type GuideDetailResource } from "../lib/guide.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { BackButton } from "@/components/BackButton";
+import TitleFormComponent from "@/components/TitleFormComponent";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 export default function GuideDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -70,17 +68,17 @@ export default function GuideDetailPage() {
   return (
     <FormWrapper>
       <div className="flex justify-between items-center gap-2">
-        <BackButton to={ROUTE} />
-        <TitleComponent
+        <TitleFormComponent
           title={`${MODEL.name} - ${guide.full_guide_number}`}
-          subtitle={`Detalle de la ${MODEL.name.toLowerCase()}`}
+          mode="detail"
           icon={ICON}
+          backRoute={ROUTE}
         />
       </div>
 
       <div className="space-y-4">
         {/* Header con información destacada */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Estado */}
           <Card className="border-none bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors !p-0">
             <CardContent className="p-4">
@@ -131,10 +129,14 @@ export default function GuideDetailPage() {
                     Modalidad
                   </p>
                   <Badge
-                    variant={modalityVariants[guide.transport_modality] || "default"}
+                    variant={
+                      modalityVariants[guide.transport_modality] || "default"
+                    }
                     className="text-sm"
                   >
-                    {guide.transport_modality === "PUBLICO" ? "🚌 Público" : "🚗 Privado"}
+                    {guide.transport_modality === "PUBLICO"
+                      ? "🚌 Público"
+                      : "🚗 Privado"}
                   </Badge>
                 </div>
                 <div className="bg-muted-foreground/10 p-2.5 rounded-lg shrink-0">
@@ -145,139 +147,97 @@ export default function GuideDetailPage() {
           </Card>
         </div>
 
-        {/* Información del Documento */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Información del Documento
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Número de Documento</p>
-                <p className="font-mono font-bold text-lg">{guide.full_guide_number}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Motivo</p>
-                <p className="font-semibold">{guide.motive?.name}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* SECCIÓN 1: Información General */}
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{ sm: 1, md: 2, lg: 3 }}
+        >
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Número de Documento</p>
+            <p className="font-mono font-bold text-lg">
+              {guide.full_guide_number}
+            </p>
+          </div>
 
-        {/* Almacén */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Building className="h-5 w-5" />
-              Almacén
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-1">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Motivo</p>
+            <p className="font-semibold">{guide.motive?.name}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Almacén</p>
             <p className="font-semibold">{guide.warehouse?.name}</p>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Fechas */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Fechas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Fecha de Emisión
-                </p>
-                <p className="font-medium">{formatDate(guide.issue_date)}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Fecha de Traslado
-                </p>
-                <p className="font-medium">{formatDate(guide.transfer_date)}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  Fecha de Creación
-                </p>
-                <p className="font-medium">{formatDate(guide.created_at)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Fecha de Emisión
+            </p>
+            <p className="font-medium">{formatDate(guide.issue_date)}</p>
+          </div>
 
-        {/* Información del Transportista */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Truck className="h-5 w-5" />
-              Información del Transportista
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Razón Social</p>
-                <p className="font-semibold">{guide.carrier?.business_name}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">RUC</p>
-                <p className="font-mono font-semibold">{guide.carrier?.number_document}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">🚗 Placa del Vehículo</p>
-                <p className="font-mono font-bold text-lg text-primary">
-                  {guide.vehicle?.plate}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Fecha de Traslado
+            </p>
+            <p className="font-medium">{formatDate(guide.transfer_date)}</p>
+          </div>
 
-        {/* Información del Conductor */}
-        <Card className="!gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Información del Conductor
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Nombre</p>
-                  <p className="font-semibold">{guide.driver?.business_name}</p>
-                </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Documento</p>
-                <p className="font-mono">{guide.driver?.number_document}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Licencia</p>
-                <p className="font-mono">{guide.driver_license}</p>
-              </div>
-              </div>
-            </CardContent>
-        </Card>
-        {/* Ubicaciones */}
-        <Card className="!gap-0">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <RouteIcon className="h-5 w-5" />
-              Ubicaciones
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Fecha de Creación
+            </p>
+            <p className="font-medium">{formatDate(guide.created_at)}</p>
+          </div>
+        </GroupFormSection>
+
+        {/* SECCIÓN 2: Información de Transporte */}
+        <GroupFormSection
+          title="Información de Transporte"
+          icon={Truck}
+          cols={{ sm: 1, md: 2, lg: 3 }}
+        >
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Transportista</p>
+            <p className="font-semibold">{guide.carrier?.business_name}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">RUC Transportista</p>
+            <p className="font-mono font-semibold">
+              {guide.carrier?.number_document}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Placa del Vehículo</p>
+            <p className="font-mono font-bold text-lg text-primary">
+              {guide.vehicle?.plate}
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Conductor</p>
+            <p className="font-semibold">{guide.driver?.business_name}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Documento Conductor</p>
+            <p className="font-mono">{guide.driver?.number_document}</p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Licencia</p>
+            <p className="font-mono">{guide.driver_license}</p>
+          </div>
+
+          {/* Ubicaciones - Span completo */}
+          <div className="col-span-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
               {/* Origen */}
               <div className="space-y-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex items-center gap-2">
@@ -292,7 +252,7 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.originUbigeo?.cadena || '-'}
+                      {guide.originUbigeo?.cadena || "-"}
                     </Badge>
                   </div>
                 </div>
@@ -314,26 +274,24 @@ export default function GuideDetailPage() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Ubigeo</p>
                     <Badge variant="outline" className="font-mono">
-                      {guide.destinationUbigeo?.cadena || '-'}
+                      {guide.destinationUbigeo?.cadena || "-"}
                     </Badge>
                   </div>
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </GroupFormSection>
 
-        {/* Detalles de Productos */}
-        {guide.details && guide.details.length > 0 && (
-          <Card className="!gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Productos Transportados ({guide.details.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+        {/* SECCIÓN 3: Productos y Observaciones */}
+        {(guide.details?.length > 0 || guide.observations) && (
+          <GroupFormSection
+            title={`Productos Transportados${guide.details?.length ? ` (${guide.details.length})` : ""}`}
+            icon={Package}
+            cols={{ sm: 1 }}
+          >
+            {guide.details && guide.details.length > 0 && (
+              <div className="space-y-3 col-span-full">
                 {guide.details.map((detail: GuideDetailResource, index) => (
                   <div
                     key={detail.id}
@@ -365,32 +323,26 @@ export default function GuideDetailPage() {
                           {detail.quantity}
                         </p>
                         <Badge variant="secondary" className="mt-1">
-                          {detail.unit_measure || 'UND'}
+                          {detail.unit_measure || "UND"}
                         </Badge>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            )}
 
-        {/* Observaciones */}
-        {guide.observations && (
-          <Card className="!gap-0">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Observaciones
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {guide.observations}
-              </p>
-            </CardContent>
-          </Card>
+            {guide.observations && (
+              <div className="space-y-2 col-span-full">
+                <p className="text-xs text-muted-foreground font-semibold">
+                  Observaciones
+                </p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap p-3 bg-muted/30 rounded-lg border">
+                  {guide.observations}
+                </p>
+              </div>
+            )}
+          </GroupFormSection>
         )}
 
         {/* Footer con metadata */}

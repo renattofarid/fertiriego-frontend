@@ -1,11 +1,10 @@
-import {
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { SelectActions } from "@/components/SelectActions";
 import type { ProductTypeResource } from "../lib/product-type.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { ColumnActions } from "@/components/SelectActions";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { Pencil } from "lucide-react";
 
 export const ProductTypeColumns = ({
   onEdit,
@@ -49,16 +48,14 @@ export const ProductTypeColumns = ({
       const id = row.original.id;
 
       return (
-        <SelectActions>
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onEdit(id)}>
-              Editar
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDelete(id)}>
-              Eliminar
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </SelectActions>
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(id)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
       );
     },
   },

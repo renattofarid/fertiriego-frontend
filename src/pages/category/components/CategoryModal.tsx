@@ -8,11 +8,7 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { CATEGORY, type CategoryResource } from "../lib/category.interface";
-import {
-  useCategory,
-  useCategoryById,
-  useAllCategories,
-} from "../lib/category.hook";
+import { useCategory, useCategoryById } from "../lib/category.hook";
 import { useCategoryStore } from "../lib/category.store";
 import { CategoryForm } from "./CategoryForm";
 
@@ -20,7 +16,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
 }
 
@@ -34,8 +30,6 @@ export default function CategoryModal({
   onClose,
 }: Props) {
   const { refetch } = useCategory();
-  const { data: allCategories, refetch: refetchAllCategories } =
-    useAllCategories();
 
   const {
     data: category,
@@ -50,7 +44,7 @@ export default function CategoryModal({
     : useCategoryById(id!);
 
   const mapCategoryToForm = (
-    data: CategoryResource
+    data: CategoryResource,
   ): Partial<CategorySchema> => ({
     name: data.name,
     code: data.code,
@@ -66,29 +60,29 @@ export default function CategoryModal({
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
           refetch();
-          refetchAllCategories();
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
       await updateCategory(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchCategory();
           refetch();
-          refetchAllCategories();
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "edit"),
           );
         });
     }
@@ -103,14 +97,13 @@ export default function CategoryModal({
       title={title}
       maxWidth="!max-w-2xl"
     >
-      {!isLoadingAny && category && allCategories ? (
+      {!isLoadingAny && category ? (
         <CategoryForm
           defaultValues={mapCategoryToForm(category)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode={mode}
           onCancel={onClose}
-          categories={allCategories}
         />
       ) : (
         <FormSkeleton />

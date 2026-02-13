@@ -16,7 +16,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
 }
 
@@ -64,12 +64,12 @@ export default function BoxModal({ id, open, title, mode, onClose }: Props) {
       await updateBox(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchBox();
           refetch();
         })
         .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "update"));
+          errorToast(ERROR_MESSAGE(MODEL, "edit"));
         });
     }
   };

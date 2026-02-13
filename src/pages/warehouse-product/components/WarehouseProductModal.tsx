@@ -12,8 +12,8 @@ import {
   type WarehouseProductResource,
 } from "../lib/warehouse-product.interface";
 import {
-  useWarehouseProduct,
   useWarehouseProductById,
+  useWarehouseProducts,
 } from "../lib/warehouse-product.hook";
 import { useWarehouseProductStore } from "../lib/warehouse-product.store";
 import { WarehouseProductForm } from "./WarehouseProductForm";
@@ -22,7 +22,7 @@ interface Props {
   id?: number;
   open: boolean;
   title: string;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   onClose: () => void;
   preselectedProductId?: number;
 }
@@ -37,7 +37,7 @@ export default function WarehouseProductModal({
   onClose,
   preselectedProductId,
 }: Props) {
-  const { refetch } = useWarehouseProduct();
+  const { refetch } = useWarehouseProducts();
 
   const {
     data: warehouseProduct,
@@ -52,7 +52,7 @@ export default function WarehouseProductModal({
     : useWarehouseProductById(id!);
 
   const mapWarehouseProductToForm = (
-    data: WarehouseProductResource
+    data: WarehouseProductResource,
   ): Partial<WarehouseProductSchema> => ({
     warehouse_id: data?.warehouse_id.toString() || "",
     product_id:
@@ -75,24 +75,26 @@ export default function WarehouseProductModal({
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
       await updateWarehouseProduct(id!, data)
         .then(() => {
           onClose();
-          successToast(SUCCESS_MESSAGE(MODEL, "update"));
+          successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchWarehouseProduct();
           refetch();
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "update")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "edit"),
           );
         });
     }

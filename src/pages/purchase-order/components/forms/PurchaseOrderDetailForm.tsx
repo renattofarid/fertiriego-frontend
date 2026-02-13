@@ -165,7 +165,7 @@ export function PurchaseOrderDetailForm({
           />
         </div>
 
-        <div className="bg-sidebar p-4 rounded-lg">
+        <div className="bg-muted p-4 rounded-lg">
           <div className="flex justify-between items-center">
             <span className="font-semibold">Subtotal:</span>
             <span className="text-lg font-bold text-primary">

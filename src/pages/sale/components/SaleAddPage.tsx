@@ -9,6 +9,7 @@ import { useSaleStore } from "../lib/sales.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { findQuotationById } from "@/pages/quotation/lib/quotation.actions";
 import { findOrderById } from "@/pages/order/lib/order.actions";
+import { findGuideById } from "@/pages/guide/lib/guide.actions";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { SALE } from "../lib/sale.interface";
@@ -21,7 +22,7 @@ export const SaleAddPage = () => {
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sourceData, setSourceData] = useState<any>(null);
-  const [sourceType, setSourceType] = useState<"quotation" | "order" | null>(
+  const [sourceType, setSourceType] = useState<"quotation" | "order" | "guide" | null>(
     null,
   );
   const [isFetchingSource, setIsFetchingSource] = useState(false);
@@ -33,10 +34,11 @@ export const SaleAddPage = () => {
 
   const isLoading = warehousesLoading || isFetchingSource;
 
-  // Fetch quotation or order data from URL params
+  // Fetch quotation, order or guide data from URL params
   useEffect(() => {
     const quotationId = searchParams.get("quotation_id");
     const orderId = searchParams.get("order_id");
+    const guideId = searchParams.get("guide_id");
 
     const fetchSourceData = async () => {
       setIsFetchingSource(true);
@@ -49,6 +51,10 @@ export const SaleAddPage = () => {
           const response = await findOrderById(parseInt(orderId));
           setSourceData(response.data);
           setSourceType("order");
+        } else if (guideId) {
+          const response = await findGuideById(parseInt(guideId));
+          setSourceData(response.data);
+          setSourceType("guide");
         }
       } catch (error: any) {
         errorToast(
@@ -60,7 +66,7 @@ export const SaleAddPage = () => {
       }
     };
 
-    if (quotationId || orderId) {
+    if (quotationId || orderId || guideId) {
       fetchSourceData();
     }
   }, [searchParams, navigate]);
@@ -86,13 +92,15 @@ export const SaleAddPage = () => {
   const handleSubmit = async (data: SaleSchema) => {
     setIsSubmitting(true);
     try {
-      // Add quotation_id or order_id based on source
+      // Add quotation_id, order_id or guide_id based on source
       const saleData = {
         ...data,
         quotation_id:
           sourceType === "quotation" && sourceData ? sourceData.id : undefined,
         order_id:
           sourceType === "order" && sourceData ? sourceData.id : undefined,
+        guide_id:
+          sourceType === "guide" && sourceData ? sourceData.id : undefined,
       };
 
       await createSale(saleData);

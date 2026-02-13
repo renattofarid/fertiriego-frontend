@@ -55,7 +55,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface QuotationFormProps {
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   initialData?: QuotationResource;
   onSubmit: (data: CreateQuotationRequest | UpdateQuotationRequest) => void;
   onCancel?: () => void;
@@ -327,7 +327,7 @@ export const QuotationForm = ({
 
   // Cargar detalles iniciales cuando se está editando
   useEffect(() => {
-    if (mode === "update" && initialData?.quotation_details) {
+    if (mode === "edit" && initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => ({
           product_id: detail.product_id.toString(),
@@ -754,6 +754,11 @@ export const QuotationForm = ({
             editIndex={editingIndex}
             onEdit={handleUpdateDetail}
             currency={currency}
+            customerId={
+              form.watch("customer_id")
+                ? parseInt(form.watch("customer_id"))
+                : undefined
+            }
           />
 
           <TechnicalSheetsDialog

@@ -7,10 +7,7 @@ import ShippingGuideCarrierTable from "./ShippingGuideCarrierTable";
 import ShippingGuideCarrierOptions from "./ShippingGuideCarrierOptions";
 import { useShippingGuideCarrierStore } from "../lib/shipping-guide-carrier.store";
 import { ShippingGuideCarrierStatusChangeDialog } from "./ShippingGuideCarrierStatusChangeDialog";
-import {
-  successToast,
-  errorToast,
-} from "@/lib/core.function";
+import { successToast, errorToast } from "@/lib/core.function";
 import { ShippingGuideCarrierColumns } from "./ShippingGuideCarrierColumns";
 import DataTablePagination from "@/components/DataTablePagination";
 import {
@@ -18,6 +15,7 @@ import {
   type ShippingGuideCarrierStatus,
 } from "../lib/shipping-guide-carrier.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import PageWrapper from "@/components/PageWrapper";
 
 const { MODEL, ICON, ROUTE } = SHIPPING_GUIDE_CARRIER;
 
@@ -48,7 +46,7 @@ export default function ShippingGuideCarrierPage() {
 
   const handleChangeStatus = (
     id: number,
-    currentStatus: ShippingGuideCarrierStatus
+    currentStatus: ShippingGuideCarrierStatus,
   ) => {
     setStatusChangeData({ id, currentStatus });
   };
@@ -62,7 +60,7 @@ export default function ShippingGuideCarrierPage() {
     } catch (error: any) {
       errorToast(
         error.response?.data?.message || "Error al actualizar el estado",
-        "Error al cambiar el estado"
+        "Error al cambiar el estado",
       );
     } finally {
       setStatusChangeData(null);
@@ -70,7 +68,7 @@ export default function ShippingGuideCarrierPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <PageWrapper>
       <div className="flex justify-between items-center">
         <TitleComponent
           title={MODEL.name}
@@ -109,6 +107,6 @@ export default function ShippingGuideCarrierPage() {
           currentStatus={statusChangeData.currentStatus}
         />
       )}
-    </div>
+    </PageWrapper>
   );
 }

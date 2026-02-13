@@ -4,13 +4,22 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, History, Package } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { ProductSalesHistoryDialog } from "./ProductSalesHistoryDialog";
+import { ProductStockDialog } from "./ProductStockDialog";
+import { GeneralModal } from "@/components/GeneralModal";
+import { ProductForm } from "@/pages/product/components/ProductForm";
+import { useProductStore } from "@/pages/product/lib/product.store";
+import { useAllUnits } from "@/pages/unit/lib/unit.hook";
+import { successToast, errorToast } from "@/lib/core.function";
+import { useQueryClient } from "@tanstack/react-query";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 
 interface AddProductSheetProps {
   open: boolean;
@@ -21,6 +30,7 @@ interface AddProductSheetProps {
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
   currency: string;
+  customerId?: number;
 }
 
 export interface ProductDetail {
@@ -46,6 +56,7 @@ export const AddProductSheet = ({
   editIndex = null,
   onEdit,
   currency,
+  customerId,
 }: AddProductSheetProps) => {
   const isEditMode = editingDetail !== null && editIndex !== null;
 
@@ -169,6 +180,15 @@ export const AddProductSheet = ({
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
 
+  const [showSalesHistory, setShowSalesHistory] = useState(false);
+  const [showStock, setShowStock] = useState(false);
+  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+
+  // Hooks para crear producto
+  const { createProduct, isSubmitting: isCreatingProduct } = useProductStore();
+  const { data: units } = useAllUnits();
+  const queryClient = useQueryClient();
+
   const handleSave = () => {
     const formData = form.getValues();
 
@@ -196,13 +216,35 @@ export const AddProductSheet = ({
 
     if (isEditMode && onEdit && editIndex !== null) {
       onEdit(detail, editIndex);
+      // En modo edición, cerrar el modal después de actualizar
+      onClose();
     } else {
       onAdd(detail);
+      // En modo agregar, limpiar el formulario pero mantener el modal abierto
+      form.reset({
+        product_id: "",
+        price_category_id: "",
+        quantity: "",
+        unit_price: "",
+        purchase_price: "0",
+        description: "",
+        is_igv: defaultIsIgv,
+      });
+      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+      setSelectedProduct(null);
     }
+  };
 
-    form.reset();
-    setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
-    onClose();
+  const handleCreateProduct = async (data: any) => {
+    try {
+      await createProduct(data);
+      successToast("Producto creado exitosamente");
+      // Invalidar el cache de react-query para refrescar la lista
+      await queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
+      setShowCreateProductModal(false);
+    } catch (error) {
+      errorToast("Error al crear el producto");
+    }
   };
 
   return (
@@ -213,26 +255,63 @@ export const AddProductSheet = ({
       subtitle="Complete los datos del producto"
       icon="Package"
       size="lg"
+      modal={false}
+      preventAutoClose={!isEditMode}
     >
       <div className="flex flex-col gap-4">
-        <FormSelectAsync
-          control={form.control}
-          name="product_id"
-          label="Producto"
-          useQueryHook={useProduct}
-          mapOptionFn={(product: ProductResource) => ({
-            value: product.id.toString(),
-            label: product.name,
-            description: product.category_name,
-          })}
-          placeholder="Seleccionar producto"
-          onValueChange={(_value, item) => {
-            setSelectedProduct(item ?? null);
-          }}
-        />
+        <div className="flex gap-2 items-end">
+          <div className="flex-1">
+            <FormSelectAsync
+              control={form.control}
+              name="product_id"
+              label="Producto"
+              useQueryHook={useProduct}
+              mapOptionFn={(product: ProductResource) => ({
+                value: product.id.toString(),
+                label: product.name,
+                description: product.category_name,
+              })}
+              placeholder="Seleccionar producto"
+              onValueChange={(_value, item) => {
+                setSelectedProduct(item ?? null);
+              }}
+            />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-10 w-10 shrink-0"
+            onClick={() => setShowCreateProductModal(true)}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
 
         {productId && (
           <>
+            {/* Botones para ver historial de ventas y stock */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowSalesHistory(true)}
+                className="gap-2"
+              >
+                <History className="h-4 w-4" />
+                Ver Historial
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowStock(true)}
+                className="gap-2"
+              >
+                <Package className="h-4 w-4" />
+                Ver Stock
+              </Button>
+            </div>
+
             {priceCategories && priceCategories.length > 0 && (
               <FormSelect
                 control={form.control}
@@ -341,6 +420,61 @@ export const AddProductSheet = ({
           </Button>
         </div>
       </div>
+
+      {/* Dialog de historial de ventas */}
+      {productId && selectedProduct && (
+        <>
+          <ProductSalesHistoryDialog
+            open={showSalesHistory}
+            onOpenChange={setShowSalesHistory}
+            productId={parseInt(productId)}
+            productName={selectedProduct.name}
+            customerId={customerId}
+          />
+          <ProductStockDialog
+            open={showStock}
+            onOpenChange={setShowStock}
+            productId={parseInt(productId)}
+            productName={selectedProduct.name}
+          />
+        </>
+      )}
+
+      {/* Modal para crear producto */}
+      {showCreateProductModal && units && (
+        <GeneralModal
+          open={showCreateProductModal}
+          onClose={() => setShowCreateProductModal(false)}
+          title="Crear Nuevo Producto"
+          subtitle="Complete los datos del nuevo producto"
+          icon="Package"
+          size="3xl"
+        >
+          <div
+            onSubmit={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <ProductForm
+              defaultValues={{
+                name: "",
+                category_id: "",
+                brand_id: "",
+                unit_id: "",
+                product_type_id: "",
+                is_igv: false,
+                observations: "",
+                technical_sheet: [],
+              }}
+              onSubmit={handleCreateProduct}
+              onCancel={() => setShowCreateProductModal(false)}
+              isSubmitting={isCreatingProduct}
+              mode="create"
+              units={units}
+            />
+          </div>
+        </GeneralModal>
+      )}
     </GeneralSheet>
   );
 };

@@ -3,13 +3,13 @@ import { requiredStringId } from "@/lib/core.schema";
 
 export const purchaseOrderDetailSchema = z.object({
   product_id: requiredStringId("Debe seleccionar un producto"),
-  quantity_requested: z
+  quantity_requested: z.coerce
     .string()
     .min(1, { message: "La cantidad es requerida" })
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "La cantidad debe ser un número mayor a 0",
     }),
-  unit_price_estimated: z
+  unit_price_estimated: z.coerce
     .string()
     .min(1, { message: "El precio unitario es requerido" })
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {

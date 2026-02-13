@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseShippingGuideForm } from "./PurchaseShippingGuideForm";
 import { type PurchaseShippingGuideSchema } from "../lib/purchase-shipping-guide.schema";
@@ -10,12 +9,13 @@ import { usePurchaseShippingGuideStore } from "../lib/purchase-shipping-guide.st
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
+import { PURCHASE_SHIPPING_GUIDE } from "../lib/purchase-shipping-guide.interface";
 
 export const PurchaseShippingGuideEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { ROUTE, ICON } = PURCHASE_SHIPPING_GUIDE;
   const { guide, fetchGuide, updateGuide, isFinding } =
     usePurchaseShippingGuideStore();
 
@@ -36,14 +36,17 @@ export const PurchaseShippingGuideEditPage = () => {
       issue_date: guide.issue_date,
       transfer_date: guide.transfer_date,
       motive: guide.motive,
-      carrier_name: guide.carrier_name,
-      carrier_ruc: guide.carrier_ruc,
-      vehicle_plate: guide.vehicle_plate,
-      driver_name: guide.driver_name,
-      driver_license: guide.driver_license,
+      carrier_id: guide.carrier_id?.toString() || "",
+      carrier_name: guide.carrier_name || "",
+      carrier_ruc: guide.carrier_ruc || "",
+      driver_id: guide.driver_id?.toString() || "",
+      driver_name: guide.driver_name || "",
+      driver_license: guide.driver_license || "",
+      vehicle_id: guide.vehicle_id?.toString() || "",
+      vehicle_plate: guide.vehicle_plate || "",
       origin_address: guide.origin_address,
       destination_address: guide.destination_address,
-      total_weight: guide.total_weight,
+      total_weight: guide.total_weight?.toString() || "",
       observations: guide.observations,
       status: guide.status,
       details: [],
@@ -69,12 +72,12 @@ export const PurchaseShippingGuideEditPage = () => {
   if (isFinding) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/guias-compra" />
-            <TitleFormComponent title="Guía de Compra" mode="update" />
-          </div>
-        </div>
+        <TitleFormComponent
+          title="Guía de Compra"
+          mode="detail"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -83,10 +86,12 @@ export const PurchaseShippingGuideEditPage = () => {
   if (!guide) {
     return (
       <FormWrapper>
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/guias-compra" />
-          <TitleFormComponent title="Guía de Compra" mode="update" />
-        </div>
+        <TitleFormComponent
+          title="Guía de Compra"
+          mode="edit"
+          backRoute={ROUTE}
+          icon={ICON}
+        />
         <div className="text-center py-8">
           <p className="text-muted-foreground">Guía no encontrada</p>
         </div>
@@ -96,18 +101,18 @@ export const PurchaseShippingGuideEditPage = () => {
 
   return (
     <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <BackButton to="/guias-compra" />
-          <TitleFormComponent title="Guía de Compra" mode="update" />
-        </div>
-      </div>
+      <TitleFormComponent
+        title="Guía de Compra"
+        mode="edit"
+        backRoute={ROUTE}
+        icon={ICON}
+      />
 
       <PurchaseShippingGuideForm
         defaultValues={getDefaultValues()}
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        mode="update"
+        mode="edit"
         onCancel={() => navigate("/guias-compra")}
       />
     </FormWrapper>

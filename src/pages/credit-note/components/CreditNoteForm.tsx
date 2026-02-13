@@ -33,7 +33,7 @@ interface CreditNoteFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   creditNoteReasons: CreditNoteReason[];
 }
 
@@ -158,7 +158,7 @@ export const CreditNoteForm = ({
             placeholder="Seleccione la venta"
             options={saleOptions}
             control={form.control}
-            disabled={mode === "update"}
+            disabled={mode === "edit"}
             withValue
           />
           <DatePickerFormField

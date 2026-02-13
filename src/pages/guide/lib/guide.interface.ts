@@ -102,6 +102,7 @@ export interface CreateGuideRequest {
   // Personas
   remittent_id: number;
   shipping_guide_remittent_id?: number | null;
+  dispatcher_id?: number | null;
   // Direcciones (ahora se pueden digitar manualmente)
   origin_address: string;
   origin_ubigeo_id: number;
@@ -137,6 +138,7 @@ export interface UpdateGuideRequest {
   // Personas
   remittent_id?: number;
   shipping_guide_remittent_id?: number | null;
+  dispatcher_id?: number | null;
   // Direcciones
   origin_address?: string;
   origin_ubigeo_id?: number;

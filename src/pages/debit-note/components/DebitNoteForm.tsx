@@ -32,7 +32,7 @@ interface DebitNoteFormProps {
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   debitNoteReasons: DebitNoteReason[];
 }
 
@@ -176,7 +176,7 @@ export const DebitNoteForm = ({
               placeholder="Seleccione la venta"
               options={saleOptions}
               control={form.control}
-              disabled={mode === "update"}
+              disabled={mode === "edit"}
               withValue
             />
           </div>

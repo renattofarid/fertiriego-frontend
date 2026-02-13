@@ -29,8 +29,8 @@ export default function VehiclePage() {
   const { data, isLoading, refetch } = useVehicles();
 
   useEffect(() => {
-    refetch();
-  }, [page, search, per_page]);
+    setPage(1);
+  }, [search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -85,7 +85,7 @@ export default function VehiclePage() {
           open={true}
           onClose={() => setEditId(null)}
           title={MODEL.name}
-          mode="update"
+          mode="edit"
         />
       )}
 

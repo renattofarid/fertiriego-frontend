@@ -60,7 +60,7 @@ export default function BoxPage() {
     } catch (error: any) {
       errorToast(
         error.response?.data?.message || "Error al actualizar el estado",
-        ERROR_MESSAGE(MODEL, "update")
+        ERROR_MESSAGE(MODEL, "edit")
       );
     } finally {
       setUpdatingStatusId(null);
@@ -125,7 +125,7 @@ export default function BoxPage() {
           open={true}
           onClose={() => setEditId(null)}
           title={MODEL.name}
-          mode="update"
+          mode="edit"
         />
       )}
 

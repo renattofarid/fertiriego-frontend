@@ -1,12 +1,7 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import SearchInput from "@/components/SearchInput";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import type { Option } from "@/lib/core.interface";
+import FilterWrapper from "@/components/FilterWrapper";
 
 interface PurchaseOptionsProps {
   search: string;
@@ -25,41 +20,42 @@ export const PurchaseOptions = ({
   selectedPaymentType,
   setSelectedPaymentType,
 }: PurchaseOptionsProps) => {
-  const handleClearFilters = () => {
-    setSearch("");
-    setSelectedStatus("");
-    setSelectedPaymentType("");
-  };
+  const statusOptions: Option[] = [
+    { value: "", label: "Todos los estados" },
+    { value: "REGISTRADO", label: "Registrado" },
+    { value: "PAGADA", label: "Pagado" },
+    { value: "CANCELADO", label: "Cancelado" },
+  ];
+
+  const paymentTypeOptions: Option[] = [
+    { value: "", label: "Todos los tipos" },
+    { value: "CONTADO", label: "Contado" },
+    { value: "CREDITO", label: "Crédito" },
+  ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 py-4">
+    <FilterWrapper>
+      <SearchInput
+        onChange={setSearch}
+        value={search}
+        placeholder="Buscar..."
+      />
 
-      <SearchInput onChange={setSearch} value={search} placeholder="Buscar..." />
+      <SearchableSelect
+        options={statusOptions}
+        value={selectedStatus}
+        onChange={setSelectedStatus}
+        placeholder="Estado"
+        className="w-full md:w-[180px]"
+      />
 
-      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-        <SelectTrigger className="w-full md:w-[180px]">
-          <SelectValue placeholder="Estado" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="REGISTRADO">Registrado</SelectItem>
-          <SelectItem value="PAGADA">Pagado</SelectItem>
-          <SelectItem value="CANCELADO">Cancelado</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select value={selectedPaymentType} onValueChange={setSelectedPaymentType}>
-        <SelectTrigger className="w-full md:w-[180px]">
-          <SelectValue placeholder="Tipo de Pago" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="CONTADO">Contado</SelectItem>
-          <SelectItem value="CREDITO">Crédito</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Button variant="outline" onClick={handleClearFilters}>
-        Limpiar Filtros
-      </Button>
-    </div>
+      <SearchableSelect
+        options={paymentTypeOptions}
+        value={selectedPaymentType}
+        onChange={setSelectedPaymentType}
+        placeholder="Tipo de Pago"
+        className="w-full md:w-[180px]"
+      />
+    </FilterWrapper>
   );
 };

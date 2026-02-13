@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
-import TitleComponent from "@/components/TitleComponent";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
@@ -11,10 +9,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PackageOpen, CreditCard, Wallet, Pencil, RefreshCw } from "lucide-react";
+import {
+  PackageOpen,
+  CreditCard,
+  Wallet,
+  Pencil,
+  RefreshCw,
+  FileText,
+} from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
-import type { PurchaseInstallmentResource } from "../lib/purchase.interface";
+import {
+  PURCHASE,
+  type PurchaseInstallmentResource,
+} from "../lib/purchase.interface";
 import { errorToast, successToast } from "@/lib/core.function";
 import {
   Tooltip,
@@ -22,6 +30,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import TitleFormComponent from "@/components/TitleFormComponent";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 export const PurchaseDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +40,7 @@ export const PurchaseDetailViewPage = () => {
   const [selectedInstallment, setSelectedInstallment] =
     useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
-
+  const { ROUTE } = PURCHASE;
   const { purchase, fetchPurchase, isFinding } = usePurchaseStore();
   const { details, fetchDetails } = usePurchaseDetailStore();
   const { installments, fetchInstallments, updateInstallment } =
@@ -53,7 +63,7 @@ export const PurchaseDetailViewPage = () => {
   };
 
   const handleViewInstallmentPayments = (
-    installment: PurchaseInstallmentResource
+    installment: PurchaseInstallmentResource,
   ) => {
     setSelectedInstallment(installment);
     setIsPaymentSheetOpen(true);
@@ -61,7 +71,7 @@ export const PurchaseDetailViewPage = () => {
 
   const handleSyncInstallment = async (
     installmentId: number,
-    newAmount: number
+    newAmount: number,
   ) => {
     if (!purchase) return;
 
@@ -73,7 +83,7 @@ export const PurchaseDetailViewPage = () => {
       fetchInstallments(Number(id));
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || "Error al sincronizar la cuota"
+        error.response?.data?.message || "Error al sincronizar la cuota",
       );
     }
   };
@@ -85,7 +95,7 @@ export const PurchaseDetailViewPage = () => {
       parseFloat(installment.pending_amount) === parseFloat(installment.amount);
     const hasDifference =
       Math.abs(
-        parseFloat(installment.amount) - parseFloat(purchase.total_amount)
+        parseFloat(installment.amount) - parseFloat(purchase.total_amount),
       ) > 0.01;
     return isCash && hasNoPayments && hasDifference;
   };
@@ -93,12 +103,12 @@ export const PurchaseDetailViewPage = () => {
   if (isFinding) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/compras" />
-            <TitleComponent title="Detalle de Compra" />
-          </div>
-        </div>
+        <TitleFormComponent
+          title="Detalle de Compra"
+          mode="detail"
+          icon="PackageOpen"
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -107,10 +117,12 @@ export const PurchaseDetailViewPage = () => {
   if (!purchase) {
     return (
       <FormWrapper>
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/compras" />
-          <TitleComponent title="Detalle de Compra" />
-        </div>
+        <TitleFormComponent
+          title="Detalle de Compra"
+          mode="detail"
+          icon="PackageOpen"
+          backRoute={ROUTE}
+        />
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
         </div>
@@ -123,8 +135,12 @@ export const PurchaseDetailViewPage = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <BackButton to="/compras" />
-            <TitleComponent title={`Compra ${purchase.correlativo}`} />
+            <TitleFormComponent
+              title={`Compra ${purchase.correlativo}`}
+              mode="detail"
+              icon="PackageOpen"
+              backRoute={ROUTE}
+            />
           </div>
           <Button onClick={handleEditPurchase} variant="outline">
             <Pencil className="h-4 w-4 mr-2" />
@@ -135,138 +151,110 @@ export const PurchaseDetailViewPage = () => {
 
       <div className="space-y-6">
         {/* Información General */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Información General</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Correlativo
-                </span>
-                <p className="font-semibold text-lg">{purchase.correlativo}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Proveedor</span>
-                <p className="font-semibold">{purchase.supplier_fullname}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Almacén</span>
-                <p className="font-semibold">
-                  {purchase.warehouse_name || "N/A"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Usuario</span>
-                <p className="font-semibold">{purchase.user_name}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Tipo de Documento
-                </span>
-                <p className="font-semibold">{purchase.document_type}</p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Número de Documento
-                </span>
-                <p className="font-semibold font-mono">
-                  {purchase.document_number}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Fecha de Emisión
-                </span>
-                <p className="font-semibold">
-                  {new Date(purchase.issue_date).toLocaleDateString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Tipo de Pago
-                </span>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      purchase.payment_type === "CONTADO"
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {purchase.payment_type}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Moneda</span>
-                <p className="font-semibold">
-                  {purchase.currency === "PEN"
-                    ? "Soles (S/.)"
-                    : purchase.currency === "USD"
-                    ? "Dólares ($)"
-                    : "Euros (€)"}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Total</span>
-                <p className="font-bold text-2xl text-primary">
-                  {purchase.currency === "PEN"
-                    ? "S/."
-                    : purchase.currency === "USD"
-                    ? "$"
-                    : "€"}
-                  {parseFloat(purchase.total_amount).toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">
-                  Saldo Pendiente
-                </span>
-                <p className="font-bold text-2xl text-orange-600">
-                  {purchase.currency === "PEN"
-                    ? "S/."
-                    : purchase.currency === "USD"
-                    ? "$"
-                    : "€"}
-                  {parseFloat(purchase.current_amount).toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <span className="text-sm text-muted-foreground">Estado</span>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      purchase.status === "PAGADA"
-                        ? "default"
-                        : purchase.status === "CANCELADO"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                  >
-                    {purchase.status}
-                  </Badge>
-                </div>
-              </div>
+        <GroupFormSection
+          title="Información General"
+          icon={FileText}
+          cols={{ sm: 2, md: 3, lg: 4 }}
+        >
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Correlativo</p>
+            <p className="font-semibold text-lg">{purchase.correlativo}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Proveedor</p>
+            <p className="font-semibold">{purchase.supplier_fullname}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Almacén</p>
+            <p className="font-semibold">{purchase.warehouse_name || "N/A"}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Usuario</p>
+            <p className="font-semibold">{purchase.user_name}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Tipo de Documento</p>
+            <p className="font-semibold">{purchase.document_type}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Número de Documento</p>
+            <p className="font-semibold font-mono">{purchase.document_number}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Fecha de Emisión</p>
+            <p className="font-semibold">
+              {new Date(purchase.issue_date).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Tipo de Pago</p>
+            <Badge
+              variant={
+                purchase.payment_type === "CONTADO" ? "default" : "secondary"
+              }
+            >
+              {purchase.payment_type}
+            </Badge>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Moneda</p>
+            <p className="font-semibold">
+              {purchase.currency === "PEN"
+                ? "Soles (S/.)"
+                : purchase.currency === "USD"
+                  ? "Dólares ($)"
+                  : "Euros (€)"}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Total</p>
+            <p className="font-bold text-2xl text-primary">
+              {purchase.currency === "PEN"
+                ? "S/."
+                : purchase.currency === "USD"
+                  ? "$"
+                  : "€"}
+              {parseFloat(purchase.total_amount).toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Saldo Pendiente</p>
+            <p className="font-bold text-2xl text-orange-600">
+              {purchase.currency === "PEN"
+                ? "S/."
+                : purchase.currency === "USD"
+                  ? "$"
+                  : "€"}
+              {parseFloat(purchase.current_amount).toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Estado</p>
+            <Badge
+              variant={
+                purchase.status === "PAGADA"
+                  ? "default"
+                  : purchase.status === "CANCELADO"
+                    ? "destructive"
+                    : "secondary"
+              }
+            >
+              {purchase.status}
+            </Badge>
+          </div>
+          {purchase.observations && (
+            <div className="space-y-1 md:col-span-3 lg:col-span-4">
+              <p className="text-xs text-muted-foreground">Observaciones</p>
+              <p className="text-sm bg-muted p-3 rounded-md">
+                {purchase.observations}
+              </p>
             </div>
-
-            {purchase.observations && (
-              <div className="mt-6">
-                <span className="text-sm text-muted-foreground">
-                  Observaciones
-                </span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
-                  {purchase.observations}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </GroupFormSection>
 
         {/* Tabs de Detalles, Cuotas y Pagos */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -289,263 +277,236 @@ export const PurchaseDetailViewPage = () => {
           </TabsList>
 
           <TabsContent value="details" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Detalles de la Compra</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PurchaseDetailTable
-                  details={details || []}
-                  onEdit={() => {}}
-                  onRefresh={() => {
-                    fetchDetails(Number(id));
-                    fetchPurchase(Number(id));
-                  }}
-                  isPurchasePaid={purchase?.status === "PAGADO"}
-                />
-              </CardContent>
-            </Card>
+            <GroupFormSection
+              title="Detalles de la Compra"
+              icon={PackageOpen}
+              cols={{ sm: 1 }}
+            >
+              <PurchaseDetailTable
+                details={details || []}
+                onEdit={() => {}}
+                onRefresh={() => {
+                  fetchDetails(Number(id));
+                  fetchPurchase(Number(id));
+                }}
+                isPurchasePaid={purchase?.status === "PAGADO"}
+              />
+            </GroupFormSection>
           </TabsContent>
 
           <TabsContent value="installments" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cuotas de la Compra</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Advertencia de desincronización */}
-                  {purchase &&
-                    purchase.payment_type === "CONTADO" &&
-                    installments &&
-                    installments.length > 0 &&
-                    (() => {
-                      const totalAmount = parseFloat(purchase.total_amount);
-                      const installmentAmount = parseFloat(
-                        installments[0]?.amount || "0"
+            <GroupFormSection
+              title="Cuotas de la Compra"
+              icon={CreditCard}
+              cols={{ sm: 1 }}
+            >
+              <div className="space-y-4">
+                {/* Advertencia de desincronización */}
+                {purchase &&
+                  purchase.payment_type === "CONTADO" &&
+                  installments &&
+                  installments.length > 0 &&
+                  (() => {
+                    const totalAmount = parseFloat(purchase.total_amount);
+                    const installmentAmount = parseFloat(
+                      installments[0]?.amount || "0",
+                    );
+                    const hasNoPayments =
+                      parseFloat(installments[0]?.pending_amount || "0") ===
+                      installmentAmount;
+                    const hasDifference =
+                      Math.abs(installmentAmount - totalAmount) > 0.01;
+
+                    if (hasNoPayments && hasDifference) {
+                      return (
+                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
+                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
+                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
+                            coincide con el total de la compra (
+                            {totalAmount.toFixed(2)}). Debe sincronizar la cuota
+                            usando el botón "Sincronizar"
+                          </p>
+                        </div>
                       );
-                      const hasNoPayments =
-                        parseFloat(installments[0]?.pending_amount || "0") ===
-                        installmentAmount;
-                      const hasDifference =
-                        Math.abs(installmentAmount - totalAmount) > 0.01;
+                    }
+                    return null;
+                  })()}
 
-                      if (hasNoPayments && hasDifference) {
-                        return (
-                          <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                            <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                              ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
-                              coincide con el total de la compra (
-                              {totalAmount.toFixed(2)}). Debe sincronizar la
-                              cuota usando el botón "Sincronizar"
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
-
-                  {installments && installments.length > 0 ? (
-                    installments.map((installment) => (
-                      <Card
-                        key={installment.id}
-                        className="border-l-4 border-l-primary"
-                      >
-                        <CardHeader>
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center gap-4">
-                              <CardTitle className="text-base">
-                                Cuota #{installment.installment_number} -{" "}
-                                {installment.correlativo}
-                              </CardTitle>
-                              <Badge
-                                variant={
-                                  installment.status === "PAGADO"
-                                    ? "default"
-                                    : installment.status === "VENCIDO"
+                {installments && installments.length > 0 ? (
+                  installments.map((installment) => (
+                    <Card
+                      key={installment.id}
+                      className="border-l-4 border-l-primary"
+                    >
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-4">
+                            <CardTitle className="text-base">
+                              Cuota #{installment.installment_number} -{" "}
+                              {installment.correlativo}
+                            </CardTitle>
+                            <Badge
+                              variant={
+                                installment.status === "PAGADO"
+                                  ? "default"
+                                  : installment.status === "VENCIDO"
                                     ? "destructive"
                                     : "secondary"
-                                }
-                              >
-                                {installment.status}
-                              </Badge>
-                            </div>
-                            <div className="flex gap-2">
-                              {shouldShowSyncButton(installment) && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() =>
-                                          handleSyncInstallment(
-                                            installment.id,
-                                            parseFloat(
-                                              purchase?.total_amount || "0"
-                                            )
-                                          )
-                                        }
-                                        className="text-blue-600 hover:text-blue-700"
-                                      >
-                                        <RefreshCw className="h-4 w-4 mr-2" />
-                                        Sincronizar
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>
-                                        Sincronizar con total de compra (
-                                        {purchase?.total_amount})
-                                      </p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                              }
+                            >
+                              {installment.status}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-2">
+                            {shouldShowSyncButton(installment) && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() =>
+                                        handleSyncInstallment(
+                                          installment.id,
+                                          parseFloat(
+                                            purchase?.total_amount || "0",
+                                          ),
+                                        )
+                                      }
+                                      color="blue"
+                                    >
+                                      <RefreshCw className="h-4 w-4 mr-2" />
+                                      Sincronizar
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>
+                                      Sincronizar con total de compra (
+                                      {purchase?.total_amount})
+                                    </p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                handleViewInstallmentPayments(installment)
+                              }
+                            >
+                              <Wallet className="h-4 w-4 mr-2" />
+                              Ver Pagos
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">
+                              Fecha Vencimiento
+                            </p>
+                            <p className="font-semibold">
+                              {new Date(installment.due_date).toLocaleDateString(
+                                "es-ES",
                               )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() =>
-                                  handleViewInstallmentPayments(installment)
-                                }
-                              >
-                                <Wallet className="h-4 w-4 mr-2" />
-                                Ver Pagos
-                              </Button>
-                            </div>
+                            </p>
                           </div>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="text-muted-foreground">
-                                Fecha Vencimiento:
-                              </span>
-                              <p className="font-semibold">
-                                {new Date(
-                                  installment.due_date
-                                ).toLocaleDateString("es-ES")}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">
-                                Días:
-                              </span>
-                              <p className="font-semibold">
-                                {installment.due_days} días
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">
-                                Monto:
-                              </span>
-                              <p className="font-semibold text-lg">
-                                {parseFloat(installment.amount).toFixed(2)}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">
-                                Saldo:
-                              </span>
-                              <p className="font-semibold text-lg text-orange-600">
-                                {parseFloat(installment.pending_amount).toFixed(
-                                  2
-                                )}
-                              </p>
-                            </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">Días</p>
+                            <p className="font-semibold">
+                              {installment.due_days} días
+                            </p>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <Badge variant="outline" className="text-lg p-3">
-                        No hay cuotas registradas
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">Monto</p>
+                            <p className="font-semibold text-lg">
+                              {parseFloat(installment.amount).toFixed(2)}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-muted-foreground">Saldo</p>
+                            <p className="font-semibold text-lg text-orange-600">
+                              {parseFloat(installment.pending_amount).toFixed(2)}
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Badge variant="outline" className="text-lg p-3">
+                      No hay cuotas registradas
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </GroupFormSection>
           </TabsContent>
 
           <TabsContent value="summary" className="mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Resumen Financiero</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-sidebar rounded-lg">
-                    <span className="font-semibold">Total de la Compra:</span>
-                    <span className="text-2xl font-bold">
-                      {purchase.currency === "PEN"
-                        ? "S/."
-                        : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
-                      {parseFloat(purchase.total_amount).toFixed(2)}
-                    </span>
-                  </div>
+            <GroupFormSection
+              title="Resumen Financiero"
+              icon={Wallet}
+              cols={{ sm: 1, md: 2, lg: 3 }}
+            >
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Total de la Compra</p>
+                <p className="font-bold text-2xl text-primary">
+                  {purchase.currency === "PEN"
+                    ? "S/."
+                    : purchase.currency === "USD"
+                      ? "$"
+                      : "€"}{" "}
+                  {parseFloat(purchase.total_amount).toFixed(2)}
+                </p>
+              </div>
 
-                  <div className="flex justify-between items-center p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                    <span className="font-semibold">Total Pagado:</span>
-                    <span className="text-2xl font-bold text-primary">
-                      {purchase.currency === "PEN"
-                        ? "S/."
-                        : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
-                      {(
-                        parseFloat(purchase.total_amount) -
-                        parseFloat(purchase.current_amount)
-                      ).toFixed(2)}
-                    </span>
-                  </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Total Pagado</p>
+                <p className="font-bold text-2xl text-green-600">
+                  {purchase.currency === "PEN"
+                    ? "S/."
+                    : purchase.currency === "USD"
+                      ? "$"
+                      : "€"}{" "}
+                  {(
+                    parseFloat(purchase.total_amount) -
+                    parseFloat(purchase.current_amount)
+                  ).toFixed(2)}
+                </p>
+              </div>
 
-                  <div className="flex justify-between items-center p-4 bg-orange-50 dark:bg-orange-950 rounded-lg">
-                    <span className="font-semibold">Saldo Pendiente:</span>
-                    <span className="text-2xl font-bold text-orange-600">
-                      {purchase.currency === "PEN"
-                        ? "S/."
-                        : purchase.currency === "USD"
-                        ? "$"
-                        : "€"}{" "}
-                      {parseFloat(purchase.current_amount).toFixed(2)}
-                    </span>
-                  </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Saldo Pendiente</p>
+                <p className="font-bold text-2xl text-orange-600">
+                  {purchase.currency === "PEN"
+                    ? "S/."
+                    : purchase.currency === "USD"
+                      ? "$"
+                      : "€"}{" "}
+                  {parseFloat(purchase.current_amount).toFixed(2)}
+                </p>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6">
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center">
-                          <PackageOpen className="h-8 w-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">
-                            Productos
-                          </p>
-                          <p className="text-3xl font-bold">
-                            {details?.length || 0}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <PackageOpen className="h-3 w-3" />
+                  Productos
+                </p>
+                <p className="font-bold text-3xl">{details?.length || 0}</p>
+              </div>
 
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="text-center">
-                          <CreditCard className="h-8 w-8 mx-auto mb-2 text-primary" />
-                          <p className="text-sm text-muted-foreground">
-                            Cuotas
-                          </p>
-                          <p className="text-3xl font-bold">
-                            {installments?.length || 0}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CreditCard className="h-3 w-3" />
+                  Cuotas
+                </p>
+                <p className="font-bold text-3xl">{installments?.length || 0}</p>
+              </div>
+            </GroupFormSection>
           </TabsContent>
         </Tabs>
       </div>

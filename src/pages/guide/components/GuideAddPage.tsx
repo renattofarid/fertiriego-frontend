@@ -18,7 +18,6 @@ import { useGuideStore } from "../lib/guide.store";
 import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import PageWrapper from "@/components/PageWrapper";
@@ -31,7 +30,6 @@ export default function GuideAddPage() {
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
   const { data: sales, isLoading: salesLoading } = useAllSales();
-  const { data: purchases, isLoading: purchasesLoading } = useAllPurchases();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
   const { data: orders, isLoading: ordersLoading } = useOrder({
@@ -44,13 +42,11 @@ export default function GuideAddPage() {
     warehousesLoading ||
     motivesLoading ||
     salesLoading ||
-    purchasesLoading ||
     warehouseDocumentsLoading ||
     ordersLoading ||
     !warehouses ||
     !motives ||
     !sales ||
-    !purchases ||
     !warehouseDocuments;
 
   const getDefaultValues = (): Partial<GuideSchema> => ({
@@ -91,7 +87,9 @@ export default function GuideAddPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "create"));
       navigate(ROUTE);
     } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE);
+      errorToast(
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "create"),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -100,11 +98,12 @@ export default function GuideAddPage() {
   if (isLoading) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-          </div>
-        </div>
+        <TitleFormComponent
+          title={MODEL.name}
+          mode="create"
+          icon={ICON}
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -112,11 +111,12 @@ export default function GuideAddPage() {
 
   return (
     <PageWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="create"
+        icon={ICON}
+        backRoute={ROUTE}
+      />
 
       {warehouses &&
         warehouses.length > 0 &&
@@ -127,13 +127,12 @@ export default function GuideAddPage() {
           <GuideForm
             defaultValues={getDefaultValues()}
             onSubmit={handleSubmit}
-            onCancel={() => navigate(GUIDE.ROUTE)}
+            onCancel={() => navigate(ROUTE)}
             isSubmitting={isSubmitting}
             mode="create"
             warehouses={warehouses}
             motives={motives}
             sales={sales}
-            purchases={purchases}
             warehouseDocuments={warehouseDocuments}
             orders={orders || []}
           />

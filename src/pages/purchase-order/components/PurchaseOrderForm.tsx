@@ -51,14 +51,14 @@ import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateM
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
+import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 
 interface PurchaseOrderFormProps {
   defaultValues: Partial<PurchaseOrderSchema>;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
-  suppliers: PersonResource[];
+  mode?: "create" | "edit";
   warehouses: WarehouseResource[];
   purchaseOrder?: PurchaseOrderResource;
 }
@@ -79,12 +79,11 @@ export const PurchaseOrderForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  suppliers,
   warehouses,
   purchaseOrder,
 }: PurchaseOrderFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>(
-    mode === "update" && purchaseOrder
+    mode === "edit" && purchaseOrder
       ? purchaseOrder.details.map((d) => ({
           product_id: d.product_id.toString(),
           product_name: d.product_name,
@@ -92,7 +91,7 @@ export const PurchaseOrderForm = ({
           unit_price_estimated: d.unit_price_estimated,
           // En modo update: usar el subtotal calculado por el backend si existe
           subtotal: d.subtotal_estimated
-            ? truncDecimal(parseFloat(d.subtotal_estimated),2)
+            ? truncDecimal(parseFloat(d.subtotal_estimated), 2)
             : truncDecimal(
                 d.quantity_requested * parseFloat(d.unit_price_estimated),
                 2,
@@ -107,8 +106,6 @@ export const PurchaseOrderForm = ({
   // Estados para modales
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
-  const [suppliersList, setSuppliersList] =
-    useState<PersonResource[]>(suppliers);
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
 
@@ -141,6 +138,13 @@ export const PurchaseOrderForm = ({
   // Vigilar el switch de aplicar IGV para mostrar referencia en UI (no modifica payload)
   const applyIgv = form.watch("apply_igv") ?? false;
 
+  // Obtener proveedor seleccionado
+  const supplierWatch = form.watch("supplier_id");
+  const { data: suppliersData } = useSuppliers();
+  const selectedSupplier = supplierWatch
+    ? suppliersData?.data?.find((s) => s.id.toString() === supplierWatch)
+    : undefined;
+
   // Formulario separado para los campos temporales de detalle
   const detailTempForm = useForm({
     defaultValues: {
@@ -155,26 +159,19 @@ export const PurchaseOrderForm = ({
   const watchTempQuantity = detailTempForm.watch("temp_quantity_requested");
   const watchTempUnitPrice = detailTempForm.watch("temp_unit_price_estimated");
 
-  // Actualizar listas cuando cambien las props
-  useEffect(() => {
-    setSuppliersList(suppliers);
-  }, [suppliers]);
-
   useEffect(() => {
     setWarehousesList(warehouses);
   }, [warehouses]);
 
-  // Handlers para modales
-  const handleSupplierCreated = (newSupplier: PersonResource) => {
-    setSuppliersList((prev) => [...prev, newSupplier]);
-    form.setValue("supplier_id", newSupplier.id.toString(), {
+  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
+    setWarehousesList((prev) => [...prev, newWarehouse]);
+    form.setValue("warehouse_id", newWarehouse.id.toString(), {
       shouldValidate: true,
     });
   };
 
-  const handleWarehouseCreated = (newWarehouse: WarehouseResource) => {
-    setWarehousesList((prev) => [...prev, newWarehouse]);
-    form.setValue("warehouse_id", newWarehouse.id.toString(), {
+  const handleSupplierCreated = (newSupplier: PersonResource) => {
+    form.setValue("supplier_id", newSupplier.id.toString(), {
       shouldValidate: true,
     });
   };
@@ -338,22 +335,19 @@ export const PurchaseOrderForm = ({
             >
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="supplier_id"
                     label="Proveedor"
                     placeholder="Seleccione un proveedor"
-                    options={suppliersList.map((supplier) => ({
-                      value: supplier.id.toString(),
+                    useQueryHook={useSuppliers}
+                    mapOptionFn={(p: PersonResource) => ({
+                      value: p.id.toString(),
                       label:
-                        supplier.business_name ??
-                        supplier.names +
-                          " " +
-                          supplier.father_surname +
-                          " " +
-                          supplier.mother_surname,
-                    }))}
-                    disabled={mode === "update"}
+                        p.business_name ?? `${p.names} ${p.father_surname}`,
+                      description: p.number_document,
+                    })}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (
@@ -381,7 +375,7 @@ export const PurchaseOrderForm = ({
                       value: warehouse.id.toString(),
                       label: warehouse.name,
                     }))}
-                    disabled={mode === "update"}
+                    disabled={mode === "edit"}
                   />
                 </div>
                 {mode === "create" && (
@@ -567,7 +561,7 @@ export const PurchaseOrderForm = ({
                           <TableCell className="text-right">
                             {formatCurrency(
                               parseFloat(detail.unit_price_estimated),
-                              { currencySymbol: "S/.", decimals:2 },
+                              { currencySymbol: "S/.", decimals: 2 },
                             )}
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">
@@ -618,13 +612,13 @@ export const PurchaseOrderForm = ({
             form={form}
             mode={mode}
             isSubmitting={isSubmitting}
-            suppliers={suppliers}
             warehouses={warehouses}
             details={details}
             subtotalBase={subtotalBase}
             igvAmount={igvAmount}
             totalWithIgv={totalWithIgv}
             applyIgv={applyIgv}
+            selectedSupplier={selectedSupplier}
             onCancel={onCancel}
           />
         </div>

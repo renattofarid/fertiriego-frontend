@@ -129,7 +129,7 @@ export function SearchableSelect({
             <Check
               className={cn(
                 "mr-2 h-4 w-4 shrink-0",
-                value === option.value ? "opacity-100" : "opacity-0"
+                value === option.value ? "opacity-100" : "opacity-0",
               )}
             />
             <div className="flex flex-col min-w-0 flex-1">
@@ -159,7 +159,7 @@ export function SearchableSelect({
       className={cn(
         "flex w-full items-center justify-between rounded-md border px-3 text-xs md:text-sm overflow-hidden",
         selected && "bg-muted text-muted-foreground",
-        className
+        className,
       )}
     >
       <span className="truncate min-w-0 flex-1 text-left block">
@@ -207,7 +207,7 @@ export function SearchableSelect({
         >
           <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
           <PopoverContent
-            className="p-0 min-w-(--radix-popover-trigger-width)!"
+            className="p-0 min-w-(--radix-popover-trigger-width) w-auto"
             onWheel={(e) => e.stopPropagation()}
             onWheelCapture={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}

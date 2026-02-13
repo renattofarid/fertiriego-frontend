@@ -6,19 +6,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { FormSelect } from "@/components/FormSelect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form } from "@/components/ui/form";
-import { assignPurchaseSchema, type AssignPurchaseSchema } from "../lib/purchase-shipping-guide.schema";
+import {
+  assignPurchaseSchema,
+  type AssignPurchaseSchema,
+} from "../lib/purchase-shipping-guide.schema";
 import { Loader } from "lucide-react";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 
 interface AssignPurchaseModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (purchaseId: number) => Promise<void>;
-  purchases: PurchaseResource[];
   isSubmitting: boolean;
 }
 
@@ -26,7 +29,6 @@ export const AssignPurchaseModal = ({
   open,
   onClose,
   onSubmit,
-  purchases,
   isSubmitting,
 }: AssignPurchaseModalProps) => {
   const form = useForm<AssignPurchaseSchema>({
@@ -57,16 +59,22 @@ export const AssignPurchaseModal = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormSelect
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <FormSelectAsync
               control={form.control}
               name="purchase_id"
               label="Compra"
-              placeholder="Seleccione una compra"
-              options={purchases.map((purchase) => ({
+              placeholder="Selecciona una compra"
+              useQueryHook={usePurchases}
+              mapOptionFn={(purchase: PurchaseResource) => ({
                 value: purchase.id.toString(),
-                label: `${purchase.correlativo} - ${purchase.supplier_fullname}`,
-              }))}
+                label: purchase.document_number || `Compra #${purchase.id}`,
+                description: purchase.supplier_fullname,
+              })}
+              withValue
             />
 
             <div className="flex justify-end gap-2">
@@ -74,7 +82,9 @@ export const AssignPurchaseModal = ({
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                <Loader className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`} />
+                <Loader
+                  className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`}
+                />
                 {isSubmitting ? "Asignando..." : "Asignar"}
               </Button>
             </div>

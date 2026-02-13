@@ -42,11 +42,11 @@ export default function ProductionDocumentEditPage() {
     if (!id) return;
     try {
       await updateDocument(parseInt(id), values as any);
-      successToast(SUCCESS_MESSAGE(MODEL, "update"));
+      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "update"),
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"),
       );
     }
   };
@@ -78,7 +78,7 @@ export default function ProductionDocumentEditPage() {
 
   return (
     <ProductionDocumentForm
-      mode="update"
+      mode="edit"
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       initialValues={initialValues}

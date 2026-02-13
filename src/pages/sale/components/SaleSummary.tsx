@@ -25,7 +25,7 @@ interface InstallmentRow {
 
 interface SaleSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   selectedCustomer?: PersonResource;
   warehouses: WarehouseResource[];
@@ -103,7 +103,7 @@ export function SaleSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -191,16 +191,11 @@ export function SaleSummary({
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {detail.quantity} x {currencySymbol}{" "}
-                        {parseFloat(detail.unit_price).toLocaleString("es-PE", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {formatNumber(parseFloat(detail.unit_price))}
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      {currencySymbol}{" "}
-                      {detail.total.toLocaleString("es-PE", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {currencySymbol} {formatNumber(detail.total)}
                     </p>
                   </div>
                 ))
@@ -254,7 +249,6 @@ export function SaleSummary({
               size="lg"
               disabled={
                 isSubmitting ||
-                !form.formState.isValid ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
                   selectedPaymentType === "CREDITO" &&
@@ -272,7 +266,7 @@ export function SaleSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                   ? "Actualizar Venta"
                   : "Guardar Venta"}
             </Button>

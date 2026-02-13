@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useWarehouseProduct } from "../lib/warehouse-product.hook";
 import TitleComponent from "@/components/TitleComponent";
 import WarehouseProductActions from "./WarehouseProductActions";
 import WarehouseProductTable from "./WarehouseProductTable";
@@ -18,6 +17,7 @@ import { WAREHOUSE_PRODUCT } from "../lib/warehouse-product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import FormSkeleton from "@/components/FormSkeleton";
+import { useWarehouseProducts } from "../lib/warehouse-product.hook";
 
 const { MODEL, ICON } = WAREHOUSE_PRODUCT;
 
@@ -29,16 +29,19 @@ export default function WarehouseProductPage() {
   const [productId, setProductId] = useState("");
   // const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useWarehouseProduct();
-
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
 
+  const { data, isLoading, refetch } = useWarehouseProducts({
+    page,
+    search,
+    per_page,
+    warehouse_id: warehouseId,
+    product_id: productId,
+  });
+
   useEffect(() => {
-    const params: Record<string, any> = { page, search, per_page };
-    if (warehouseId) params.warehouse_id = warehouseId;
-    if (productId) params.product_id = productId;
-    refetch(params);
+    setPage(1);
   }, [page, search, per_page, warehouseId, productId]);
 
   const handleDelete = async () => {
@@ -78,7 +81,7 @@ export default function WarehouseProductPage() {
           // onEdit: setEditId,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <WarehouseProductOptions
           search={search}
@@ -93,11 +96,11 @@ export default function WarehouseProductPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (

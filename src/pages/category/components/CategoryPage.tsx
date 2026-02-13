@@ -80,7 +80,7 @@ export default function CategoryPage() {
           open={true}
           onClose={() => setEditId(null)}
           title={MODEL.name}
-          mode="update"
+          mode="edit"
         />
       )}
 

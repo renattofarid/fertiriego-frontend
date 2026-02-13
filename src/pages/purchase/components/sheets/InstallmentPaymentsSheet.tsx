@@ -1,14 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Plus, Wallet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseInstallmentResource } from "../../lib/purchase.interface";
 import { usePurchasePaymentStore } from "../../lib/purchase-payment.store";
@@ -17,6 +9,8 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PurchasePaymentTable } from "../PurchasePaymentTable";
 import { PurchasePaymentForm } from "../forms/PurchasePaymentForm";
 import { errorToast, successToast } from "@/lib/core.function";
+import GeneralSheet from "@/components/GeneralSheet";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 interface InstallmentPaymentsSheetProps {
   open: boolean;
@@ -129,125 +123,119 @@ export function InstallmentPaymentsSheet({
   const canAddPayment = pending > 0 && !isPaid;
 
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-3xl overflow-y-auto p-6">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            Pagos de Cuota {currentInstallment.correlativo}
-          </SheetTitle>
-          <SheetDescription>
-            Gestiona los pagos realizados a esta cuota
-          </SheetDescription>
-        </SheetHeader>
+    <GeneralSheet
+      open={open}
+      onClose={onClose}
+      title={`Pagos de Cuota ${currentInstallment.correlativo}`}
+      subtitle="Gestiona los pagos realizados a esta cuota"
+      icon="Wallet"
+      size="4xl"
+    >
+      <div className="space-y-3">
+        {/* Información de la Cuota */}
+        <GroupFormSection
+          title="Información de la Cuota"
+          icon={Wallet}
+          cols={{ sm: 2, md: 3, lg: 3 }}
+          gap="gap-2"
+        >
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Cuota #</span>
+            <p className="font-semibold">{currentInstallment.installment_number}</p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Estado</span>
+            <div>
+              <Badge
+                variant={
+                  currentInstallment.status === "PAGADO"
+                    ? "default"
+                    : currentInstallment.status === "VENCIDO"
+                      ? "destructive"
+                      : "secondary"
+                }
+              >
+                {currentInstallment.status}
+              </Badge>
+            </div>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Fecha Vencimiento</span>
+            <p className="font-semibold text-sm">
+              {new Date(currentInstallment.due_date).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Monto Original</span>
+            <p className="font-bold text-base">
+              S/ {parseFloat(currentInstallment.amount).toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Total Pagado</span>
+            <p className="font-bold text-primary text-base">
+              S/ {totalPaid.toFixed(2)}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Saldo Pendiente</span>
+            <p className="font-bold text-orange-600 text-base">
+              S/ {pending.toFixed(2)}
+            </p>
+          </div>
+        </GroupFormSection>
 
-        <div className="mt-6 space-y-4">
-          {/* Información de la Cuota */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Información de la Cuota</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Cuota #:</span>
-                <p className="font-semibold text-lg">{currentInstallment.installment_number}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Estado:</span>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      currentInstallment.status === "PAGADO"
-                        ? "default"
-                        : currentInstallment.status === "VENCIDO"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                  >
-                    {currentInstallment.status}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Fecha Vencimiento:</span>
-                <p className="font-semibold">
-                  {new Date(currentInstallment.due_date).toLocaleDateString("es-ES", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Monto Original:</span>
-                <p className="font-bold text-lg">
-                  {parseFloat(currentInstallment.amount).toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Total Pagado:</span>
-                <p className="font-bold text-primary text-lg">
-                  {totalPaid.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Saldo Pendiente:</span>
-                <p className="font-bold text-orange-600 text-lg">
-                  {pending.toFixed(2)}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Formulario o Tabla de Pagos */}
-          {showPaymentForm ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">
-                  {editingPaymentId ? "Editar Pago" : "Registrar Pago"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PurchasePaymentForm
-                  payment={editingPaymentId ? payment : null}
-                  onSubmit={handlePaymentSubmit}
-                  onCancel={() => {
-                    setShowPaymentForm(false);
-                    setEditingPaymentId(null);
-                  }}
-                  isSubmitting={isSubmitting}
-                />
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              {canAddPayment ? (
-                <Button onClick={handleAddPayment} className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Registrar Pago
-                </Button>
-              ) : isPaid ? (
-                <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-center">
-                  <p className="text-sm text-green-800 dark:text-green-200 font-semibold">
-                    ✓ Esta cuota ha sido pagada completamente
-                  </p>
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-center">
-                  <p className="text-sm text-muted-foreground">
-                    No hay saldo pendiente en esta cuota
-                  </p>
-                </div>
-              )}
-              <PurchasePaymentTable
-                payments={payments || []}
-                onEdit={handleEditPayment}
-                onRefresh={() => currentInstallment && fetchPayments(currentInstallment.id)}
+        {/* Formulario o Tabla de Pagos */}
+        {showPaymentForm ? (
+          <GroupFormSection
+            title={editingPaymentId ? "Editar Pago" : "Registrar Pago"}
+            icon={Plus}
+            cols={{ sm: 1 }}
+          >
+            <div className="col-span-full">
+              <PurchasePaymentForm
+                payment={editingPaymentId ? payment : null}
+                onSubmit={handlePaymentSubmit}
+                onCancel={() => {
+                  setShowPaymentForm(false);
+                  setEditingPaymentId(null);
+                }}
+                isSubmitting={isSubmitting}
               />
-            </>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+            </div>
+          </GroupFormSection>
+        ) : (
+          <div className="space-y-3">
+            {canAddPayment ? (
+              <Button onClick={handleAddPayment} className="w-full" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Registrar Pago
+              </Button>
+            ) : isPaid ? (
+              <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-center">
+                <p className="text-sm text-green-800 dark:text-green-200 font-semibold">
+                  ✓ Esta cuota ha sido pagada completamente
+                </p>
+              </div>
+            ) : (
+              <div className="p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-center">
+                <p className="text-sm text-muted-foreground">
+                  No hay saldo pendiente en esta cuota
+                </p>
+              </div>
+            )}
+            <PurchasePaymentTable
+              payments={payments || []}
+              onEdit={handleEditPayment}
+              onRefresh={() => currentInstallment && fetchPayments(currentInstallment.id)}
+            />
+          </div>
+        )}
+      </div>
+    </GeneralSheet>
   );
 }

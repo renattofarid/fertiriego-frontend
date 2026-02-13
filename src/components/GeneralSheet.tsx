@@ -30,6 +30,7 @@ export interface GeneralSheetProps {
   icon?: keyof typeof LucideReact;
   size?: Size;
   type?: "default" | "tablet" | "mobile";
+  preventAutoClose?: boolean;
 }
 
 type Size = "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
@@ -58,6 +59,7 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   modal,
   icon,
   size = "lg",
+  preventAutoClose = false,
 }) => {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -70,10 +72,12 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
 
   {
     return type === "default" ? (
-      <Sheet open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
+      <Sheet open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
         <SheetContent
           side={side}
           className={cn(sizes[size], className, "overflow-y-auto gap-0!")}
+          onInteractOutside={(e) => preventAutoClose && e.preventDefault()}
+          onEscapeKeyDown={(e) => preventAutoClose && e.preventDefault()}
         >
           <SheetHeader>
             <div className="flex items-center gap-2">
@@ -93,13 +97,15 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
         </SheetContent>
       </Sheet>
     ) : (
-      <Drawer open={open} onOpenChange={(v) => !v && onClose()} modal={modal}>
+      <Drawer open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
         <DrawerContent
           className={cn(
             sizes[size],
             className,
             "px-4 pb-4 flex flex-col max-h-[96vh]"
           )}
+          onInteractOutside={(e) => preventAutoClose && e.preventDefault()}
+          onEscapeKeyDown={(e) => preventAutoClose && e.preventDefault()}
         >
           <DrawerHeader className="flex-shrink-0 p-2">
             <div className="flex items-center gap-2">

@@ -19,7 +19,7 @@ interface DetailRow {
 
 interface DebitNoteSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
   selectedSale?: SaleResource;
   warehouses: WarehouseResource[];
@@ -95,7 +95,7 @@ export function DebitNoteSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">Nota de Débito</p>
@@ -238,7 +238,7 @@ export function DebitNoteSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
+                : mode === "edit"
                 ? "Actualizar Nota de Débito"
                 : "Guardar Nota de Débito"}
             </Button>

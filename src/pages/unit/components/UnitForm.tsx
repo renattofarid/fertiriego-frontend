@@ -9,7 +9,7 @@ interface UnitFormProps {
   defaultValues?: Partial<UnitSchema>;
   onSubmit: (data: UnitSchema) => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
   onCancel?: () => void;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePurchase } from "../lib/purchase.hook";
+import { usePurchases } from "../lib/purchase.hook";
 import TitleComponent from "@/components/TitleComponent";
 import { PurchaseActions } from "./PurchaseActions";
 import { PurchaseTable } from "./PurchaseTable";
@@ -37,7 +37,7 @@ export const PurchasePage = () => {
     useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
 
-  const { data, meta, isLoading, refetch } = usePurchase({
+  const { data, isLoading, refetch } = usePurchases({
     page,
     per_page,
     search,
@@ -47,28 +47,14 @@ export const PurchasePage = () => {
   const { removePurchase } = usePurchaseStore();
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-    };
-    refetch(filterParams);
+    setPage(1);
   }, [page, search, per_page, selectedStatus, selectedPaymentType]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await removePurchase(deleteId);
-      const filterParams = {
-        page,
-        search,
-        per_page,
-        ...(selectedStatus && { status: selectedStatus }),
-        ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-      };
-      await refetch(filterParams);
+      await refetch();
       successToast(
         SUCCESS_MESSAGE({ name: "Compra", gender: false }, "delete"),
       );
@@ -131,39 +117,17 @@ export const PurchasePage = () => {
   const handleCloseManagementSheet = async () => {
     setIsManagementSheetOpen(false);
     setSelectedPurchase(null);
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-    };
-    await refetch(filterParams);
+    await refetch();
   };
 
   const handleClosePaymentSheet = async () => {
     setIsPaymentSheetOpen(false);
     setSelectedInstallment(null);
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-    };
-    await refetch(filterParams);
+    await refetch();
   };
 
   const handlePaymentSuccess = async () => {
-    // Refrescar los datos inmediatamente después de un pago exitoso
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-      ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-    };
-    await refetch(filterParams);
+    await refetch();
   };
 
   return (
@@ -178,7 +142,7 @@ export const PurchasePage = () => {
       </div>
 
       <PurchaseTable
-        data={data || []}
+        data={data?.data || []}
         onEdit={handleEditPurchase}
         onDelete={setDeleteId}
         onViewDetails={handleViewDetails}
@@ -198,11 +162,11 @@ export const PurchasePage = () => {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (
@@ -218,23 +182,7 @@ export const PurchasePage = () => {
         onClose={handleCloseManagementSheet}
         purchase={selectedPurchase}
         onPurchaseUpdate={async () => {
-          const filterParams = {
-            page,
-            search,
-            per_page,
-            ...(selectedStatus && { status: selectedStatus }),
-            ...(selectedPaymentType && { payment_type: selectedPaymentType }),
-          };
-          await refetch(filterParams);
-          // Actualizar el selectedPurchase con los datos más recientes del store
-          if (selectedPurchase && data) {
-            const updatedPurchase = data.find(
-              (p: PurchaseResource) => p.id === selectedPurchase.id,
-            );
-            if (updatedPurchase) {
-              setSelectedPurchase(updatedPurchase);
-            }
-          }
+          await refetch();
         }}
       />
 

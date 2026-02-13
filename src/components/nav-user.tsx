@@ -40,10 +40,10 @@ export function NavUser({ user }: { user: User }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground hover:bg-muted hover:text-inherit rounded-lg w-full md:w-auto"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg">
+                <AvatarFallback className="rounded-lg bg-primary text-primary-foreground">
                   {user.name &&
                     user.name
                       .split(" ")

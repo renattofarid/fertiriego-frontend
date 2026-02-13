@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useSaleById } from "../lib/sale.hook";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,19 +17,17 @@ import {
   Warehouse,
   Calendar,
 } from "lucide-react";
-import type { SaleInstallmentResource } from "../lib/sale.interface";
+import { SALE, type SaleInstallmentResource } from "../lib/sale.interface";
 import InstallmentPaymentDialog from "./InstallmentPaymentDialog";
 import InstallmentPaymentsSheet from "./InstallmentPaymentsSheet";
 import FormWrapper from "@/components/FormWrapper";
-import TitleComponent from "@/components/TitleComponent";
-import { BackButton } from "@/components/BackButton";
 import FormSkeleton from "@/components/FormSkeleton";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export default function SaleManagePage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { data: sale, isFinding, refetch } = useSaleById(Number(id));
-
+  const { ROUTE } = SALE;
   const [selectedInstallment, setSelectedInstallment] =
     useState<SaleInstallmentResource | null>(null);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
@@ -84,11 +82,12 @@ export default function SaleManagePage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
-          <BackButton onClick={() => navigate("/ventas")} />
-          <TitleComponent
-            title={`Gestionar Venta #${sale.id}`}
-            subtitle={`${sale.full_document_number} - ${sale.customer_fullname}`}
+          <TitleFormComponent
+            title={`Gestionar Venta #${sale.full_document_number}`}
+            mode="detail"
+            // subtitle={`${sale.full_document_number} - ${sale.customer_fullname}`}
             icon={"CreditCard"}
+            backRoute={ROUTE}
           />
         </div>
         <Badge
@@ -96,10 +95,10 @@ export default function SaleManagePage() {
             sale.status === "PAGADA"
               ? "default"
               : sale.status === "REGISTRADO"
-              ? "secondary"
-              : sale.status === "PARCIAL"
-              ? "outline"
-              : "destructive"
+                ? "secondary"
+                : sale.status === "PARCIAL"
+                  ? "outline"
+                  : "destructive"
           }
           className="text-sm px-3"
         >
@@ -330,10 +329,10 @@ export default function SaleManagePage() {
                                 installment.status === "PAGADA"
                                   ? "default"
                                   : installment.status === "REGISTRADO"
-                                  ? "secondary"
-                                  : installment.status === "PARCIAL"
-                                  ? "outline"
-                                  : "destructive"
+                                    ? "secondary"
+                                    : installment.status === "PARCIAL"
+                                      ? "outline"
+                                      : "destructive"
                               }
                             >
                               {installment.status}

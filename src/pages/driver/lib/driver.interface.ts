@@ -36,4 +36,4 @@ export const DRIVER: ModelComplete<any> = {
 };
 
 export const DRIVER_ROLE_CODE = "Conductor";
-export const DRIVER_ROLE_ID = 6;
+export const DRIVER_ROLE_ID = 7;

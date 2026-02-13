@@ -16,14 +16,16 @@ import { Button } from "@/components/ui/button";
 import { vehicleSchema, type VehicleSchema } from "../lib/vehicle.schema";
 import { Loader } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
-import { useAllWorkers } from "@/pages/worker/lib/worker.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useWorkers } from "@/pages/worker/lib/worker.hook";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 
 interface VehicleFormProps {
   defaultValues: Partial<VehicleSchema>;
   onSubmit: (data: any) => void;
   onCancel?: () => void;
   isSubmitting?: boolean;
-  mode?: "create" | "update";
+  mode?: "create" | "edit";
 }
 
 export const VehicleForm = ({
@@ -33,8 +35,6 @@ export const VehicleForm = ({
   isSubmitting = false,
   mode = "create",
 }: VehicleFormProps) => {
-  const workers = useAllWorkers();
-
   const form = useForm({
     resolver: zodResolver(vehicleSchema),
     defaultValues: {
@@ -51,20 +51,6 @@ export const VehicleForm = ({
     },
     mode: "onChange",
   });
-
-  // Preparar opciones para el selector de propietarios
-  const ownerOptions =
-    workers?.map((worker) => ({
-      value: worker.id.toString(),
-      label:
-        worker.business_name ??
-        worker.names +
-          " " +
-          worker.father_surname +
-          " " +
-          worker.mother_surname,
-      description: worker.number_document,
-    })) || [];
 
   const vehicleTypeOptions = [
     { value: "carga", label: "Carga" },
@@ -179,11 +165,18 @@ export const VehicleForm = ({
             )}
           />
 
-          <FormSelect
+          <FormSelectAsync
             name="owner_id"
             label="Propietario"
             placeholder="Seleccione el propietario"
-            options={ownerOptions}
+            useQueryHook={useWorkers}
+            mapOptionFn={(worker: PersonResource) => ({
+              value: worker.id.toString(),
+              label:
+                worker.business_name ??
+                `${worker.names} ${worker.father_surname} ${worker.mother_surname}`,
+              description: worker.number_document,
+            })}
             control={form.control}
           />
 
@@ -226,8 +219,8 @@ export const VehicleForm = ({
                 ? "Creando..."
                 : "Actualizando..."
               : mode === "create"
-              ? "Crear"
-              : "Actualizar"}
+                ? "Crear"
+                : "Actualizar"}
           </Button>
         </div>
       </form>

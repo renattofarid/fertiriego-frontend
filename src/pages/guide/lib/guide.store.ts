@@ -154,6 +154,7 @@ export const useGuideStore = create<GuideStore>((set) => ({
         shipping_guide_remittent_id: data.shipping_guide_remittent_id
           ? Number(data.shipping_guide_remittent_id)
           : null,
+        dispatcher_id: data.dispatcher_id ? Number(data.dispatcher_id) : null,
         origin_address: data.origin_address,
         origin_ubigeo_id: Number(data.origin_ubigeo_id),
         destination_address: data.destination_address,
@@ -243,6 +244,9 @@ export const useGuideStore = create<GuideStore>((set) => ({
             ? Number(data.shipping_guide_remittent_id)
             : null,
         }),
+        ...(data.dispatcher_id !== undefined && {
+          dispatcher_id: data.dispatcher_id ? Number(data.dispatcher_id) : null,
+        }),
         ...(data.origin_address && { origin_address: data.origin_address }),
         ...(data.origin_ubigeo_id && {
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
@@ -278,7 +282,7 @@ export const useGuideStore = create<GuideStore>((set) => ({
       await updateGuide(id, request);
       set({ isSubmitting: false });
     } catch (error) {
-      set({ error: ERROR_MESSAGE(MODEL, "update"), isSubmitting: false });
+      set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
       throw error;
     }
   },

@@ -78,6 +78,7 @@ export interface SaleResource {
   total_paid: number;
   quotation_id?: string;
   order_id?: string;
+  guide_id?: string;
   order?: Order;
   quotation?: Quotation;
   total_amount: number;
@@ -181,6 +182,7 @@ export interface CreateSaleRequest {
   amount_yape: string;
   quotation_id?: number;
   order_id?: number;
+  guide_id?: number;
   order_purchase?: string;
   is_anticipado?: boolean;
   is_deduccion?: boolean;

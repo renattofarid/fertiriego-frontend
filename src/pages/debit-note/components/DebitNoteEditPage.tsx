@@ -49,14 +49,14 @@ export default function DebitNoteEditPage() {
   const handleSubmit = async (data: DebitNoteSchema) => {
     await updateDebitNote(debitNoteId, data)
       .then(() => {
-        successToast(SUCCESS_MESSAGE(MODEL, "update"));
+        successToast(SUCCESS_MESSAGE(MODEL, "edit"));
         navigate("/notas-debito");
       })
       .catch((error: any) => {
         errorToast(
           error.response?.data?.message ??
             error.response?.data?.error ??
-            ERROR_MESSAGE(MODEL, "update")
+            ERROR_MESSAGE(MODEL, "edit")
         );
       });
   };
@@ -95,7 +95,7 @@ export default function DebitNoteEditPage() {
           defaultValues={mapDebitNoteToForm(debitNote)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="update"
+          mode="edit"
           onCancel={handleCancel}
           debitNoteReasons={debitNoteReasons || []}
         />

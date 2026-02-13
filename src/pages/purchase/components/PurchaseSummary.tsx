@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { formatNumber } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -25,9 +25,8 @@ interface InstallmentRow {
 
 interface PurchaseSummaryProps {
   form: UseFormReturn<any>;
-  mode: "create" | "update";
+  mode: "create" | "edit";
   isSubmitting: boolean;
-  suppliers: PersonResource[];
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -35,6 +34,7 @@ interface PurchaseSummaryProps {
   calculateTaxTotal: () => number;
   calculateDetailsTotal: () => number;
   installmentsMatchTotal?: () => boolean;
+  selectedSupplier?: PersonResource;
   onCancel?: () => void;
   selectedPaymentType?: string;
 }
@@ -43,7 +43,6 @@ export function PurchaseSummary({
   form,
   mode,
   isSubmitting,
-  suppliers,
   warehouses,
   details,
   installments = [],
@@ -51,22 +50,17 @@ export function PurchaseSummary({
   calculateTaxTotal,
   calculateDetailsTotal,
   installmentsMatchTotal,
+  selectedSupplier,
   onCancel,
   selectedPaymentType,
 }: PurchaseSummaryProps) {
-  const supplierWatch = form.watch("supplier_id");
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
 
-  // Obtener el proveedor seleccionado
-  const selectedSupplier = supplierWatch
-    ? suppliers.find((s) => s.id.toString() === supplierWatch)
-    : undefined;
-
   const supplierName = selectedSupplier
-    ? selectedSupplier.business_name ??
-      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`
+    ? (selectedSupplier.business_name ??
+      `${selectedSupplier.names} ${selectedSupplier.father_surname} ${selectedSupplier.mother_surname}`)
     : "Sin seleccionar";
 
   // Obtener el almacén seleccionado
@@ -105,7 +99,7 @@ export function PurchaseSummary({
               variant="outline"
               className="bg-primary/10 text-primary border-primary/30"
             >
-              {mode === "update" ? "Edición" : "Nuevo"}
+              {mode === "edit" ? "Edición" : "Nuevo"}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -258,7 +252,6 @@ export function PurchaseSummary({
               size="lg"
               disabled={
                 isSubmitting ||
-                !form.formState.isValid ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
                   selectedPaymentType === "CREDITO" &&
@@ -272,9 +265,9 @@ export function PurchaseSummary({
               <FileCheck className="size-4 mr-2" />
               {isSubmitting
                 ? "Guardando..."
-                : mode === "update"
-                ? "Actualizar Compra"
-                : "Guardar Compra"}
+                : mode === "edit"
+                  ? "Actualizar Compra"
+                  : "Guardar Compra"}
             </Button>
             <Button
               type="button"
@@ -291,7 +284,7 @@ export function PurchaseSummary({
             <p className="text-xs text-center text-muted-foreground">
               {form.watch("issue_date")
                 ? new Date(
-                    form.watch("issue_date") + "T00:00:00"
+                    form.watch("issue_date") + "T00:00:00",
                   ).toLocaleDateString("es-PE", {
                     day: "2-digit",
                     month: "long",

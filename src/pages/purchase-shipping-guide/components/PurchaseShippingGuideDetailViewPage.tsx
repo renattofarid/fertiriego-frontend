@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BackButton } from "@/components/BackButton";
-import TitleComponent from "@/components/TitleComponent";
 import { usePurchaseShippingGuideStore } from "../lib/purchase-shipping-guide.store";
-import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,15 +17,17 @@ import {
 } from "@/components/ui/table";
 import { AssignPurchaseModal } from "./AssignPurchaseModal";
 import { errorToast } from "@/lib/core.function";
+import { PURCHASE_SHIPPING_GUIDE } from "../lib/purchase-shipping-guide.interface";
+import TitleFormComponent from "@/components/TitleFormComponent";
 
 export const PurchaseShippingGuideDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
+  const { ROUTE, ICON } = PURCHASE_SHIPPING_GUIDE;
   const { guide, fetchGuide, isFinding, assignPurchaseToGuide, isSubmitting } =
     usePurchaseShippingGuideStore();
-  const { data: purchases } = useAllPurchases();
 
   useEffect(() => {
     if (!id) {
@@ -58,12 +57,12 @@ export const PurchaseShippingGuideDetailViewPage = () => {
   if (isFinding) {
     return (
       <FormWrapper>
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
-            <BackButton to="/guias-compra" />
-            <TitleComponent title="Detalle de Guía de Compra" />
-          </div>
-        </div>
+        <TitleFormComponent
+          title="Detalle de Guía de Compra"
+          icon={ICON}
+          mode="detail"
+          backRoute={ROUTE}
+        />
         <FormSkeleton />
       </FormWrapper>
     );
@@ -72,10 +71,12 @@ export const PurchaseShippingGuideDetailViewPage = () => {
   if (!guide) {
     return (
       <FormWrapper>
-        <div className="flex items-center gap-4 mb-6">
-          <BackButton to="/guias-compra" />
-          <TitleComponent title="Detalle de Guía de Compra" />
-        </div>
+        <TitleFormComponent
+          title="Detalle de Guía de Compra"
+          icon={ICON}
+          mode="detail"
+          backRoute={ROUTE}
+        />
         <div className="text-center py-8">
           <p className="text-muted-foreground">Guía no encontrada</p>
         </div>
@@ -87,13 +88,18 @@ export const PurchaseShippingGuideDetailViewPage = () => {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <BackButton to="/guias-compra" />
-            <TitleComponent title={`Guía ${guide.guide_number}`} />
-          </div>
+          <TitleFormComponent
+            title={`Guía ${guide.guide_number}`}
+            mode="detail"
+            icon={ICON}
+            backRoute={ROUTE}
+          />
           <div className="flex gap-2">
             {!guide.purchase_id && (
-              <Button onClick={() => setIsAssignModalOpen(true)} variant="outline">
+              <Button
+                onClick={() => setIsAssignModalOpen(true)}
+                variant="outline"
+              >
                 <LinkIcon className="h-4 w-4 mr-2" />
                 Asignar Compra
               </Button>
@@ -115,14 +121,22 @@ export const PurchaseShippingGuideDetailViewPage = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
-                <span className="text-sm text-muted-foreground">Número de Guía</span>
-                <p className="font-semibold text-lg font-mono">{guide.guide_number}</p>
+                <span className="text-sm text-muted-foreground">
+                  Número de Guía
+                </span>
+                <p className="font-semibold text-lg font-mono">
+                  {guide.guide_number}
+                </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Compra Asociada</span>
+                <span className="text-sm text-muted-foreground">
+                  Compra Asociada
+                </span>
                 <p className="font-semibold">
                   {guide.purchase_correlative ? (
-                    <Badge variant="outline">{guide.purchase_correlative}</Badge>
+                    <Badge variant="outline">
+                      {guide.purchase_correlative}
+                    </Badge>
                   ) : (
                     <Badge variant="secondary">Sin compra</Badge>
                   )}
@@ -136,10 +150,10 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                       guide.status === "EMITIDA"
                         ? "secondary"
                         : guide.status === "ENTREGADA"
-                        ? "default"
-                        : guide.status === "CANCELADA"
-                        ? "destructive"
-                        : "default"
+                          ? "default"
+                          : guide.status === "CANCELADA"
+                            ? "destructive"
+                            : "default"
                     }
                   >
                     {guide.status}
@@ -147,7 +161,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 </div>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Fecha de Emisión</span>
+                <span className="text-sm text-muted-foreground">
+                  Fecha de Emisión
+                </span>
                 <p className="font-semibold">
                   {new Date(guide.issue_date).toLocaleDateString("es-ES", {
                     day: "2-digit",
@@ -157,7 +173,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Fecha de Traslado</span>
+                <span className="text-sm text-muted-foreground">
+                  Fecha de Traslado
+                </span>
                 <p className="font-semibold">
                   {new Date(guide.transfer_date).toLocaleDateString("es-ES", {
                     day: "2-digit",
@@ -167,20 +185,32 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Peso Total</span>
-                <p className="font-semibold">{parseFloat(guide.total_weight).toFixed(2)} kg</p>
+                <span className="text-sm text-muted-foreground">
+                  Peso Total
+                </span>
+                <p className="font-semibold">
+                  {parseFloat(guide.total_weight).toFixed(2)} kg
+                </p>
               </div>
             </div>
 
             <div className="mt-6">
-              <span className="text-sm text-muted-foreground">Motivo de Traslado</span>
-              <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">{guide.motive}</p>
+              <span className="text-sm text-muted-foreground">
+                Motivo de Traslado
+              </span>
+              <p className="mt-1 text-sm bg-muted p-3 rounded-md">
+                {guide.motive}
+              </p>
             </div>
 
             {guide.observations && (
               <div className="mt-4">
-                <span className="text-sm text-muted-foreground">Observaciones</span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">{guide.observations}</p>
+                <span className="text-sm text-muted-foreground">
+                  Observaciones
+                </span>
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
+                  {guide.observations}
+                </p>
               </div>
             )}
           </CardContent>
@@ -194,7 +224,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div>
-                <span className="text-sm text-muted-foreground">Transportista</span>
+                <span className="text-sm text-muted-foreground">
+                  Transportista
+                </span>
                 <p className="font-semibold">{guide.carrier_name}</p>
               </div>
               <div>
@@ -202,7 +234,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                 <p className="font-semibold font-mono">{guide.carrier_ruc}</p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Placa del Vehículo</span>
+                <span className="text-sm text-muted-foreground">
+                  Placa del Vehículo
+                </span>
                 <p className="font-semibold font-mono">{guide.vehicle_plate}</p>
               </div>
               <div>
@@ -211,7 +245,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Licencia</span>
-                <p className="font-semibold font-mono">{guide.driver_license}</p>
+                <p className="font-semibold font-mono">
+                  {guide.driver_license}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -225,12 +261,18 @@ export const PurchaseShippingGuideDetailViewPage = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <span className="text-sm text-muted-foreground">Dirección de Origen</span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">{guide.origin_address}</p>
+                <span className="text-sm text-muted-foreground">
+                  Dirección de Origen
+                </span>
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
+                  {guide.origin_address}
+                </p>
               </div>
               <div>
-                <span className="text-sm text-muted-foreground">Dirección de Destino</span>
-                <p className="mt-1 text-sm bg-sidebar p-3 rounded-md">
+                <span className="text-sm text-muted-foreground">
+                  Dirección de Destino
+                </span>
+                <p className="mt-1 text-sm bg-muted p-3 rounded-md">
                   {guide.destination_address}
                 </p>
               </div>
@@ -257,7 +299,9 @@ export const PurchaseShippingGuideDetailViewPage = () => {
                   <TableBody>
                     {guide.details.map((detail) => (
                       <TableRow key={detail.id}>
-                        <TableCell className="font-medium">{detail.product_name}</TableCell>
+                        <TableCell className="font-medium">
+                          {detail.product_name}
+                        </TableCell>
                         <TableCell className="text-right font-semibold">
                           {parseFloat(detail.quantity).toFixed(2)}
                         </TableCell>
@@ -278,15 +322,14 @@ export const PurchaseShippingGuideDetailViewPage = () => {
         </Card>
       </div>
 
-      {purchases && (
+      
         <AssignPurchaseModal
           open={isAssignModalOpen}
           onClose={() => setIsAssignModalOpen(false)}
           onSubmit={handleAssignPurchase}
-          purchases={purchases}
           isSubmitting={isSubmitting}
         />
-      )}
+      
     </FormWrapper>
   );
 };

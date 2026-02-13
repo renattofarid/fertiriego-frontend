@@ -36,4 +36,4 @@ export const CARRIER: ModelComplete<any> = {
 };
 
 export const CARRIER_ROLE_CODE = "Transportista";
-export const CARRIER_ROLE_ID = 7;
+export const CARRIER_ROLE_ID = 6;
