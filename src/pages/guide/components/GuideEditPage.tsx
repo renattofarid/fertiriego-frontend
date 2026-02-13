@@ -7,7 +7,6 @@ import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useGuideMotives } from "../lib/guide.hook";
-import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useAllPurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
@@ -27,7 +26,6 @@ export default function GuideEditPage() {
   const { MODEL, ROUTE, ICON } = GUIDE;
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: vehicles, isLoading: vehiclesLoading } = useAllVehicles();
   const carriers = useAllPersons({
     role_names: ["TRANSPORTISTA"],
   });
@@ -44,7 +42,6 @@ export default function GuideEditPage() {
   const isLoading =
     warehousesLoading ||
     motivesLoading ||
-    vehiclesLoading ||
     salesLoading ||
     purchasesLoading ||
     warehouseDocumentsLoading ||
@@ -155,8 +152,6 @@ export default function GuideEditPage() {
         warehouses.length > 0 &&
         motives &&
         motives.length > 0 &&
-        vehicles &&
-        vehicles.length > 0 &&
         carriers &&
         carriers.length > 0 &&
         sales &&

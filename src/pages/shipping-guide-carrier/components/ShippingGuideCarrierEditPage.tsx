@@ -12,7 +12,6 @@ import {
   ShippingGuideCarrierForm,
   type ShippingGuideCarrierFormValues,
 } from "./ShippingGuideCarrierForm";
-import { useAllVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -25,7 +24,6 @@ export default function ShippingGuideCarrierEditPage() {
     useShippingGuideCarrierStore();
 
   // Hooks para datos
-  const { data: vehicles = [], isLoading: loadingVehicles } = useAllVehicles();
   const remittents = useAllPersons();
   const recipients = useAllPersons();
   const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
@@ -37,8 +35,7 @@ export default function ShippingGuideCarrierEditPage() {
     }
   }, [id, fetchGuide]);
 
-  const isLoading =
-    loadingVehicles || loadingGuides || !remittents || !recipients || isFinding;
+  const isLoading = loadingGuides || !remittents || !recipients || isFinding;
 
   const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
     if (!id) return;
@@ -90,7 +87,6 @@ export default function ShippingGuideCarrierEditPage() {
       initialValues={initialValues}
       remittents={remittents || []}
       recipients={recipients || []}
-      vehicles={vehicles || []}
       guides={guides || []}
     />
   );

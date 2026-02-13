@@ -30,7 +30,6 @@ import { SearchableSelect } from "@/components/SearchableSelect";
 import { DataTable } from "@/components/DataTable";
 import type { UbigeoResource } from "@/pages/guide/lib/ubigeo.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import type { VehicleResource } from "@/pages/vehicle/lib/vehicle.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { GuideResource } from "@/pages/guide/lib/guide.interface";
 import { findGuideById } from "@/pages/guide/lib/guide.actions";
@@ -42,6 +41,7 @@ import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
+import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -114,7 +114,6 @@ interface ShippingGuideCarrierFormProps {
   initialValues?: ShippingGuideCarrierFormValues;
   remittents: PersonResource[];
   recipients: PersonResource[];
-  vehicles: VehicleResource[];
   guides: GuideResource[];
 }
 
@@ -124,7 +123,6 @@ export function ShippingGuideCarrierForm({
   isSubmitting = false,
   initialValues,
   recipients,
-  vehicles,
   guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
@@ -480,29 +478,31 @@ export function ShippingGuideCarrierForm({
                     withValue
                   />
 
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="vehicle_id"
                     label="Vehículo"
                     placeholder="Seleccione vehículo"
-                    options={vehicles.map((v) => ({
-                      value: v.id.toString(),
-                      label: v.plate,
-                      description: `${v.brand} ${v.model}`,
-                    }))}
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
                     withValue
                   />
 
-                  <FormSelect
+                  <FormSelectAsync
                     control={form.control}
                     name="secondary_vehicle_id"
                     label="Vehículo Secundario (Opcional)"
                     placeholder="Seleccione vehículo secundario"
-                    options={vehicles.map((v) => ({
-                      value: v.id.toString(),
-                      label: v.plate,
-                      description: `${v.brand} ${v.model}`,
-                    }))}
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
                     withValue
                   />
 
