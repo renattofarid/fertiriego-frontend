@@ -40,12 +40,7 @@ export default function SalePage() {
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
   const { setOpen, setOpenMobile } = useSidebar();
 
-  const {
-    data: sales,
-    meta,
-    isLoading,
-    refetch,
-  } = useSale({
+  const { data, isLoading, refetch } = useSale({
     search,
     page,
     per_page,
@@ -54,13 +49,7 @@ export default function SalePage() {
   });
 
   useEffect(() => {
-    refetch({
-      page,
-      per_page,
-      search,
-      from: startDate,
-      to: endDate,
-    });
+    setPage(1);
   }, [page, per_page, search, startDate, endDate]);
 
   const { removeSale } = useSaleStore();
@@ -122,13 +111,7 @@ export default function SalePage() {
   };
 
   const handlePaymentSuccess = () => {
-    refetch({
-      page,
-      per_page,
-      search,
-      from: startDate,
-      to: endDate,
-    });
+    refetch();
     setOpenPaymentSheet(false);
     setSelectedInstallment(null);
   };
@@ -137,13 +120,7 @@ export default function SalePage() {
     if (saleToDelete) {
       try {
         await removeSale(saleToDelete);
-        refetch({
-          page,
-          per_page,
-          search,
-          from: startDate,
-          to: endDate,
-        });
+        refetch();
         setOpenDelete(false);
         setSaleToDelete(null);
       } catch (error) {
@@ -173,7 +150,11 @@ export default function SalePage() {
         <SaleActions startDate={startDate} endDate={endDate} />
       </div>
 
-      <SaleTable columns={columns} data={sales || []} isLoading={isLoading}>
+      <SaleTable
+        columns={columns}
+        data={data?.data || []}
+        isLoading={isLoading}
+      >
         <SaleOptions
           search={search}
           setSearch={setSearch}
@@ -186,11 +167,11 @@ export default function SalePage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       <SimpleDeleteDialog

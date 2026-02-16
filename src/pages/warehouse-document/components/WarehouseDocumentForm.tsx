@@ -29,6 +29,7 @@ import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { toast } from "sonner";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
+import { FormInput } from "@/components/FormInput";
 
 interface WarehouseDocumentFormProps {
   onSubmit: (data: WarehouseDocumentSchema) => void;
@@ -301,18 +302,12 @@ export default function WarehouseDocumentForm({
             }))}
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="document_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Documento</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: AJ-000123" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Número de Documento"
+            placeholder="Ej: AJ-000123"
+            uppercase
           />
 
           <FormSelectAsync
@@ -329,29 +324,15 @@ export default function WarehouseDocumentForm({
             })}
           />
 
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2 lg:col-span-3">
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Observaciones adicionales"
-                    className="resize-none"
-                    rows={2}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <DatePickerFormField
             control={form.control}
             name="document_date"
             label="Fecha del Documento"
+            dateFormat="dd/MM/yyyy"
+            placeholder="Seleccione la fecha"
+            disabledRange={{
+              after: new Date(),
+            }}
           />
 
           <FormField

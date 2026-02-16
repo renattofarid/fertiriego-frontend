@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useGuideMotives } from "../lib/guide.hook";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import {
   ERROR_MESSAGE,
@@ -19,31 +18,32 @@ import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE } from "../lib/guide.interface";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useOrder } from "@/pages/order/lib/order.hook";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function GuideAddPage() {
   const { ROUTE, MODEL, ICON } = GUIDE;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const { data: orders, isLoading: ordersLoading } = useOrder({
-    per_page: 1000,
-  });
 
   const { createGuide } = useGuideStore();
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   const isLoading =
     warehousesLoading ||
     motivesLoading ||
     salesLoading ||
     warehouseDocumentsLoading ||
-    ordersLoading ||
     !warehouses ||
     !motives ||
     !sales ||
@@ -68,7 +68,7 @@ export default function GuideAddPage() {
     vehicle_brand: "",
     vehicle_model: "",
     vehicle_mtc: "",
-    remittent_id: "",
+    remittent_id: "1860",
     shipping_guide_remittent_id: "",
     origin_address: "",
     origin_ubigeo_id: "",
@@ -97,7 +97,7 @@ export default function GuideAddPage() {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <TitleFormComponent
           title={MODEL.name}
           mode="create"
@@ -105,7 +105,7 @@ export default function GuideAddPage() {
           backRoute={ROUTE}
         />
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
@@ -118,25 +118,17 @@ export default function GuideAddPage() {
         backRoute={ROUTE}
       />
 
-      {warehouses &&
-        warehouses.length > 0 &&
-        motives &&
-        motives.length > 0 &&
-        warehouseDocuments &&
-        warehouseDocuments.length >= 0 && (
-          <GuideForm
-            defaultValues={getDefaultValues()}
-            onSubmit={handleSubmit}
-            onCancel={() => navigate(ROUTE)}
-            isSubmitting={isSubmitting}
-            mode="create"
-            warehouses={warehouses}
-            motives={motives}
-            sales={sales}
-            warehouseDocuments={warehouseDocuments}
-            orders={orders || []}
-          />
-        )}
+      {warehouses && warehouses.length > 0 && motives && motives.length > 0 && (
+        <GuideForm
+          defaultValues={getDefaultValues()}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate(ROUTE)}
+          isSubmitting={isSubmitting}
+          mode="create"
+          warehouses={warehouses}
+          motives={motives}
+        />
+      )}
     </PageWrapper>
   );
 }

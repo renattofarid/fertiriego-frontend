@@ -5,18 +5,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import { useGuideMotives } from "../lib/guide.hook";
 import { useAllSales } from "@/pages/sale/lib/sale.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useOrder } from "@/pages/order/lib/order.hook";
-import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
 import type { GuideSchema } from "../lib/guide.schema";
 import PageWrapper from "@/components/PageWrapper";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function GuideEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,16 +23,10 @@ export default function GuideEditPage() {
   const { MODEL, ROUTE, ICON } = GUIDE;
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const carriers = useAllPersons({
-    role_names: ["TRANSPORTISTA"],
-  });
   const { data: sales, isLoading: salesLoading } = useAllSales();
   const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
     useWarehouseDocuments();
-  const { data: orders, isLoading: ordersLoading } = useOrder({
-    per_page: 1000,
-  });
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
 
   const isLoading =
@@ -42,12 +34,16 @@ export default function GuideEditPage() {
     motivesLoading ||
     salesLoading ||
     warehouseDocumentsLoading ||
-    ordersLoading ||
     !warehouses ||
     !motives ||
     !sales ||
     !warehouseDocuments ||
     isFinding;
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -82,7 +78,7 @@ export default function GuideEditPage() {
       vehicle_brand: (data as any).vehicle_brand,
       vehicle_model: (data as any).vehicle_model,
       vehicle_mtc: (data as any).vehicle_mtc,
-      remittent_id: (data as any).remittent?.id?.toString() || "",
+      remittent_id: (data as any).remittent?.id?.toString() || "1860",
       shipping_guide_remittent_id:
         (data as any).shipping_guide_remittent?.id?.toString() || undefined,
       origin_address: data.origin_address,
@@ -123,7 +119,7 @@ export default function GuideEditPage() {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <TitleFormComponent
           title={MODEL.name}
           mode="edit"
@@ -131,7 +127,7 @@ export default function GuideEditPage() {
           backRoute={ROUTE}
         />
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
@@ -148,12 +144,6 @@ export default function GuideEditPage() {
         warehouses.length > 0 &&
         motives &&
         motives.length > 0 &&
-        carriers &&
-        carriers.length > 0 &&
-        sales &&
-        sales.length >= 0 &&
-        warehouseDocuments &&
-        warehouseDocuments.length >= 0 &&
         guide && (
           <GuideForm
             defaultValues={mapGuideToForm(guide)}
@@ -163,9 +153,6 @@ export default function GuideEditPage() {
             mode="edit"
             warehouses={warehouses}
             motives={motives}
-            sales={sales}
-            warehouseDocuments={warehouseDocuments}
-            orders={orders || []}
           />
         )}
     </PageWrapper>

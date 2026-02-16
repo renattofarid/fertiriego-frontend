@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGuides } from "../lib/guide.hook";
 import TitleComponent from "@/components/TitleComponent";
@@ -16,8 +16,13 @@ import {
 } from "@/lib/core.function";
 import { GuideColumns } from "./GuideColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { GUIDE, type GuideStatus, type GuideResource } from "../lib/guide.interface";
+import {
+  GUIDE,
+  type GuideStatus,
+  type GuideResource,
+} from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const { MODEL, ICON } = GUIDE;
 
@@ -31,13 +36,18 @@ export default function GuidePage() {
     id: number;
     currentStatus: GuideStatus;
   } | null>(null);
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { data, meta, isLoading, refetch } = useGuides({
     page,
     search,
     per_page,
   });
   const { removeGuide, changeStatus } = useGuideStore();
+
+  useEffect(() => {
+    setOpen(true);
+    setOpenMobile(true);
+  }, []);
 
   const handleEdit = (id: number) => {
     navigate(`${GUIDE.ROUTE}/actualizar/${id}`);
@@ -77,7 +87,7 @@ export default function GuidePage() {
     } catch (error: any) {
       errorToast(
         error.response?.data?.message || "Error al actualizar el estado",
-        "Error al cambiar el estado"
+        "Error al cambiar el estado",
       );
     } finally {
       setStatusChangeData(null);

@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader, Search, Save, UserPlus } from "lucide-react";
+import {
+  Loader,
+  Search,
+  Save,
+  UserPlus,
+  User,
+  Building2,
+  Mail,
+} from "lucide-react";
 import { personCreateSchema, type PersonSchema } from "../lib/person.schema";
 import { FormSelect } from "@/components/FormSelect";
 import {
@@ -21,6 +29,7 @@ import {
 } from "@/lib/document-search.service";
 import type { PersonResource } from "../lib/person.interface";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
+import { GroupFormSection } from "@/components/GroupFormSection";
 
 interface PersonFormProps {
   initialData?: PersonResource | null;
@@ -187,8 +196,16 @@ export const PersonForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Document Information */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Personal/Business Information */}
+        <GroupFormSection
+          title={
+            type_person === "NATURAL"
+              ? "Información Personal"
+              : "Información de la Empresa"
+          }
+          icon={type_person === "NATURAL" ? User : Building2}
+          cols={{ sm: 1, md: 3 }}
+        >
           <FormSelect
             control={form.control}
             name="type_document"
@@ -374,12 +391,11 @@ export const PersonForm = ({
                   ]
             }
           />
-        </div>
 
-        {/* Personal Information - Natural Person */}
-        {type_person === "NATURAL" && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <FormField
+          {/* Personal Information - Natural Person */}
+          {type_person === "NATURAL" && (
+            <>
+              <FormField
               control={form.control}
               name="names"
               render={({ field }) => (
@@ -533,13 +549,13 @@ export const PersonForm = ({
                 </FormItem>
               )}
             /> */}
-          </div>
-        )}
+            </>
+          )}
 
-        {/* Business Information - Legal Person */}
-        {type_person === "JURIDICA" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
+          {/* Business Information - Legal Person */}
+          {type_person === "JURIDICA" && (
+            <>
+              <FormField
               control={form.control}
               name="business_name"
               render={({ field }) => (
@@ -622,11 +638,16 @@ export const PersonForm = ({
                 </FormItem>
               )}
             />
-          </div>
-        )}
+            </>
+          )}
+        </GroupFormSection>
 
         {/* Contact Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <GroupFormSection
+          title="Información de Contacto"
+          icon={Mail}
+          cols={{ sm: 1, md: 2 }}
+        >
           <FormField
             control={form.control}
             name="email"
@@ -714,27 +735,29 @@ export const PersonForm = ({
               </FormItem>
             )}
           />
-        </div>
 
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Dirección</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Ingrese la dirección"
-                  {...field}
-                  className={fieldsFromSearch.address ? "bg-blue-50" : ""}
-                />
-              </FormControl>
-              <FormMessage />
-              {/* Fixed height container for consistency */}
-              <div className="h-4"></div>
-            </FormItem>
-          )}
-        />
+          <div className="md:col-span-2">
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dirección</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ingrese la dirección"
+                      {...field}
+                      className={fieldsFromSearch.address ? "bg-blue-50" : ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                  {/* Fixed height container for consistency */}
+                  <div className="h-4"></div>
+                </FormItem>
+              )}
+            />
+          </div>
+        </GroupFormSection>
 
         {/* Form Actions */}
         <div className="flex justify-end gap-3">
