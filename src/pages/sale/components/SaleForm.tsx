@@ -570,6 +570,16 @@ export const SaleForm = ({
           setDetails(guideDetails);
           form.setValue("details", guideDetails);
         }
+
+        // Agregar automáticamente la guía al apartado de guías
+        if (sourceData.full_guide_number) {
+          const guideRow: GuideRow = {
+            name: "Guía de Remisión",
+            correlative: sourceData.full_guide_number,
+          };
+          setGuides([guideRow]);
+          form.setValue("guides", [guideRow]);
+        }
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

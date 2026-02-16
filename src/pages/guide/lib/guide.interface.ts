@@ -34,16 +34,16 @@ export interface GuideResource {
   warehouse: Warehouse;
   user: User;
   motive: Motive;
-  sale: Sale;
-  purchase: Purchase;
-  warehouse_document: Warehousedocument;
+  sale?: Sale;
+  purchase?: Purchase;
+  warehouse_document?: Warehousedocument;
   carrier: Carrier;
   driver?: Carrier;
   vehicle?: Vehicle;
   originUbigeo: UbigeoGuide;
   destinationUbigeo: UbigeoGuide;
   destination_warehouse: Warehouse;
-  recipient: Carrier;
+  recipient?: Carrier;
   details: GuideDetailResource[];
   created_at: string;
   updated_at: string;
@@ -111,6 +111,9 @@ export interface CreateGuideRequest {
   destination_warehouse_id?: number | null;
   recipient_id?: number | null;
   observations?: string;
+  // Totales
+  total_weight: number;
+  total_packages: number;
   details: CreateGuideDetailRequest[];
 }
 
@@ -147,6 +150,9 @@ export interface UpdateGuideRequest {
   destination_warehouse_id?: number | null;
   recipient_id?: number | null;
   observations?: string;
+  // Totales
+  total_weight?: number;
+  total_packages?: number;
   details?: CreateGuideDetailRequest[];
 }
 

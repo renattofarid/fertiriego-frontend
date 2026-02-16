@@ -48,6 +48,8 @@ import { useSale } from "@/pages/sale/lib/sale.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { useRemittents } from "@/pages/person/lib/person.hook";
 import { findSaleById } from "@/pages/sale/lib/sale.actions";
+import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
+import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -190,11 +192,18 @@ export const GuideForm = ({
   const transportModality = form.watch("transport_modality");
   const orderId = form.watch("order_id");
   const saleId = form.watch("sale_id");
+  const purchaseId = form.watch("purchase_id");
+  const warehouseDocumentId = form.watch("warehouse_document_id");
 
   // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (saleId) form.setValue("sale_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
         setLoadingOrder(true);
         setHasNoPendingDetails(false);
         try {
@@ -250,10 +259,15 @@ export const GuideForm = ({
     loadOrder();
   }, [orderId, mode]);
 
-  // Cargar venta cuando se selecciona y setear el recipient_id
+  // Cargar venta cuando se selecciona y setear el recipient_id y detalles
   useEffect(() => {
     const loadSale = async () => {
       if (saleId && saleId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
         try {
           const response = await findSaleById(Number(saleId));
 
@@ -261,14 +275,119 @@ export const GuideForm = ({
           if (response.data?.customer_id) {
             form.setValue("recipient_id", response.data.customer_id.toString());
           }
+
+          // Llenar automáticamente los detalles con los productos de la venta
+          if (response.data?.details && response.data.details.length > 0) {
+            const saleDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product?.name || "N/A",
+                description: detail.product?.name || "N/A",
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              })
+            );
+            setDetails(saleDetails);
+          }
         } catch (error) {
           console.error("Error loading sale:", error);
+        }
+      } else {
+        // Si se deselecciona la venta, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
         }
       }
     };
 
     loadSale();
-  }, [saleId, form]);
+  }, [saleId, form, mode]);
+
+  // Cargar compra cuando se selecciona y llenar detalles
+  useEffect(() => {
+    const loadPurchase = async () => {
+      if (purchaseId && purchaseId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (saleId) form.setValue("sale_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
+        try {
+          const response = await findPurchaseById(Number(purchaseId));
+
+          // Llenar automáticamente los detalles con los productos de la compra
+          if (response.data?.details && response.data.details.length > 0) {
+            const purchaseDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product_name,
+                description: detail.product_name,
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              })
+            );
+            setDetails(purchaseDetails);
+          }
+        } catch (error) {
+          console.error("Error loading purchase:", error);
+        }
+      } else {
+        // Si se deselecciona la compra, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadPurchase();
+  }, [purchaseId, mode]);
+
+  // Cargar documento de almacén cuando se selecciona y llenar detalles
+  useEffect(() => {
+    const loadWarehouseDocument = async () => {
+      if (warehouseDocumentId && warehouseDocumentId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (saleId) form.setValue("sale_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+
+        try {
+          const response = await findWarehouseDocumentById(
+            Number(warehouseDocumentId)
+          );
+
+          // Llenar automáticamente los detalles con los productos del documento
+          if (response.data?.details && response.data.details.length > 0) {
+            const warehouseDocDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product_name,
+                description: detail.product_name,
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              })
+            );
+            setDetails(warehouseDocDetails);
+          }
+        } catch (error) {
+          console.error("Error loading warehouse document:", error);
+        }
+      } else {
+        // Si se deselecciona el documento, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadWarehouseDocument();
+  }, [warehouseDocumentId, mode]);
 
   // Establecer fechas automáticamente
   useEffect(() => {
@@ -330,6 +449,22 @@ export const GuideForm = ({
     } else {
       // Si no hay details, limpiar el form
       form.setValue("details", [], { shouldValidate: false });
+    }
+  }, [details, form]);
+
+  // Calcular automáticamente el peso total cuando cambien los detalles
+  useEffect(() => {
+    if (details.length > 0) {
+      const totalWeight = details.reduce(
+        (sum, detail) => sum + Number(detail.weight || 0),
+        0
+      );
+
+      // Actualizar el total_weight solo si cambió
+      const currentTotalWeight = form.getValues("total_weight");
+      if (currentTotalWeight !== totalWeight && totalWeight > 0) {
+        form.setValue("total_weight", totalWeight, { shouldValidate: false });
+      }
     }
   }, [details, form]);
 
@@ -968,6 +1103,64 @@ export const GuideForm = ({
                       isLoading={false}
                       variant="ghost"
                     />
+                  )}
+
+                  {/* Campos de totales */}
+                  {details.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">
+                          Cantidad de Unidades (Total)
+                        </label>
+                        <Input
+                          type="number"
+                          value={details.reduce((sum, detail) => sum + Number(detail.quantity || 0), 0)}
+                          readOnly
+                          disabled
+                          className="bg-muted"
+                        />
+                      </div>
+
+                      <FormField
+                        control={form.control}
+                        name="total_weight"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Peso Total (Kg)</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Ej: 100"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="total_packages"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Total de Paquetes</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                placeholder="Ej: 5"
+                                {...field}
+                                value={field.value || ""}
+                                onChange={(e) => field.onChange(e.target.value)}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   )}
                 </div>
                 <FormMessage />

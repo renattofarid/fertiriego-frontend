@@ -19,7 +19,6 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
@@ -172,9 +171,16 @@ export const QuotationForm = ({
         tax: detail.tax,
         total: detail.total,
       };
-      setEditingDetail(productDetail);
-      setEditingIndex(index);
-      setSheetOpen(true);
+
+      // Primero cerrar el sheet si está abierto
+      setSheetOpen(false);
+
+      // Luego configurar el modo de edición y abrir
+      setTimeout(() => {
+        setEditingDetail(productDetail);
+        setEditingIndex(index);
+        setSheetOpen(true);
+      }, 0);
     },
     [details],
   );
@@ -228,21 +234,7 @@ export const QuotationForm = ({
         header: "P. Unitario",
         cell: ({ row }) => (
           <div className="text-right">
-            {(
-              parseFloat(row.original.unit_price) *
-              (!row.original.is_igv ? 1.18 : 1)
-            ).toFixed(4)}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "is_igv",
-        header: "IGV",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant={!row.original.is_igv ? "default" : "secondary"}>
-              {!row.original.is_igv ? "Sí" : "No"}
-            </Badge>
+            {(parseFloat(row.original.unit_price) * 1.18).toFixed(4)}
           </div>
         ),
       },

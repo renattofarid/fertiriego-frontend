@@ -80,6 +80,24 @@ export const guideSchema = z
     // DETALLES
     // ===============================
     details: z.array(guideDetailSchema).min(1, { message: "Debe agregar al menos un detalle" }),
+
+    // ===============================
+    // TOTALES
+    // ===============================
+    total_weight: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El peso total debe ser un número mayor a 0",
+      }),
+    total_packages: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El total de paquetes debe ser un número mayor a 0",
+      }),
   })
   // ===============================
   // VALIDACIONES CONDICIONALES

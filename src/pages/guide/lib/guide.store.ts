@@ -171,6 +171,8 @@ export const useGuideStore = create<GuideStore>((set) => ({
           unit_measure: detail.unit_measure,
           weight: Number(detail.weight),
         })),
+        total_weight: Number(data.total_weight),
+        total_packages: Number(data.total_packages),
       };
 
       await storeGuide(request);
@@ -276,6 +278,12 @@ export const useGuideStore = create<GuideStore>((set) => ({
             unit_measure: detail.unit_measure,
             weight: Number(detail.weight),
           })),
+        }),
+        ...(data.total_weight !== undefined && {
+          total_weight: Number(data.total_weight),
+        }),
+        ...(data.total_packages !== undefined && {
+          total_packages: Number(data.total_packages),
         }),
       };
 
