@@ -546,11 +546,28 @@ export const SaleForm = ({
 
         // Auto-completar detalles desde guía
         if (sourceData.details && sourceData.details.length > 0) {
+          // Crear un mapa de precios desde el documento origen (purchase, sale, order, warehouse_document)
+          const priceMap = new Map<number, number>();
+
+          // Si la guía viene de una venta, usar los precios de la venta
+          if (sourceData.sale?.details) {
+            sourceData.sale.details.forEach((detail: any) => {
+              priceMap.set(detail.product_id, parseFloat(detail.unit_price || "0"));
+            });
+          }
+
+          // Si la guía viene de una compra, usar los precios de la compra
+          if (sourceData.purchase?.details) {
+            sourceData.purchase.details.forEach((detail: any) => {
+              priceMap.set(detail.product_id, parseFloat(detail.unit_price || "0"));
+            });
+          }
+
           const guideDetails: DetailRow[] = sourceData.details.map(
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              // Para guías no tenemos precio unitario, se deja en 0 para que el usuario lo ingrese
-              const unitPrice = 0;
+              // Intentar obtener el precio del documento origen, sino se deja en 0
+              const unitPrice = priceMap.get(detail.product_id) || 0;
               const subtotal = roundTo6Decimals(quantity * unitPrice);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);

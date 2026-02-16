@@ -24,7 +24,6 @@ interface AddProductSheetProps {
   open: boolean;
   onClose: () => void;
   onAdd: (detail: ProductDetail) => void;
-  defaultIsIgv?: boolean;
   editingDetail?: ProductDetail | null;
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
@@ -50,7 +49,6 @@ export const AddProductSheet = ({
   open,
   onClose,
   onAdd,
-  defaultIsIgv = true,
   editingDetail = null,
   editIndex = null,
   onEdit,
