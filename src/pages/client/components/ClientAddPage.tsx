@@ -15,7 +15,7 @@ import {
 import { CLIENT, CLIENT_ROLE_ID } from "../lib/client.interface";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL, ROUTE } = CLIENT;
+const { MODEL, ROUTE, ICON } = CLIENT;
 
 export default function ClientAddPage() {
   const navigate = useNavigate();
@@ -67,15 +67,12 @@ export default function ClientAddPage() {
 
   return (
     <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent
-            title={MODEL.name}
-            mode="create"
-            backRoute={ROUTE}
-          />
-        </div>
-      </div>
+      <TitleFormComponent
+        title={MODEL.name}
+        mode="create"
+        backRoute={ROUTE}
+        icon={ICON}
+      />
 
       <PersonForm
         onSubmit={handleSubmit}

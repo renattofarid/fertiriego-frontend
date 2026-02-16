@@ -19,7 +19,6 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
@@ -44,7 +43,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { useBranchById } from "@/pages/branch/lib/branch.hook";
 import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 import { QuotationSummary } from "./QuotationSummary";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
@@ -88,8 +86,6 @@ export const QuotationForm = ({
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
-  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
     null,
   );
@@ -132,7 +128,6 @@ export const QuotationForm = ({
     },
   });
 
-  const warehouseId = form.watch("warehouse_id");
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
 
@@ -154,9 +149,6 @@ export const QuotationForm = ({
     });
   };
 
-  // Obtener datos de la branch solo cuando tengamos un branch_id válido
-  const { data: branchData } = useBranchById(selectedBranchId || 0);
-
   const handleEditDetail = useCallback(
     (index: number) => {
       const detail = details[index];
@@ -172,9 +164,16 @@ export const QuotationForm = ({
         tax: detail.tax,
         total: detail.total,
       };
-      setEditingDetail(productDetail);
-      setEditingIndex(index);
-      setSheetOpen(true);
+
+      // Primero cerrar el sheet si está abierto
+      setSheetOpen(false);
+
+      // Luego configurar el modo de edición y abrir
+      setTimeout(() => {
+        setEditingDetail(productDetail);
+        setEditingIndex(index);
+        setSheetOpen(true);
+      }, 0);
     },
     [details],
   );
@@ -228,21 +227,7 @@ export const QuotationForm = ({
         header: "P. Unitario",
         cell: ({ row }) => (
           <div className="text-right">
-            {(
-              parseFloat(row.original.unit_price) *
-              (!row.original.is_igv ? 1.18 : 1)
-            ).toFixed(4)}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "is_igv",
-        header: "IGV",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant={!row.original.is_igv ? "default" : "secondary"}>
-              {!row.original.is_igv ? "Sí" : "No"}
-            </Badge>
+            {(parseFloat(row.original.unit_price) * 1.18).toFixed(4)}
           </div>
         ),
       },
@@ -348,27 +333,6 @@ export const QuotationForm = ({
       setDetails(loadedDetails);
     }
   }, [mode, initialData]);
-
-  // Actualizar el branch_id cuando cambie el warehouse seleccionado
-  useEffect(() => {
-    if (warehouseId) {
-      const selectedWarehouse = warehouses.find(
-        (w) => w.id.toString() === warehouseId,
-      );
-      if (selectedWarehouse?.branch_id) {
-        setSelectedBranchId(selectedWarehouse.branch_id);
-      }
-    } else {
-      setSelectedBranchId(null);
-    }
-  }, [warehouseId, warehouses]);
-
-  // Actualizar has_igv cuando se obtengan los datos de la branch
-  useEffect(() => {
-    if (branchData) {
-      setBranchHasIgv(branchData.has_igv === 1);
-    }
-  }, [branchData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -749,7 +713,6 @@ export const QuotationForm = ({
             open={sheetOpen}
             onClose={handleCloseSheet}
             onAdd={handleAddDetail}
-            defaultIsIgv={branchHasIgv}
             editingDetail={editingDetail}
             editIndex={editingIndex}
             onEdit={handleUpdateDetail}

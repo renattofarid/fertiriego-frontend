@@ -71,6 +71,21 @@ export const shippingGuideCarrierSchema = z
       "Debe seleccionar un ubigeo de destino",
     ),
     observations: z.string().max(1000).optional(),
+    // Totales
+    total_weight: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El peso total debe ser un número mayor a 0",
+      }),
+    total_packages: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El total de paquetes debe ser un número mayor a 0",
+      }),
     details: z
       .array(shippingGuideCarrierDetailSchema)
       .min(1, { message: "Debe agregar al menos un detalle" }),

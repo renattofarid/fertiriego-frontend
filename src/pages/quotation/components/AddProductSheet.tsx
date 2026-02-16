@@ -1,7 +1,6 @@
 import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
-import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
 import { Pencil, Plus, History, Package } from "lucide-react";
@@ -25,7 +24,6 @@ interface AddProductSheetProps {
   open: boolean;
   onClose: () => void;
   onAdd: (detail: ProductDetail) => void;
-  defaultIsIgv?: boolean;
   editingDetail?: ProductDetail | null;
   editIndex?: number | null;
   onEdit?: (detail: ProductDetail, index: number) => void;
@@ -38,7 +36,7 @@ export interface ProductDetail {
   product_name: string;
   is_igv: boolean;
   quantity: string;
-  unit_price: string;
+  unit_price: string; // Este será el valor unitario (sin IGV)
   purchase_price: string;
   description?: string;
   subtotal: number;
@@ -51,7 +49,6 @@ export const AddProductSheet = ({
   open,
   onClose,
   onAdd,
-  defaultIsIgv = true,
   editingDetail = null,
   editIndex = null,
   onEdit,
@@ -65,10 +62,10 @@ export const AddProductSheet = ({
       product_id: "",
       price_category_id: "",
       quantity: "",
-      unit_price: "",
+      unit_value: "", // Valor unitario (sin IGV)
+      unit_price: "", // Precio unitario (con IGV)
       purchase_price: "0",
       description: "",
-      is_igv: defaultIsIgv,
     },
   });
 
@@ -79,12 +76,13 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
   const quantity = form.watch("quantity");
+  const unitValue = form.watch("unit_value");
   const unitPrice = form.watch("unit_price");
-  const isIgv = form.watch("is_igv");
 
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
@@ -93,6 +91,43 @@ export const AddProductSheet = ({
   const { data: productPricesData } = useProductPrices({
     productId: parseInt(productId) || 0,
   });
+
+  // Función para formatear número sin ceros innecesarios
+  const formatNumber = (num: number): string => {
+    // Redondear a 4 decimales pero eliminar ceros trailing
+    return parseFloat(num.toFixed(4)).toString();
+  };
+
+  // Sincronizar unit_value y unit_price
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+
+    const value = parseFloat(unitValue);
+    if (!isNaN(value) && value > 0) {
+      setIsUpdatingPrice(true);
+      const price = value * 1.18;
+      form.setValue("unit_price", formatNumber(price));
+      setIsUpdatingPrice(false);
+    } else if (unitValue === "") {
+      form.setValue("unit_price", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unitValue]);
+
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+
+    const price = parseFloat(unitPrice);
+    if (!isNaN(price) && price > 0) {
+      setIsUpdatingPrice(true);
+      const value = price / 1.18;
+      form.setValue("unit_value", formatNumber(value));
+      setIsUpdatingPrice(false);
+    } else if (unitPrice === "") {
+      form.setValue("unit_value", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unitPrice]);
 
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
@@ -110,8 +145,13 @@ export const AddProductSheet = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          form.setValue("unit_price", priceValue.toString());
+          // Asumimos que el precio de la categoría es con IGV
+          setIsUpdatingPrice(true);
+          form.setValue("unit_price", formatNumber(priceValue));
+          const value = priceValue / 1.18;
+          form.setValue("unit_value", formatNumber(value));
           setLastSetPrice(priceValue.toString());
+          setIsUpdatingPrice(false);
         }
       }
     }
@@ -125,24 +165,27 @@ export const AddProductSheet = ({
       setLastSetPrice(null);
 
       if (editingDetail) {
+        const value = parseFloat(editingDetail.unit_price);
+        const price = value * 1.18;
+
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
           quantity: editingDetail.quantity,
-          unit_price: editingDetail.unit_price,
+          unit_value: editingDetail.unit_price, // El unit_price guardado es el valor unitario
+          unit_price: formatNumber(price),
           purchase_price: editingDetail.purchase_price ?? "0",
           description: editingDetail.description || "",
-          is_igv: editingDetail.is_igv,
         });
       } else {
         form.reset({
           product_id: "",
           price_category_id: "",
           quantity: "",
+          unit_value: "",
           unit_price: "",
           purchase_price: "0",
           description: "",
-          is_igv: defaultIsIgv,
         });
       }
     }
@@ -154,28 +197,21 @@ export const AddProductSheet = ({
     setLastSetPrice(null);
   }, [productId]);
 
+  // Calcular valores (subtotal, tax, total) usando el valor unitario
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
-    const price = parseFloat(unitPrice) || 0;
+    const value = parseFloat(unitValue) || 0;
 
-    if (qty > 0 && price > 0) {
-      if (!isIgv) {
-        // El precio NO incluye IGV: calcular el IGV
-        const subtotal = qty * price;
-        const tax = subtotal * 0.18;
-        const total = subtotal + tax;
-        setCalculatedValues({ subtotal, tax, total });
-      } else {
-        // El precio incluye IGV: desglosar el IGV
-        const total = qty * price;
-        const subtotal = total / 1.18;
-        const tax = total - subtotal;
-        setCalculatedValues({ subtotal, tax, total });
-      }
+    if (qty > 0 && value > 0) {
+      // El valor unitario NO incluye IGV, calculamos el total con IGV
+      const subtotal = qty * value;
+      const tax = subtotal * 0.18;
+      const total = subtotal + tax;
+      setCalculatedValues({ subtotal, tax, total });
     } else {
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
-  }, [quantity, unitPrice, isIgv]);
+  }, [quantity, unitValue]);
 
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
@@ -192,7 +228,7 @@ export const AddProductSheet = ({
   const handleSave = () => {
     const formData = form.getValues();
 
-    if (!formData.product_id || !formData.quantity || !formData.unit_price) {
+    if (!formData.product_id || !formData.quantity || !formData.unit_value) {
       return;
     }
 
@@ -203,9 +239,9 @@ export const AddProductSheet = ({
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: formData.is_igv,
+      is_igv: false, // false porque guardamos el valor sin IGV
       quantity: formData.quantity,
-      unit_price: formData.unit_price,
+      unit_price: formData.unit_value, // Guardamos el valor unitario (sin IGV)
       purchase_price: formData.purchase_price ?? "0",
       description: formData.description || "",
       subtotal: calculatedValues.subtotal,
@@ -225,10 +261,10 @@ export const AddProductSheet = ({
         product_id: "",
         price_category_id: "",
         quantity: "",
+        unit_value: "",
         unit_price: "",
         purchase_price: "0",
         description: "",
-        is_igv: defaultIsIgv,
       });
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
       setSelectedProduct(null);
@@ -254,7 +290,7 @@ export const AddProductSheet = ({
       title={isEditMode ? "Editar Producto" : "Agregar Producto"}
       subtitle="Complete los datos del producto"
       icon="Package"
-      size="lg"
+      size="xl"
       modal={false}
       preventAutoClose={!isEditMode}
     >
@@ -311,23 +347,23 @@ export const AddProductSheet = ({
                 Ver Stock
               </Button>
             </div>
-
-            {priceCategories && priceCategories.length > 0 && (
-              <FormSelect
-                control={form.control}
-                name="price_category_id"
-                label="Categoría de Precio"
-                options={priceCategories.map((cat) => ({
-                  value: cat.id.toString(),
-                  label: cat.name,
-                }))}
-                placeholder="Seleccionar categoría de precio (opcional)"
-              />
-            )}
           </>
         )}
 
         <div className="grid grid-cols-2 gap-4">
+          {priceCategories && priceCategories.length > 0 && (
+            <FormSelect
+              control={form.control}
+              name="price_category_id"
+              label="Categoría de Precio (opcional)"
+              options={priceCategories.map((cat) => ({
+                value: cat.id.toString(),
+                label: cat.name,
+              }))}
+              placeholder="Seleccionar categoría"
+            />
+          )}
+
           <FormInput
             control={form.control}
             name="quantity"
@@ -336,44 +372,35 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
           />
+        </div>
 
+        <div className="grid grid-cols-2 gap-4">
           <FormInput
             control={form.control}
-            name="unit_price"
-            label="Precio Unitario"
+            name="unit_value"
+            label="Valor Unitario (sin IGV)"
             type="number"
             step="0.0001"
             placeholder="0.00"
           />
 
-          {/* <div className="col-span-2">
+          <div className="col-span-1">
             <FormInput
               control={form.control}
-              name="purchase_price"
-              label="Precio Compra"
+              name="unit_price"
+              label="Precio Unitario (con IGV)"
               type="number"
               step="0.0001"
               placeholder="0.00"
             />
-          </div> */}
-
-          <div className="col-span-2">
-            <FormInput
-              control={form.control}
-              name="description"
-              label="Descripción"
-              placeholder="Descripción del producto (opcional)"
-            />
           </div>
         </div>
 
-        <FormSwitch
+        <FormInput
           control={form.control}
-          name="is_igv"
-          negate={true}
-          text="Calcular IGV"
-          textDescription="Calcular IGV para este producto"
-          autoHeight
+          name="description"
+          label="Descripción"
+          placeholder="Descripción del producto (opcional)"
         />
 
         {calculatedValues.total > 0 && (
@@ -409,7 +436,7 @@ export const AddProductSheet = ({
           <Button
             type="button"
             onClick={handleSave}
-            disabled={!productId || !quantity || !unitPrice}
+            disabled={!productId || !quantity || !unitValue}
           >
             {isEditMode ? (
               <Pencil className="mr-2 h-4 w-4" />

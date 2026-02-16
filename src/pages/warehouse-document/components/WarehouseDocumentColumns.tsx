@@ -121,7 +121,8 @@ export const WarehouseDocumentColumns = ({
           <ButtonAction
             icon={CheckCircle}
             tooltip="Confirmar Documento"
-            color="green"
+            variant="default"
+            color="primary"
             onClick={() => onConfirm(id)}
             canRender={status === "BORRADOR"}
           />

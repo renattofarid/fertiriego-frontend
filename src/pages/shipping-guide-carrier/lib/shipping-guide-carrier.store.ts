@@ -137,6 +137,8 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           destination_address: data.destination_address,
           destination_ubigeo_id: Number(data.destination_ubigeo_id),
           observations: data.observations || "",
+          total_weight: Number(data.total_weight),
+          total_packages: Number(data.total_packages),
           details: data.details.map((detail) => ({
             product_id: Number(detail.product_id),
             description: detail.description,
@@ -211,6 +213,12 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           }),
           ...(data.observations !== undefined && {
             observations: data.observations || "",
+          }),
+          ...(data.total_weight !== undefined && {
+            total_weight: Number(data.total_weight),
+          }),
+          ...(data.total_packages !== undefined && {
+            total_packages: Number(data.total_packages),
           }),
           ...(data.details && {
             details: data.details.map((detail) => ({

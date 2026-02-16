@@ -1,21 +1,16 @@
 import { useEffect } from "react";
 import { useWarehouseDocumentStore } from "./warehouse-document.store";
+import { WAREHOUSE_DOCUMENT } from "./warehouse-document.interface";
+import { getWarehouseDocuments } from "./warehouse-document.actions";
+import { useQuery } from "@tanstack/react-query";
+
+const { QUERY_KEY } = WAREHOUSE_DOCUMENT;
 
 export function useWarehouseDocuments(params?: Record<string, unknown>) {
-  const { documents, meta, isLoading, error, fetchDocuments } =
-    useWarehouseDocumentStore();
-
-  useEffect(() => {
-    if (!documents) fetchDocuments(params);
-  }, [documents, fetchDocuments]);
-
-  return {
-    data: documents,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchDocuments,
-  };
+  return useQuery({
+    queryKey: [QUERY_KEY, params],
+    queryFn: () => getWarehouseDocuments({ params }),
+  });
 }
 
 export function useWarehouseDocumentById(id: number) {

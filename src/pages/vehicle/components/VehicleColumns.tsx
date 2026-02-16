@@ -57,6 +57,10 @@ export const VehicleColumns = ({
     header: "Peso Máx. (kg)",
   },
   {
+    accessorKey: "mtc",
+    header: "MTC",
+  },
+  {
     accessorKey: "owner",
     header: "Propietario",
     cell: ({ getValue }) => {

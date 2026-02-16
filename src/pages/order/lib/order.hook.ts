@@ -1,21 +1,16 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useOrderStore } from "./order.store";
-import type { GetOrdersParams } from "./order.actions";
+import { getOrders, type GetOrdersParams } from "./order.actions";
+import { ORDER } from "./order.interface";
+
+const { QUERY_KEY } = ORDER;
 
 export function useOrder(params?: GetOrdersParams) {
-  const { orders, meta, isLoading, error, fetchOrders } = useOrderStore();
-
-  useEffect(() => {
-    if (!orders) fetchOrders(params);
-  }, [orders, fetchOrders]);
-
-  return {
-    data: orders,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchOrders,
-  };
+  return useQuery({
+    queryKey: [QUERY_KEY, params],
+    queryFn: () => getOrders(params),
+  });
 }
 
 export function useAllOrders() {

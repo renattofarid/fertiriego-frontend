@@ -48,7 +48,7 @@ export default function WarehouseDocumentPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [cancelId, setCancelId] = useState<number | null>(null);
 
-  const { data, meta, isLoading, refetch } = useWarehouseDocuments({
+  const { data, isLoading, refetch } = useWarehouseDocuments({
     page,
     per_page,
     search,
@@ -59,14 +59,7 @@ export default function WarehouseDocumentPage() {
   const { data: warehouses } = useAllWarehouses();
 
   useEffect(() => {
-    refetch({
-      page,
-      per_page,
-      search,
-      warehouse_id: selectedWarehouse,
-      type: selectedType,
-      status: selectedStatus,
-    });
+    setPage(1);
   }, [
     page,
     search,
@@ -160,7 +153,7 @@ export default function WarehouseDocumentPage() {
           onConfirm: setConfirmId,
           onCancel: setCancelId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         {warehouses && (
           <WarehouseDocumentOptions
@@ -179,11 +172,11 @@ export default function WarehouseDocumentPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (

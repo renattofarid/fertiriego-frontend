@@ -20,7 +20,7 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, EMPTY } = VEHICLE;
+const { MODEL, EMPTY, ICON } = VEHICLE;
 
 export default function VehicleModal({
   id,
@@ -51,6 +51,7 @@ export default function VehicleModal({
     color: data?.color || "",
     vehicle_type: data?.vehicle_type || "",
     max_weight: data?.max_weight ? parseFloat(data.max_weight) : 0,
+    mtc: data?.mtc || "",
     owner_id: data?.owner?.id.toString() || "",
     observations: data?.observations || "",
   });
@@ -95,7 +96,14 @@ export default function VehicleModal({
   const isLoadingAny = isSubmitting || findingVehicle;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title} size="xl">
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle="Complete el formulario para registrar un nuevo vehículo"
+      size="xl"
+      icon={ICON}
+    >
       {!isLoadingAny && vehicle ? (
         <VehicleForm
           defaultValues={mapVehicleToForm(vehicle)}

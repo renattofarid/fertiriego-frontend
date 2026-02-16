@@ -11,12 +11,7 @@ import { QUOTATION } from "./quotation.interface";
 export function useQuotations(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: [QUOTATION.QUERY_KEY, params],
-    queryFn: () =>
-      getQuotations({
-        params: {
-          ...params,
-        },
-      }),
+    queryFn: () => getQuotations(params),
   });
 }
 

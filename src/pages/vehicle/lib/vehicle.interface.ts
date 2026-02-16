@@ -42,6 +42,7 @@ export const VEHICLE: ModelComplete<VehicleResource> = {
     color: "",
     vehicle_type: "",
     max_weight: "",
+    mtc: "",
     status: "Activo",
     observations: "",
     owner: {
@@ -68,6 +69,7 @@ export interface VehicleResource {
   color: string;
   vehicle_type: string;
   max_weight: string;
+  mtc: string;
   status: string;
   observations: string;
   owner: {

@@ -10,7 +10,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { vehicleSchema, type VehicleSchema } from "../lib/vehicle.schema";
@@ -19,6 +18,7 @@ import { FormSelect } from "@/components/FormSelect";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { FormInput } from "@/components/FormInput";
 
 interface VehicleFormProps {
   defaultValues: Partial<VehicleSchema>;
@@ -45,6 +45,7 @@ export const VehicleForm = ({
       color: "",
       vehicle_type: "",
       max_weight: 0,
+      mtc: "",
       owner_id: "",
       observations: "",
       ...defaultValues,
@@ -62,79 +63,45 @@ export const VehicleForm = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-lg">
-          <FormField
+          <FormInput
             control={form.control}
             name="plate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Placa</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese la placa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese la placa"
+            label="Placa"
+            uppercase
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="brand"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Marca</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese la marca" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese la marca"
+            label="Marca"
+            uppercase
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Modelo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese el modelo" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese el modelo"
+            label="Modelo"
+            uppercase
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Año</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Ingrese el año"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese el año"
+            label="Año"
+            type="number"
+            inputMode="numeric"
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Color</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ingrese el color" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese el color"
+            label="Color"
+            uppercase
           />
 
           <FormSelect
@@ -145,40 +112,39 @@ export const VehicleForm = ({
             control={form.control}
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="max_weight"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Peso Máximo (kg)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.001"
-                    placeholder="Ingrese el peso máximo"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            placeholder="Ingrese el peso máximo"
+            label="Peso Máximo (kg)"
+            type="number"
+            step="0.001"
           />
 
-          <FormSelectAsync
-            name="owner_id"
-            label="Propietario"
-            placeholder="Seleccione el propietario"
-            useQueryHook={useWorkers}
-            mapOptionFn={(worker: PersonResource) => ({
-              value: worker.id.toString(),
-              label:
-                worker.business_name ??
-                `${worker.names} ${worker.father_surname} ${worker.mother_surname}`,
-              description: worker.number_document,
-            })}
+          <FormInput
             control={form.control}
+            name="mtc"
+            placeholder="Ingrese el MTC"
+            label="MTC"
+            uppercase
           />
+
+          <div className="col-span-full">
+            <FormSelectAsync
+              name="owner_id"
+              label="Propietario"
+              placeholder="Seleccione el propietario"
+              useQueryHook={useWorkers}
+              mapOptionFn={(worker: PersonResource) => ({
+                value: worker.id.toString(),
+                label:
+                  worker.business_name ??
+                  `${worker.names} ${worker.father_surname} ${worker.mother_surname}`,
+                description: worker.number_document,
+              })}
+              control={form.control}
+            />
+          </div>
 
           <div className="md:col-span-2">
             <FormField
