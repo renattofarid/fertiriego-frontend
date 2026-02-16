@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
-import FormWrapper from "@/components/FormWrapper";
 import {
   SHIPPING_GUIDE_CARRIER,
   UNIT_MEASUREMENTS,
@@ -42,6 +41,8 @@ import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import PageWrapper from "@/components/PageWrapper";
+import { useGuides } from "@/pages/guide/lib/guide.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -65,6 +66,8 @@ export type ShippingGuideCarrierFormValues = {
   destination_address: string;
   destination_ubigeo_id: string;
   observations?: string;
+  total_weight: number;
+  total_packages: number;
   details: {
     product_id: string;
     description: string;
@@ -75,7 +78,7 @@ export type ShippingGuideCarrierFormValues = {
 };
 
 const defaultValues: ShippingGuideCarrierFormValues = {
-  transport_modality: "PRIVADO",
+  transport_modality: "PUBLICO",
   carrier_id: "",
   driver_id: "",
   vehicle_id: "",
@@ -96,6 +99,8 @@ const defaultValues: ShippingGuideCarrierFormValues = {
   destination_address: "",
   destination_ubigeo_id: "",
   observations: "",
+  total_weight: 0,
+  total_packages: 1,
   details: [
     {
       product_id: "",
@@ -112,9 +117,6 @@ interface ShippingGuideCarrierFormProps {
   onSubmit: (values: ShippingGuideCarrierFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
-  remittents: PersonResource[];
-  recipients: PersonResource[];
-  guides: GuideResource[];
 }
 
 export function ShippingGuideCarrierForm({
@@ -122,8 +124,6 @@ export function ShippingGuideCarrierForm({
   onSubmit,
   isSubmitting = false,
   initialValues,
-  recipients,
-  guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
   const navigate = useNavigate();
@@ -162,6 +162,24 @@ export function ShippingGuideCarrierForm({
 
   const transportModality = form.watch("transport_modality");
   const selectedGuideId = form.watch("shipping_guide_remittent_id");
+
+  // Auto-setear transportista a 1860 cuando es PÚBLICO y limpiar campos de conductor/vehículo
+  useEffect(() => {
+    if (transportModality === "PUBLICO") {
+      if (mode === "create") {
+        form.setValue("carrier_id", "1860");
+      }
+      // Limpiar campos de conductor y vehículo cuando es público
+      form.setValue("driver_id", "");
+      form.setValue("vehicle_id", "");
+      form.setValue("secondary_vehicle_id", "");
+      form.setValue("driver_license", "");
+      form.setValue("vehicle_plate", "");
+      form.setValue("vehicle_brand", "");
+      form.setValue("vehicle_model", "");
+      form.setValue("vehicle_mtc", "");
+    }
+  }, [transportModality, mode, form]);
 
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
@@ -293,6 +311,22 @@ export function ShippingGuideCarrierForm({
     form.setValue("details", formatted);
   }, [details, form]);
 
+  // Calcular automáticamente el peso total
+  useEffect(() => {
+    if (details.length > 0) {
+      const totalWeight = details.reduce(
+        (sum, detail) => sum + Number(detail.weight || 0),
+        0,
+      );
+
+      // Actualizar el total_weight solo si cambió
+      const currentTotalWeight = form.getValues("total_weight");
+      if (currentTotalWeight !== totalWeight && totalWeight > 0) {
+        form.setValue("total_weight", totalWeight, { shouldValidate: false });
+      }
+    }
+  }, [details, form]);
+
   // Columnas para DataTable
   const createDetailColumns = (
     onEdit: (index: number) => void,
@@ -377,15 +411,14 @@ export function ShippingGuideCarrierForm({
   });
 
   return (
-    <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} />
-        </div>
-      </div>
+    <PageWrapper>
+      <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} />
 
       <Form {...form}>
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <form
+          onSubmit={handleFormSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* Información General */}
           <GroupFormSection
             icon={Truck}
@@ -418,7 +451,7 @@ export function ShippingGuideCarrierForm({
                   description: carrier.number_document,
                 })}
                 withValue
-                preloadItemId={initialValues?.carrier_id}
+                preloadItemId={form.getValues("carrier_id") ?? undefined}
               />
 
               <FormSelectAsync
@@ -436,29 +469,31 @@ export function ShippingGuideCarrierForm({
                 preloadItemId={initialValues?.remittent_id}
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="shipping_guide_remittent_id"
                 label="Guía de Remisión Remitente (GRR)"
                 placeholder="Seleccione GRR (Opcional)"
-                options={guides.map((g) => ({
+                useQueryHook={useGuides}
+                mapOptionFn={(g: GuideResource) => ({
                   value: g.id.toString(),
                   label: g.full_guide_number,
                   description: `${g.issue_date} - ${g.status}`,
-                }))}
+                })}
                 withValue
               />
 
-              <FormSelect
+              <FormSelectAsync
                 control={form.control}
                 name="recipient_id"
                 label="Destinatario (Opcional)"
                 placeholder="Seleccione destinatario"
-                options={recipients.map((p) => ({
+                useQueryHook={useSuppliers}
+                mapOptionFn={(p: PersonResource) => ({
                   value: p.id.toString(),
-                  label: p.business_name || `${p.names} ${p.father_surname}`,
+                  label: p.business_name ?? `${p.names} ${p.father_surname}`,
                   description: p.number_document,
-                }))}
+                })}
                 withValue
               />
 
@@ -497,7 +532,10 @@ export function ShippingGuideCarrierForm({
                         form.setValue("vehicle_plate", vehicle.plate || "");
                         form.setValue("vehicle_brand", vehicle.brand || "");
                         form.setValue("vehicle_model", vehicle.model || "");
-                        form.setValue("vehicle_mtc", vehicle.mtc_certificate || "");
+                        form.setValue(
+                          "vehicle_mtc",
+                          vehicle.mtc_certificate || "",
+                        );
                       }
                     }}
                     withValue
@@ -591,6 +629,25 @@ export function ShippingGuideCarrierForm({
                 </>
               )}
             </div>
+
+            {/* Observaciones */}
+            <FormField
+              control={form.control}
+              name="observations"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Observaciones</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder="Notas adicionales"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </GroupFormSection>
 
           {/* Fechas y Direcciones */}
@@ -612,6 +669,46 @@ export function ShippingGuideCarrierForm({
                 name="transfer_start_date"
                 label="Fecha Inicio de Traslado"
                 placeholder="Seleccione fecha"
+              />
+
+              <FormField
+                control={form.control}
+                name="total_weight"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Peso Total (Kg)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ej: 100"
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="total_packages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Total de Paquetes</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ej: 5"
+                        {...field}
+                        value={field.value || ""}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
 
               <FormSelectAsync
@@ -672,30 +769,12 @@ export function ShippingGuideCarrierForm({
             </div>
           </GroupFormSection>
 
-          {/* Observaciones */}
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={3}
-                    placeholder="Notas adicionales"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           {/* Detalles de Productos */}
           <GroupFormSection
             icon={Truck}
             title="Detalles de Productos"
             cols={{ sm: 1 }}
+            className="col-span-full"
           >
             <div className="space-y-4">
               {/* Formulario inline */}
@@ -814,7 +893,7 @@ export function ShippingGuideCarrierForm({
 
           {form.formState.errors &&
             Object.keys(form.formState.errors).length > 0 && (
-              <div className="p-4 bg-red-100 text-red-800 rounded">
+              <div className="p-4 bg-red-100 text-red-800 rounded col-span-full">
                 <strong>Errores de validación:</strong>
                 <ul className="mt-2 list-disc list-inside">
                   {Object.entries(form.formState.errors).map(
@@ -854,7 +933,7 @@ export function ShippingGuideCarrierForm({
               </div>
             )}
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 col-span-full">
             <Button
               type="button"
               variant="outline"
@@ -874,6 +953,6 @@ export function ShippingGuideCarrierForm({
           </div>
         </form>
       </Form>
-    </FormWrapper>
+    </PageWrapper>
   );
 }

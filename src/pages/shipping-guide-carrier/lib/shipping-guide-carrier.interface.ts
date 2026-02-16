@@ -192,6 +192,9 @@ export interface CreateShippingGuideCarrierRequest {
   destination_address: string;
   destination_ubigeo_id: number;
   observations?: string;
+  // Totales
+  total_weight: number;
+  total_packages: number;
   details: CreateShippingGuideCarrierDetailRequest[];
 }
 
@@ -221,6 +224,9 @@ export interface UpdateShippingGuideCarrierRequest {
   destination_address?: string;
   destination_ubigeo_id?: number;
   observations?: string;
+  // Totales
+  total_weight?: number;
+  total_packages?: number;
   details?: CreateShippingGuideCarrierDetailRequest[];
 }
 

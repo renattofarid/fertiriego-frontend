@@ -12,9 +12,8 @@ import {
   ShippingGuideCarrierForm,
   type ShippingGuideCarrierFormValues,
 } from "./ShippingGuideCarrierForm";
-import PageSkeleton from "@/components/PageSkeleton";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
-import { useAllGuides } from "@/pages/guide/lib/guide.hook";
+import { useSidebar } from "@/components/ui/sidebar";
+import FormSkeleton from "@/components/FormSkeleton";
 
 export default function ShippingGuideCarrierEditPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
@@ -23,10 +22,13 @@ export default function ShippingGuideCarrierEditPage() {
   const { guide, fetchGuide, updateGuide, isSubmitting, isFinding } =
     useShippingGuideCarrierStore();
 
+  const { setOpen, setOpenMobile } = useSidebar();
   // Hooks para datos
-  const remittents = useAllPersons();
-  const recipients = useAllPersons();
-  const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   // Cargar guía al montar
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function ShippingGuideCarrierEditPage() {
     }
   }, [id, fetchGuide]);
 
-  const isLoading = loadingGuides || !remittents || !recipients || isFinding;
+  const isLoading = isFinding;
 
   const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
     if (!id) return;
@@ -49,7 +51,7 @@ export default function ShippingGuideCarrierEditPage() {
   };
 
   if (isLoading || !guide) {
-    return <PageSkeleton />;
+    return <FormSkeleton />;
   }
 
   // Mapear datos de la guía a initialValues
@@ -77,6 +79,8 @@ export default function ShippingGuideCarrierEditPage() {
       unit: d.unit || "",
       weight: d.weight,
     })),
+    total_weight: Number(guide.total_weight),
+    total_packages: guide.total_packages,
   };
 
   return (
@@ -85,9 +89,6 @@ export default function ShippingGuideCarrierEditPage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       initialValues={initialValues}
-      remittents={remittents || []}
-      recipients={recipients || []}
-      guides={guides || []}
     />
   );
 }

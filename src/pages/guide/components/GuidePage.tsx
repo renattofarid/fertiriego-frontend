@@ -37,7 +37,7 @@ export default function GuidePage() {
     currentStatus: GuideStatus;
   } | null>(null);
   const { setOpen, setOpenMobile } = useSidebar();
-  const { data, meta, isLoading, refetch } = useGuides({
+  const { data, isLoading, refetch } = useGuides({
     page,
     search,
     per_page,
@@ -124,18 +124,18 @@ export default function GuidePage() {
           onChangeStatus: handleChangeStatus,
           onGenerateSale: handleGenerateSale,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <GuideOptions search={search} setSearch={setSearch} />
       </GuideTable>
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
 import { useForm } from "react-hook-form";
-import { Pencil, Plus, Save } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useEffect, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
