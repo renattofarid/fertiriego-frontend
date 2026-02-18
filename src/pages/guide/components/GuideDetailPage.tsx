@@ -189,67 +189,7 @@ export default function GuideDetailPage() {
           </Card>
         </div>
 
-        {/* SECCIÓN DESTACADA: Destinatario */}
-        {guide.recipient && (
-          <div className="p-4 bg-green-500/5 rounded-xl border border-green-500/20">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="bg-green-500/10 p-2 rounded-lg">
-                <UserIcon className="h-5 w-5 text-green-600" />
-              </div>
-              <p className="font-semibold text-base text-green-700 dark:text-green-400">
-                Destinatario
-              </p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Razón Social / Nombre
-                </p>
-                <p className="font-bold text-base">
-                  {getPersonName(guide.recipient)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <IdCard className="h-3 w-3" />
-                  {guide.recipient.type_document || "Documento"}
-                </p>
-                <p className="font-mono font-semibold">
-                  {guide.recipient.number_document}
-                </p>
-              </div>
-              {guide.recipient.address && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    Dirección
-                  </p>
-                  <p className="text-sm">{guide.recipient.address}</p>
-                </div>
-              )}
-              {guide.recipient.phone && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    Teléfono
-                  </p>
-                  <p className="text-sm">{guide.recipient.phone}</p>
-                </div>
-              )}
-              {guide.recipient.email && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    Correo
-                  </p>
-                  <p className="text-sm">{guide.recipient.email}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* SECCIÓN 1: Información General */}
+        {/* SECCIÓN 1: Información General + Destinatario */}
         <GroupFormSection
           title="Información General"
           icon={FileText}
@@ -280,21 +220,25 @@ export default function GuideDetailPage() {
             )}
           </div>
 
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Fecha de Emisión
-            </p>
-            <p className="font-medium">{formatDate(guide.issue_date)}</p>
-          </div>
+          {guide.issue_date && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Fecha de Emisión
+              </p>
+              <p className="font-medium">{formatDate(guide.issue_date)}</p>
+            </div>
+          )}
 
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
-              Fecha de Traslado
-            </p>
-            <p className="font-medium">{formatDate(guide.transfer_date)}</p>
-          </div>
+          {guide.transfer_date && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                Fecha de Traslado
+              </p>
+              <p className="font-medium">{formatDate(guide.transfer_date)}</p>
+            </div>
+          )}
 
           {(guide.order || guide.orden_pedido) && (
             <div className="space-y-1">
@@ -324,68 +268,71 @@ export default function GuideDetailPage() {
               <p className="font-medium">{guide.user.name}</p>
             </div>
           )}
-        </GroupFormSection>
 
-        {/* SECCIÓN 2: Ruta */}
-        <GroupFormSection
-          title="Ruta de Traslado"
-          icon={RouteIcon}
-          cols={{ sm: 1 }}
-        >
-          <div className="col-span-full">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Origen */}
-              <div className="space-y-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2">
-                  <CircleDot className="h-5 w-5 text-primary" />
-                  <p className="font-semibold text-base text-primary">Origen</p>
+          {/* Destinatario — ocupa todo el ancho */}
+          {guide.recipient && (
+            <div className="col-span-full mt-2 p-4 bg-green-500/5 rounded-lg border border-green-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="bg-green-500/10 p-1.5 rounded-md">
+                  <UserIcon className="h-4 w-4 text-green-600" />
                 </div>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{guide.origin_address}</p>
-                  </div>
-                  {guide.originUbigeo && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Ubigeo</p>
-                      <Badge variant="outline" className="font-mono">
-                        {guide.originUbigeo.cadena}
-                      </Badge>
-                    </div>
-                  )}
-                </div>
+                <p className="font-semibold text-sm text-green-700 dark:text-green-400">
+                  Destinatario
+                </p>
               </div>
-
-              {/* Destino */}
-              <div className="space-y-3 p-4 bg-destructive/5 rounded-lg border border-destructive/20">
-                <div className="flex items-center gap-2">
-                  <Flag className="h-5 w-5 text-destructive" />
-                  <p className="font-semibold text-base text-destructive">
-                    Destino
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Razón Social / Nombre
+                  </p>
+                  <p className="font-bold text-base">
+                    {getPersonName(guide.recipient)}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{guide.destination_address}</p>
-                  </div>
-                  {guide.destinationUbigeo && (
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground">Ubigeo</p>
-                      <Badge variant="outline" className="font-mono">
-                        {guide.destinationUbigeo.cadena}
-                      </Badge>
-                    </div>
-                  )}
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <IdCard className="h-3 w-3" />
+                    {guide.recipient.type_document || "Documento"}
+                  </p>
+                  <p className="font-mono font-semibold">
+                    {guide.recipient.number_document}
+                  </p>
                 </div>
+                {guide.recipient.address && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      Dirección
+                    </p>
+                    <p className="text-sm">{guide.recipient.address}</p>
+                  </div>
+                )}
+                {guide.recipient.phone && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Phone className="h-3 w-3" />
+                      Teléfono
+                    </p>
+                    <p className="text-sm">{guide.recipient.phone}</p>
+                  </div>
+                )}
+                {guide.recipient.email && (
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Mail className="h-3 w-3" />
+                      Correo
+                    </p>
+                    <p className="text-sm">{guide.recipient.email}</p>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
         </GroupFormSection>
 
-        {/* SECCIÓN 3: Vehículo y Conductor */}
+        {/* SECCIÓN 2: Transporte y Ruta */}
         <GroupFormSection
-          title="Transporte"
+          title="Transporte y Ruta"
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
         >
@@ -420,7 +367,7 @@ export default function GuideDetailPage() {
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground flex items-center gap-1">
                     <Phone className="h-3 w-3" />
-                    Teléfono
+                    Teléfono Conductor
                   </p>
                   <p className="text-sm">{guide.driver.phone}</p>
                 </div>
@@ -445,7 +392,7 @@ export default function GuideDetailPage() {
           )}
 
           {/* Vehículo */}
-          {guide.vehicle && (
+          {guide.vehicle ? (
             <>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
@@ -481,7 +428,7 @@ export default function GuideDetailPage() {
 
               {guide.vehicle.max_weight && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Peso Máximo</p>
+                  <p className="text-xs text-muted-foreground">Peso Máximo Veh.</p>
                   <p className="font-medium">{guide.vehicle.max_weight} kg</p>
                 </div>
               )}
@@ -493,10 +440,7 @@ export default function GuideDetailPage() {
                 </div>
               )}
             </>
-          )}
-
-          {/* Fallback: datos directos sin objeto vehicle */}
-          {!guide.vehicle && (guide.vehicle_plate || guide.vehicle_brand) && (
+          ) : (guide.vehicle_plate || guide.vehicle_brand) ? (
             <>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Placa</p>
@@ -506,9 +450,7 @@ export default function GuideDetailPage() {
               </div>
               {guide.vehicle_brand && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    Marca / Modelo
-                  </p>
+                  <p className="text-xs text-muted-foreground">Marca / Modelo</p>
                   <p className="font-semibold">
                     {guide.vehicle_brand} {guide.vehicle_model}
                   </p>
@@ -527,81 +469,133 @@ export default function GuideDetailPage() {
                 </div>
               )}
             </>
-          )}
+          ) : null}
+
+          {/* Ruta — ocupa todo el ancho */}
+          <div className="col-span-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+              <div className="space-y-3 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2">
+                  <CircleDot className="h-5 w-5 text-primary" />
+                  <p className="font-semibold text-base text-primary">Origen</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Dirección</p>
+                    <p className="font-medium">{guide.origin_address}</p>
+                  </div>
+                  {guide.originUbigeo && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Ubigeo</p>
+                      <Badge variant="outline" className="font-mono">
+                        {guide.originUbigeo.cadena}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 p-4 bg-destructive/5 rounded-lg border border-destructive/20">
+                <div className="flex items-center gap-2">
+                  <Flag className="h-5 w-5 text-destructive" />
+                  <p className="font-semibold text-base text-destructive">
+                    Destino
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">Dirección</p>
+                    <p className="font-medium">{guide.destination_address}</p>
+                  </div>
+                  {guide.destinationUbigeo && (
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">Ubigeo</p>
+                      <Badge variant="outline" className="font-mono">
+                        {guide.destinationUbigeo.cadena}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </GroupFormSection>
 
-        {/* SECCIÓN 4: Productos y Observaciones */}
-        {((guide.details && guide.details?.length > 0) ||
-          guide.observations) && (
-          <GroupFormSection
-            title={`Productos Transportados${guide.details?.length ? ` (${guide.details.length})` : ""}`}
-            icon={Package}
-            cols={{ sm: 1 }}
-          >
-            {guide.details && guide.details.length > 0 && (
-              <div className="space-y-3 col-span-full">
-                {guide.details.map((detail: GuideDetailResource, index) => (
-                  <div
-                    key={detail.id}
-                    className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex justify-between items-start gap-3">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start gap-2 mb-2">
-                          <Badge variant="outline" className="text-xs shrink-0">
-                            #{index + 1}
-                          </Badge>
-                          <div>
-                            <p className="font-semibold text-sm leading-tight">
-                              {detail.product_name}
-                            </p>
-                            {detail.product_code && (
-                              <p className="text-xs text-muted-foreground font-mono">
-                                Código: {detail.product_code}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        {detail.description &&
-                          detail.description !== detail.product_name && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {detail.description}
+        {/* SECCIÓN 3: Productos y Observaciones */}
+        <GroupFormSection
+          title={`Productos Transportados${guide.details?.length ? ` (${guide.details.length})` : ""}`}
+          icon={Package}
+          cols={{ sm: 1 }}
+        >
+          {guide.details && guide.details.length > 0 && (
+            <div className="space-y-3 col-span-full">
+              {guide.details.map((detail: GuideDetailResource, index) => (
+                <div
+                  key={detail.id}
+                  className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start gap-2 mb-2">
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          #{index + 1}
+                        </Badge>
+                        <div>
+                          <p className="font-semibold text-sm leading-tight">
+                            {detail.product_name}
+                          </p>
+                          {detail.product_code && (
+                            <p className="text-xs text-muted-foreground font-mono">
+                              Código: {detail.product_code}
                             </p>
                           )}
-                      </div>
-                      <div className="text-right shrink-0 space-y-1">
-                        <div>
-                          <p className="font-bold text-2xl text-primary">
-                            {detail.quantity}
-                          </p>
-                          <Badge variant="secondary" className="mt-0.5">
-                            {detail.unit || detail.unit_measure || "UND"}
-                          </Badge>
                         </div>
-                        {detail.weight && (
-                          <p className="text-xs text-muted-foreground">
-                            {detail.weight} kg
+                      </div>
+                      {detail.description &&
+                        detail.description !== detail.product_name && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {detail.description}
                           </p>
                         )}
+                    </div>
+                    <div className="text-right shrink-0 space-y-1">
+                      <div>
+                        <p className="font-bold text-2xl text-primary">
+                          {detail.quantity}
+                        </p>
+                        <Badge variant="secondary" className="mt-0.5">
+                          {detail.unit || detail.unit_measure || "UND"}
+                        </Badge>
                       </div>
+                      {detail.weight && (
+                        <p className="text-xs text-muted-foreground">
+                          {detail.weight} kg
+                        </p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
+          )}
 
-            {guide.observations && (
-              <div className="space-y-2 col-span-full">
-                <p className="text-xs text-muted-foreground font-semibold">
-                  Observaciones
-                </p>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap p-3 bg-muted/30 rounded-lg border">
-                  {guide.observations}
-                </p>
-              </div>
-            )}
-          </GroupFormSection>
-        )}
+          {guide.observations && (
+            <div className="space-y-2 col-span-full">
+              <p className="text-xs text-muted-foreground font-semibold">
+                Observaciones
+              </p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap p-3 bg-muted/30 rounded-lg border">
+                {guide.observations}
+              </p>
+            </div>
+          )}
+
+          {!guide.details?.length && !guide.observations && (
+            <p className="text-sm text-muted-foreground col-span-full text-center py-4">
+              Sin productos registrados
+            </p>
+          )}
+        </GroupFormSection>
 
         {/* Footer con metadata */}
         <Card className="bg-muted/30">

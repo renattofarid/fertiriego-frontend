@@ -46,7 +46,7 @@ export interface PurchaseResource {
   document_type: string;
   document_number: string;
   issue_date: string;
-  due_date: string | null;
+  due_date?: string;
   payment_type: string;
   total_amount: string;
   current_amount: string;

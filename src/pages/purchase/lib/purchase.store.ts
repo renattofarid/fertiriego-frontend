@@ -77,6 +77,7 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
         document_type: data.document_type,
         document_number: data.document_number,
         issue_date: data.issue_date,
+        due_date: data.due_date,
         payment_type: data.payment_type,
         currency: data.currency,
         observations: data.observations || "",
