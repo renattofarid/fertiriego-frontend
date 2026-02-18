@@ -128,7 +128,7 @@ const createDetailColumns = (
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            
             onClick={() => onEdit(index)}
           >
             <Pencil className="h-3 w-3" />
@@ -136,7 +136,7 @@ const createDetailColumns = (
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            
             onClick={() => onDelete(index)}
           >
             <Trash2 className="h-3 w-3 text-red-500" />
@@ -1071,7 +1071,7 @@ export const GuideForm = ({
                       <Button
                         type="button"
                         onClick={handleAddDetail}
-                        size="sm"
+                        
                         className="w-full"
                         disabled={
                           !currentDetail.product_id || !currentDetail.quantity

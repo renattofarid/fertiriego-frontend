@@ -13,7 +13,7 @@ export default function WarehouseActions() {
   return (
     <div className="flex items-center gap-2">
       <Button
-        size="sm"
+        
         className="ml-auto"
         onClick={() => setOpen(true)}
       >

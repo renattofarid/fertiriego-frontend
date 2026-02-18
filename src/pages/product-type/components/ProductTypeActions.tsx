@@ -10,7 +10,7 @@ export default function ProductTypeActions({
 }: ProductTypeActionsProps) {
   return (
     <div className="flex justify-end">
-      <Button size="sm" onClick={onCreateProductType}>
+      <Button  onClick={onCreateProductType}>
         <Plus className="h-4 w-4 mr-2" />
         Agregar
       </Button>

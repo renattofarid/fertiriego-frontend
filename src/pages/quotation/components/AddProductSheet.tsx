@@ -2,6 +2,7 @@ import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
+import { FormSwitch } from "@/components/FormSwitch";
 import { useForm } from "react-hook-form";
 import { Pencil, Plus, History, Package } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -36,7 +37,8 @@ export interface ProductDetail {
   product_name: string;
   is_igv: boolean;
   quantity: string;
-  unit_price: string; // Este será el valor unitario (sin IGV)
+  // Cuando is_igv=true: precio con IGV. Cuando is_igv=false: valor sin IGV.
+  unit_price: string;
   purchase_price: string;
   description?: string;
   subtotal: number;
@@ -61,6 +63,7 @@ export const AddProductSheet = ({
     defaultValues: {
       product_id: "",
       price_category_id: "",
+      is_igv: false,
       quantity: "",
       unit_value: "", // Valor unitario (sin IGV)
       unit_price: "", // Precio unitario (con IGV)
@@ -94,7 +97,6 @@ export const AddProductSheet = ({
 
   // Función para formatear número sin ceros innecesarios
   const formatNumber = (num: number): string => {
-    // Redondear a 4 decimales pero eliminar ceros trailing
     return parseFloat(num.toFixed(4)).toString();
   };
 
@@ -139,13 +141,12 @@ export const AddProductSheet = ({
       if (selectedPrice) {
         let priceValue: number = 0;
 
-        // Seleccionar el precio según la moneda (usar 0 si no existe)
         if (selectedPrice.prices) {
           priceValue = selectedPrice.prices[currency] ?? 0;
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          // Asumimos que el precio de la categoría es con IGV
+          // El precio de la categoría es con IGV
           setIsUpdatingPrice(true);
           form.setValue("unit_price", formatNumber(priceValue));
           const value = priceValue / 1.18;
@@ -161,19 +162,34 @@ export const AddProductSheet = ({
   // Cargar datos cuando se abre el sheet
   useEffect(() => {
     if (open) {
-      // Reset lastSetPrice cuando se abre el sheet
       setLastSetPrice(null);
 
       if (editingDetail) {
-        const value = parseFloat(editingDetail.unit_price);
-        const price = value * 1.18;
+        const isIgvValue = editingDetail.is_igv;
+        let unitValueField: string;
+        let unitPriceField: string;
+
+        if (isIgvValue) {
+          // unit_price guardado = precio con IGV
+          unitPriceField = editingDetail.unit_price;
+          unitValueField = formatNumber(
+            parseFloat(editingDetail.unit_price) / 1.18,
+          );
+        } else {
+          // unit_price guardado = valor sin IGV
+          unitValueField = editingDetail.unit_price;
+          unitPriceField = formatNumber(
+            parseFloat(editingDetail.unit_price) * 1.18,
+          );
+        }
 
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
+          is_igv: isIgvValue,
           quantity: editingDetail.quantity,
-          unit_value: editingDetail.unit_price, // El unit_price guardado es el valor unitario
-          unit_price: formatNumber(price),
+          unit_value: unitValueField,
+          unit_price: unitPriceField,
           purchase_price: editingDetail.purchase_price ?? "0",
           description: editingDetail.description || "",
         });
@@ -181,6 +197,7 @@ export const AddProductSheet = ({
         form.reset({
           product_id: "",
           price_category_id: "",
+          is_igv: false,
           quantity: "",
           unit_value: "",
           unit_price: "",
@@ -197,13 +214,12 @@ export const AddProductSheet = ({
     setLastSetPrice(null);
   }, [productId]);
 
-  // Calcular valores (subtotal, tax, total) usando el valor unitario
+  // Calcular valores (subtotal, tax, total) siempre usando el valor sin IGV
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
     const value = parseFloat(unitValue) || 0;
 
     if (qty > 0 && value > 0) {
-      // El valor unitario NO incluye IGV, calculamos el total con IGV
       const subtotal = qty * value;
       const tax = subtotal * 0.18;
       const total = subtotal + tax;
@@ -232,16 +248,21 @@ export const AddProductSheet = ({
       return;
     }
 
-    // En modo edición, usar el nombre del editingDetail si no hay selectedProduct
     const productName = selectedProduct?.name ?? editingDetail?.product_name;
     if (!productName) return;
+
+    // is_igv=true → se manda el precio con IGV (unit_price)
+    // is_igv=false → se manda el valor sin IGV (unit_value)
+    const sentUnitPrice = formData.is_igv
+      ? formData.unit_price
+      : formData.unit_value;
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: false, // false porque guardamos el valor sin IGV
+      is_igv: formData.is_igv,
       quantity: formData.quantity,
-      unit_price: formData.unit_value, // Guardamos el valor unitario (sin IGV)
+      unit_price: sentUnitPrice,
       purchase_price: formData.purchase_price ?? "0",
       description: formData.description || "",
       subtotal: calculatedValues.subtotal,
@@ -252,14 +273,13 @@ export const AddProductSheet = ({
 
     if (isEditMode && onEdit && editIndex !== null) {
       onEdit(detail, editIndex);
-      // En modo edición, cerrar el modal después de actualizar
       onClose();
     } else {
       onAdd(detail);
-      // En modo agregar, limpiar el formulario pero mantener el modal abierto
       form.reset({
         product_id: "",
         price_category_id: "",
+        is_igv: false,
         quantity: "",
         unit_value: "",
         unit_price: "",
@@ -275,7 +295,6 @@ export const AddProductSheet = ({
     try {
       await createProduct(data);
       successToast("Producto creado exitosamente");
-      // Invalidar el cache de react-query para refrescar la lista
       await queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
       setShowCreateProductModal(false);
     } catch (error) {
@@ -326,7 +345,6 @@ export const AddProductSheet = ({
 
         {productId && (
           <>
-            {/* Botones para ver historial de ventas y stock */}
             <div className="grid grid-cols-2 gap-2">
               <Button
                 type="button"
@@ -374,6 +392,14 @@ export const AddProductSheet = ({
           />
         </div>
 
+        <FormSwitch
+          control={form.control}
+          name="is_igv"
+          text="Precio incluye IGV"
+          textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
+          autoHeight
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <FormInput
             control={form.control}
@@ -384,16 +410,14 @@ export const AddProductSheet = ({
             placeholder="0.00"
           />
 
-          <div className="col-span-1">
-            <FormInput
-              control={form.control}
-              name="unit_price"
-              label="Precio Unitario (con IGV)"
-              type="number"
-              step="0.0001"
-              placeholder="0.00"
-            />
-          </div>
+          <FormInput
+            control={form.control}
+            name="unit_price"
+            label="Precio Unitario (con IGV)"
+            type="number"
+            step="0.0001"
+            placeholder="0.00"
+          />
         </div>
 
         <FormInput

@@ -122,14 +122,14 @@ export function PurchaseOrderDetailTable({
                   <div className="flex justify-center gap-2">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      
                       onClick={() => onEdit(detail.id)}
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      
                       onClick={() => setDeleteId(detail.id)}
                     >
                       <Trash2 className="h-4 w-4 text-red-500" />

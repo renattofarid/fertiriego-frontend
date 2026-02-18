@@ -8,7 +8,7 @@ export default function PersonActions() {
   return (
     <div className="flex items-center gap-2">
       <Button
-        size="sm"
+        
         className="ml-auto"
         onClick={() => console.log("TODO: Create person modal")}
       >

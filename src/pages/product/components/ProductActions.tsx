@@ -14,7 +14,7 @@ export default function ProductActions({ onCreateProduct }: ProductActionsProps)
   return (
     <div className="flex items-center gap-2">
       <Button
-        size="sm"
+        
         className="ml-auto"
         onClick={onCreateProduct}
       >

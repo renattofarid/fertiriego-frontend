@@ -55,7 +55,7 @@ export function FormSwitch<T extends FieldValues>({
               "flex flex-row items-center justify-between rounded-lg border shadow-xs bg-background hover:bg-muted hover:cursor-pointer",
               sizeClasses[size],
               className,
-              autoHeight ? "h-auto" : "h-8 md:h-10"
+              autoHeight ? "h-auto" : "h-8"
             )}
           >
             <div className="flex flex-col gap-1 flex-1 min-w-0">

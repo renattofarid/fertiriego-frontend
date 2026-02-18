@@ -861,7 +861,7 @@ export const PurchaseForm = ({
                   <div className="col-span-2 flex gap-1">
                     <Button
                       type="button"
-                      size="sm"
+                      
                       onClick={handleAddDetail}
                       disabled={
                         !currentDetail.product_id ||
@@ -885,7 +885,7 @@ export const PurchaseForm = ({
                     {editingDetailIndex !== null && (
                       <Button
                         type="button"
-                        size="sm"
+                        
                         variant="outline"
                         onClick={() => {
                           setEditingDetailIndex(null);
@@ -1088,7 +1088,7 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      size="sm"
+                                      
                                       onClick={() =>
                                         handleEditInstallment(index)
                                       }
@@ -1098,7 +1098,7 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      size="sm"
+                                      
                                       onClick={() =>
                                         handleRemoveInstallment(index)
                                       }

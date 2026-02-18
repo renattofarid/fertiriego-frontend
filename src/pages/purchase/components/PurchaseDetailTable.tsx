@@ -113,7 +113,7 @@ export function PurchaseDetailTable({
                             <span>
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                
                                 disabled
                                 className="cursor-not-allowed"
                               >
@@ -129,7 +129,7 @@ export function PurchaseDetailTable({
                     ) : (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        
                         onClick={() => onEdit(detail.id)}
                       >
                         <Pencil className="h-4 w-4" />
@@ -143,7 +143,7 @@ export function PurchaseDetailTable({
                             <span>
                               <Button
                                 variant="ghost"
-                                size="sm"
+                                
                                 disabled
                                 className="cursor-not-allowed"
                               >
@@ -159,7 +159,7 @@ export function PurchaseDetailTable({
                     ) : (
                       <Button
                         variant="ghost"
-                        size="sm"
+                        
                         onClick={() => setDeleteId(detail.id)}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />

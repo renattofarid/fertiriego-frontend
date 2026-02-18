@@ -58,7 +58,7 @@ export function DateRangePickerFilter({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="sm"
+          
           className={cn(
             "w-full justify-start text-left font-normal",
             !dateRange.from && "text-muted-foreground",

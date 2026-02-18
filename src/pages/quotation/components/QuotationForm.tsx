@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -214,22 +215,37 @@ export const QuotationForm = ({
         ),
       },
       {
-        accessorKey: "unit_price",
-        header: "V. Unitario",
+        accessorKey: "is_igv",
+        header: "IGV",
         cell: ({ row }) => (
-          <div className="text-right">
-            {parseFloat(row.original.unit_price).toFixed(4)}
+          <div className="flex justify-center">
+            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
+              {row.original.is_igv ? "Inc." : "No inc."}
+            </Badge>
           </div>
         ),
       },
       {
+        accessorKey: "unit_price",
+        header: "V. Unitario",
+        cell: ({ row }) => {
+          const { unit_price, is_igv } = row.original;
+          const value = is_igv
+            ? parseFloat(unit_price) / 1.18
+            : parseFloat(unit_price);
+          return <div className="text-right">{value.toFixed(4)}</div>;
+        },
+      },
+      {
         accessorKey: "unit_price_with_igv",
         header: "P. Unitario",
-        cell: ({ row }) => (
-          <div className="text-right">
-            {(parseFloat(row.original.unit_price) * 1.18).toFixed(4)}
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { unit_price, is_igv } = row.original;
+          const price = is_igv
+            ? parseFloat(unit_price)
+            : parseFloat(unit_price) * 1.18;
+          return <div className="text-right">{price.toFixed(4)}</div>;
+        },
       },
       {
         accessorKey: "subtotal",
@@ -262,7 +278,7 @@ export const QuotationForm = ({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
+              
               onClick={() => handleViewTechnicalSheets(row.index)}
               disabled={
                 !row.original.technical_sheet ||
@@ -674,7 +690,7 @@ export const QuotationForm = ({
               <Button
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                size="sm"
+                
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto

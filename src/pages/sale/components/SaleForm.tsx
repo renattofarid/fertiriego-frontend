@@ -1246,7 +1246,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleEditDetail(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1254,7 +1254,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleRemoveDetail(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1384,7 +1384,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleEditGuide(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1392,7 +1392,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleRemoveGuide(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1610,7 +1610,7 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
+                                  
                                   onClick={() => handleEditInstallment(index)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1618,7 +1618,7 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
+                                  
                                   onClick={() => handleRemoveInstallment(index)}
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />

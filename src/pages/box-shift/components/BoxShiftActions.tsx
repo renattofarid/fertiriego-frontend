@@ -8,7 +8,7 @@ export default function BoxShiftActions() {
 
   return (
     <>
-      <Button size="sm" onClick={() => setOpenModal(true)}>
+      <Button  onClick={() => setOpenModal(true)}>
         <Plus className="h-4 w-4 mr-2" />
         Abrir Turno
       </Button>

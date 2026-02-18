@@ -167,9 +167,9 @@ export const GUIDE_MOTIVE_QUERY_KEY = "shipping-motive";
 // ===== ROUTES =====
 
 export const GuideRoute = "/guias-remision";
-export const GuideAddRoute = "/guias/agregar";
-export const GuideEditRoute = "/guias/actualizar/:id";
-export const GuideDetailRoute = "/guias/:id";
+export const GuideAddRoute = `${GuideRoute}/agregar`;
+export const GuideEditRoute = `${GuideRoute}/actualizar/:id`;
+export const GuideDetailRoute = `${GuideRoute}/:id`;
 
 // ===== STATUS & TYPE OPTIONS =====
 

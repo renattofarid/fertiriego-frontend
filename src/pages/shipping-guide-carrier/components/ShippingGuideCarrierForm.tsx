@@ -366,7 +366,7 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -374,7 +374,7 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -869,7 +869,7 @@ export function ShippingGuideCarrierForm({
                   <Button
                     type="button"
                     onClick={handleAddOrUpdateDetail}
-                    size="sm"
+                    
                   >
                     {editingDetailIndex !== null ? (
                       <>

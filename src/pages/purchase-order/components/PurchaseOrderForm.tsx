@@ -490,7 +490,7 @@ export const PurchaseOrderForm = ({
                 <div className="col-span-2 flex gap-1">
                   <Button
                     type="button"
-                    size="sm"
+                    
                     onClick={handleAddDetail}
                     disabled={
                       !currentDetail.product_id ||
@@ -514,7 +514,7 @@ export const PurchaseOrderForm = ({
                   {editingDetailIndex !== null && (
                     <Button
                       type="button"
-                      size="sm"
+                      
                       variant="outline"
                       onClick={() => {
                         setEditingDetailIndex(null);

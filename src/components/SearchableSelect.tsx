@@ -54,7 +54,7 @@ export function SearchableSelect({
   withValue = true,
   label,
   disabled = false,
-  buttonSize = "sm",
+  buttonSize = "default",
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");

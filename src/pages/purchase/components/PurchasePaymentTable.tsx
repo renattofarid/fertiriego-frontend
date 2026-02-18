@@ -114,10 +114,10 @@ export function PurchasePaymentTable({
                 </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => onEdit(payment.id)}>
+                    <Button variant="ghost"  onClick={() => onEdit(payment.id)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteId(payment.id)}>
+                    <Button variant="ghost"  onClick={() => setDeleteId(payment.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </div>

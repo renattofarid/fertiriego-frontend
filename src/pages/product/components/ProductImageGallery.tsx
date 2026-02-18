@@ -100,7 +100,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
         </p>
         <Button
           variant="outline"
-          size="sm"
+          
           onClick={() => setShowImageUpload(true)}
           className="gap-2"
         >
@@ -127,7 +127,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
                 <Button
                   variant="secondary"
-                  size="sm"
+                  
                   onClick={() => setSelectedImage(imageData.image_url)}
                   className="h-8 w-8 p-0"
                 >
@@ -135,7 +135,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
                 </Button>
                 <Button
                   variant="destructive"
-                  size="sm"
+                  
                   onClick={() => setDeleteImageId(imageData.id)}
                   className="h-8 w-8 p-0"
                 >

@@ -228,7 +228,7 @@ export default function WarehouseDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -236,7 +236,7 @@ export default function WarehouseDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -437,7 +437,7 @@ export default function WarehouseDocumentForm({
                 <Button
                   type="button"
                   variant="default"
-                  size="sm"
+                  
                   onClick={handleAddOrUpdateDetail}
                   className="w-full h-10"
                 >

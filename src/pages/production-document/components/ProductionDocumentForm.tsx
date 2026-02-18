@@ -258,7 +258,7 @@ export function ProductionDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -266,7 +266,7 @@ export function ProductionDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -563,7 +563,7 @@ export function ProductionDocumentForm({
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  
                   onClick={handleAddOrUpdateComponent}
                   className="h-10"
                 >
