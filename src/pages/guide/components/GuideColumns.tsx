@@ -128,6 +128,10 @@ export const GuideColumns = ({
     },
   },
   {
+    accessorKey: "user.name",
+    header: "Usuario",
+  },
+  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (

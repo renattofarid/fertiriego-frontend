@@ -283,7 +283,8 @@ export const PurchaseOrderForm = ({
   // Calcular total desde los detalles actuales
   const subtotalBase = calculateTotal();
 
-  // Calcular IGV y total con IGV (siempre desde subtotales en modo create)
+  // apply_igv=true → los precios NO incluyen IGV → hay que agregar el 18%
+  // apply_igv=false → no se aplica IGV
   const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 2);
   const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 2);
 

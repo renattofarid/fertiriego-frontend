@@ -83,6 +83,7 @@ export interface CreateGuideRequest {
   issue_date: string;
   transfer_date: string;
   motive_id: number;
+  order?: string;
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;
@@ -122,6 +123,7 @@ export interface UpdateGuideRequest {
   issue_date?: string;
   transfer_date?: string;
   motive_id?: number;
+  order?: string;
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;

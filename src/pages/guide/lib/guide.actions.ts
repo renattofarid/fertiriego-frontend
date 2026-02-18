@@ -8,6 +8,7 @@ import type {
   GuideResourceById,
 } from "./guide.interface";
 import { GUIDE_ENDPOINT, GUIDE_MOTIVE_ENDPOINT } from "./guide.interface";
+import type { AxiosRequestConfig } from "axios";
 
 // ============================================
 // GUIDE - Main CRUD Actions
@@ -26,7 +27,7 @@ export interface GetGuidesParams {
 }
 
 export const getGuides = async (
-  params?: GetGuidesParams
+  params?: GetGuidesParams,
 ): Promise<GuideResponse> => {
   const response = await api.get<GuideResponse>(GUIDE_ENDPOINT, {
     params,
@@ -47,7 +48,7 @@ export const findGuideById = async (id: number): Promise<GuideResourceById> => {
 };
 
 export const storeGuide = async (
-  data: CreateGuideRequest
+  data: CreateGuideRequest,
 ): Promise<{ message: string }> => {
   const response = await api.post<{ message: string }>(GUIDE_ENDPOINT, data);
   return response.data;
@@ -55,18 +56,18 @@ export const storeGuide = async (
 
 export const updateGuide = async (
   id: number,
-  data: UpdateGuideRequest
+  data: UpdateGuideRequest,
 ): Promise<{ message: string }> => {
   const response = await api.put<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}`,
-    data
+    data,
   );
   return response.data;
 };
 
 export const deleteGuide = async (id: number): Promise<{ message: string }> => {
   const response = await api.delete<{ message: string }>(
-    `${GUIDE_ENDPOINT}/${id}`
+    `${GUIDE_ENDPOINT}/${id}`,
   );
   return response.data;
 };
@@ -77,11 +78,11 @@ export interface ChangeGuideStatusRequest {
 
 export const changeGuideStatus = async (
   id: number,
-  data: ChangeGuideStatusRequest
+  data: ChangeGuideStatusRequest,
 ): Promise<{ message: string }> => {
   const response = await api.patch<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}/status`,
-    data
+    data,
   );
   return response.data;
 };
@@ -91,7 +92,15 @@ export const changeGuideStatus = async (
 // ============================================
 
 export const getGuideMotives = async (): Promise<GuideMotiveResponse> => {
-  const response = await api.get<GuideMotiveResponse>(GUIDE_MOTIVE_ENDPOINT);
+  const config: AxiosRequestConfig = {
+    params: {
+      direction: "asc",
+    },
+  };
+  const response = await api.get<GuideMotiveResponse>(
+    GUIDE_MOTIVE_ENDPOINT,
+    config,
+  );
   return response.data;
 };
 
@@ -115,7 +124,7 @@ export interface ExportGuidesParams {
 }
 
 export const exportGuidesToExcel = async (
-  params?: ExportGuidesParams
+  params?: ExportGuidesParams,
 ): Promise<Blob> => {
   const response = await api.get(`${GUIDE_ENDPOINT}/export`, {
     params,
@@ -125,7 +134,7 @@ export const exportGuidesToExcel = async (
 };
 
 export const exportGuidesToPDF = async (
-  params?: ExportGuidesParams
+  params?: ExportGuidesParams,
 ): Promise<Blob> => {
   const response = await api.get(`${GUIDE_ENDPOINT}/export-pdf`, {
     params,

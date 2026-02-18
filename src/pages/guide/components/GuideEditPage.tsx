@@ -73,11 +73,11 @@ export default function GuideEditPage() {
       vehicle_id: data.vehicle?.id?.toString() || "",
       secondary_vehicle_id:
         (data as any).secondary_vehicle?.id?.toString() || undefined,
-      driver_license: data.driver_license || "",
-      vehicle_plate: (data as any).vehicle_plate || "",
-      vehicle_brand: (data as any).vehicle_brand || "",
-      vehicle_model: (data as any).vehicle_model || "",
-      vehicle_mtc: (data as any).vehicle_mtc || "",
+      driver_license: data.driver_license || "-",
+      vehicle_plate: (data as any).vehicle_plate || "-",
+      vehicle_brand: (data as any).vehicle_brand || "-",
+      vehicle_model: (data as any).vehicle_model || "-",
+      vehicle_mtc: (data as any).vehicle_mtc || "-",
       remittent_id: (data as any).remittent?.id?.toString() || "1860",
       shipping_guide_remittent_id:
         (data as any).shipping_guide_remittent?.id?.toString() || undefined,

@@ -38,6 +38,7 @@ interface PersonFormProps {
   onCancel?: () => void;
   roleId: number; // Role ID to assign automatically
   isWorker?: boolean; // If true, only allow DNI and NATURAL person
+  showDriverLicense?: boolean; // If true, show driver license field
 }
 
 export const PersonForm = ({
@@ -47,6 +48,7 @@ export const PersonForm = ({
   onCancel,
   roleId,
   isWorker = false,
+  showDriverLicense = false,
 }: PersonFormProps) => {
   const isEditing = !!initialData;
 
@@ -67,6 +69,7 @@ export const PersonForm = ({
       address: initialData?.address || "",
       phone: initialData?.phone || "",
       email: initialData?.email || "",
+      driver_license: (initialData as any)?.driver_license || "",
       role_id: roleId.toString(),
     },
     mode: "onChange", // Validate on change for immediate feedback
@@ -510,6 +513,29 @@ export const PersonForm = ({
                 )
               }
             />
+
+            {showDriverLicense && (
+              <FormField
+                control={form.control}
+                name="driver_license"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Licencia de Conducir</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: B II-12345"
+                        {...field}
+                        value={field.value || ""}
+                        maxLength={20}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    <div className="h-4"></div>
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* <FormField
               control={form.control}

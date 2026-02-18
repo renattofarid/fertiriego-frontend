@@ -1,8 +1,6 @@
-"use client";
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import TitleFormComponent from "@/components/TitleFormComponent";
+import { useQueryClient } from "@tanstack/react-query";
+import { GeneralModal } from "@/components/GeneralModal";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { createPersonWithRole } from "@/pages/person/lib/person.actions";
@@ -13,21 +11,24 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { DRIVER, DRIVER_ROLE_ID } from "../lib/driver.interface";
-import FormWrapper from "@/components/FormWrapper";
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
 
 const { MODEL, ICON } = DRIVER;
 
-export default function DriverAddPage() {
-  const navigate = useNavigate();
+export default function DriverCreateModal({ open, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: PersonSchema) => {
     setIsSubmitting(true);
     try {
-      // Transform PersonSchema to CreatePersonRequest
       const createPersonData = {
-        username: data.number_document, // Use document number as username
-        password: data.number_document, // Use document number as password
+        username: data.number_document,
+        password: data.number_document,
         type_document: data.type_document,
         type_person: data.type_person,
         number_document: data.number_document,
@@ -42,23 +43,20 @@ export default function DriverAddPage() {
         address: data.address || "",
         phone: data.phone,
         email: data.email,
+        driver_license: (data as any).driver_license || "",
         status: "Activo",
         role_id: Number(data.role_id),
       };
 
-      await createPersonWithRole(createPersonData, Number(data.role_id));
-      successToast(
-        SUCCESS_MESSAGE({ name: "Conductor", gender: false }, "create")
-      );
-      navigate("/conductores");
+      await createPersonWithRole(createPersonData, DRIVER_ROLE_ID);
+      await queryClient.invalidateQueries({ queryKey: [DRIVER.QUERY_KEY] });
+      successToast(SUCCESS_MESSAGE(MODEL, "create"));
+      onClose();
     } catch (error: any) {
-      const errorMessage =
-        ((error.response.data.message ??
-          error.response.data.error) as string) ?? "Error al crear conductor";
-
       errorToast(
-        errorMessage,
-        ERROR_MESSAGE({ name: "Conductor", gender: false }, "create")
+        error?.response?.data?.message ??
+          error?.response?.data?.error ??
+          ERROR_MESSAGE(MODEL, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -66,21 +64,22 @@ export default function DriverAddPage() {
   };
 
   return (
-    <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-        </div>
-      </div>
-
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={`Crear ${MODEL.name}`}
+      subtitle="Complete el formulario para registrar un nuevo conductor"
+      size="3xl"
+      icon={ICON}
+    >
       <PersonForm
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onCancel={() => navigate("/conductores")}
+        onCancel={onClose}
         roleId={DRIVER_ROLE_ID}
         isWorker={true}
         showDriverLicense={true}
       />
-    </FormWrapper>
+    </GeneralModal>
   );
 }

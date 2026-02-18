@@ -34,6 +34,8 @@ interface SaleSummaryProps {
   calculateDetailsSubtotal: () => number;
   calculateDetailsIGV: () => number;
   calculateDetailsTotal: () => number;
+  calculateRetencion?: () => number;
+  calculateNetTotal?: () => number;
   calculatePaymentTotal?: () => number;
   installmentsMatchTotal?: () => boolean;
   paymentAmountsMatchTotal?: () => boolean;
@@ -52,6 +54,8 @@ export function SaleSummary({
   calculateDetailsSubtotal,
   calculateDetailsIGV,
   calculateDetailsTotal,
+  calculateRetencion,
+  calculateNetTotal,
   calculatePaymentTotal: _calculatePaymentTotal,
   installmentsMatchTotal,
   paymentAmountsMatchTotal,
@@ -221,14 +225,26 @@ export function SaleSummary({
               </span>
             </div>
 
+            {calculateRetencion && calculateRetencion() > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">Retención IGV (3%)</span>
+                <span className="font-medium text-red-600">
+                  - {currencySymbol} {formatNumber(calculateRetencion())}
+                </span>
+              </div>
+            )}
+
             <Separator className="bg-primary/20" />
 
             <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary/30">
               <span className="text-base font-semibold text-primary">
-                Total
+                {calculateRetencion && calculateRetencion() > 0 ? "Total a Cobrar" : "Total"}
               </span>
               <span className="text-xl font-bold text-primary">
-                {currencySymbol} {formatNumber(calculateDetailsTotal())}
+                {currencySymbol}{" "}
+                {formatNumber(
+                  calculateNetTotal ? calculateNetTotal() : calculateDetailsTotal(),
+                )}
               </span>
             </div>
             {selectedPaymentType && (

@@ -50,6 +50,12 @@ import { useRemittents } from "@/pages/person/lib/person.hook";
 import { findSaleById } from "@/pages/sale/lib/sale.actions";
 import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
 import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
+import { findPersonById } from "@/pages/person/lib/person.actions";
+import { getVehicleById } from "@/pages/vehicle/lib/vehicle.actions";
+import { FormInput } from "@/components/FormInput";
+import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
+import VehicleModal from "@/pages/vehicle/components/VehicleModal";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -125,18 +131,12 @@ const createDetailColumns = (
       const index = table.getRowModel().rows.findIndex((r) => r.id === row.id);
       return (
         <div className="flex justify-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            
-            onClick={() => onEdit(index)}
-          >
+          <Button type="button" variant="outline" onClick={() => onEdit(index)}>
             <Pencil className="h-3 w-3" />
           </Button>
           <Button
             type="button"
             variant="outline"
-            
             onClick={() => onDelete(index)}
           >
             <Trash2 className="h-3 w-3 text-red-500" />
@@ -167,6 +167,8 @@ export const GuideForm = ({
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
   );
+  const [driverModalOpen, setDriverModalOpen] = useState(false);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     index: "",
     product_id: 0,
@@ -194,6 +196,8 @@ export const GuideForm = ({
   const saleId = form.watch("sale_id");
   const purchaseId = form.watch("purchase_id");
   const warehouseDocumentId = form.watch("warehouse_document_id");
+  const driverId = form.watch("driver_id");
+  const vehicleId = form.watch("vehicle_id");
 
   // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
@@ -238,7 +242,10 @@ export const GuideForm = ({
 
             // Setear el recipient_id con el customer_id del pedido
             if (response.data.order?.customer?.id) {
-              form.setValue("recipient_id", response.data.order.customer.id.toString());
+              form.setValue(
+                "recipient_id",
+                response.data.order.customer.id.toString(),
+              );
             }
           }
         } catch (error) {
@@ -287,7 +294,7 @@ export const GuideForm = ({
                 quantity: detail.quantity.toString(),
                 unit_measure: "UND",
                 weight: "0",
-              })
+              }),
             );
             setDetails(saleDetails);
           }
@@ -328,7 +335,7 @@ export const GuideForm = ({
                 quantity: detail.quantity.toString(),
                 unit_measure: "UND",
                 weight: "0",
-              })
+              }),
             );
             setDetails(purchaseDetails);
           }
@@ -357,7 +364,7 @@ export const GuideForm = ({
 
         try {
           const response = await findWarehouseDocumentById(
-            Number(warehouseDocumentId)
+            Number(warehouseDocumentId),
           );
 
           // Llenar automáticamente los detalles con los productos del documento
@@ -371,7 +378,7 @@ export const GuideForm = ({
                 quantity: detail.quantity.toString(),
                 unit_measure: "UND",
                 weight: "0",
-              })
+              }),
             );
             setDetails(warehouseDocDetails);
           }
@@ -388,6 +395,35 @@ export const GuideForm = ({
 
     loadWarehouseDocument();
   }, [warehouseDocumentId, mode]);
+
+  // Autocompletar campos del conductor cuando se selecciona
+  useEffect(() => {
+    if (!driverId || driverId === "") return;
+    findPersonById(Number(driverId))
+      .then((response) => {
+        const driver = response.data;
+        if (driver?.number_document) {
+          form.setValue("driver_license", driver.driver_license);
+        }
+      })
+      .catch(console.error);
+  }, [driverId]);
+
+  // Autocompletar campos del vehículo cuando se selecciona
+  useEffect(() => {
+    if (!vehicleId || vehicleId === "") return;
+    getVehicleById(Number(vehicleId))
+      .then((response) => {
+        const vehicle = response.data;
+        if (vehicle) {
+          form.setValue("vehicle_plate", vehicle.plate);
+          form.setValue("vehicle_brand", vehicle.brand);
+          form.setValue("vehicle_model", vehicle.model);
+          form.setValue("vehicle_mtc", vehicle.mtc);
+        }
+      })
+      .catch(console.error);
+  }, [vehicleId]);
 
   // Establecer fechas automáticamente
   useEffect(() => {
@@ -457,7 +493,7 @@ export const GuideForm = ({
     if (details.length > 0) {
       const totalWeight = details.reduce(
         (sum, detail) => sum + Number(detail.weight || 0),
-        0
+        0,
       );
 
       // Actualizar el total_weight solo si cambió
@@ -600,6 +636,14 @@ export const GuideForm = ({
             label="Fecha de Traslado"
           />
 
+          <FormInput
+            control={form.control}
+            name="order"
+            label="Orden de Pedido"
+            placeholder="Ej: OC-00123"
+            maxLength={100}
+          />
+
           <div className="relative">
             <FormSelectAsync
               control={form.control}
@@ -740,80 +784,88 @@ export const GuideForm = ({
           cols={{ sm: 1, md: 2 }}
           gap="gap-3"
         >
-          <FormSelectAsync
-            control={form.control}
-            name="carrier_id"
-            label="Transportista"
-            placeholder="Seleccione un transportista"
-            useQueryHook={useCarriers}
-            mapOptionFn={(carrier) => ({
-              value: carrier.id.toString(),
-              label:
-                carrier.business_name ||
-                `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-            })}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="dispatcher_id"
-            label="Despachador (Opcional)"
-            placeholder="Seleccione un despachador"
-            useQueryHook={useSuppliers}
-            mapOptionFn={(supplier) => ({
-              value: supplier.id.toString(),
-              label:
-                supplier.business_name ||
-                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-            })}
-          />
+          {transportModality !== "PRIVADO" && (
+            <FormSelectAsync
+              control={form.control}
+              name="carrier_id"
+              label="Transportista"
+              placeholder="Seleccione un transportista"
+              useQueryHook={useCarriers}
+              mapOptionFn={(carrier) => ({
+                value: carrier.id.toString(),
+                label:
+                  carrier.business_name ||
+                  `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+              })}
+            />
+          )}
 
           {transportModality === "PRIVADO" && (
             <>
-              <FormSelectAsync
-                control={form.control}
-                name="driver_id"
-                label="Conductor"
-                placeholder="Seleccione un conductor"
-                useQueryHook={useDrivers}
-                mapOptionFn={(driver) => ({
-                  value: driver.id.toString(),
-                  label:
-                    driver.business_name ||
-                    `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-                })}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelectAsync
+                    control={form.control}
+                    name="driver_id"
+                    label="Conductor"
+                    placeholder="Seleccione un conductor"
+                    useQueryHook={useDrivers}
+                    mapOptionFn={(driver) => ({
+                      value: driver.id.toString(),
+                      label:
+                        driver.business_name ||
+                        `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
+                      description: driver.number_document || "",
+                    })}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 mb-[2px]"
+                  title="Crear conductor"
+                  onClick={() => setDriverModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
-              <FormSelectAsync
-                control={form.control}
-                name="vehicle_id"
-                label="Vehículo"
-                placeholder="Seleccione un vehículo"
-                useQueryHook={useVehicles}
-                mapOptionFn={(vehicle) => ({
-                  value: vehicle.id.toString(),
-                  label: vehicle.plate,
-                  description: `${vehicle.brand} ${vehicle.model}`,
-                })}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelectAsync
+                    control={form.control}
+                    name="vehicle_id"
+                    label="Vehículo"
+                    placeholder="Seleccione un vehículo"
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 mb-[2px]"
+                  title="Crear vehículo"
+                  onClick={() => setVehicleModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: B12345678"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={20}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Licencia del Conductor"
+                placeholder="Ej: B12345678"
+                className="border-dashed"
+                maxLength={30}
+                uppercase
               />
 
               <FormSelectAsync
@@ -829,80 +881,44 @@ export const GuideForm = ({
                 })}
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_plate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: ABC-123"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={20}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Placa del Vehículo"
+                placeholder="Ej: ABC-123"
+                className="border-dashed"
+                maxLength={20}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_brand"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marca del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Toyota"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={100}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Marca del Vehículo"
+                placeholder="Ej: Toyota"
+                className="border-dashed"
+                maxLength={100}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modelo del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Hilux"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={100}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Modelo del Vehículo"
+                placeholder="Ej: Hilux"
+                className="border-dashed"
+                maxLength={100}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_mtc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Certificado MTC</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: MTC123456"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={50}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Certificado MTC"
+                placeholder="Ej: MTC123456"
+                className="border-dashed"
+                maxLength={50}
+                uppercase
               />
             </>
           )}
@@ -969,6 +985,20 @@ export const GuideForm = ({
                 <FormMessage />
               </FormItem>
             )}
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="dispatcher_id"
+            label="Despachador (Opcional)"
+            placeholder="Seleccione un despachador"
+            useQueryHook={useSuppliers}
+            mapOptionFn={(supplier) => ({
+              value: supplier.id.toString(),
+              label:
+                supplier.business_name ||
+                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
+            })}
           />
         </GroupFormSection>
 
@@ -1071,7 +1101,6 @@ export const GuideForm = ({
                       <Button
                         type="button"
                         onClick={handleAddDetail}
-                        
                         className="w-full"
                         disabled={
                           !currentDetail.product_id || !currentDetail.quantity
@@ -1114,7 +1143,10 @@ export const GuideForm = ({
                         </label>
                         <Input
                           type="number"
-                          value={details.reduce((sum, detail) => sum + Number(detail.quantity || 0), 0)}
+                          value={details.reduce(
+                            (sum, detail) => sum + Number(detail.quantity || 0),
+                            0,
+                          )}
                           readOnly
                           disabled
                           className="bg-muted"
@@ -1188,6 +1220,18 @@ export const GuideForm = ({
           </Button>
         </div>
       </form>
+
+      <DriverCreateModal
+        open={driverModalOpen}
+        onClose={() => setDriverModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
     </Form>
   );
 };

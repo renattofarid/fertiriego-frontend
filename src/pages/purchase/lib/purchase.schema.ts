@@ -68,6 +68,13 @@ export const purchaseSchemaCreate = z.object({
     .refine((val) => !isNaN(Date.parse(val)), {
       message: "La fecha de emisión no es válida",
     }),
+  due_date: z
+    .string()
+    .optional()
+    .nullable()
+    .refine((val) => !val || !isNaN(Date.parse(val)), {
+      message: "La fecha de vencimiento no es válida",
+    }),
   payment_type: z
     .string()
     .min(1, { message: "Debe seleccionar un tipo de pago" }),

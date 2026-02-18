@@ -28,33 +28,22 @@ export default function PurchaseOrderPage() {
   const [selectedStatus, setSelectedStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const { data, meta, isLoading, refetch } = usePurchaseOrder();
+  const { data, isLoading, refetch } = usePurchaseOrder();
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-    };
-    refetch(filterParams);
+    setPage(1);
   }, [page, search, per_page, selectedStatus, refetch]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deletePurchaseOrder(deleteId);
-      const filterParams = {
-        page,
-        search,
-        per_page,
-        ...(selectedStatus && { status: selectedStatus }),
-      };
-      await refetch(filterParams);
+      await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) || ERROR_MESSAGE(MODEL, "delete");
+        (error.response.data.message ?? error.response.data.error) ||
+        ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -88,7 +77,7 @@ export default function PurchaseOrderPage() {
           onEdit: handleEditPurchaseOrder,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <PurchaseOrderOptions
           search={search}
@@ -100,11 +89,11 @@ export default function PurchaseOrderPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (

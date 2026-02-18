@@ -44,7 +44,7 @@ import {
   CURRENCIES,
 } from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { FileText, Package, CalendarDays, ShoppingCart } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
@@ -58,6 +58,8 @@ import { PurchaseDetailModal } from "./PurchaseDetailModal";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { PurchaseInstallmentModal } from "./PurchaseInstallmentModal";
 import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
+import { usePurchaseOrder } from "@/pages/purchase-order/lib/purchase-order.hook";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -215,14 +217,14 @@ export const PurchaseForm = ({
           let total = 0;
 
           if (watchIncludeIgv) {
-            // unitPrice incluye IGV: descomponer (truncando resultados)
+            // unitPrice incluye IGV: descomponer
             const totalIncl = truncDecimal(quantity * unitPrice, 2);
             subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
             tax = truncDecimal(totalIncl - subtotal, 2);
             total = totalIncl;
           } else {
-            tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
-            total = truncDecimal(subtotal + tax, 2);
+            tax = Math.round(subtotal * IGV_RATE * 100) / 100;
+            total = Math.round((subtotal + tax) * 100) / 100;
           }
 
           return {
@@ -284,11 +286,11 @@ export const PurchaseForm = ({
     });
   };
 
-  // Establecer fecha de emisión automáticamente al cargar el formulario
+  // Establecer fechas por defecto: emisión = hoy, vencimiento = hoy + 1 mes
   useEffect(() => {
     const today = new Date();
-    const formattedDate = format(today, "yyyy-MM-dd");
-    form.setValue("issue_date", formattedDate);
+    form.setValue("issue_date", format(today, "yyyy-MM-dd"));
+    form.setValue("due_date", format(addMonths(today, 1), "yyyy-MM-dd"));
   }, [form]);
 
   // Auto-llenar datos cuando se selecciona una orden de compra
@@ -311,11 +313,10 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
-    // Setear el include_igv según el apply_igv de la orden
-    // Si apply_igv = true → se le aplicó IGV → los precios NO incluyen IGV → include_igv = false
-    // Si apply_igv = false → no se le aplicó IGV → los precios ya incluyen IGV → include_igv = true
+    // apply_igv=true (PO aplica IGV → precios son netos) → include_igv=false → agregar 18%
+    // apply_igv=false (PO sin IGV → precios son finales) → include_igv=true → descomponer
     const applyIgvBoolean = Boolean(selectedPO.apply_igv);
-    const includeIgvValue = !applyIgvBoolean; // Lógica inversa
+    const includeIgvValue = !applyIgvBoolean;
     igvForm.setValue("include_igv", includeIgvValue);
     setIncludeIgv(includeIgvValue);
 
@@ -329,14 +330,14 @@ export const PurchaseForm = ({
         let total = 0;
 
         if (includeIgvValue) {
-          // unitPrice incluye IGV: descomponer (truncando resultados)
+          // unitPrice incluye IGV: descomponer
           const totalIncl = truncDecimal(quantity * unitPrice, 2);
           subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
           tax = truncDecimal(totalIncl - subtotal, 2);
           total = totalIncl;
         } else {
-          tax = truncDecimal(subtotal * IGV_RATE, 2);
-          total = truncDecimal(subtotal + tax, 2);
+          tax = Math.round(subtotal * IGV_RATE * 100) / 100;
+          total = Math.round((subtotal + tax) * 100) / 100;
         }
 
         return {
@@ -376,14 +377,14 @@ export const PurchaseForm = ({
     let total = 0;
 
     if (includeIgv) {
-      // unitPrice incluye IGV: descomponer (truncando resultados)
+      // unitPrice incluye IGV: descomponer
       const totalIncl = truncDecimal(quantity * unitPrice, 2);
       subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
       tax = truncDecimal(totalIncl - subtotal, 2);
       total = totalIncl;
     } else {
-      tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
-      total = truncDecimal(subtotal + tax, 2);
+      tax = Math.round(subtotal * IGV_RATE * 100) / 100;
+      total = Math.round((subtotal + tax) * 100) / 100;
     }
 
     const newDetail: DetailRow = {
@@ -653,18 +654,16 @@ export const PurchaseForm = ({
               cols={{ sm: 1, md: 2, lg: 3 }}
             >
               <div className="md:col-span-2 lg:col-span-3">
-                <FormSelect
+                <FormSelectAsync
                   control={form.control}
                   name="purchase_order_id"
                   label="Orden de Compra (Opcional - Auto-llena los datos)"
                   placeholder="Seleccione una orden de compra"
-                  options={[
-                    { value: "", label: "Ninguna - Llenar manualmente" },
-                    ...purchaseOrders.map((po) => ({
-                      value: po.id.toString(),
-                      label: `${po.correlativo} (${po.supplier_fullname})`,
-                    })),
-                  ]}
+                  useQueryHook={usePurchaseOrder}
+                  mapOptionFn={(purchaseOrder: PurchaseOrderResource) => ({
+                    value: purchaseOrder.id.toString(),
+                    label: `${purchaseOrder.correlativo} (${purchaseOrder.supplier_fullname})`,
+                  })}
                 />
               </div>
 
@@ -777,16 +776,33 @@ export const PurchaseForm = ({
                 }))}
               />
 
-              <div className="lg:col-span-2">
-                <FormSwitch
-                  control={igvForm.control}
-                  name="include_igv"
-                  text="Los precios incluyen IGV"
-                  textDescription="El precio unitario de los productos incluye el IGV (18%)"
-                  autoHeight
-                  negate
-                />
-              </div>
+              <DatePickerFormField
+                control={form.control}
+                name="issue_date"
+                label="Fecha de Emisión"
+                placeholder="Seleccione la fecha de emisión"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="due_date"
+                label="Fecha de Vencimiento"
+                placeholder="Seleccione la fecha de vencimiento"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              {mode === "create" && (
+                <div className="lg:col-span-2">
+                  <FormSwitch
+                    control={igvForm.control}
+                    name="include_igv"
+                    text="Los precios incluyen IGV"
+                    textDescription="El precio unitario de los productos incluye el IGV (18%)"
+                    autoHeight
+                  />
+                </div>
+              )}
 
               <div className="md:col-span-2 lg:col-span-3">
                 <FormField
@@ -861,7 +877,6 @@ export const PurchaseForm = ({
                   <div className="col-span-2 flex gap-1">
                     <Button
                       type="button"
-                      
                       onClick={handleAddDetail}
                       disabled={
                         !currentDetail.product_id ||
@@ -885,7 +900,6 @@ export const PurchaseForm = ({
                     {editingDetailIndex !== null && (
                       <Button
                         type="button"
-                        
                         variant="outline"
                         onClick={() => {
                           setEditingDetailIndex(null);
@@ -1088,7 +1102,6 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      
                                       onClick={() =>
                                         handleEditInstallment(index)
                                       }
@@ -1098,7 +1111,6 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      
                                       onClick={() =>
                                         handleRemoveInstallment(index)
                                       }
