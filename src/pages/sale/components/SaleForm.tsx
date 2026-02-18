@@ -484,8 +484,8 @@ export const SaleForm = ({
           form.setValue("payment_type", sourceData.payment_type);
 
           // Auto-completar detalles desde cotización
-          const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
-            (detail: any) => {
+          const quotationDetails: DetailRow[] =
+            sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price);
               const subtotal = roundTo6Decimals(quantity * unitPrice);
@@ -501,8 +501,7 @@ export const SaleForm = ({
                 igv,
                 total,
               };
-            },
-          );
+            });
 
           setDetails(quotationDetails);
           form.setValue("details", quotationDetails);
@@ -555,14 +554,20 @@ export const SaleForm = ({
           // Si la guía viene de una venta, usar los precios de la venta
           if (sourceData.sale?.details) {
             sourceData.sale.details.forEach((detail: any) => {
-              priceMap.set(detail.product_id, parseFloat(detail.unit_price || "0"));
+              priceMap.set(
+                detail.product_id,
+                parseFloat(detail.unit_price || "0"),
+              );
             });
           }
 
           // Si la guía viene de una compra, usar los precios de la compra
           if (sourceData.purchase?.details) {
             sourceData.purchase.details.forEach((detail: any) => {
-              priceMap.set(detail.product_id, parseFloat(detail.unit_price || "0"));
+              priceMap.set(
+                detail.product_id,
+                parseFloat(detail.unit_price || "0"),
+              );
             });
           }
 
@@ -725,7 +730,11 @@ export const SaleForm = ({
 
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
   useEffect(() => {
-    if (isRetencionIGV && selectedPaymentType === "CREDITO" && details.length > 0) {
+    if (
+      isRetencionIGV &&
+      selectedPaymentType === "CREDITO" &&
+      details.length > 0
+    ) {
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "0",
@@ -963,6 +972,9 @@ export const SaleForm = ({
                     label="Cliente"
                     placeholder="Seleccione un cliente"
                     useQueryHook={useClients}
+                    additionalParams={{
+                      per_page: 100,
+                    }}
                     mapOptionFn={(customer: PersonResource) => ({
                       value: customer.id.toString(),
                       label:
@@ -1276,7 +1288,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              
                               onClick={() => handleEditDetail(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1284,7 +1295,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              
                               onClick={() => handleRemoveDetail(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1414,7 +1424,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              
                               onClick={() => handleEditGuide(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1422,7 +1431,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              
                               onClick={() => handleRemoveGuide(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1640,7 +1648,6 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  
                                   onClick={() => handleEditInstallment(index)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1648,7 +1655,6 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  
                                   onClick={() => handleRemoveInstallment(index)}
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />
