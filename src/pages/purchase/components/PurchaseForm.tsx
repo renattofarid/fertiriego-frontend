@@ -319,23 +319,33 @@ export const PurchaseForm = ({
     setIncludeIgv(false);
 
     // Auto-llenar detalles de la orden de compra
+    const poApplyIgv = Boolean(selectedPO.apply_igv);
     if (selectedPO.details && selectedPO.details.length > 0) {
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
-        const unitPrice = parseFloat(detail.unit_price_estimated);
-        let subtotal = truncDecimal(quantity * unitPrice, 2);
-        let tax = 0;
-        let total = 0;
+        const rawUnitPrice = parseFloat(detail.unit_price_estimated);
 
-        // Los precios de la PO siempre son netos → agregar 18%
-        tax = Math.round(subtotal * IGV_RATE * 100) / 100;
-        total = Math.round((subtotal + tax) * 100) / 100;
+        // Si apply_igv=true → el precio ya incluye IGV → extraer precio neto (redondeado a 2 decimales)
+        // Si apply_igv=false → el precio es neto directamente
+        const netUnitPrice = poApplyIgv
+          ? Math.round((rawUnitPrice / (1 + IGV_RATE)) * 100) / 100
+          : rawUnitPrice;
+
+        const subtotal = truncDecimal(quantity * netUnitPrice, 2);
+        // Si el precio original incluye IGV: total = precio original, impuesto = diferencia
+        const originalTotal = truncDecimal(quantity * rawUnitPrice, 2);
+        const tax = poApplyIgv
+          ? truncDecimal(originalTotal - subtotal, 2)
+          : Math.round(subtotal * IGV_RATE * 100) / 100;
+        const total = poApplyIgv
+          ? originalTotal
+          : Math.round((subtotal + tax) * 100) / 100;
 
         return {
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
-          unit_price: detail.unit_price_estimated.toString(),
+          unit_price: String(netUnitPrice),
           tax: formatDecimalTrunc(tax, 2),
           subtotal,
           total,
@@ -588,9 +598,16 @@ export const PurchaseForm = ({
         }));
     }
 
+    const apiDetails = details.map((detail) => ({
+      ...detail,
+      unit_price: String(
+        truncDecimal(detail.subtotal / parseFloat(detail.quantity), 2),
+      ),
+    }));
+
     onSubmit({
       ...data,
-      details,
+      details: apiDetails,
       installments: validInstallments,
     });
   };

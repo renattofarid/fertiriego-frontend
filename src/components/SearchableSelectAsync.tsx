@@ -86,6 +86,7 @@ export function SearchableSelectAsync({
   const [allOptions, setAllOptions] = React.useState<Option[]>(
     defaultOption ? [defaultOption] : [],
   );
+  const [allRawItems, setAllRawItems] = React.useState<any[]>([]);
   const [selectedOption, setSelectedOption] = React.useState<Option | null>(
     defaultOption || null,
   );
@@ -114,6 +115,7 @@ export function SearchableSelectAsync({
         setPage(1);
         if (search !== "" || open) {
           setAllOptions([]);
+          setAllRawItems([]);
         }
       }
     }, debounceMs);
@@ -132,6 +134,7 @@ export function SearchableSelectAsync({
 
       if (page === 1) {
         setAllOptions(newOptions);
+        setAllRawItems(data.data);
       } else {
         setAllOptions((prev) => {
           const existingIds = new Set(prev.map((opt) => opt.value));
@@ -139,6 +142,10 @@ export function SearchableSelectAsync({
             (opt) => !existingIds.has(opt.value),
           );
           return [...prev, ...uniqueNew];
+        });
+        setAllRawItems((prev) => {
+          const existingIds = new Set(prev.map((item) => mapOptionFn(item).value));
+          return [...prev, ...data.data.filter((item) => !existingIds.has(mapOptionFn(item).value))];
         });
       }
     }
@@ -195,7 +202,7 @@ export function SearchableSelectAsync({
     onChange(newValue);
     setSelectedOption(newValue ? option : null);
     if (onValueChange) {
-      const selectedItem = data?.data?.find(
+      const selectedItem = allRawItems.find(
         (item) => mapOptionFn(item).value === option.value,
       );
       onValueChange(newValue, selectedItem);
