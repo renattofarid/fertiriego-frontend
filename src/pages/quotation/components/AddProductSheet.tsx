@@ -83,6 +83,7 @@ export const AddProductSheet = ({
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
+  const isIgv = form.watch("is_igv");
   const quantity = form.watch("quantity");
   const unitValue = form.watch("unit_value");
   const unitPrice = form.watch("unit_price");
@@ -408,6 +409,7 @@ export const AddProductSheet = ({
             type="number"
             step="0.0001"
             placeholder="0.00"
+            className={isIgv ? "border-dashed opacity-60" : "border-primary"}
           />
 
           <FormInput
@@ -417,6 +419,7 @@ export const AddProductSheet = ({
             type="number"
             step="0.0001"
             placeholder="0.00"
+            className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
           />
         </div>
 

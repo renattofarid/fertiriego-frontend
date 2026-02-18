@@ -166,7 +166,7 @@ export function ProductImageGallery({ productId }: ProductImageGalleryProps) {
           <EmptyContent>
             <Button
               variant="outline"
-              size={"sm"}
+              
               onClick={() => setShowImageUpload(true)}
               className="gap-2"
             >
