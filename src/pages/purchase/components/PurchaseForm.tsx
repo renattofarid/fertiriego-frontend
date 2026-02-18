@@ -313,12 +313,10 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
-    // apply_igv=true (PO aplica IGV → precios son netos) → include_igv=false → agregar 18%
-    // apply_igv=false (PO sin IGV → precios son finales) → include_igv=true → descomponer
-    const applyIgvBoolean = Boolean(selectedPO.apply_igv);
-    const includeIgvValue = !applyIgvBoolean;
-    igvForm.setValue("include_igv", includeIgvValue);
-    setIncludeIgv(includeIgvValue);
+    // En Purchase siempre se asume que los precios de la PO son netos (sin IGV)
+    // → include_igv=false → siempre agregar 18%
+    igvForm.setValue("include_igv", false);
+    setIncludeIgv(false);
 
     // Auto-llenar detalles de la orden de compra
     if (selectedPO.details && selectedPO.details.length > 0) {
@@ -329,16 +327,9 @@ export const PurchaseForm = ({
         let tax = 0;
         let total = 0;
 
-        if (includeIgvValue) {
-          // unitPrice incluye IGV: descomponer
-          const totalIncl = truncDecimal(quantity * unitPrice, 2);
-          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-          tax = truncDecimal(totalIncl - subtotal, 2);
-          total = totalIncl;
-        } else {
-          tax = Math.round(subtotal * IGV_RATE * 100) / 100;
-          total = Math.round((subtotal + tax) * 100) / 100;
-        }
+        // Los precios de la PO siempre son netos → agregar 18%
+        tax = Math.round(subtotal * IGV_RATE * 100) / 100;
+        total = Math.round((subtotal + tax) * 100) / 100;
 
         return {
           product_id: detail.product_id.toString(),
@@ -740,18 +731,12 @@ export const PurchaseForm = ({
                 }))}
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="document_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Documento</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: F001-001245" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Número de Documento"
+                placeholder="Ej: F001-001245"
+                uppercase
               />
 
               <FormSelect

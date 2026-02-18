@@ -84,24 +84,11 @@ const createDetailColumns = (
   {
     accessorKey: "product_id",
     header: "Producto",
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm">
-          {row.original.product_name || row.original.description || "N/A"}
-        </span>
-      );
-    },
-  },
-  {
-    accessorKey: "product_id",
-    header: "Producto",
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm">
-          {row.original.product_name || row.original.description || "N/A"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <span className="text-sm">
+        {row.original.product_name || row.original.description || "N/A"}
+      </span>
+    ),
   },
   {
     accessorKey: "quantity",
@@ -515,6 +502,13 @@ export const GuideForm = ({
       description:
         currentDetail.description || currentDetail.product_name || "",
     };
+
+    console.log(
+      "Adding/updating detail:",
+      detailToSave,
+      "Editing index:",
+      editingDetailIndex,
+    );
 
     if (editingDetailIndex !== null) {
       const updatedDetails = [...details];
@@ -1041,6 +1035,11 @@ export const GuideForm = ({
                           description: item?.name || "",
                         });
                       }}
+                      preloadItemId={
+                        currentDetail.product_id > 0
+                          ? currentDetail.product_id.toString()
+                          : undefined
+                      }
                       placeholder="Selecciona un producto"
                       classNameDiv="md:col-span-2"
                       buttonSize="default"

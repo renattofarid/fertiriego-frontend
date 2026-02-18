@@ -55,6 +55,7 @@ interface SearchableSelectAsyncProps {
   defaultOption?: Option;
   additionalParams?: Record<string, any>;
   onValueChange?: (value: string, item?: any) => void;
+  preloadItemId?: string;
 }
 
 export function SearchableSelectAsync({
@@ -76,6 +77,7 @@ export function SearchableSelectAsync({
   defaultOption,
   additionalParams = {},
   onValueChange,
+  preloadItemId,
 }: SearchableSelectAsyncProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -141,6 +143,22 @@ export function SearchableSelectAsync({
       }
     }
   }, [data, page, mapOptionFn]);
+
+  // Precargar item específico buscando en todas las páginas
+  React.useEffect(() => {
+    if (
+      preloadItemId &&
+      !isLoading &&
+      !isFetching &&
+      data?.meta?.last_page &&
+      page < data.meta.last_page
+    ) {
+      const itemFound = allOptions.some((opt) => opt.value === preloadItemId);
+      if (!itemFound) {
+        setPage((prev) => prev + 1);
+      }
+    }
+  }, [preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
 
   // Manejar scroll para cargar más
   const handleScroll = React.useCallback(
