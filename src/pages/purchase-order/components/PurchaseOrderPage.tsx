@@ -15,8 +15,9 @@ import {
 } from "@/lib/core.function";
 import { PurchaseOrderColumns } from "./PurchaseOrderColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { PURCHASE_ORDER } from "../lib/purchase-order.interface";
+import { PURCHASE_ORDER, type PurchaseOrderResource } from "../lib/purchase-order.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import PurchaseOrderDetailSheet from "./PurchaseOrderDetailSheet";
 
 const { MODEL, ICON } = PURCHASE_ORDER;
 
@@ -27,6 +28,8 @@ export default function PurchaseOrderPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+    useState<PurchaseOrderResource | null>(null);
 
   const { data, isLoading, refetch } = usePurchaseOrder();
 
@@ -74,6 +77,7 @@ export default function PurchaseOrderPage() {
       <PurchaseOrderTable
         isLoading={isLoading}
         columns={PurchaseOrderColumns({
+          onView: setSelectedPurchaseOrder,
           onEdit: handleEditPurchaseOrder,
           onDelete: setDeleteId,
         })}
@@ -103,6 +107,12 @@ export default function PurchaseOrderPage() {
           onConfirm={handleDelete}
         />
       )}
+
+      <PurchaseOrderDetailSheet
+        purchaseOrder={selectedPurchaseOrder}
+        open={selectedPurchaseOrder !== null}
+        onClose={() => setSelectedPurchaseOrder(null)}
+      />
     </div>
   );
 }

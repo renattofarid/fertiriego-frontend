@@ -81,10 +81,10 @@ export default function GuideEditPage() {
       remittent_id: (data as any).remittent?.id?.toString() || "1860",
       shipping_guide_remittent_id:
         (data as any).shipping_guide_remittent?.id?.toString() || undefined,
-      origin_address: data.origin_address,
-      origin_ubigeo_id: data.originUbigeo.id.toString(),
-      destination_address: data.destination_address,
-      destination_ubigeo_id: data.destinationUbigeo.id.toString(),
+      origin_address: data.origin_address || "",
+      origin_ubigeo_id: data.originUbigeo?.id.toString() || "",
+      destination_address: data.destination_address || "",
+      destination_ubigeo_id: data.destinationUbigeo?.id.toString() || "",
       destination_warehouse_id: data.destination_warehouse?.id
         ? data.destination_warehouse.id.toString()
         : undefined,
@@ -92,14 +92,14 @@ export default function GuideEditPage() {
         ? data.recipient.id.toString()
         : undefined,
       observations: data.observations || "",
-      details: data.details.map((detail) => ({
+      details: data.details?.map((detail) => ({
         product_id: detail.product_id.toString(),
         description: detail.description,
         quantity: Number(detail.quantity),
         unit_measure: detail.unit_measure || "UND",
         weight: Number(detail.weight) || 0,
       })),
-      total_packages: data.total_packages,
+      total_packages: data.total_packages || 0,
     };
   };
 

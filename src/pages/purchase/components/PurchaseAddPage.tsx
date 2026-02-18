@@ -7,7 +7,6 @@ import { PurchaseForm } from "./PurchaseForm";
 import { type PurchaseSchema } from "../lib/purchase.schema";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
@@ -20,12 +19,10 @@ export const PurchaseAddPage = () => {
   const { ICON } = PURCHASE;
   const { user } = useAuthStore();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
-    useAllPurchaseOrders();
 
   const { createPurchase } = usePurchaseStore();
 
-  const isLoading = warehousesLoading || purchaseOrdersLoading;
+  const isLoading = warehousesLoading;
 
   const getDefaultValues = (): Partial<PurchaseSchema> => ({
     supplier_id: "",
@@ -83,7 +80,6 @@ export const PurchaseAddPage = () => {
           isSubmitting={isSubmitting}
           mode="create"
           warehouses={warehouses}
-          purchaseOrders={purchaseOrders || []}
           currentUserId={user.id}
           onCancel={() => navigate("/compras")}
         />

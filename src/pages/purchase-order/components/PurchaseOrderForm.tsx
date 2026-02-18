@@ -31,7 +31,6 @@ import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState, useEffect } from "react";
-import { truncDecimal } from "@/lib/utils";
 import { formatCurrency } from "@/lib/formatCurrency";
 import {
   Table,
@@ -91,13 +90,10 @@ export const PurchaseOrderForm = ({
           unit_price_estimated: d.unit_price_estimated,
           // En modo update: usar el subtotal calculado por el backend si existe
           subtotal: d.subtotal_estimated
-            ? truncDecimal(parseFloat(d.subtotal_estimated), 2)
-            : truncDecimal(
-                d.quantity_requested * parseFloat(d.unit_price_estimated),
-                2,
-              ),
+            ? parseFloat(d.subtotal_estimated)
+            : d.quantity_requested * parseFloat(d.unit_price_estimated),
           subtotal_estimated: d.subtotal_estimated
-            ? truncDecimal(parseFloat(d.subtotal_estimated), 2)
+            ? parseFloat(d.subtotal_estimated)
             : undefined,
         }))
       : [],
@@ -219,7 +215,7 @@ export const PurchaseOrderForm = ({
 
     const quantity = parseFloat(currentDetail.quantity_requested);
     const unitPrice = parseFloat(currentDetail.unit_price_estimated);
-    const subtotal = truncDecimal(quantity * unitPrice, 2);
+    const subtotal = quantity * unitPrice;
 
     const newDetail: DetailRow = {
       ...currentDetail,
@@ -277,7 +273,7 @@ export const PurchaseOrderForm = ({
   // Calcular total desde los detalles actuales
   const calculateTotal = () => {
     const sum = details.reduce((sum, detail) => sum + detail.subtotal, 0);
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   // Calcular total desde los detalles actuales
@@ -285,8 +281,8 @@ export const PurchaseOrderForm = ({
 
   // apply_igv=true → los precios NO incluyen IGV → hay que agregar el 18%
   // apply_igv=false → no se aplica IGV
-  const igvAmount = truncDecimal(subtotalBase * IGV_RATE, 2);
-  const totalWithIgv = truncDecimal(subtotalBase + igvAmount, 2);
+  const igvAmount = subtotalBase * IGV_RATE;
+  const totalWithIgv = subtotalBase + igvAmount;
 
   const handleFormSubmit = (data: any) => {
     if (isSubmitting) return; // Prevenir múltiples envíos
@@ -295,18 +291,18 @@ export const PurchaseOrderForm = ({
     const transformedDetails = details.map((d) => {
       const qty = Number(d.quantity_requested);
       const price = Number(d.unit_price_estimated);
-      const subtotal = truncDecimal(qty * price, 2);
+      const subtotal = qty * price;
       return {
         product_id: Number(d.product_id),
         quantity_requested: qty,
-        unit_price_estimated: truncDecimal(price, 2),
+        unit_price_estimated: price,
         subtotal_estimated: subtotal,
       };
     });
 
-    const totalEstimated = truncDecimal(
-      transformedDetails.reduce((s, it) => s + it.subtotal_estimated, 0),
-      2,
+    const totalEstimated = transformedDetails.reduce(
+      (s, it) => s + it.subtotal_estimated,
+      0,
     );
 
     onSubmit({
@@ -458,6 +454,7 @@ export const PurchaseOrderForm = ({
                     mapOptionFn={(product: ProductResource) => ({
                       value: product.id.toString(),
                       label: product.name,
+                      description: product.category_name,
                     })}
                     onValueChange={(_value, item) => {
                       setSelectedProduct(item);
@@ -491,7 +488,6 @@ export const PurchaseOrderForm = ({
                 <div className="col-span-2 flex gap-1">
                   <Button
                     type="button"
-                    
                     onClick={handleAddDetail}
                     disabled={
                       !currentDetail.product_id ||
@@ -515,7 +511,6 @@ export const PurchaseOrderForm = ({
                   {editingDetailIndex !== null && (
                     <Button
                       type="button"
-                      
                       variant="outline"
                       onClick={() => {
                         setEditingDetailIndex(null);

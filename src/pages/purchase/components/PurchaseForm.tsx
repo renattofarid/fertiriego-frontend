@@ -28,7 +28,7 @@ import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-
 import { useState, useEffect } from "react";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
-import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -68,7 +68,6 @@ interface PurchaseFormProps {
   isSubmitting?: boolean;
   mode?: "create" | "edit";
   warehouses: WarehouseResource[];
-  purchaseOrders: PurchaseOrderResource[];
   purchase?: PurchaseResource;
   currentUserId: number;
   // Props para modo edit
@@ -84,7 +83,7 @@ interface DetailRow {
   product_name?: string;
   quantity: string;
   unit_price: string;
-  tax: string;
+  tax: number;
   subtotal: number;
   total: number;
 }
@@ -101,7 +100,6 @@ export const PurchaseForm = ({
   isSubmitting = false,
   mode = "create",
   warehouses,
-  purchaseOrders,
   currentUserId,
   purchase,
   purchaseId,
@@ -137,7 +135,7 @@ export const PurchaseForm = ({
     product_id: "",
     quantity: "",
     unit_price: "",
-    tax: "",
+    tax: 0,
     subtotal: 0,
     total: 0,
   });
@@ -181,6 +179,10 @@ export const PurchaseForm = ({
     },
   });
 
+  // Estado para la orden de compra seleccionada desde el FormSelectAsync
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+    useState<PurchaseOrderResource | null>(null);
+
   // Watch para la orden de compra seleccionada
   const selectedPurchaseOrderId = form.watch("purchase_order_id");
 
@@ -212,24 +214,24 @@ export const PurchaseForm = ({
         const updatedDetails = details.map((detail) => {
           const quantity = parseFloat(detail.quantity);
           const unitPrice = parseFloat(detail.unit_price);
-          let subtotal = truncDecimal(quantity * unitPrice, 2);
+          let subtotal = quantity * unitPrice;
           let tax = 0;
           let total = 0;
 
           if (watchIncludeIgv) {
             // unitPrice incluye IGV: descomponer
-            const totalIncl = truncDecimal(quantity * unitPrice, 2);
-            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-            tax = truncDecimal(totalIncl - subtotal, 2);
+            const totalIncl = quantity * unitPrice;
+            subtotal = totalIncl / (1 + IGV_RATE);
+            tax = totalIncl - subtotal;
             total = totalIncl;
           } else {
-            tax = Math.round(subtotal * IGV_RATE * 100) / 100;
-            total = Math.round((subtotal + tax) * 100) / 100;
+            tax = subtotal * IGV_RATE;
+            total = subtotal + tax;
           }
 
           return {
             ...detail,
-            tax: formatDecimalTrunc(tax, 2),
+            tax,
             subtotal,
             total,
           };
@@ -303,9 +305,7 @@ export const PurchaseForm = ({
       return;
     }
 
-    const selectedPO = purchaseOrders.find(
-      (po) => po.id.toString() === selectedPurchaseOrderId,
-    );
+    const selectedPO = selectedPurchaseOrder;
 
     if (!selectedPO) return;
 
@@ -313,40 +313,41 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
-    // En Purchase siempre se asume que los precios de la PO son netos (sin IGV)
-    // → include_igv=false → siempre agregar 18%
-    igvForm.setValue("include_igv", false);
-    setIncludeIgv(false);
+    // apply_igv=false → precio ya incluye IGV → switch CHECKED (include_igv=true)
+    // apply_igv=true  → precio neto, se calculará IGV encima → switch UNCHECKED (include_igv=false)
+    const poApplyIgv = Boolean(selectedPO.apply_igv);
+    const priceIncludesIgv = !poApplyIgv;
+
+    igvForm.setValue("include_igv", priceIncludesIgv);
+    setIncludeIgv(priceIncludesIgv);
 
     // Auto-llenar detalles de la orden de compra
-    const poApplyIgv = Boolean(selectedPO.apply_igv);
     if (selectedPO.details && selectedPO.details.length > 0) {
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
         const rawUnitPrice = parseFloat(detail.unit_price_estimated);
 
-        // Si apply_igv=true → el precio ya incluye IGV → extraer precio neto (redondeado a 2 decimales)
-        // Si apply_igv=false → el precio es neto directamente
-        const netUnitPrice = poApplyIgv
-          ? Math.round((rawUnitPrice / (1 + IGV_RATE)) * 100) / 100
-          : rawUnitPrice;
+        let subtotal, tax, total;
 
-        const subtotal = truncDecimal(quantity * netUnitPrice, 2);
-        // Si el precio original incluye IGV: total = precio original, impuesto = diferencia
-        const originalTotal = truncDecimal(quantity * rawUnitPrice, 2);
-        const tax = poApplyIgv
-          ? truncDecimal(originalTotal - subtotal, 2)
-          : Math.round(subtotal * IGV_RATE * 100) / 100;
-        const total = poApplyIgv
-          ? originalTotal
-          : Math.round((subtotal + tax) * 100) / 100;
+        if (priceIncludesIgv) {
+          // apply_igv=false: el precio incluye IGV → descomponer
+          const totalIncl = quantity * rawUnitPrice;
+          subtotal = totalIncl / (1 + IGV_RATE);
+          tax = totalIncl - subtotal;
+          total = totalIncl;
+        } else {
+          // apply_igv=true: el precio es neto → agregar IGV
+          subtotal = quantity * rawUnitPrice;
+          tax = subtotal * IGV_RATE;
+          total = subtotal + tax;
+        }
 
         return {
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
-          unit_price: String(netUnitPrice),
-          tax: formatDecimalTrunc(tax, 2),
+          unit_price: String(rawUnitPrice),
+          tax,
           subtotal,
           total,
         };
@@ -355,7 +356,7 @@ export const PurchaseForm = ({
       setDetails(poDetails);
       form.setValue("details", poDetails);
     }
-  }, [selectedPurchaseOrderId, purchaseOrders, form, igvForm]);
+  }, [selectedPurchaseOrderId, selectedPurchaseOrder, form, igvForm]);
 
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
@@ -373,25 +374,25 @@ export const PurchaseForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    let subtotal = truncDecimal(quantity * unitPrice, 2);
+    let subtotal = quantity * unitPrice;
     let tax = 0;
     let total = 0;
 
     if (includeIgv) {
       // unitPrice incluye IGV: descomponer
-      const totalIncl = truncDecimal(quantity * unitPrice, 2);
-      subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-      tax = truncDecimal(totalIncl - subtotal, 2);
+      const totalIncl = quantity * unitPrice;
+      subtotal = totalIncl / (1 + IGV_RATE);
+      tax = totalIncl - subtotal;
       total = totalIncl;
     } else {
-      tax = Math.round(subtotal * IGV_RATE * 100) / 100;
-      total = Math.round((subtotal + tax) * 100) / 100;
+      tax = subtotal * IGV_RATE;
+      total = subtotal + tax;
     }
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: selectedProduct?.name,
-      tax: formatDecimalTrunc(tax, 2),
+      tax,
       subtotal,
       total,
     };
@@ -413,7 +414,7 @@ export const PurchaseForm = ({
       product_id: "",
       quantity: "",
       unit_price: "",
-      tax: "",
+      tax: 0,
       subtotal: 0,
       total: 0,
     });
@@ -441,7 +442,7 @@ export const PurchaseForm = ({
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   // Funciones para cuotas
@@ -509,7 +510,7 @@ export const PurchaseForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   // Validar si las cuotas coinciden con el total (si hay cuotas)
@@ -530,7 +531,7 @@ export const PurchaseForm = ({
       (sum, detail: any) => sum + (parseFloat(detail.subtotal) || 0),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const calculateSummaryTaxTotal = () => {
@@ -539,7 +540,7 @@ export const PurchaseForm = ({
         sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const calculateSummaryDetailsTotal = () => {
@@ -547,7 +548,7 @@ export const PurchaseForm = ({
       (sum, detail: any) => sum + (parseFloat(detail.total) || 0),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const handleFormSubmit = (data: any) => {
@@ -600,9 +601,7 @@ export const PurchaseForm = ({
 
     const apiDetails = details.map((detail) => ({
       ...detail,
-      unit_price: String(
-        truncDecimal(detail.subtotal / parseFloat(detail.quantity), 2),
-      ),
+      unit_price: String(detail.subtotal / parseFloat(detail.quantity)),
     }));
 
     onSubmit({
@@ -672,6 +671,9 @@ export const PurchaseForm = ({
                     value: purchaseOrder.id.toString(),
                     label: `${purchaseOrder.correlativo} (${purchaseOrder.supplier_fullname})`,
                   })}
+                  onValueChange={(_value, item) => {
+                    setSelectedPurchaseOrder(item ?? null);
+                  }}
                 />
               </div>
 
@@ -690,7 +692,11 @@ export const PurchaseForm = ({
                       description: p.number_document,
                     })}
                     preloadItemId={
-                      mode === "edit" ? defaultValues.supplier_id : undefined
+                      mode === "edit"
+                        ? defaultValues.supplier_id
+                        : selectedPurchaseOrderId
+                          ? supplierWatch
+                          : undefined
                     }
                     disabled={mode === "edit"}
                   />
@@ -846,6 +852,7 @@ export const PurchaseForm = ({
                       mapOptionFn={(product: ProductResource) => ({
                         value: product.id.toString(),
                         label: product.name,
+                        description: product.category_name,
                       })}
                       onValueChange={(_value, item) => {
                         setSelectedProduct(item);
@@ -909,7 +916,7 @@ export const PurchaseForm = ({
                             product_id: "",
                             quantity: "",
                             unit_price: "",
-                            tax: "",
+                            tax: 0,
                             subtotal: 0,
                             total: 0,
                           });
@@ -958,7 +965,7 @@ export const PurchaseForm = ({
                               {formatNumber(detail.subtotal)}
                             </TableCell>
                             <TableCell className="text-right">
-                              {formatNumber(parseFloat(detail.tax || "0"))}
+                              {formatNumber(detail.tax ?? 0)}
                             </TableCell>
                             <TableCell className="text-right font-bold text-primary">
                               {formatNumber(detail.total)}

@@ -9,7 +9,6 @@ import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PURCHASE, type PurchaseResource } from "../lib/purchase.interface";
 import FormWrapper from "@/components/FormWrapper";
@@ -24,15 +23,13 @@ export const PurchaseEditPage = () => {
 
   const { user } = useAuthStore();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
-    useAllPurchaseOrders();
 
   const { updatePurchase, fetchPurchase, purchase, isFinding } =
     usePurchaseStore();
   const { fetchDetails, details } = usePurchaseDetailStore();
   const { fetchInstallments, installments } = usePurchaseInstallmentStore();
 
-  const isLoading = warehousesLoading || purchaseOrdersLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
 
   useEffect(() => {
     if (!id) {
@@ -139,7 +136,6 @@ export const PurchaseEditPage = () => {
           isSubmitting={isSubmitting}
           mode="edit"
           warehouses={warehouses}
-          purchaseOrders={purchaseOrders || []}
           purchase={purchase}
           currentUserId={user.id}
           onCancel={() => navigate("/compras")}

@@ -403,10 +403,10 @@ export const GuideForm = ({
       .then((response) => {
         const vehicle = response.data;
         if (vehicle) {
-          form.setValue("vehicle_plate", vehicle.plate);
-          form.setValue("vehicle_brand", vehicle.brand);
-          form.setValue("vehicle_model", vehicle.model);
-          form.setValue("vehicle_mtc", vehicle.mtc);
+          form.setValue("vehicle_plate", vehicle.plate || "-");
+          form.setValue("vehicle_brand", vehicle.brand || "-");
+          form.setValue("vehicle_model", vehicle.model || "-");
+          form.setValue("vehicle_mtc", vehicle.mtc || "-");
         }
       })
       .catch(console.error);
@@ -635,6 +635,7 @@ export const GuideForm = ({
             name="order"
             label="Orden de Pedido"
             placeholder="Ej: OC-00123"
+            uppercase
             maxLength={100}
           />
 
