@@ -56,6 +56,7 @@ import { FormInput } from "@/components/FormInput";
 import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
 import VehicleModal from "@/pages/vehicle/components/VehicleModal";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -156,6 +157,7 @@ export const GuideForm = ({
   );
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [carrierModalOpen, setCarrierModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     index: "",
     product_id: 0,
@@ -780,19 +782,33 @@ export const GuideForm = ({
           gap="gap-3"
         >
           {transportModality !== "PRIVADO" && (
-            <FormSelectAsync
-              control={form.control}
-              name="carrier_id"
-              label="Transportista"
-              placeholder="Seleccione un transportista"
-              useQueryHook={useCarriers}
-              mapOptionFn={(carrier) => ({
-                value: carrier.id.toString(),
-                label:
-                  carrier.business_name ||
-                  `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-              })}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione un transportista"
+                  useQueryHook={useCarriers}
+                  mapOptionFn={(carrier) => ({
+                    value: carrier.id.toString(),
+                    label:
+                      carrier.business_name ||
+                      `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear transportista"
+                onClick={() => setCarrierModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           )}
 
           {transportModality === "PRIVADO" && (
@@ -1224,6 +1240,11 @@ export const GuideForm = ({
       <DriverCreateModal
         open={driverModalOpen}
         onClose={() => setDriverModalOpen(false)}
+      />
+
+      <CarrierCreateModal
+        open={carrierModalOpen}
+        onClose={() => setCarrierModalOpen(false)}
       />
 
       <VehicleModal

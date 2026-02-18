@@ -26,7 +26,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 import { useCarriers } from "../lib/carrier.hook";
 
-const { MODEL, ICON } = CARRIER;
+const { MODEL, ICON, ROUTE_UPDATE } = CARRIER;
 
 export default function CarrierPage() {
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export default function CarrierPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: (person) => navigate(`/conductores/editar/${person}`),
+          onEdit: (id) => navigate(`${ROUTE_UPDATE}/${id}`),
           onDelete: setDeleteId,
         })}
         data={data?.data || []}

@@ -240,16 +240,24 @@ export default function GuideDetailPage() {
             </div>
           )}
 
-          {(guide.order || guide.orden_pedido) && (
+          {guide.orden_pedido && (
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <ShoppingBag className="h-3 w-3" />
                 Orden de Pedido
               </p>
+              <p className="font-mono font-semibold">{guide.orden_pedido}</p>
+            </div>
+          )}
+
+          {guide.order && (
+            <div className="space-y-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <ShoppingBag className="h-3 w-3" />
+                Pedido
+              </p>
               <p className="font-mono font-semibold">
-                {guide.order?.order_number ||
-                  guide.orden_pedido ||
-                  `#${guide.order_id}`}
+                {guide.order?.order_number || `#${guide.order_id}`}
               </p>
               {guide.order?.order_date && (
                 <p className="text-xs text-muted-foreground">
@@ -428,7 +436,9 @@ export default function GuideDetailPage() {
 
               {guide.vehicle.max_weight && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Peso Máximo Veh.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Peso Máximo Veh.
+                  </p>
                   <p className="font-medium">{guide.vehicle.max_weight} kg</p>
                 </div>
               )}
@@ -440,7 +450,7 @@ export default function GuideDetailPage() {
                 </div>
               )}
             </>
-          ) : (guide.vehicle_plate || guide.vehicle_brand) ? (
+          ) : guide.vehicle_plate || guide.vehicle_brand ? (
             <>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Placa</p>
@@ -450,7 +460,9 @@ export default function GuideDetailPage() {
               </div>
               {guide.vehicle_brand && (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Marca / Modelo</p>
+                  <p className="text-xs text-muted-foreground">
+                    Marca / Modelo
+                  </p>
                   <p className="font-semibold">
                     {guide.vehicle_brand} {guide.vehicle_model}
                   </p>

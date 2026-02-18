@@ -8,6 +8,7 @@ export function useCarriers(params?: Record<string, unknown>) {
     queryFn: () =>
       getPersons({
         params: {
+          direction: "asc",
           role_names: [CARRIER_ROLE_CODE],
           ...params,
         },

@@ -1,8 +1,6 @@
-"use client";
-
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import TitleFormComponent from "@/components/TitleFormComponent";
+import { useQueryClient } from "@tanstack/react-query";
+import { GeneralModal } from "@/components/GeneralModal";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { createPersonWithRole } from "@/pages/person/lib/person.actions";
@@ -12,22 +10,25 @@ import {
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import FormWrapper from "@/components/FormWrapper";
 import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 
-const { MODEL, ICON } = CARRIER;
+interface Props {
+  open: boolean;
+  onClose: () => void;
+}
 
-export default function CarrierAddPage() {
-  const navigate = useNavigate();
+const { MODEL, ICON_REACT: ICON } = CARRIER;
+
+export default function CarrierCreateModal({ open, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: PersonSchema) => {
     setIsSubmitting(true);
     try {
-      // Transform PersonSchema to CreatePersonRequest
       const createPersonData = {
-        username: data.number_document, // Use document number as username
-        password: data.number_document, // Use document number as password
+        username: data.number_document,
+        password: data.number_document,
         type_document: data.type_document,
         type_person: data.type_person,
         number_document: data.number_document,
@@ -43,23 +44,18 @@ export default function CarrierAddPage() {
         phone: data.phone,
         email: data.email,
         status: "Activo",
-        role_id: Number(data.role_id),
+        role_id: CARRIER_ROLE_ID,
       };
 
-      await createPersonWithRole(createPersonData, Number(data.role_id));
-      successToast(
-        SUCCESS_MESSAGE({ name: "Transportista", gender: false }, "create"),
-      );
-      navigate("/transportistas");
+      await createPersonWithRole(createPersonData, CARRIER_ROLE_ID);
+      await queryClient.invalidateQueries({ queryKey: [CARRIER.QUERY_KEY] });
+      successToast(SUCCESS_MESSAGE(MODEL, "create"));
+      onClose();
     } catch (error: any) {
-      const errorMessage =
-        ((error.response.data.message ??
-          error.response.data.error) as string) ??
-        "Error al crear transportista";
-
       errorToast(
-        errorMessage,
-        ERROR_MESSAGE({ name: "Transportista", gender: false }, "create"),
+        error?.response?.data?.message ??
+          error?.response?.data?.error ??
+          ERROR_MESSAGE(MODEL, "create"),
       );
     } finally {
       setIsSubmitting(false);
@@ -67,20 +63,21 @@ export default function CarrierAddPage() {
   };
 
   return (
-    <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
-        </div>
-      </div>
-
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={`Crear ${MODEL.name}`}
+      subtitle="Complete el formulario para registrar un nuevo transportista"
+      size="3xl"
+      icon={ICON}
+    >
       <PersonForm
         onSubmit={handleSubmit}
         isSubmitting={isSubmitting}
-        onCancel={() => navigate("/transportistas")}
+        onCancel={onClose}
         roleId={CARRIER_ROLE_ID}
-        isWorker={false}
+        isWorker={true}
       />
-    </FormWrapper>
+    </GeneralModal>
   );
 }

@@ -38,11 +38,11 @@ import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
-import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import PageWrapper from "@/components/PageWrapper";
 import { useGuides } from "@/pages/guide/lib/guide.hook";
+import { useClients } from "@/pages/client/lib/client.hook";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -366,7 +366,6 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -374,7 +373,6 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -459,7 +457,7 @@ export function ShippingGuideCarrierForm({
                 name="remittent_id"
                 label="Remitente"
                 placeholder="Seleccione remitente"
-                useQueryHook={useSuppliers}
+                useQueryHook={useClients}
                 mapOptionFn={(p: PersonResource) => ({
                   value: p.id.toString(),
                   label: p.business_name ?? `${p.names} ${p.father_surname}`,
@@ -488,7 +486,7 @@ export function ShippingGuideCarrierForm({
                 name="recipient_id"
                 label="Destinatario (Opcional)"
                 placeholder="Seleccione destinatario"
-                useQueryHook={useSuppliers}
+                useQueryHook={useClients}
                 mapOptionFn={(p: PersonResource) => ({
                   value: p.id.toString(),
                   label: p.business_name ?? `${p.names} ${p.father_surname}`,
@@ -866,11 +864,7 @@ export function ShippingGuideCarrierForm({
                 </div>
 
                 <div className="md:col-span-6 flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={handleAddOrUpdateDetail}
-                    
-                  >
+                  <Button type="button" onClick={handleAddOrUpdateDetail}>
                     {editingDetailIndex !== null ? (
                       <>
                         <Pencil className="h-4 w-4 mr-1" /> Actualizar

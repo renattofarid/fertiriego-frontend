@@ -305,6 +305,17 @@ export const AddProductSheet = ({
               onValueChange={(_value, item) => {
                 setSelectedProduct(item ?? null);
               }}
+              preloadItemId={
+                editingDetail ? editingDetail.product_id : undefined
+              }
+              defaultOption={
+                editingDetail
+                  ? {
+                      value: editingDetail.product_id,
+                      label: editingDetail.product_name,
+                    }
+                  : undefined
+              }
             />
           </div>
           <Button
