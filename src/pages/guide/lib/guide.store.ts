@@ -124,6 +124,7 @@ export const useGuideStore = create<GuideStore>((set) => ({
         issue_date: data.issue_date,
         transfer_date: data.transfer_date,
         motive_id: Number(data.motive_id),
+        order: data.order || undefined,
         sale_id: data.sale_id ? Number(data.sale_id) : null,
         purchase_id: data.purchase_id ? Number(data.purchase_id) : null,
         warehouse_document_id: data.warehouse_document_id
@@ -131,8 +132,10 @@ export const useGuideStore = create<GuideStore>((set) => ({
           : null,
         order_id: data.order_id ? Number(data.order_id) : null,
         transport_modality: data.transport_modality,
-        // Transportista, conductor, vehículo y licencia siempre requeridos
-        carrier_id: Number(data.carrier_id),
+        carrier_id:
+          data.transport_modality === "PUBLICO" && data.carrier_id
+            ? Number(data.carrier_id)
+            : null,
         driver_id: Number(data.driver_id),
         vehicle_id: Number(data.vehicle_id),
         driver_license: data.driver_license,
@@ -142,13 +145,13 @@ export const useGuideStore = create<GuideStore>((set) => ({
             ? Number(data.secondary_vehicle_id)
             : null,
         vehicle_plate:
-          data.transport_modality === "PRIVADO" ? data.vehicle_plate : undefined,
+          data.transport_modality === "PRIVADO" ? data.vehicle_plate : "-",
         vehicle_brand:
-          data.transport_modality === "PRIVADO" ? data.vehicle_brand : undefined,
+          data.transport_modality === "PRIVADO" ? data.vehicle_brand : "-",
         vehicle_model:
-          data.transport_modality === "PRIVADO" ? data.vehicle_model : undefined,
+          data.transport_modality === "PRIVADO" ? data.vehicle_model : "-",
         vehicle_mtc:
-          data.transport_modality === "PRIVADO" ? data.vehicle_mtc : undefined,
+          data.transport_modality === "PRIVADO" ? data.vehicle_mtc : "-",
         // Personas
         remittent_id: Number(data.remittent_id),
         shipping_guide_remittent_id: data.shipping_guide_remittent_id
@@ -192,6 +195,7 @@ export const useGuideStore = create<GuideStore>((set) => ({
         ...(data.issue_date && { issue_date: data.issue_date }),
         ...(data.transfer_date && { transfer_date: data.transfer_date }),
         ...(data.motive_id && { motive_id: Number(data.motive_id) }),
+        ...(data.order !== undefined && { order: data.order || undefined }),
         ...(data.sale_id !== undefined && {
           sale_id: data.sale_id ? Number(data.sale_id) : null,
         }),
@@ -224,19 +228,19 @@ export const useGuideStore = create<GuideStore>((set) => ({
             : null,
         }),
         ...(data.vehicle_plate !== undefined && {
-          vehicle_plate: data.vehicle_plate,
+          vehicle_plate: data.vehicle_plate || "-",
         }),
         ...(data.vehicle_brand !== undefined && {
-          vehicle_brand: data.vehicle_brand,
+          vehicle_brand: data.vehicle_brand || "-",
         }),
         ...(data.vehicle_model !== undefined && {
-          vehicle_model: data.vehicle_model,
+          vehicle_model: data.vehicle_model || "-",
         }),
         ...(data.vehicle_mtc !== undefined && {
-          vehicle_mtc: data.vehicle_mtc,
+          vehicle_mtc: data.vehicle_mtc || "-",
         }),
         ...(data.driver_license !== undefined && {
-          driver_license: data.driver_license,
+          driver_license: data.driver_license || "-",
         }),
         ...(data.remittent_id !== undefined && {
           remittent_id: Number(data.remittent_id),

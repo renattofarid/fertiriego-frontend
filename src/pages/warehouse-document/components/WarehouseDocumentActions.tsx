@@ -15,7 +15,7 @@ export default function WarehouseDocumentActions({
 
   return (
     <div className="flex items-center gap-2">
-      <Button size="sm" className="ml-auto" onClick={onCreateDocument}>
+      <Button  className="ml-auto" onClick={onCreateDocument}>
         <Plus className="size-4 mr-2" /> Agregar {MODEL.name}
       </Button>
     </div>

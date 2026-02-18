@@ -530,7 +530,7 @@ export const OrderForm = ({
               <Button
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                size="sm"
+                
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
@@ -601,7 +601,7 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() => handleEditDetail(index)}
                           >
                             <Pencil className="h-4 w-4 text-blue-500" />
@@ -609,7 +609,7 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() => handleRemoveDetail(index)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />

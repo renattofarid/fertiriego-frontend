@@ -9,7 +9,7 @@ export const PurchaseShippingGuideActions = ({
   onCreateGuide,
 }: PurchaseShippingGuideActionsProps) => {
   return (
-    <Button size="sm" onClick={onCreateGuide}>
+    <Button  onClick={onCreateGuide}>
       <Plus className="mr-2 h-4 w-4" />
       Nueva Guía
     </Button>

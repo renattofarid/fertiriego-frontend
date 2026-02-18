@@ -246,7 +246,7 @@ export function ProductPriceManager({
         </p>
         <Button
           variant="outline"
-          size="sm"
+          
           onClick={() => setShowPriceForm(true)}
           className="gap-2 w-full sm:w-auto"
         >
@@ -302,7 +302,7 @@ export function ProductPriceManager({
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/50">
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => handleEdit(price)}
                     className="gap-2 flex-1 sm:flex-none"
                   >
@@ -311,7 +311,7 @@ export function ProductPriceManager({
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => setDeletePriceId(price.id)}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
                   >
@@ -337,7 +337,7 @@ export function ProductPriceManager({
           <EmptyContent>
             <Button
               variant="outline"
-              size="sm"
+              
               onClick={() => setShowPriceForm(true)}
               className="gap-2 w-full sm:w-auto"
             >
@@ -465,7 +465,7 @@ export function ProductPriceManager({
                 <Button
                   type="button"
                   variant="outline"
-                  size="sm"
+                  
                   onClick={() => append({ currency: "", amount: 0 })}
                   className="gap-1"
                 >
@@ -509,7 +509,7 @@ export function ProductPriceManager({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    
                     onClick={() => remove(index)}
                     className="shrink-0 mb-2"
                   >

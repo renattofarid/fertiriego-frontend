@@ -68,19 +68,20 @@ export const GuideColumns = ({
     },
   },
   {
-    accessorKey: "customer",
-    header: "Cliente",
+    accessorKey: "recipient",
+    header: "Destinatario",
     cell: ({ row }) => {
-      const sale = row.original.sale;
+      const recipient = row.original.recipient;
       return (
         <span className="text-sm text-wrap">
-          {sale?.customer_fullname || "-"}
+          {recipient?.business_name ??
+            `${recipient?.names} ${recipient?.father_surname ?? ""} ${recipient?.mother_surname ?? ""}`}
         </span>
       );
     },
   },
   {
-    accessorKey: "modality",
+    accessorKey: "transport_modality",
     header: "Modalidad",
     cell: ({ getValue }) => {
       const modality = getValue() as string;
@@ -126,6 +127,10 @@ export const GuideColumns = ({
 
       return <Badge variant={statusVariant}>{status}</Badge>;
     },
+  },
+  {
+    accessorKey: "user.name",
+    header: "Usuario",
   },
   {
     id: "actions",

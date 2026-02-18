@@ -12,6 +12,7 @@ import type { PurchaseResource } from "../lib/purchase.interface";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { parse } from "date-fns";
 
 interface PurchaseColumnsProps {
   onEdit: (purchase: PurchaseResource) => void;
@@ -51,10 +52,7 @@ export const getPurchaseColumns = ({
     accessorKey: "supplier_fullname",
     header: "Proveedor",
     cell: ({ row }) => (
-      <div
-        className="text-wrap!"
-        title={row.original.supplier_fullname}
-      >
+      <div className="text-wrap!" title={row.original.supplier_fullname}>
         {row.original.supplier_fullname}
       </div>
     ),
@@ -68,10 +66,28 @@ export const getPurchaseColumns = ({
     accessorKey: "issue_date",
     header: "Fecha Emisión",
     cell: ({ row }) => {
-      const date = new Date(row.original.issue_date);
+      const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
       return (
         <span>
           {date.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "due_date",
+    header: "Fecha Vencimiento",
+    cell: ({ row }) => {
+      const date = row.original.due_date
+        ? parse(row.original.due_date, "yyyy-MM-dd", new Date())
+        : null;
+      return (
+        <span>
+          {date?.toLocaleDateString("es-ES", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -154,7 +170,6 @@ export const getPurchaseColumns = ({
     cell: ({ row }) => (
       <Button
         variant="ghost"
-        size="sm"
         onClick={() => onManage(row.original)}
         className="h-auto p-1"
       >
@@ -186,7 +201,6 @@ export const getPurchaseColumns = ({
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="sm"
               onClick={() => onManage(row.original)}
               className="h-auto p-1"
             >
@@ -219,7 +233,6 @@ export const getPurchaseColumns = ({
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
                     disabled={!isValid}

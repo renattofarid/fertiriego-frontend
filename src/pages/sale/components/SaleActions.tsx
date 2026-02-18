@@ -41,7 +41,7 @@ export default function SaleActions({
 
       {canAddSale && (
         <Button
-          size="sm"
+          
           className="ml-auto"
           onClick={() => navigate("/ventas/agregar")}
         >

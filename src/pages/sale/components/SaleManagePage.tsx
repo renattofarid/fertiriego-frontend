@@ -376,7 +376,7 @@ export default function SaleManagePage() {
                         <div className="flex gap-2 shrink-0">
                           <Button
                             variant="outline"
-                            size="sm"
+                            
                             onClick={() => handleViewPayments(installment)}
                           >
                             <Eye className="h-4 w-4 mr-2" />
@@ -385,7 +385,7 @@ export default function SaleManagePage() {
                           {isPending && (
                             <Button
                               variant="default"
-                              size="sm"
+                              
                               onClick={() => handleOpenPayment(installment)}
                             >
                               <Plus className="h-4 w-4 mr-2" />

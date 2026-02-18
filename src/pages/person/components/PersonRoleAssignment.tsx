@@ -196,7 +196,7 @@ export function PersonRoleAssignment({
                           </div>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() =>
                               handleRoleToggle(role.id, !isSelected)
                             }
@@ -254,7 +254,7 @@ export function PersonRoleAssignment({
                           </div>
                           <Button
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() =>
                               handleRoleToggle(roleAssignment.role_id, false)
                             }

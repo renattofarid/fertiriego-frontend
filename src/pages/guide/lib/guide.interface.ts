@@ -24,27 +24,34 @@ export interface GuideResource {
   issue_date: string;
   transfer_date: string;
   transport_modality: string;
-  driver_license: string;
-  origin_address: string;
-  destination_address: string;
-  total_weight: string;
-  total_packages: number;
+  driver_license?: string | null;
+  origin_address?: string | null;
+  destination_address?: string | null;
+  total_weight?: string | null;
+  total_packages?: number | null;
   status: GuideStatus;
-  observations?: string;
-  warehouse: Warehouse;
-  user: User;
-  motive: Motive;
-  sale?: Sale;
-  purchase?: Purchase;
-  warehouse_document?: Warehousedocument;
-  carrier: Carrier;
-  driver?: Carrier;
-  vehicle?: Vehicle;
-  originUbigeo: UbigeoGuide;
-  destinationUbigeo: UbigeoGuide;
-  destination_warehouse: Warehouse;
-  recipient?: Carrier;
-  details: GuideDetailResource[];
+  observations?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_brand?: string | null;
+  vehicle_model?: string | null;
+  vehicle_mtc?: string | null;
+  order_id?: number | null;
+  orden_pedido?: string | null;
+  warehouse?: Warehouse | null;
+  user?: User | null;
+  motive?: Motive | null;
+  sale?: Sale | null;
+  purchase?: Purchase | null;
+  warehouse_document?: Warehousedocument | null;
+  carrier?: Carrier | null;
+  driver?: Carrier | null;
+  vehicle?: Vehicle | null;
+  originUbigeo?: UbigeoGuide | null;
+  destinationUbigeo?: UbigeoGuide | null;
+  destination_warehouse?: Warehouse | null;
+  recipient?: Carrier | null;
+  order?: GuideOrder | null;
+  details?: GuideDetailResource[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -83,6 +90,7 @@ export interface CreateGuideRequest {
   issue_date: string;
   transfer_date: string;
   motive_id: number;
+  order?: string;
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;
@@ -122,6 +130,7 @@ export interface UpdateGuideRequest {
   issue_date?: string;
   transfer_date?: string;
   motive_id?: number;
+  order?: string;
   sale_id?: number | null;
   purchase_id?: number | null;
   warehouse_document_id?: number | null;
@@ -167,9 +176,9 @@ export const GUIDE_MOTIVE_QUERY_KEY = "shipping-motive";
 // ===== ROUTES =====
 
 export const GuideRoute = "/guias-remision";
-export const GuideAddRoute = "/guias/agregar";
-export const GuideEditRoute = "/guias/actualizar/:id";
-export const GuideDetailRoute = "/guias/:id";
+export const GuideAddRoute = `${GuideRoute}/agregar`;
+export const GuideEditRoute = `${GuideRoute}/actualizar/:id`;
+export const GuideDetailRoute = `${GuideRoute}/:id`;
 
 // ===== STATUS & TYPE OPTIONS =====
 
@@ -257,42 +266,55 @@ export interface GuideDetailResource {
   product_code?: string;
   description: string;
   quantity: string;
+  unit?: string;
   unit_measure?: string;
   weight: string;
 }
 
-interface Vehicle {
+export interface GuideOrder {
   id: number;
-  plate: string;
-  brand: string;
-  model: string;
-  year: number;
-  color: string;
-  vehicle_type: string;
-  max_weight: string;
-  status: string;
-  observations?: string;
-  created_at: string;
+  order_number: string;
+  order_date: string;
+  order_expiry_date?: string;
+  order_delivery_date?: string;
+  currency?: string;
+  status?: string;
+  customer_id?: number;
+}
+
+interface Vehicle {
+  id?: number | null;
+  plate?: string | null;
+  brand?: string | null;
+  model?: string | null;
+  year?: number | null;
+  color?: string | null;
+  vehicle_type?: string | null;
+  max_weight?: string | null;
+  status?: string | null;
+  observations?: string | null;
+  created_at?: string | null;
 }
 
 export interface Carrier {
-  id: number;
-  type_document: string;
-  type_person: string;
-  number_document: string;
-  names: string;
-  father_surname?: string;
-  mother_surname?: string;
-  gender?: string;
-  birth_date?: string;
-  phone: string;
-  email: string;
-  address: string;
-  business_name: string;
-  commercial_name: string;
-  user_id?: string;
-  created_at: string;
-  roles: Role[];
+  id?: number | null;
+  type_document?: string | null;
+  type_person?: string | null;
+  number_document?: string | null;
+  names?: string | null;
+  father_surname?: string | null;
+  mother_surname?: string | null;
+  gender?: string | null;
+  birth_date?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  business_name?: string | null;
+  commercial_name?: string | null;
+  driver_license?: string | null;
+  user_id?: string | null;
+  created_at?: string | null;
+  roles?: Role[];
 }
 
 interface Role {

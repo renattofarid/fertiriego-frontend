@@ -85,7 +85,7 @@ export function ProductTechnicalSheets({
                 <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border/50">
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => window.open(sheet, "_blank")}
                     className="gap-2 flex-1 sm:flex-none"
                   >
@@ -94,7 +94,7 @@ export function ProductTechnicalSheets({
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => setDeleteSheetValue(sheet)}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
                   >

@@ -1,13 +1,6 @@
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Search } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import FilterWrapper from "@/components/FilterWrapper";
+import SearchInput from "@/components/SearchInput";
+import { SearchableSelect } from "@/components/SearchableSelect";
 
 interface Props {
   search: string;
@@ -22,37 +15,23 @@ export default function PurchaseOrderOptions({
   selectedStatus,
   setSelectedStatus,
 }: Props) {
-  const handleClearFilters = () => {
-    setSearch("");
-    setSelectedStatus("");
-  };
-
   return (
-    <div className="flex flex-col md:flex-row gap-4 py-4">
-      <div className="relative flex-1">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por correlativo, número de orden o proveedor..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-8"
-        />
-      </div>
-
-      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-        <SelectTrigger className="w-full md:w-[200px]">
-          <SelectValue placeholder="Estado" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="Pendiente">Pendiente</SelectItem>
-          <SelectItem value="Completada">Completada</SelectItem>
-          <SelectItem value="Cancelada">Cancelada</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Button variant="outline" onClick={handleClearFilters}>
-        Limpiar Filtros
-      </Button>
-    </div>
+    <FilterWrapper>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar..."
+      />
+      <SearchableSelect
+        value={selectedStatus}
+        onChange={setSelectedStatus}
+        options={[
+          { value: "Pendiente", label: "Pendiente" },
+          { value: "Completada", label: "Completada" },
+          { value: "Cancelada", label: "Cancelada" },
+        ]}
+        placeholder="Filtrar por estado"
+      />
+    </FilterWrapper>
   );
 }

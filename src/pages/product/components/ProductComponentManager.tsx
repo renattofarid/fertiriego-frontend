@@ -161,7 +161,7 @@ export function ProductComponentManager({
         </p>
         <Button
           variant="outline"
-          size="sm"
+          
           onClick={() => setShowComponentForm(true)}
           className="gap-2 w-full sm:w-auto"
         >
@@ -210,7 +210,7 @@ export function ProductComponentManager({
                 <div className="flex items-center gap-2 w-full sm:w-auto">
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => handleEdit(component)}
                     className="gap-2 flex-1 sm:flex-none"
                   >
@@ -219,7 +219,7 @@ export function ProductComponentManager({
                   </Button>
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => setDeleteComponentId(component.id)}
                     className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 flex-1 sm:flex-none"
                   >
@@ -245,7 +245,7 @@ export function ProductComponentManager({
           <EmptyContent>
             <Button
               variant="outline"
-              size="sm"
+              
               onClick={() => setShowComponentForm(true)}
               className="gap-2 w-full sm:w-auto"
             >

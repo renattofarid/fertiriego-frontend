@@ -14,7 +14,7 @@ export default function UserBoxAssignmentActions() {
   return (
     <ActionsWrapper>
       <Button
-        size="sm"
+        
         className="ml-auto"
         onClick={() => setOpen(true)}
       >

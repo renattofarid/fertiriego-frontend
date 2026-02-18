@@ -437,6 +437,9 @@ export const SaleForm = ({
   // Watch para la moneda seleccionada
   const selectedCurrency = form.watch("currency");
 
+  // Watch para retención IGV
+  const isRetencionIGV = form.watch("is_retencionigv");
+
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
     if (selectedPriceCategoryId && productPricesData && selectedCurrency) {
@@ -711,6 +714,29 @@ export const SaleForm = ({
     return roundTo6Decimals(sum);
   };
 
+  const calculateRetencion = () => {
+    if (!isRetencionIGV) return 0;
+    return roundTo6Decimals(calculateDetailsTotal() * 0.03);
+  };
+
+  const calculateNetTotal = () => {
+    return roundTo6Decimals(calculateDetailsTotal() - calculateRetencion());
+  };
+
+  // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
+  useEffect(() => {
+    if (isRetencionIGV && selectedPaymentType === "CREDITO" && details.length > 0) {
+      const netTotal = calculateNetTotal();
+      const autoInstallment: InstallmentRow = {
+        due_days: "0",
+        amount: netTotal.toFixed(6),
+      };
+      setInstallments([autoInstallment]);
+      form.setValue("installments", [autoInstallment]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRetencionIGV, selectedPaymentType]);
+
   // Funciones para cuotas
   const handleAddInstallment = () => {
     if (!currentInstallment.due_days || !currentInstallment.amount) {
@@ -718,7 +744,7 @@ export const SaleForm = ({
     }
 
     const newAmount = parseFloat(currentInstallment.amount);
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
 
     // Calcular el total de cuotas (excluyendo la que se está editando si aplica)
     let currentInstallmentsTotal = installments.reduce((sum, inst, idx) => {
@@ -785,7 +811,7 @@ export const SaleForm = ({
 
   const installmentsMatchTotal = () => {
     if (installments.length === 0) return true;
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
     const installmentsTotal = calculateInstallmentsTotal();
     // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
     return Math.abs(saleTotal - installmentsTotal) < 0.01;
@@ -846,7 +872,7 @@ export const SaleForm = ({
 
   const paymentAmountsMatchTotal = () => {
     if (selectedPaymentType !== "CONTADO") return true;
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
     const paymentTotal = calculatePaymentTotal();
     // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
     return Math.abs(saleTotal - paymentTotal) < 0.01;
@@ -859,7 +885,7 @@ export const SaleForm = ({
         `El total pagado (${formatNumber(
           calculatePaymentTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal(),
+          calculateNetTotal(),
         )})`,
       );
       return;
@@ -877,7 +903,7 @@ export const SaleForm = ({
         `El total de cuotas (${formatNumber(
           calculateInstallmentsTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal(),
+          calculateNetTotal(),
         )})`,
       );
       return;
@@ -948,7 +974,11 @@ export const SaleForm = ({
                       setSelectedCustomer(item ?? null);
                     }}
                     preloadItemId={
-                      mode === "edit" || (sourceData && sourceType === "guide")
+                      mode === "edit" ||
+                      (sourceData &&
+                        (sourceType === "guide" ||
+                          sourceType === "order" ||
+                          sourceType === "quotation"))
                         ? form.getValues("customer_id")
                         : undefined
                     }
@@ -1246,7 +1276,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleEditDetail(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1254,7 +1284,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleRemoveDetail(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1384,7 +1414,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleEditGuide(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1392,7 +1422,7 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => handleRemoveGuide(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1497,7 +1527,7 @@ export const SaleForm = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total de la Venta:</span>
                     <span className="text-lg font-bold text-primary">
-                      {formatNumber(calculateDetailsTotal())}
+                      {formatNumber(calculateNetTotal())}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -1610,7 +1640,7 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
+                                  
                                   onClick={() => handleEditInstallment(index)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1618,7 +1648,7 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
+                                  
                                   onClick={() => handleRemoveInstallment(index)}
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />
@@ -1648,7 +1678,7 @@ export const SaleForm = ({
                         ⚠️ El total de cuotas (
                         {formatNumber(calculateInstallmentsTotal())}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateDetailsTotal())})
+                        {formatNumber(calculateNetTotal())})
                       </p>
                     </div>
                   )}
@@ -1688,6 +1718,8 @@ export const SaleForm = ({
           calculateDetailsSubtotal={calculateDetailsSubtotal}
           calculateDetailsIGV={calculateDetailsIGV}
           calculateDetailsTotal={calculateDetailsTotal}
+          calculateRetencion={calculateRetencion}
+          calculateNetTotal={calculateNetTotal}
           calculatePaymentTotal={calculatePaymentTotal}
           installmentsMatchTotal={installmentsMatchTotal}
           paymentAmountsMatchTotal={paymentAmountsMatchTotal}

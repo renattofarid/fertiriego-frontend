@@ -99,7 +99,7 @@ export default function BoxAssignmentsSheet({
               <Button
                 onClick={() => setShowAddModal(true)}
                 className="w-full"
-                size="sm"
+                
               >
                 <Plus className="size-4 mr-2" />
                 Asignar Usuario

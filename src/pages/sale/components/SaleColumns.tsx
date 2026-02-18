@@ -176,7 +176,7 @@ export const getSaleColumns = ({
     cell: ({ row }) => (
       <Button
         variant="ghost"
-        size="sm"
+        
         onClick={() => onManage(row.original)}
         className="h-auto p-1"
       >
@@ -219,7 +219,7 @@ export const getSaleColumns = ({
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="sm"
+              
               onClick={() => onManage(row.original)}
               className="h-auto p-1"
             >
@@ -252,7 +252,7 @@ export const getSaleColumns = ({
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="sm"
+                    
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
                     disabled={!isValid}
@@ -332,7 +332,7 @@ export const getSaleColumns = ({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>

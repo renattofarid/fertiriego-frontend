@@ -11,6 +11,7 @@ import { VEHICLE, type VehicleResource } from "../lib/vehicle.interface";
 import { useVehicles, useVehicleById } from "../lib/vehicle.hook";
 import { useVehicleStore } from "../lib/vehicle.store";
 import { VehicleForm } from "./VehicleForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   id?: number;
@@ -57,35 +58,36 @@ export default function VehicleModal({
   });
 
   const { isSubmitting, updateVehicle, createVehicle } = useVehicleStore();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: VehicleSchema) => {
     if (mode === "create") {
       await createVehicle(data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
+          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
           refetch();
         })
         .catch((error: any) => {
           errorToast(
             error.response.data.message ??
-              error.response.data.error ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
       await updateVehicle(id!, data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
+          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
           refetchVehicle();
           refetch();
         })
         .catch((error: any) => {
           errorToast(
             error.response.data.message ??
-              error.response.data.error ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "edit"),
           );

@@ -11,7 +11,7 @@ export default function UnitActions() {
 
   return (
     <>
-      <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
+      <Button  onClick={() => setIsCreateModalOpen(true)}>
         <Plus className="mr-2 h-4 w-4" />
         Agregar Unidad
       </Button>

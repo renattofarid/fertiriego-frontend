@@ -72,7 +72,7 @@ export function TechnicalSheetsDialog({
                     <div className="flex gap-2 pt-2 border-t border-border/50">
                       <Button
                         variant="outline"
-                        size="sm"
+                        
                         onClick={() => window.open(sheet, "_blank")}
                         className="gap-2 flex-1"
                       >

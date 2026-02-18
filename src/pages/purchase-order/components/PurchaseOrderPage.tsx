@@ -15,8 +15,9 @@ import {
 } from "@/lib/core.function";
 import { PurchaseOrderColumns } from "./PurchaseOrderColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { PURCHASE_ORDER } from "../lib/purchase-order.interface";
+import { PURCHASE_ORDER, type PurchaseOrderResource } from "../lib/purchase-order.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import PurchaseOrderDetailSheet from "./PurchaseOrderDetailSheet";
 
 const { MODEL, ICON } = PURCHASE_ORDER;
 
@@ -27,34 +28,25 @@ export default function PurchaseOrderPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+    useState<PurchaseOrderResource | null>(null);
 
-  const { data, meta, isLoading, refetch } = usePurchaseOrder();
+  const { data, isLoading, refetch } = usePurchaseOrder();
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-      ...(selectedStatus && { status: selectedStatus }),
-    };
-    refetch(filterParams);
+    setPage(1);
   }, [page, search, per_page, selectedStatus, refetch]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deletePurchaseOrder(deleteId);
-      const filterParams = {
-        page,
-        search,
-        per_page,
-        ...(selectedStatus && { status: selectedStatus }),
-      };
-      await refetch(filterParams);
+      await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       const errorMessage =
-        (error.response.data.message ?? error.response.data.error) || ERROR_MESSAGE(MODEL, "delete");
+        (error.response.data.message ?? error.response.data.error) ||
+        ERROR_MESSAGE(MODEL, "delete");
       errorToast(errorMessage);
     } finally {
       setDeleteId(null);
@@ -85,10 +77,11 @@ export default function PurchaseOrderPage() {
       <PurchaseOrderTable
         isLoading={isLoading}
         columns={PurchaseOrderColumns({
+          onView: setSelectedPurchaseOrder,
           onEdit: handleEditPurchaseOrder,
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <PurchaseOrderOptions
           search={search}
@@ -100,11 +93,11 @@ export default function PurchaseOrderPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {deleteId !== null && (
@@ -114,6 +107,12 @@ export default function PurchaseOrderPage() {
           onConfirm={handleDelete}
         />
       )}
+
+      <PurchaseOrderDetailSheet
+        purchaseOrder={selectedPurchaseOrder}
+        open={selectedPurchaseOrder !== null}
+        onClose={() => setSelectedPurchaseOrder(null)}
+      />
     </div>
   );
 }
