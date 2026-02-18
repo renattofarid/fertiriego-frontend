@@ -17,7 +17,7 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, ICON_REACT: ICON } = CARRIER;
+const { MODEL, ICON } = CARRIER;
 
 export default function CarrierCreateModal({ open, onClose }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,7 +76,7 @@ export default function CarrierCreateModal({ open, onClose }: Props) {
         isSubmitting={isSubmitting}
         onCancel={onClose}
         roleId={CARRIER_ROLE_ID}
-        isWorker={true}
+        isWorker={false}
       />
     </GeneralModal>
   );
