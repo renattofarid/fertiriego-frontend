@@ -53,7 +53,7 @@ export default function GuideAddPage() {
     warehouse_id: "",
     issue_date: "",
     transfer_date: "",
-    motive_id: "",
+    motive_id: "1",
     sale_id: "",
     purchase_id: "",
     warehouse_document_id: "",
