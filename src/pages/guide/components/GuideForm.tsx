@@ -632,6 +632,43 @@ export const GuideForm = ({
             label="Fecha de Traslado"
           />
 
+          <FormSelectAsync
+            control={form.control}
+            name="recipient_id"
+            label="Destinatario"
+            placeholder="Selecciona un destinatario"
+            useQueryHook={useClients}
+            mapOptionFn={(client) => ({
+              value: client.id.toString(),
+              label:
+                client.business_name ||
+                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+              description: client.business_name
+                ? ""
+                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+            })}
+            withValue
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="remittent_id"
+            label="Remitente"
+            placeholder="Selecciona un remitente"
+            useQueryHook={useRemittents}
+            mapOptionFn={(remmitent) => ({
+              value: remmitent.id.toString(),
+              label:
+                remmitent.business_name ||
+                `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
+              description: remmitent.business_name
+                ? ""
+                : `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
+            })}
+            preloadItemId={form.getValues("remittent_id") || undefined}
+            withValue
+          />
+
           <FormInput
             control={form.control}
             name="order"
@@ -716,43 +753,6 @@ export const GuideForm = ({
               label: warehouse.name,
               description: warehouse.address,
             }))}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="recipient_id"
-            label="Destinatario"
-            placeholder="Selecciona un destinatario"
-            useQueryHook={useClients}
-            mapOptionFn={(client) => ({
-              value: client.id.toString(),
-              label:
-                client.business_name ||
-                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-              description: client.business_name
-                ? ""
-                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-            })}
-            withValue
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="remittent_id"
-            label="Remitente"
-            placeholder="Selecciona un remitente"
-            useQueryHook={useRemittents}
-            mapOptionFn={(remmitent) => ({
-              value: remmitent.id.toString(),
-              label:
-                remmitent.business_name ||
-                `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-              description: remmitent.business_name
-                ? ""
-                : `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-            })}
-            preloadItemId={form.getValues("remittent_id") || undefined}
-            withValue
           />
 
           <FormField
