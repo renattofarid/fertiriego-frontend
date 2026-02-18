@@ -27,7 +27,7 @@ export const GroupFormSection = ({
   children,
   cols = { sm: 2, md: 3, lg: 4 },
   className,
-  gap = "gap-3 md:gap-3",
+  gap = "gap-2",
   headerExtra,
 }: FormSectionProps) => {
   const gridClasses = [

@@ -444,227 +444,223 @@ export const QuotationForm = ({
             icon={FileText}
             cols={{
               sm: 1,
+              md: 3,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex gap-2 items-end max-w-full">
-                <div className="flex-1 min-w-0">
-                  <FormSelectAsync
-                    control={form.control}
-                    name="customer_id"
-                    label="Cliente"
-                    useQueryHook={useClients}
-                    mapOptionFn={(client: PersonResource) => ({
-                      value: client.id.toString(),
-                      label:
-                        client.business_name ||
-                        `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
-                    })}
-                    placeholder="Seleccionar cliente"
-                    onValueChange={(_value, item) => {
-                      setSelectedCustomer(item ?? null);
-                    }}
-                  />
-                </div>
-                {mode === "create" && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setIsClientModalOpen(true)}
-                    className="flex-shrink-0"
-                    title="Crear nuevo cliente"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-2 items-end max-w-full">
-                <div className="flex-1 min-w-0">
-                  <FormSelect
-                    control={form.control}
-                    name="warehouse_id"
-                    label="Almacén"
-                    options={warehousesList.map((w) => ({
-                      value: w.id.toString(),
-                      label: w.name,
-                    }))}
-                    placeholder="Seleccionar almacén"
-                  />
-                </div>
-                {mode === "create" && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setIsWarehouseModalOpen(true)}
-                    className="flex-shrink-0"
-                    title="Crear nuevo almacén"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <DatePickerFormField
-                control={form.control}
-                name="fecha_emision"
-                label="Fecha de Emisión"
-                placeholder="Seleccionar fecha"
-              />
-
-              <FormField
-                control={form.control}
-                name="delivery_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tiempo de Entrega</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ej: 3 días hábiles" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="validity_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tiempo de Vigencia</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ej: 10 días" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormSelect
-                control={form.control}
-                name="payment_type"
-                label="Tipo de Pago"
-                options={PAYMENT_TYPES.map((type) => ({
-                  value: type.value,
-                  label: type.label,
-                }))}
-                placeholder="Seleccionar tipo de pago"
-              />
-
-              {paymentType === "CREDITO" && (
-                <FormField
+            <div className="flex gap-2 items-end max-w-full">
+              <div className="flex-1 min-w-0">
+                <FormSelectAsync
                   control={form.control}
-                  name="days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Crédito</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          placeholder="Número de días"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  name="customer_id"
+                  label="Cliente"
+                  useQueryHook={useClients}
+                  mapOptionFn={(client: PersonResource) => ({
+                    value: client.id.toString(),
+                    label:
+                      client.business_name ||
+                      `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
+                  })}
+                  placeholder="Seleccionar cliente"
+                  onValueChange={(_value, item) => {
+                    setSelectedCustomer(item ?? null);
+                  }}
                 />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsClientModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo cliente"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               )}
-
-              <FormSelect
-                control={form.control}
-                name="currency"
-                label="Moneda"
-                options={CURRENCIES.map((currency) => ({
-                  value: currency.value,
-                  label: currency.label,
-                }))}
-                placeholder="Seleccionar moneda"
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Dirección de entrega" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referencia</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Referencia de ubicación" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="order_purchase"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Compra</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Número de orden de compra"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="order_service"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Servicio</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Número de orden de servicio"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    <FormLabel>Observaciones</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Observaciones adicionales"
-                        rows={3}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+
+            <div className="flex gap-2 items-end max-w-full">
+              <div className="flex-1 min-w-0">
+                <FormSelect
+                  control={form.control}
+                  name="warehouse_id"
+                  label="Almacén"
+                  options={warehousesList.map((w) => ({
+                    value: w.id.toString(),
+                    label: w.name,
+                  }))}
+                  placeholder="Seleccionar almacén"
+                />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsWarehouseModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo almacén"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            <DatePickerFormField
+              control={form.control}
+              name="fecha_emision"
+              label="Fecha de Emisión"
+              placeholder="Seleccionar fecha"
+            />
+
+            <FormField
+              control={form.control}
+              name="delivery_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tiempo de Entrega</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ej: 3 días hábiles" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="validity_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tiempo de Vigencia</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ej: 10 días" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormSelect
+              control={form.control}
+              name="payment_type"
+              label="Tipo de Pago"
+              options={PAYMENT_TYPES.map((type) => ({
+                value: type.value,
+                label: type.label,
+              }))}
+              placeholder="Seleccionar tipo de pago"
+            />
+
+            {paymentType === "CREDITO" && (
+              <FormField
+                control={form.control}
+                name="days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Crédito</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        placeholder="Número de días"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormSelect
+              control={form.control}
+              name="currency"
+              label="Moneda"
+              options={CURRENCIES.map((currency) => ({
+                value: currency.value,
+                label: currency.label,
+              }))}
+              placeholder="Seleccionar moneda"
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dirección</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Dirección de entrega" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Referencia</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Referencia de ubicación" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="order_purchase"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Orden de Compra</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Número de orden de compra" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="order_service"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Orden de Servicio</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Número de orden de servicio"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="observations"
+              render={({ field }) => (
+                <FormItem className="md:col-span-3">
+                  <FormLabel>Observaciones</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Observaciones adicionales"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </GroupFormSection>
 
           <GroupFormSection
