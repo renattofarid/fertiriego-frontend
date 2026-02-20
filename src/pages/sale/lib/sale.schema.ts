@@ -5,7 +5,7 @@ import { z } from "zod";
 
 export const saleDetailSchema = z.object({
   product_id: requiredStringId("Debe seleccionar un producto"),
-  quantity: z
+  quantity: z.coerce
     .string()
     .min(1, { message: "La cantidad es requerida" })
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {

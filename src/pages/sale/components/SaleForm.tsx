@@ -563,8 +563,12 @@ export const SaleForm = ({
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price); // precio con IGV
-              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
+              const unitPrice = parseFloat(detail.unit_price);
+              // is_igv=true → unit_price viene CON IGV (precio unitario)
+              // is_igv=false → unit_price viene SIN IGV (valor unitario)
+              const basePrice = detail.is_igv ? unitPrice / 1.18 : unitPrice;
+              const storedUnitPrice = detail.is_igv ? unitPrice : unitPrice * 1.18;
+              const subtotal = roundTo6Decimals(quantity * basePrice);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -572,7 +576,7 @@ export const SaleForm = ({
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: detail.unit_price,
+                unit_price: storedUnitPrice.toString(),
                 subtotal,
                 igv,
                 total,
@@ -1778,11 +1782,11 @@ export const SaleForm = ({
             </GroupFormSection>
           )}
 
-          {/* <pre>
+          <pre>
           <code>{JSON.stringify(form.getValues(), null, 2)}</code>
           <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
         </pre>
-        <Button onClick={() => form.trigger()}>Button</Button> */}
+        <Button onClick={() => form.trigger()}>Button</Button>
         </div>
 
         <SaleSummary
