@@ -69,8 +69,12 @@ export default function BoxModal({ id, open, title, mode, onClose }: Props) {
           refetchBox();
           refetch();
         })
-        .catch(() => {
-          errorToast(ERROR_MESSAGE(MODEL, "edit"));
+        .catch((error: any) => {
+          errorToast(
+            error.response.data.message ??
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "edit"),
+          );
         });
     }
   };
