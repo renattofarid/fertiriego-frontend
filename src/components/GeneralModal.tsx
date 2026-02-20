@@ -57,7 +57,7 @@ export function GeneralModal({
   onClose,
   titleComponent,
   title,
-  subtitle,
+  subtitle = "Complete el formulario para continuar",
   children,
   size = "lg",
   className,

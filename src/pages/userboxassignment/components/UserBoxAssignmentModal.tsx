@@ -7,8 +7,14 @@ import {
   SUCCESS_MESSAGE,
   successToast,
 } from "@/lib/core.function";
-import { USERBOXASSIGNMENT, type UserBoxAssignmentResource } from "../lib/userboxassignment.interface";
-import { useUserBoxAssignment, useUserBoxAssignmentById } from "../lib/userboxassignment.hook";
+import {
+  USERBOXASSIGNMENT,
+  type UserBoxAssignmentResource,
+} from "../lib/userboxassignment.interface";
+import {
+  useUserBoxAssignment,
+  useUserBoxAssignmentById,
+} from "../lib/userboxassignment.hook";
 import { useUserBoxAssignmentStore } from "../lib/userboxassignment.store";
 import { UserBoxAssignmentForm } from "./UserBoxAssignmentForm";
 
@@ -22,9 +28,17 @@ interface Props {
   preselectedBoxName?: string;
 }
 
-const { MODEL, EMPTY } = USERBOXASSIGNMENT;
+const { MODEL, EMPTY, ICON } = USERBOXASSIGNMENT;
 
-export default function UserBoxAssignmentModal({ id, open, title, mode, onClose, preselectedBoxId, preselectedBoxName }: Props) {
+export default function UserBoxAssignmentModal({
+  id,
+  open,
+  title,
+  mode,
+  onClose,
+  preselectedBoxId,
+  preselectedBoxName,
+}: Props) {
   const { refetch } = useUserBoxAssignment();
 
   const {
@@ -39,12 +53,15 @@ export default function UserBoxAssignmentModal({ id, open, title, mode, onClose,
       }
     : useUserBoxAssignmentById(id!);
 
-  const mapUserBoxAssignmentToForm = (data: UserBoxAssignmentResource): Partial<UserBoxAssignmentSchema> => ({
+  const mapUserBoxAssignmentToForm = (
+    data: UserBoxAssignmentResource,
+  ): Partial<UserBoxAssignmentSchema> => ({
     user_id: data?.user_id?.toString() || "",
     box_id: data?.box_id?.toString() || "",
   });
 
-  const { isSubmitting, updateUserBoxAssignment, createUserBoxAssignment } = useUserBoxAssignmentStore();
+  const { isSubmitting, updateUserBoxAssignment, createUserBoxAssignment } =
+    useUserBoxAssignmentStore();
 
   const handleSubmit = async (data: UserBoxAssignmentSchema) => {
     if (mode === "create") {
@@ -58,7 +75,7 @@ export default function UserBoxAssignmentModal({ id, open, title, mode, onClose,
           errorToast(
             error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -78,7 +95,7 @@ export default function UserBoxAssignmentModal({ id, open, title, mode, onClose,
   const isLoadingAny = isSubmitting || findingUserBoxAssignment;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title}>
+    <GeneralModal open={open} onClose={onClose} title={title} icon={ICON}>
       {!isLoadingAny && userBoxAssignment ? (
         <UserBoxAssignmentForm
           defaultValues={mapUserBoxAssignmentToForm(userBoxAssignment)}

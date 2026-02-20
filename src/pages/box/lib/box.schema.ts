@@ -18,8 +18,8 @@ export const boxSchemaCreate = z.object({
     .min(1, {
       message: "La serie es requerida",
     })
-    .regex(/^[0-9]+$/, {
-      message: "La serie solo debe contener números",
+    .max(3, {
+      message: "La serie no puede tener más de 3 caracteres",
     }),
   branch_id: requiredStringId("sucursal"),
 });

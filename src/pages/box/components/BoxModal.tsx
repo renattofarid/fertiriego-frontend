@@ -20,7 +20,7 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, EMPTY } = BOX;
+const { MODEL, EMPTY, ICON } = BOX;
 
 export default function BoxModal({ id, open, title, mode, onClose }: Props) {
   const { refetch } = useBox();
@@ -55,9 +55,10 @@ export default function BoxModal({ id, open, title, mode, onClose }: Props) {
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -77,7 +78,13 @@ export default function BoxModal({ id, open, title, mode, onClose }: Props) {
   const isLoadingAny = isSubmitting || findingBox;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title}>
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle="Complete el formulario para continuar"
+      icon={ICON}
+    >
       {!isLoadingAny && box ? (
         <BoxForm
           defaultValues={mapBoxToForm(box)}

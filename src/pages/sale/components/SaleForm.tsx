@@ -179,13 +179,22 @@ export const SaleForm = ({
     correlative: "",
   });
 
+  // Estado para controlar la sincronización bidireccional de precios
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+
+  // Formatea un número a 4 decimales sin ceros innecesarios
+  const formatNumberLocal = (num: number): string =>
+    parseFloat(num.toFixed(4)).toString();
+
   // Formularios temporales
   const detailTempForm = useForm({
     defaultValues: {
       temp_product_id: currentDetail.product_id,
       temp_price_category_id: "",
+      temp_is_igv: false,
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
+      temp_value_price: "",
     },
   });
 
@@ -210,8 +219,10 @@ export const SaleForm = ({
   const selectedPriceCategoryId = detailTempForm.watch(
     "temp_price_category_id",
   );
+  const isDetailIgv = detailTempForm.watch("temp_is_igv");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
+  const selectedValuePrice = detailTempForm.watch("temp_value_price");
 
   // Cargar precios del producto seleccionado
   const { data: productPricesData } = useProductPrices({
@@ -283,6 +294,40 @@ export const SaleForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
+
+  // Sincronización bidireccional: temp_unit_price → temp_value_price
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+    const price = parseFloat(selectedUnitPrice);
+    if (!isNaN(price) && price > 0) {
+      setIsUpdatingPrice(true);
+      detailTempForm.setValue(
+        "temp_value_price",
+        formatNumberLocal(price / 1.18),
+      );
+      setIsUpdatingPrice(false);
+    } else if (selectedUnitPrice === "") {
+      detailTempForm.setValue("temp_value_price", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUnitPrice]);
+
+  // Sincronización bidireccional: temp_value_price → temp_unit_price
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+    const value = parseFloat(selectedValuePrice);
+    if (!isNaN(value) && value > 0) {
+      setIsUpdatingPrice(true);
+      detailTempForm.setValue(
+        "temp_unit_price",
+        formatNumberLocal(value * 1.18),
+      );
+      setIsUpdatingPrice(false);
+    } else if (selectedValuePrice === "") {
+      detailTempForm.setValue("temp_unit_price", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedValuePrice]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -457,7 +502,13 @@ export const SaleForm = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
+          setIsUpdatingPrice(true);
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
+          detailTempForm.setValue(
+            "temp_value_price",
+            formatNumberLocal(priceValue / 1.18),
+          );
+          setIsUpdatingPrice(false);
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -682,17 +733,27 @@ export const SaleForm = ({
     detailTempForm.reset({
       temp_product_id: "",
       temp_price_category_id: "",
+      temp_is_igv: false,
       temp_quantity: "",
       temp_unit_price: "",
+      temp_value_price: "",
     });
   };
 
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
+    setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     detailTempForm.setValue("temp_unit_price", detail.unit_price);
+    detailTempForm.setValue(
+      "temp_value_price",
+      detail.unit_price
+        ? formatNumberLocal(parseFloat(detail.unit_price) / 1.18)
+        : "",
+    );
+    setIsUpdatingPrice(false);
     setEditingDetailIndex(index);
   };
 
@@ -1201,14 +1262,36 @@ export const SaleForm = ({
                 min={0}
               />
 
+              <div className="md:col-span-4">
+                <FormSwitch
+                  control={detailTempForm.control}
+                  name="temp_is_igv"
+                  text="Precio incluye IGV"
+                  textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
+                  autoHeight
+                />
+              </div>
+
               <FormInput
                 control={detailTempForm.control}
-                name="temp_unit_price"
-                label="Precio Unit."
+                name="temp_value_price"
+                label="Valor Unit. (sin IGV)"
                 placeholder="0.0000"
                 type="number"
                 min={0}
                 step="0.0001"
+                className={isDetailIgv ? "border-dashed opacity-60" : "border-primary"}
+              />
+
+              <FormInput
+                control={detailTempForm.control}
+                name="temp_unit_price"
+                label="Precio Unit. (con IGV)"
+                placeholder="0.0000"
+                type="number"
+                min={0}
+                step="0.0001"
+                className={!isDetailIgv ? "border-dashed opacity-60" : "border-primary"}
               />
 
               <div className="md:col-span-4 flex items-center justify-end">
@@ -1235,6 +1318,7 @@ export const SaleForm = ({
                     <TableRow>
                       <TableHead>Producto</TableHead>
                       <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">V. Unit.</TableHead>
                       <TableHead className="text-right">P. Unit.</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
                       <TableHead className="text-right">IGV (18%)</TableHead>
@@ -1248,6 +1332,9 @@ export const SaleForm = ({
                         <TableCell>{detail.product_name}</TableCell>
                         <TableCell className="text-right">
                           {detail.quantity}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatNumber(parseFloat(detail.unit_price) / 1.18)}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatNumber(parseFloat(detail.unit_price))}
@@ -1282,7 +1369,7 @@ export const SaleForm = ({
                       </TableRow>
                     ))}
                     <TableRow>
-                      <TableCell colSpan={3} className="text-right font-bold">
+                      <TableCell colSpan={4} className="text-right font-bold">
                         TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
