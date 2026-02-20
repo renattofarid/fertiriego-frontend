@@ -57,6 +57,8 @@ import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
 import { Separator } from "@/components/ui/separator";
 import { FormTextArea } from "@/components/FormTextArea";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -158,6 +160,9 @@ export const GuideForm = ({
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [carrierModalOpen, setCarrierModalOpen] = useState(false);
+  const [recipientModalOpen, setRecipientModalOpen] = useState(false);
+  const [secondaryVehicleModalOpen, setSecondaryVehicleModalOpen] = useState(false);
+  const [dispatcherModalOpen, setDispatcherModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     index: "",
     product_id: 0,
@@ -574,23 +579,37 @@ export const GuideForm = ({
           gap="gap-3"
           className=""
         >
-          <FormSelectAsync
-            control={form.control}
-            name="recipient_id"
-            label="Destinatario"
-            placeholder="Selecciona un destinatario"
-            useQueryHook={useClients}
-            mapOptionFn={(client) => ({
-              value: client.id.toString(),
-              label:
-                client.business_name ||
-                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-              description: client.business_name
-                ? ""
-                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-            })}
-            withValue
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="recipient_id"
+                label="Destinatario"
+                placeholder="Selecciona un destinatario"
+                useQueryHook={useClients}
+                mapOptionFn={(client) => ({
+                  value: client.id.toString(),
+                  label:
+                    client.business_name ||
+                    `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                  description: client.business_name
+                    ? ""
+                    : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                })}
+                withValue
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear destinatario"
+              onClick={() => setRecipientModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
           <FormSelect
             control={form.control}
@@ -948,33 +967,61 @@ export const GuideForm = ({
           <Separator className="col-span-full" />
 
           {transportModality === "PRIVADO" && (
-            <FormSelectAsync
-              control={form.control}
-              name="secondary_vehicle_id"
-              label="Vehículo Secundario (Opcional)"
-              placeholder="Seleccione un vehículo secundario"
-              useQueryHook={useVehicles}
-              mapOptionFn={(vehicle) => ({
-                value: vehicle.id.toString(),
-                label: vehicle.plate,
-                description: `${vehicle.brand} ${vehicle.model}`,
-              })}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="secondary_vehicle_id"
+                  label="Vehículo Secundario (Opcional)"
+                  placeholder="Seleccione un vehículo secundario"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo secundario"
+                onClick={() => setSecondaryVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           )}
 
-          <FormSelectAsync
-            control={form.control}
-            name="dispatcher_id"
-            label="Despachador (Opcional)"
-            placeholder="Seleccione un despachador"
-            useQueryHook={useSuppliers}
-            mapOptionFn={(supplier) => ({
-              value: supplier.id.toString(),
-              label:
-                supplier.business_name ||
-                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-            })}
-          />
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="dispatcher_id"
+                label="Despachador (Opcional)"
+                placeholder="Seleccione un despachador"
+                useQueryHook={useSuppliers}
+                mapOptionFn={(supplier) => ({
+                  value: supplier.id.toString(),
+                  label:
+                    supplier.business_name ||
+                    `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
+                })}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear despachador"
+              onClick={() => setDispatcherModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </GroupFormSection>
 
         {/* Detalles de Productos */}
@@ -1189,6 +1236,23 @@ export const GuideForm = ({
         onClose={() => setVehicleModalOpen(false)}
         title={`Crear ${VEHICLE.MODEL.name}`}
         mode="create"
+      />
+
+      <ClientCreateModal
+        open={recipientModalOpen}
+        onClose={() => setRecipientModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={secondaryVehicleModalOpen}
+        onClose={() => setSecondaryVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <SupplierCreateModal
+        open={dispatcherModalOpen}
+        onClose={() => setDispatcherModalOpen(false)}
       />
     </Form>
   );

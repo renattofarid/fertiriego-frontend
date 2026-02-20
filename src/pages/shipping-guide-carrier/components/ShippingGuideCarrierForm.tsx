@@ -46,6 +46,11 @@ import type { Option } from "@/lib/core.interface";
 import { FormInput } from "@/components/FormInput";
 import { FormTextArea } from "@/components/FormTextArea";
 import { Separator } from "@/components/ui/separator";
+import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
+import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
+import VehicleModal from "@/pages/vehicle/components/VehicleModal";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -198,6 +203,11 @@ export function ShippingGuideCarrierForm({
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
   >(undefined);
+
+  const [carrierModalOpen, setCarrierModalOpen] = useState(false);
+  const [driverModalOpen, setDriverModalOpen] = useState(false);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
 
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
@@ -516,71 +526,127 @@ export function ShippingGuideCarrierForm({
               }))}
             />
 
-            <FormSelectAsync
-              control={form.control}
-              name="carrier_id"
-              label="Transportista"
-              placeholder="Seleccione un transportista"
-              useQueryHook={useCarriers}
-              mapOptionFn={(carrier) => ({
-                value: carrier.id.toString(),
-                label:
-                  carrier.business_name ||
-                  `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-                description: carrier.number_document,
-              })}
-              withValue
-              preloadItemId={form.getValues("carrier_id") ?? undefined}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione un transportista"
+                  useQueryHook={useCarriers}
+                  mapOptionFn={(carrier) => ({
+                    value: carrier.id.toString(),
+                    label:
+                      carrier.business_name ||
+                      `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                    description: carrier.number_document,
+                  })}
+                  withValue
+                  preloadItemId={form.getValues("carrier_id") ?? undefined}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear transportista"
+                onClick={() => setCarrierModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <FormSelectAsync
-              control={form.control}
-              name="remittent_id"
-              label="Remitente"
-              placeholder="Seleccione remitente"
-              useQueryHook={useClients}
-              additionalParams={{
-                per_page: 1000,
-              }}
-              mapOptionFn={(p: PersonResource) => ({
-                value: p.id.toString(),
-                label: p.business_name ?? `${p.names} ${p.father_surname}`,
-                description: p.number_document,
-              })}
-              withValue
-              preloadItemId={initialValues?.remittent_id}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="remittent_id"
+                  label="Remitente"
+                  placeholder="Seleccione remitente"
+                  useQueryHook={useClients}
+                  additionalParams={{
+                    per_page: 1000,
+                  }}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.remittent_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <FormSelectAsync
-              key={`recipient-${guideAutoFill.selectorKey}`}
-              control={form.control}
-              name="recipient_id"
-              label="Destinatario (Opcional)"
-              placeholder="Seleccione destinatario"
-              useQueryHook={useClients}
-              mapOptionFn={(p: PersonResource) => ({
-                value: p.id.toString(),
-                label: p.business_name ?? `${p.names} ${p.father_surname}`,
-                description: p.number_document,
-              })}
-              withValue
-              defaultOption={guideAutoFill.recipientOption}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  key={`recipient-${guideAutoFill.selectorKey}`}
+                  control={form.control}
+                  name="recipient_id"
+                  label="Destinatario (Opcional)"
+                  placeholder="Seleccione destinatario"
+                  useQueryHook={useClients}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  defaultOption={guideAutoFill.recipientOption}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <FormSelectAsync
-              control={form.control}
-              name="third_party_id"
-              label="Tercero (Opcional)"
-              placeholder="Seleccione tercero"
-              useQueryHook={useClients}
-              mapOptionFn={(p: PersonResource) => ({
-                value: p.id.toString(),
-                label: p.business_name ?? `${p.names} ${p.father_surname}`,
-                description: p.number_document,
-              })}
-              withValue
-              preloadItemId={initialValues?.third_party_id}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="third_party_id"
+                  label="Tercero (Opcional)"
+                  placeholder="Seleccione tercero"
+                  useQueryHook={useClients}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.third_party_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
             <FormSelect
               control={form.control}
@@ -596,60 +662,105 @@ export function ShippingGuideCarrierForm({
 
             <Separator className="col-span-full" />
 
-            <FormSelectAsync
-              control={form.control}
-              name="driver_id"
-              label="Conductor"
-              placeholder="Seleccione conductor"
-              useQueryHook={useDrivers}
-              mapOptionFn={(d: PersonResource) => ({
-                value: d.id.toString(),
-                label:
-                  d.business_name ??
-                  `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
-                description: d.number_document,
-              })}
-              withValue
-              preloadItemId={initialValues?.driver_id}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="driver_id"
+                  label="Conductor"
+                  placeholder="Seleccione conductor"
+                  useQueryHook={useDrivers}
+                  mapOptionFn={(d: PersonResource) => ({
+                    value: d.id.toString(),
+                    label:
+                      d.business_name ??
+                      `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
+                    description: d.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.driver_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear conductor"
+                onClick={() => setDriverModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <FormSelectAsync
-              control={form.control}
-              name="vehicle_id"
-              label="Vehículo"
-              placeholder="Seleccione vehículo"
-              useQueryHook={useVehicles}
-              mapOptionFn={(vehicle) => ({
-                value: vehicle.id.toString(),
-                label: vehicle.plate,
-                description: `${vehicle.brand} ${vehicle.model}`,
-              })}
-              onValueChange={(_value, vehicle: any) => {
-                if (vehicle) {
-                  form.setValue("vehicle_plate", vehicle.plate || "");
-                  form.setValue("vehicle_brand", vehicle.brand || "");
-                  form.setValue("vehicle_model", vehicle.model || "");
-                  form.setValue("vehicle_mtc", vehicle.mtc_certificate || "");
-                }
-              }}
-              withValue
-              preloadItemId={initialValues?.vehicle_id}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="vehicle_id"
+                  label="Vehículo"
+                  placeholder="Seleccione vehículo"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                  onValueChange={(_value, vehicle: any) => {
+                    if (vehicle) {
+                      form.setValue("vehicle_plate", vehicle.plate || "");
+                      form.setValue("vehicle_brand", vehicle.brand || "");
+                      form.setValue("vehicle_model", vehicle.model || "");
+                      form.setValue(
+                        "vehicle_mtc",
+                        vehicle.mtc_certificate || "",
+                      );
+                    }
+                  }}
+                  withValue
+                  preloadItemId={initialValues?.vehicle_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo"
+                onClick={() => setVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-            <FormSelectAsync
-              control={form.control}
-              name="secondary_vehicle_id"
-              label="Vehículo Secundario (Opcional)"
-              placeholder="Seleccione vehículo secundario"
-              useQueryHook={useVehicles}
-              mapOptionFn={(vehicle) => ({
-                value: vehicle.id.toString(),
-                label: vehicle.plate,
-                description: `${vehicle.brand} ${vehicle.model}`,
-              })}
-              withValue
-              preloadItemId={initialValues?.secondary_vehicle_id}
-            />
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="secondary_vehicle_id"
+                  label="Vehículo Secundario (Opcional)"
+                  placeholder="Seleccione vehículo secundario"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.secondary_vehicle_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo secundario"
+                onClick={() => setVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
             <FormInput
               control={form.control}
@@ -972,6 +1083,28 @@ export function ShippingGuideCarrierForm({
           </div>
         </form>
       </Form>
+
+      <CarrierCreateModal
+        open={carrierModalOpen}
+        onClose={() => setCarrierModalOpen(false)}
+      />
+
+      <DriverCreateModal
+        open={driverModalOpen}
+        onClose={() => setDriverModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <ClientCreateModal
+        open={clientModalOpen}
+        onClose={() => setClientModalOpen(false)}
+      />
     </PageWrapper>
   );
 }

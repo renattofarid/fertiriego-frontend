@@ -31,7 +31,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -181,6 +181,9 @@ export const SaleForm = ({
 
   // Estado para controlar la sincronización bidireccional de precios
   const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+
+  // Ref para evitar auto-generación en el montaje inicial
+  const isInitialMount = useRef(true);
 
   // Formatea un número a 4 decimales sin ceros innecesarios
   const formatNumberLocal = (num: number): string =>
@@ -583,8 +586,8 @@ export const SaleForm = ({
       } else if (sourceType === "guide") {
         // Auto-completar desde guía de remisión
         // El cliente viene de la venta asociada a la guía
-        if (sourceData.sale?.customer_id) {
-          form.setValue("customer_id", sourceData.sale.customer_id.toString());
+        if (sourceData.recipient?.id) {
+          form.setValue("customer_id", sourceData.recipient.id.toString());
         }
 
         // El almacén viene de la guía
@@ -804,6 +807,24 @@ export const SaleForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRetencionIGV, selectedPaymentType]);
+
+  // Auto-generar cuota de 30 días al cambiar a tipo de pago crédito
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (selectedPaymentType === "CREDITO") {
+      const netTotal = calculateNetTotal();
+      const autoInstallment: InstallmentRow = {
+        due_days: "30",
+        amount: netTotal.toFixed(6),
+      };
+      setInstallments([autoInstallment]);
+      form.setValue("installments", [autoInstallment]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPaymentType]);
 
   // Funciones para cuotas
   const handleAddInstallment = () => {

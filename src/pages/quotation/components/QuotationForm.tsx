@@ -278,7 +278,6 @@ export const QuotationForm = ({
             <Button
               type="button"
               variant="ghost"
-              
               onClick={() => handleViewTechnicalSheets(row.index)}
               disabled={
                 !row.original.technical_sheet ||
@@ -507,6 +506,7 @@ export const QuotationForm = ({
                     label: w.name,
                   }))}
                   placeholder="Seleccionar almacén"
+                  autoSelectSingle
                 />
               </div>
               {mode === "create" && (
@@ -687,11 +687,7 @@ export const QuotationForm = ({
             }}
           >
             <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => setSheetOpen(true)}
-                
-              >
+              <Button type="button" onClick={() => setSheetOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
