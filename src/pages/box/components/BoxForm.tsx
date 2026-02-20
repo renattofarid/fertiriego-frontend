@@ -2,15 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
   boxSchemaCreate,
@@ -20,6 +12,7 @@ import {
 import { Loader } from "lucide-react";
 import { useAllBranches } from "@/pages/branch/lib/branch.hook";
 import { FormSelect } from "@/components/FormSelect";
+import { FormInput } from "@/components/FormInput.tsx";
 
 interface BoxFormProps {
   defaultValues: Partial<BoxSchema>;
@@ -40,7 +33,7 @@ export const BoxForm = ({
 
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? boxSchemaCreate : boxSchemaUpdate
+      mode === "create" ? boxSchemaCreate : boxSchemaUpdate,
     ),
     defaultValues: {
       name: "",
@@ -62,42 +55,21 @@ export const BoxForm = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
-          <FormField
+          <FormInput
             control={form.control}
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nombre</FormLabel>
-                <FormControl>
-                  <Input
-                    
-                    placeholder="Ej: Caja Central"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Nombre"
+            placeholder="Ej: Caja Central"
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="serie"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Serie</FormLabel>
-                <FormControl>
-                  <Input
-                    
-                    placeholder="Ej: 001"
-                    className="font-mono"
-                    maxLength={10}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Serie"
+            placeholder="Ej: 001"
+            className="font-mono"
+            maxLength={3}
+            uppercase
           />
 
           <div className="col-span-full">

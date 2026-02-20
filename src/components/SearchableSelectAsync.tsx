@@ -69,7 +69,7 @@ export function SearchableSelectAsync({
   withValue = true,
   label,
   disabled = false,
-  buttonSize = "sm",
+  buttonSize = "default",
   useQueryHook,
   mapOptionFn,
   perPage = 10,

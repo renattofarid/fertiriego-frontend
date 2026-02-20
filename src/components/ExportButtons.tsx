@@ -7,7 +7,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { api } from "@/lib/config";
-import { Sheet, FileText } from "lucide-react";
+import { Sheet, FileDown } from "lucide-react";
 import { toast } from "sonner";
 
 interface ExportButtonsProps {
@@ -102,7 +102,7 @@ export default function ExportButtons({
                 className="hover:bg-red-700/5 hover:text-red-700 transition-colors"
                 onClick={handlePDFDownload}
               >
-                <FileText className="size-4" />
+                <FileDown className="size-4" />
                 PDF
               </Button>
             </TooltipTrigger>
@@ -122,7 +122,6 @@ export default function ExportButtons({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              
               variant="ghost"
               className="h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
               onClick={handleExcelDownload}
@@ -140,12 +139,11 @@ export default function ExportButtons({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              
               variant="ghost"
               className="h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
               onClick={handlePDFDownload}
             >
-              <FileText className="size-4" />
+              <FileDown className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>

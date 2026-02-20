@@ -97,6 +97,7 @@ export interface ShippingGuideCarrierResource {
   destination_address: string;
   total_weight: string;
   total_packages: number;
+  transport_modality: string;
   status: ShippingGuideCarrierStatus;
   observations?: string;
   carrier: Carrier;
@@ -186,6 +187,8 @@ export interface CreateShippingGuideCarrierRequest {
   secondary_vehicle_id?: number;
   order_id?: number | null;
   shipping_guide_remittent_id?: number | null;
+  third_party_id?: number | null;
+  payment_responsible?: string;
   // Direcciones (pueden digitarse manualmente)
   origin_address: string;
   origin_ubigeo_id: number;
@@ -218,6 +221,8 @@ export interface UpdateShippingGuideCarrierRequest {
   secondary_vehicle_id?: number;
   order_id?: number | null;
   shipping_guide_remittent_id?: number | null;
+  third_party_id?: number | null;
+  payment_responsible?: string;
   // Direcciones
   origin_address?: string;
   origin_ubigeo_id?: number;

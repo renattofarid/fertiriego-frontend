@@ -70,7 +70,11 @@ export const guideSchema = z
       .min(1, { message: "La modalidad de transporte es requerida" }),
     carrier_id: optionalStringId("Debe seleccionar un transportista"),
     driver_id: optionalStringId("Debe seleccionar un conductor"),
-    driver_license: z.string().max(20).optional(),
+    driver_license: z
+      .string()
+      .min(1, { message: "La licencia del conductor es requerida" })
+      .max(20)
+      .optional(),
     vehicle_id: optionalStringId("Debe seleccionar un vehículo"),
     secondary_vehicle_id: optionalStringId(
       "Debe seleccionar un vehículo secundario",

@@ -6,6 +6,7 @@ import type {
   CreateQuotationRequest,
   UpdateQuotationRequest,
   ProductSalesHistoryResponse,
+  ProductPurchaseHistoryResponse,
 } from "./quotation.interface";
 import { QUOTATION_ENDPOINT } from "./quotation.interface";
 
@@ -97,6 +98,20 @@ export const getProductSalesHistory = async ({
         per_page,
         ...(customer_id && { customer_id }),
       },
+    },
+  );
+  return response.data;
+};
+
+export const getProductPurchaseHistory = async ({
+  productId,
+  page = 1,
+  per_page = 15,
+}: GetProductSalesHistoryParams): Promise<ProductPurchaseHistoryResponse> => {
+  const response = await api.get<ProductPurchaseHistoryResponse>(
+    `/products/${productId}/purchase-history`,
+    {
+      params: { page, per_page },
     },
   );
   return response.data;

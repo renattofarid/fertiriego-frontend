@@ -33,6 +33,7 @@ interface FormInputProps extends Omit<
   addonEnd?: React.ReactNode;
   error?: string;
   uppercase?: boolean;
+  optional?: boolean;
 }
 
 export function FormInput({
@@ -50,6 +51,7 @@ export function FormInput({
   value,
   onChange,
   uppercase,
+  optional,
   ...inputProps
 }: FormInputProps) {
   const isNumberType = inputProps.type === "number";
@@ -114,9 +116,10 @@ export function FormInput({
             <Input
               name={name}
               className={cn(
-                "h-8 md:h-10 text-xs md:text-sm",
                 addonStart && "pl-10",
                 addonEnd && "pr-10",
+                value && "bg-muted!",
+                optional && "border-dashed",
                 className,
               )}
               {...inputProps}
@@ -193,6 +196,8 @@ export function FormInput({
                       "text-xs md:text-sm",
                       addonStart && "pl-10",
                       addonEnd && "pr-10",
+                      field.value && "bg-muted!",
+                      optional && "border-dashed",
                       className,
                     )}
                     {...field}

@@ -227,8 +227,10 @@ export function SaleSummary({
 
             {calculateRetencion && calculateRetencion() > 0 && (
               <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Retención IGV (3%)</span>
-                <span className="font-medium text-red-600">
+                <span className="text-muted-foreground">
+                  Retención IGV (3%)
+                </span>
+                <span className="font-medium text-destructive">
                   - {currencySymbol} {formatNumber(calculateRetencion())}
                 </span>
               </div>
@@ -238,12 +240,16 @@ export function SaleSummary({
 
             <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary/30">
               <span className="text-base font-semibold text-primary">
-                {calculateRetencion && calculateRetencion() > 0 ? "Total a Cobrar" : "Total"}
+                {calculateRetencion && calculateRetencion() > 0
+                  ? "Total a Cobrar"
+                  : "Total"}
               </span>
               <span className="text-xl font-bold text-primary">
                 {currencySymbol}{" "}
                 {formatNumber(
-                  calculateNetTotal ? calculateNetTotal() : calculateDetailsTotal(),
+                  calculateNetTotal
+                    ? calculateNetTotal()
+                    : calculateDetailsTotal(),
                 )}
               </span>
             </div>

@@ -11,7 +11,7 @@ import { useAllProductPriceCategories } from "@/pages/product-price-category/lib
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
-import { ProductSalesHistoryDialog } from "./ProductSalesHistoryDialog";
+import { ProductHistoryDialog } from "./ProductHistoryDialog";
 import { ProductStockDialog } from "./ProductStockDialog";
 import { GeneralModal } from "@/components/GeneralModal";
 import { ProductForm } from "@/pages/product/components/ProductForm";
@@ -233,7 +233,7 @@ export const AddProductSheet = ({
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
 
-  const [showSalesHistory, setShowSalesHistory] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [showStock, setShowStock] = useState(false);
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
 
@@ -350,11 +350,11 @@ export const AddProductSheet = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowSalesHistory(true)}
+                onClick={() => setShowHistory(true)}
                 className="gap-2"
               >
                 <History className="h-4 w-4" />
-                Ver Historial
+                Historial
               </Button>
               <Button
                 type="button"
@@ -478,9 +478,9 @@ export const AddProductSheet = ({
       {/* Dialog de historial de ventas */}
       {productId && selectedProduct && (
         <>
-          <ProductSalesHistoryDialog
-            open={showSalesHistory}
-            onOpenChange={setShowSalesHistory}
+          <ProductHistoryDialog
+            open={showHistory}
+            onOpenChange={setShowHistory}
             productId={parseInt(productId)}
             productName={selectedProduct.name}
             customerId={customerId}

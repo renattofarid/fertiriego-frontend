@@ -57,6 +57,8 @@ export const shippingGuideCarrierSchema = z
     shipping_guide_remittent_id: optionalStringId(
       "Debe seleccionar una guía de remitente",
     ),
+    third_party_id: optionalStringId("Debe seleccionar un tercero"),
+    payment_responsible: z.string().optional(),
     // Direcciones
     origin_address: z
       .string()
@@ -181,19 +183,7 @@ export const shippingGuideCarrierSchema = z
       path: ["vehicle_model"],
     },
   )
-  .refine(
-    (data) => {
-      // Si es PRIVADO, vehicle_mtc es requerido
-      if (data.transport_modality === "PRIVADO") {
-        return data.vehicle_mtc && data.vehicle_mtc.trim() !== "";
-      }
-      return true;
-    },
-    {
-      message: "El certificado MTC es requerido para transporte privado",
-      path: ["vehicle_mtc"],
-    },
-  );
+;
 
 export type ShippingGuideCarrierSchema = z.infer<
   typeof shippingGuideCarrierSchema

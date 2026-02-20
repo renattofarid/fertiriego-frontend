@@ -12,7 +12,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -46,7 +45,6 @@ import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import { useSale } from "@/pages/sale/lib/sale.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useRemittents } from "@/pages/person/lib/person.hook";
 import { findSaleById } from "@/pages/sale/lib/sale.actions";
 import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
 import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
@@ -57,6 +55,10 @@ import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
 import VehicleModal from "@/pages/vehicle/components/VehicleModal";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
+import { Separator } from "@/components/ui/separator";
+import { FormTextArea } from "@/components/FormTextArea";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -158,6 +160,9 @@ export const GuideForm = ({
   const [driverModalOpen, setDriverModalOpen] = useState(false);
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [carrierModalOpen, setCarrierModalOpen] = useState(false);
+  const [recipientModalOpen, setRecipientModalOpen] = useState(false);
+  const [secondaryVehicleModalOpen, setSecondaryVehicleModalOpen] = useState(false);
+  const [dispatcherModalOpen, setDispatcherModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     index: "",
     product_id: 0,
@@ -176,6 +181,7 @@ export const GuideForm = ({
     defaultValues: {
       ...defaultValues,
       transport_modality: defaultValues.transport_modality || "PRIVADO",
+      remittent_id: "1860",
     },
     mode: "onChange",
   });
@@ -392,7 +398,7 @@ export const GuideForm = ({
       .then((response) => {
         const driver = response.data;
         if (driver?.number_document) {
-          form.setValue("driver_license", driver.driver_license);
+          form.setValue("driver_license", driver.driver_license ?? "");
         }
       })
       .catch(console.error);
@@ -425,17 +431,6 @@ export const GuideForm = ({
       form.setValue("transfer_date", formattedDate);
     }
   }, [form]);
-
-  // Establecer almacén por defecto si solo hay uno
-  useEffect(() => {
-    if (
-      warehouses.length === 1 &&
-      !form.getValues("warehouse_id") &&
-      mode === "create"
-    ) {
-      form.setValue("warehouse_id", warehouses[0].id.toString());
-    }
-  }, [warehouses, mode, form]);
 
   // Cargar detalles existentes en modo edición
   useEffect(() => {
@@ -584,6 +579,38 @@ export const GuideForm = ({
           gap="gap-3"
           className=""
         >
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="recipient_id"
+                label="Destinatario"
+                placeholder="Selecciona un destinatario"
+                useQueryHook={useClients}
+                mapOptionFn={(client) => ({
+                  value: client.id.toString(),
+                  label:
+                    client.business_name ||
+                    `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                  description: client.business_name
+                    ? ""
+                    : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                })}
+                withValue
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear destinatario"
+              onClick={() => setRecipientModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
           <FormSelect
             control={form.control}
             name="warehouse_id"
@@ -594,6 +621,7 @@ export const GuideForm = ({
               label: warehouse.name,
               description: warehouse.address,
             }))}
+            autoSelectSingle
           />
 
           <FormSelect
@@ -632,42 +660,19 @@ export const GuideForm = ({
             label="Fecha de Traslado"
           />
 
-          <FormSelectAsync
+          <FormSelect
             control={form.control}
-            name="recipient_id"
-            label="Destinatario"
-            placeholder="Selecciona un destinatario"
-            useQueryHook={useClients}
-            mapOptionFn={(client) => ({
-              value: client.id.toString(),
-              label:
-                client.business_name ||
-                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-              description: client.business_name
-                ? ""
-                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-            })}
-            withValue
+            name="destination_warehouse_id"
+            label="Almacén Destino"
+            placeholder="Selecciona un almacén"
+            options={warehouses.map((warehouse) => ({
+              value: warehouse.id.toString(),
+              label: warehouse.name,
+              description: warehouse.address,
+            }))}
           />
 
-          <FormSelectAsync
-            control={form.control}
-            name="remittent_id"
-            label="Remitente"
-            placeholder="Selecciona un remitente"
-            useQueryHook={useRemittents}
-            mapOptionFn={(remmitent) => ({
-              value: remmitent.id.toString(),
-              label:
-                remmitent.business_name ||
-                `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-              description: remmitent.business_name
-                ? ""
-                : `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-            })}
-            preloadItemId={form.getValues("remittent_id") || undefined}
-            withValue
-          />
+          <Separator className="col-span-full" />
 
           <FormInput
             control={form.control}
@@ -675,6 +680,7 @@ export const GuideForm = ({
             label="Orden de Pedido"
             placeholder="Ej: OC-00123"
             uppercase
+            optional
             maxLength={100}
           />
 
@@ -743,23 +749,11 @@ export const GuideForm = ({
             withValue
           />
 
-          <FormSelect
-            control={form.control}
-            name="destination_warehouse_id"
-            label="Almacén Destino"
-            placeholder="Selecciona un almacén"
-            options={warehouses.map((warehouse) => ({
-              value: warehouse.id.toString(),
-              label: warehouse.name,
-              description: warehouse.address,
-            }))}
-          />
-
           <FormField
             control={form.control}
             name="observations"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="col-span-full">
                 <FormLabel>Observaciones</FormLabel>
                 <FormControl>
                   <Textarea
@@ -874,22 +868,9 @@ export const GuideForm = ({
                 name="driver_license"
                 label="Licencia del Conductor"
                 placeholder="Ej: B12345678"
-                className="border-dashed"
+                optional
                 maxLength={30}
                 uppercase
-              />
-
-              <FormSelectAsync
-                control={form.control}
-                name="secondary_vehicle_id"
-                label="Vehículo Secundario (Opcional)"
-                placeholder="Seleccione un vehículo secundario"
-                useQueryHook={useVehicles}
-                mapOptionFn={(vehicle) => ({
-                  value: vehicle.id.toString(),
-                  label: vehicle.plate,
-                  description: `${vehicle.brand} ${vehicle.model}`,
-                })}
               />
 
               <FormInput
@@ -897,7 +878,7 @@ export const GuideForm = ({
                 name="vehicle_plate"
                 label="Placa del Vehículo"
                 placeholder="Ej: ABC-123"
-                className="border-dashed"
+                optional
                 maxLength={20}
                 uppercase
               />
@@ -907,7 +888,7 @@ export const GuideForm = ({
                 name="vehicle_brand"
                 label="Marca del Vehículo"
                 placeholder="Ej: Toyota"
-                className="border-dashed"
+                optional
                 maxLength={100}
                 uppercase
               />
@@ -917,7 +898,7 @@ export const GuideForm = ({
                 name="vehicle_model"
                 label="Modelo del Vehículo"
                 placeholder="Ej: Hilux"
-                className="border-dashed"
+                optional
                 maxLength={100}
                 uppercase
               />
@@ -927,12 +908,14 @@ export const GuideForm = ({
                 name="vehicle_mtc"
                 label="Certificado MTC"
                 placeholder="Ej: MTC123456"
-                className="border-dashed"
+                optional
                 maxLength={50}
                 uppercase
               />
             </>
           )}
+
+          <Separator className="col-span-full" />
 
           <FormSelectAsync
             control={form.control}
@@ -940,11 +923,15 @@ export const GuideForm = ({
             label="Ubigeo de Origen"
             placeholder="Buscar ubigeo..."
             useQueryHook={useUbigeosFrom}
+            additionalParams={{
+              per_page: 1300,
+            }}
             mapOptionFn={(item: UbigeoResource) => ({
               value: item.id.toString(),
               label: item.name,
               description: item.cadena,
             })}
+            preloadItemId={defaultValues.origin_ubigeo_id}
           />
 
           <FormSelectAsync
@@ -960,57 +947,81 @@ export const GuideForm = ({
             })}
           />
 
-          <FormField
-            control={form.control}
-            name="origin_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Origen</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de origen"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="origin_address"
+              label="Dirección de Origen"
+              placeholder="Ingrese la dirección de origen"
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="destination_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Destino</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de destino"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="destination_address"
+              label="Dirección de Destino"
+              placeholder="Ingrese la dirección de destino"
+            />
+          </div>
+          <Separator className="col-span-full" />
 
-          <FormSelectAsync
-            control={form.control}
-            name="dispatcher_id"
-            label="Despachador (Opcional)"
-            placeholder="Seleccione un despachador"
-            useQueryHook={useSuppliers}
-            mapOptionFn={(supplier) => ({
-              value: supplier.id.toString(),
-              label:
-                supplier.business_name ||
-                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-            })}
-          />
+          {transportModality === "PRIVADO" && (
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="secondary_vehicle_id"
+                  label="Vehículo Secundario (Opcional)"
+                  placeholder="Seleccione un vehículo secundario"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo secundario"
+                onClick={() => setSecondaryVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="dispatcher_id"
+                label="Despachador (Opcional)"
+                placeholder="Seleccione un despachador"
+                useQueryHook={useSuppliers}
+                mapOptionFn={(supplier) => ({
+                  value: supplier.id.toString(),
+                  label:
+                    supplier.business_name ||
+                    `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
+                })}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear despachador"
+              onClick={() => setDispatcherModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </GroupFormSection>
 
         {/* Detalles de Productos */}
@@ -1062,22 +1073,19 @@ export const GuideForm = ({
                       buttonSize="default"
                     />
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Cantidad
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Cantidad"
-                        value={currentDetail.quantity}
-                        onChange={(e) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            quantity: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                    <FormInput
+                      name="quantity"
+                      label="Cantidad"
+                      value={currentDetail.quantity}
+                      type="number"
+                      min={0}
+                      onChange={(e) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          quantity: e.target.value,
+                        })
+                      }
+                    />
 
                     <SearchableSelect
                       label="Unidad"
@@ -1096,22 +1104,20 @@ export const GuideForm = ({
                       placeholder="Selecciona unidad"
                     />
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Peso
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Peso"
-                        value={currentDetail.weight}
-                        onChange={(e) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            weight: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                    <FormInput
+                      name="weight"
+                      label="Peso"
+                      value={currentDetail.weight}
+                      type="number"
+                      min={0}
+                      placeholder="Ej: 10.5"
+                      onChange={(e) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          weight: e.target.value,
+                        })
+                      }
+                    />
 
                     <div className="flex items-end">
                       <Button
@@ -1153,60 +1159,38 @@ export const GuideForm = ({
                   {/* Campos de totales */}
                   {details.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">
-                          Cantidad de Unidades (Total)
-                        </label>
-                        <Input
-                          type="number"
-                          value={details.reduce(
+                      <FormInput
+                        name="unit_quantity"
+                        label="Cantidad de Unidades (Total)"
+                        type="number"
+                        readOnly
+                        disabled
+                        className="bg-muted "
+                        value={details
+                          .reduce(
                             (sum, detail) => sum + Number(detail.quantity || 0),
                             0,
-                          )}
-                          readOnly
-                          disabled
-                          className="bg-muted"
-                        />
-                      </div>
-
-                      <FormField
-                        control={form.control}
-                        name="total_weight"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Peso Total (Kg)</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Ej: 100"
-                                {...field}
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                          )
+                          .toString()}
+                        min={0}
                       />
 
-                      <FormField
+                      <FormInput
+                        control={form.control}
+                        name="total_weight"
+                        label="Peso Total (Kg)"
+                        type="number"
+                        placeholder="Ej: 100"
+                        min={0}
+                      />
+
+                      <FormInput
                         control={form.control}
                         name="total_packages"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Total de Paquetes</FormLabel>
-                            <FormControl>
-                              <Input
-                                type="number"
-                                placeholder="Ej: 5"
-                                {...field}
-                                value={field.value || ""}
-                                onChange={(e) => field.onChange(e.target.value)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        label="Total de Paquetes"
+                        type="number"
+                        placeholder="Ej: 5"
+                        min={0}
                       />
                     </div>
                   )}
@@ -1252,6 +1236,23 @@ export const GuideForm = ({
         onClose={() => setVehicleModalOpen(false)}
         title={`Crear ${VEHICLE.MODEL.name}`}
         mode="create"
+      />
+
+      <ClientCreateModal
+        open={recipientModalOpen}
+        onClose={() => setRecipientModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={secondaryVehicleModalOpen}
+        onClose={() => setSecondaryVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <SupplierCreateModal
+        open={dispatcherModalOpen}
+        onClose={() => setDispatcherModalOpen(false)}
       />
     </Form>
   );

@@ -469,7 +469,6 @@ export const PurchaseOrderForm = ({
                     label="Cantidad"
                     type="number"
                     placeholder="0"
-                    className="h-9"
                   />
                 </div>
 
@@ -481,7 +480,6 @@ export const PurchaseOrderForm = ({
                     type="number"
                     step="0.000001"
                     placeholder="0.000000"
-                    className="h-9"
                   />
                 </div>
 

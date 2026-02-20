@@ -52,7 +52,7 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   open,
   onClose,
   title,
-  subtitle,
+  subtitle = "Completa la información requerida para continuar",
   children,
   side = "right",
   className,

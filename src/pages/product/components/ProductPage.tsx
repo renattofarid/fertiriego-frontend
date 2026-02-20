@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProduct } from "../lib/product.hook";
-import { useAllCategories } from "@/pages/category/lib/category.hook";
-import { useAllBrands } from "@/pages/brand/lib/brand.hook";
 import TitleComponent from "@/components/TitleComponent";
 import ProductActions from "./ProductActions";
 import ProductTable from "./ProductTable";
@@ -44,8 +42,6 @@ export default function ProductPage() {
     ...(selectedBrand && { brand_id: selectedBrand }),
     ...(selectedType && { product_type: selectedType }),
   });
-  const { data: categories } = useAllCategories();
-  const { data: brands } = useAllBrands();
 
   useEffect(() => {
     setPage(1);
@@ -108,20 +104,16 @@ export default function ProductPage() {
         })}
         data={data?.data || []}
       >
-        {categories && brands && (
-          <ProductOptions
-            search={search}
-            setSearch={setSearch}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            selectedBrand={selectedBrand}
-            setSelectedBrand={setSelectedBrand}
-            selectedType={selectedType}
-            setSelectedType={setSelectedType}
-            categories={categories}
-            brands={brands}
-          />
-        )}
+        <ProductOptions
+          search={search}
+          setSearch={setSearch}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedBrand={selectedBrand}
+          setSelectedBrand={setSelectedBrand}
+          selectedType={selectedType}
+          setSelectedType={setSelectedType}
+        />
       </ProductTable>
 
       <DataTablePagination
