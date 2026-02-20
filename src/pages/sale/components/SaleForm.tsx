@@ -1094,33 +1094,29 @@ export const SaleForm = ({
               <FormSwitch
                 control={form.control}
                 name="is_anticipado"
-                text="Anticipo"
-                textDescription="Marque si es una venta anticipada"
-                className="h-12!"
+                label="Anticipo"
+                text="Marque si es una venta anticipada"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_deduccion"
-                text="Deducción"
-                textDescription="Marque si aplica deducción"
-                className="h-12!"
+                label="Deducción"
+                text="Marque si aplica deducción"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_retencionigv"
-                text="Retención IGV"
-                textDescription="Marque si aplica retención de IGV"
-                className="h-12!"
+                label="Retención IGV"
+                text="Marque si aplica retención de IGV"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_termine_condition"
-                text="Condición de Término"
-                textDescription="Marque si tiene condición de término"
-                className="h-12!"
+                label="Condición de Término"
+                text="Marque si tiene condición de término"
               />
 
               <div className="md:col-span-2 lg:col-span-3">
@@ -1259,7 +1255,7 @@ export const SaleForm = ({
                         <TableCell className="text-right">
                           {formatNumber(detail.subtotal)}
                         </TableCell>
-                        <TableCell className="text-right text-orange-600">
+                        <TableCell className="text-right font-bold">
                           {formatNumber(detail.igv)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">
@@ -1287,12 +1283,12 @@ export const SaleForm = ({
                     ))}
                     <TableRow>
                       <TableCell colSpan={3} className="text-right font-bold">
-                        TOTALES:
+                        TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
                         {formatNumber(calculateDetailsSubtotal())}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-lg text-orange-600">
+                      <TableCell className="text-right font-bold text-lg">
                         {formatNumber(calculateDetailsIGV())}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg text-primary">
