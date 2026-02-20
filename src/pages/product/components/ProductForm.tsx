@@ -135,7 +135,10 @@ export const ProductForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 w-full grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         {/* Información Básica */}
         <GroupFormSection
           title="Información Básica"
@@ -168,7 +171,8 @@ export const ProductForm = ({
                 useQueryHook={useCategory}
                 mapOptionFn={(category: CategoryResource) => ({
                   value: category.id.toString(),
-                  label: `${"  ".repeat(category.level - 1)}${category.name}`,
+                  label: category.name,
+                  description: category.code,
                 })}
               />
             </div>
@@ -288,12 +292,7 @@ export const ProductForm = ({
           icon={File}
           cols={{ sm: 1 }}
           headerExtra={
-            <Button
-              type="button"
-              variant="outline"
-              
-              onClick={openFileDialog}
-            >
+            <Button type="button" variant="outline" onClick={openFileDialog}>
               <Upload className="h-4 w-4 mr-2" />
               Agregar Archivos
             </Button>
@@ -329,7 +328,6 @@ export const ProductForm = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    
                     onClick={() => removeExistingFile(fileUrl)}
                   >
                     <X className="h-4 w-4" />
@@ -360,7 +358,6 @@ export const ProductForm = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    
                     onClick={() => removeSelectedFile(index)}
                   >
                     <X className="h-4 w-4" />

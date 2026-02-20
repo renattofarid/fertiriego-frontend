@@ -98,7 +98,8 @@ export const CategoryForm = ({
               useQueryHook={useCategory}
               mapOptionFn={(category: CategoryResource) => ({
                 value: category.id.toString(),
-                label: `${"  ".repeat(category.level - 1)}${category.name}`,
+                label: category.name,
+                description: category.code,
               })}
             />
           </div>
