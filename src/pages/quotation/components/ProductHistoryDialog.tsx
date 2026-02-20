@@ -259,9 +259,6 @@ export function ProductHistoryDialog({
   );
 
   const isSales = historyType === "ventas";
-  const salesData = isSales
-    ? (data as ReturnType<typeof useProductSalesHistory>["data"])
-    : undefined;
 
   return (
     <GeneralModal
@@ -379,8 +376,7 @@ export function ProductHistoryDialog({
                   {data.data.length > 0
                     ? (
                         data.data.reduce(
-                          (sum, item) =>
-                            sum + parseFloat(item.precio_unitario),
+                          (sum, item) => sum + parseFloat(item.precio_unitario),
                           0,
                         ) / data.data.length
                       ).toFixed(2)
