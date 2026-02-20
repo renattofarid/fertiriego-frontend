@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import {
   Tooltip,
@@ -72,6 +72,13 @@ export function FormSelect({
       name={name}
       render={({ field }) => {
         const selected = options.find((opt) => opt.value === field.value);
+
+        // Auto-select if only one option is available
+        useEffect(() => {
+          if (options.length === 1 && !field.value && !disabled) {
+            field.onChange(options[0].value);
+          }
+        }, [options, field.value, disabled]);
 
         return (
           <FormItem className="flex flex-col justify-start">

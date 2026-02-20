@@ -68,6 +68,7 @@ import {
 import { SaleSummary } from "./SaleSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { FormInput } from "@/components/FormInput";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -964,7 +965,7 @@ export const SaleForm = ({
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex gap-2 items-end">
+              <div className="flex gap-2 items-end col-span-1 md:col-span-2">
                 <div className="truncate! flex-1">
                   <FormSelectAsync
                     control={form.control}
@@ -980,6 +981,7 @@ export const SaleForm = ({
                       label:
                         customer.business_name ??
                         `${customer.names} ${customer.father_surname} ${customer.mother_surname}`,
+                      description: customer.number_document,
                     })}
                     disabled={mode === "edit"}
                     onValueChange={(_value, item) => {
@@ -1010,6 +1012,17 @@ export const SaleForm = ({
                 )}
               </div>
 
+              <FormSelect
+                control={form.control}
+                name="document_type"
+                label="Tipo de Documento"
+                placeholder="Seleccione tipo"
+                options={DOCUMENT_TYPES.map((dt) => ({
+                  value: dt.value,
+                  label: dt.label,
+                }))}
+              />
+
               <div className="flex gap-2 items-end">
                 <div className="truncate! flex-1">
                   <FormSelect
@@ -1037,17 +1050,6 @@ export const SaleForm = ({
                   </Button>
                 )}
               </div>
-
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
 
               <DatePickerFormField
                 control={form.control}
@@ -1082,18 +1084,11 @@ export const SaleForm = ({
                 }))}
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="order_purchase"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Compra</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ingrese número de orden" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Orden de Compra"
+                placeholder="Ingrese número de orden"
               />
 
               <FormSwitch
@@ -1157,7 +1152,7 @@ export const SaleForm = ({
               sm: 1,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 bg-muted rounded-lg">
               <div className="md:col-span-2">
                 <Form {...detailTempForm}>
                   <FormSelectAsync
@@ -1201,36 +1196,23 @@ export const SaleForm = ({
                   </div>
                 )}
 
-              <FormField
+              <FormInput
                 control={detailTempForm.control}
                 name="temp_quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cantidad</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="0" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
+                label="Cantidad"
+                placeholder="0"
+                type="number"
+                min={0}
               />
 
-              <FormField
+              <FormInput
                 control={detailTempForm.control}
                 name="temp_unit_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio Unit.</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.000001"
-                        placeholder="0.000000"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
+                label="Precio Unit."
+                placeholder="0.0000"
+                type="number"
+                min={0}
+                step="0.0001"
               />
 
               <div className="md:col-span-4 flex items-center justify-end">

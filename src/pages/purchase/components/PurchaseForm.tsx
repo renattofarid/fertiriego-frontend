@@ -521,6 +521,34 @@ export const PurchaseForm = ({
     return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia acorde a 2 decimales
   };
 
+  // Auto-llenar cuota de 30 días cuando el pago es a crédito y cambian los detalles
+  useEffect(() => {
+    if (mode !== "create") return;
+
+    if (selectedPaymentType !== "CREDITO") {
+      // Limpiar cuotas si se cambia a otro tipo de pago
+      if (installments.length > 0) {
+        setInstallments([]);
+        form.setValue("installments", []);
+      }
+      return;
+    }
+
+    const total = details.reduce((sum, d) => sum + (d.total || 0), 0);
+    if (total <= 0) {
+      setInstallments([]);
+      form.setValue("installments", []);
+      return;
+    }
+
+    const autoInstallment: InstallmentRow = {
+      due_days: "30",
+      amount: formatDecimalTrunc(total, 2),
+    };
+    setInstallments([autoInstallment]);
+    form.setValue("installments", [autoInstallment]);
+  }, [details, selectedPaymentType, mode]);
+
   // Datos y funciones para el resumen (dependiendo del modo)
   const summaryDetails = mode === "edit" ? detailsFromStore : details;
   const summaryInstallments =
@@ -715,6 +743,17 @@ export const PurchaseForm = ({
                 )}
               </div>
 
+              <FormSelect
+                control={form.control}
+                name="document_type"
+                label="Tipo de Documento"
+                placeholder="Seleccione tipo"
+                options={DOCUMENT_TYPES.map((dt) => ({
+                  value: dt.value,
+                  label: dt.label,
+                }))}
+              />
+
               <div className="flex gap-2 items-end">
                 <div className="flex-1 truncate ">
                   <FormSelect
@@ -742,17 +781,6 @@ export const PurchaseForm = ({
                   </Button>
                 )}
               </div>
-
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
 
               <FormInput
                 control={form.control}
@@ -867,7 +895,6 @@ export const PurchaseForm = ({
                       label="Cantidad"
                       type="number"
                       placeholder="0"
-                      className="h-9"
                     />
                   </div>
 
@@ -879,7 +906,6 @@ export const PurchaseForm = ({
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      className="h-9"
                     />
                   </div>
 
@@ -944,7 +970,7 @@ export const PurchaseForm = ({
                           <TableHead className="text-right">Cantidad</TableHead>
                           <TableHead className="text-right">P. Unit.</TableHead>
                           <TableHead className="text-right">Subtotal</TableHead>
-                          <TableHead className="text-right">Impuesto</TableHead>
+                          <TableHead className="text-right">IGV</TableHead>
                           <TableHead className="text-right">Total</TableHead>
                           <TableHead className="w-16"></TableHead>
                         </TableRow>
