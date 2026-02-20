@@ -431,8 +431,8 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price);
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
+          const unitPrice = parseFloat(detail.unit_price); // precio con IGV
+          const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
           const igv = roundTo6Decimals(subtotal * 0.18);
           const total = roundTo6Decimals(subtotal + igv);
 
@@ -540,8 +540,8 @@ export const SaleForm = ({
           const quotationDetails: DetailRow[] =
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price);
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const unitPrice = parseFloat(detail.unit_price); // precio con IGV
+              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -563,8 +563,8 @@ export const SaleForm = ({
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price);
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const unitPrice = parseFloat(detail.unit_price); // precio con IGV
+              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -628,8 +628,8 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
-              const unitPrice = priceMap.get(detail.product_id) || 0;
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
+              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -693,10 +693,11 @@ export const SaleForm = ({
     }
 
     const quantity = parseFloat(currentDetail.quantity);
-    const unitPrice = parseFloat(currentDetail.unit_price);
+    const unitPrice = parseFloat(currentDetail.unit_price); // precio con IGV
 
     // Calcular subtotal, IGV (18%) y total con redondeo a 6 decimales
-    const subtotal = roundTo6Decimals(quantity * unitPrice);
+    // unit_price es el precio CON IGV, por lo que el valor sin IGV es unit_price / 1.18
+    const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
     const igv = roundTo6Decimals(subtotal * 0.18); // IGV 18%
     const total = roundTo6Decimals(subtotal + igv);
 
