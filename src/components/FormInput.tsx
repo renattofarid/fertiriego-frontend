@@ -114,7 +114,6 @@ export function FormInput({
             <Input
               name={name}
               className={cn(
-                "h-8 md:h-10 text-xs md:text-sm",
                 addonStart && "pl-10",
                 addonEnd && "pr-10",
                 value && "bg-red-500!",

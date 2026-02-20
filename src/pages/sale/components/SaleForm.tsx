@@ -191,7 +191,6 @@ export const SaleForm = ({
     defaultValues: {
       temp_product_id: currentDetail.product_id,
       temp_price_category_id: "",
-      temp_is_igv: false,
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
       temp_value_price: "",
@@ -219,7 +218,6 @@ export const SaleForm = ({
   const selectedPriceCategoryId = detailTempForm.watch(
     "temp_price_category_id",
   );
-  const isDetailIgv = detailTempForm.watch("temp_is_igv");
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
   const selectedValuePrice = detailTempForm.watch("temp_value_price");
@@ -733,7 +731,6 @@ export const SaleForm = ({
     detailTempForm.reset({
       temp_product_id: "",
       temp_price_category_id: "",
-      temp_is_igv: false,
       temp_quantity: "",
       temp_unit_price: "",
       temp_value_price: "",
@@ -1262,16 +1259,6 @@ export const SaleForm = ({
                 min={0}
               />
 
-              <div className="md:col-span-4">
-                <FormSwitch
-                  control={detailTempForm.control}
-                  name="temp_is_igv"
-                  text="Precio incluye IGV"
-                  textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
-                  autoHeight
-                />
-              </div>
-
               <FormInput
                 control={detailTempForm.control}
                 name="temp_value_price"
@@ -1280,7 +1267,6 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
-                className={isDetailIgv ? "border-dashed opacity-60" : "border-primary"}
               />
 
               <FormInput
@@ -1291,7 +1277,6 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
-                className={!isDetailIgv ? "border-dashed opacity-60" : "border-primary"}
               />
 
               <div className="md:col-span-4 flex items-center justify-end">

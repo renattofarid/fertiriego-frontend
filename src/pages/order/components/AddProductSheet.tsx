@@ -2,6 +2,7 @@ import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
+import { FormSwitch } from "@/components/FormSwitch";
 import { useForm } from "react-hook-form";
 import { Pencil, Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -56,6 +57,7 @@ export const AddProductSheet = ({
     defaultValues: {
       product_id: "",
       price_category_id: "",
+      is_igv: false,
       quantity: "",
       unit_value: "", // Valor unitario (sin IGV)
       unit_price: "", // Precio unitario (con IGV)
@@ -83,6 +85,7 @@ export const AddProductSheet = ({
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
+  const isIgv = form.watch("is_igv");
   const quantity = form.watch("quantity");
   const unitValue = form.watch("unit_value");
   const unitPrice = form.watch("unit_price");
@@ -168,15 +171,31 @@ export const AddProductSheet = ({
       setLastSetPrice(null);
 
       if (editingDetail) {
-        const value = parseFloat(editingDetail.unit_price);
-        const price = value * 1.18;
+        const isIgvValue = editingDetail.is_igv;
+        let unitValueField: string;
+        let unitPriceField: string;
+
+        if (isIgvValue) {
+          // unit_price guardado = precio con IGV
+          unitPriceField = editingDetail.unit_price;
+          unitValueField = formatNumber(
+            parseFloat(editingDetail.unit_price) / 1.18,
+          );
+        } else {
+          // unit_price guardado = valor sin IGV
+          unitValueField = editingDetail.unit_price;
+          unitPriceField = formatNumber(
+            parseFloat(editingDetail.unit_price) * 1.18,
+          );
+        }
 
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
+          is_igv: isIgvValue,
           quantity: editingDetail.quantity,
-          unit_value: editingDetail.unit_price, // El unit_price guardado es el valor unitario
-          unit_price: formatNumber(price),
+          unit_value: unitValueField,
+          unit_price: unitPriceField,
           purchase_price: editingDetail.purchase_price ?? "0",
           description: editingDetail.description || "",
         });
@@ -184,6 +203,7 @@ export const AddProductSheet = ({
         form.reset({
           product_id: "",
           price_category_id: "",
+          is_igv: false,
           quantity: "",
           unit_value: "",
           unit_price: "",
@@ -193,7 +213,7 @@ export const AddProductSheet = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, editingDetail]);
 
   // Reset lastSetPrice cuando cambia el producto
   useEffect(() => {
@@ -230,12 +250,18 @@ export const AddProductSheet = ({
     const productName = selectedProduct?.name ?? editingDetail?.product_name;
     if (!productName) return;
 
+    // is_igv=true → se manda el precio con IGV (unit_price)
+    // is_igv=false → se manda el valor sin IGV (unit_value)
+    const sentUnitPrice = formData.is_igv
+      ? formData.unit_price
+      : formData.unit_value;
+
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: false, // false porque guardamos el valor sin IGV
+      is_igv: formData.is_igv,
       quantity: formData.quantity,
-      unit_price: formData.unit_value, // Guardamos el valor unitario (sin IGV)
+      unit_price: sentUnitPrice,
       purchase_price: formData.purchase_price ?? "0",
       description: formData.description || "",
       subtotal: calculatedValues.subtotal,
@@ -254,6 +280,7 @@ export const AddProductSheet = ({
       form.reset({
         product_id: "",
         price_category_id: "",
+        is_igv: false,
         quantity: "",
         unit_value: "",
         unit_price: "",
@@ -366,6 +393,14 @@ export const AddProductSheet = ({
           />
         </div>
 
+        <FormSwitch
+          control={form.control}
+          name="is_igv"
+          text="Precio incluye IGV"
+          textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
+          autoHeight
+        />
+
         <div className="grid grid-cols-2 gap-4">
           <FormInput
             control={form.control}
@@ -374,18 +409,18 @@ export const AddProductSheet = ({
             type="number"
             step="0.0001"
             placeholder="0.00"
+            className={isIgv ? "border-dashed opacity-60" : "border-primary"}
           />
 
-          <div className="col-span-1">
-            <FormInput
-              control={form.control}
-              name="unit_price"
-              label="Precio Unitario (con IGV)"
-              type="number"
-              step="0.0001"
-              placeholder="0.00"
-            />
-          </div>
+          <FormInput
+            control={form.control}
+            name="unit_price"
+            label="Precio Unitario (con IGV)"
+            type="number"
+            step="0.0001"
+            placeholder="0.00"
+            className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+          />
         </div>
 
         <FormInput
