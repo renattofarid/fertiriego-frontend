@@ -431,8 +431,8 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price); // precio con IGV
-          const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
+          const unitPrice = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
+          const subtotal = roundTo6Decimals(quantity * unitPrice);
           const igv = roundTo6Decimals(subtotal * 0.18);
           const total = roundTo6Decimals(subtotal + igv);
 
@@ -540,8 +540,9 @@ export const SaleForm = ({
           const quotationDetails: DetailRow[] =
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price); // precio con IGV
-              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
+              const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
+              const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
+              const subtotal = roundTo6Decimals(quantity * valorUnitario);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -549,7 +550,7 @@ export const SaleForm = ({
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: detail.unit_price,
+                unit_price: valorUnitario.toString(),
                 subtotal,
                 igv,
                 total,
@@ -566,9 +567,12 @@ export const SaleForm = ({
               const unitPrice = parseFloat(detail.unit_price);
               // is_igv=true → unit_price viene CON IGV (precio unitario)
               // is_igv=false → unit_price viene SIN IGV (valor unitario)
-              const basePrice = detail.is_igv ? unitPrice / 1.18 : unitPrice;
-              const storedUnitPrice = detail.is_igv ? unitPrice : unitPrice * 1.18;
-              const subtotal = roundTo6Decimals(quantity * basePrice);
+              // is_igv=true → unit_price CON IGV → valor = unitPrice / 1.18
+              // is_igv=false → unit_price SIN IGV → valor = unitPrice
+              const valorUnitario = detail.is_igv
+                ? roundTo6Decimals(unitPrice / 1.18)
+                : unitPrice;
+              const subtotal = roundTo6Decimals(quantity * valorUnitario);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -576,7 +580,7 @@ export const SaleForm = ({
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: storedUnitPrice.toString(),
+                unit_price: valorUnitario.toString(), // SIN IGV → backend
                 subtotal,
                 igv,
                 total,
@@ -697,17 +701,17 @@ export const SaleForm = ({
     }
 
     const quantity = parseFloat(currentDetail.quantity);
-    const unitPrice = parseFloat(currentDetail.unit_price); // precio con IGV
+    const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
+    const valorUnitario = roundTo6Decimals(unitPriceWithIGV / 1.18); // SIN IGV → lo que va al backend
 
-    // Calcular subtotal, IGV (18%) y total con redondeo a 6 decimales
-    // unit_price es el precio CON IGV, por lo que el valor sin IGV es unit_price / 1.18
-    const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
-    const igv = roundTo6Decimals(subtotal * 0.18); // IGV 18%
+    const subtotal = roundTo6Decimals(quantity * valorUnitario);
+    const igv = roundTo6Decimals(subtotal * 0.18);
     const total = roundTo6Decimals(subtotal + igv);
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: productSelected?.product_name,
+      unit_price: valorUnitario.toString(), // guardar SIN IGV
       subtotal,
       igv,
       total,
@@ -751,11 +755,12 @@ export const SaleForm = ({
     setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
-    detailTempForm.setValue("temp_unit_price", detail.unit_price);
+    // unit_price guardado es SIN IGV (valor unitario)
+    detailTempForm.setValue("temp_value_price", detail.unit_price);
     detailTempForm.setValue(
-      "temp_value_price",
+      "temp_unit_price",
       detail.unit_price
-        ? formatNumberLocal(parseFloat(detail.unit_price) / 1.18)
+        ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
         : "",
     );
     setIsUpdatingPrice(false);
@@ -1345,10 +1350,10 @@ export const SaleForm = ({
                           {detail.quantity}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.unit_price) / 1.18)}
+                          {formatNumber(parseFloat(detail.unit_price))}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.unit_price))}
+                          {formatNumber(parseFloat(detail.unit_price) * 1.18)}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatNumber(detail.subtotal)}
@@ -1782,11 +1787,11 @@ export const SaleForm = ({
             </GroupFormSection>
           )}
 
-          <pre>
-          <code>{JSON.stringify(form.getValues(), null, 2)}</code>
-          <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
-        </pre>
-        <Button onClick={() => form.trigger()}>Button</Button>
+          {/* <pre>
+            <code>{JSON.stringify(form.getValues(), null, 2)}</code>
+            <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+          </pre>
+          <Button onClick={() => form.trigger()}>Button</Button> */}
         </div>
 
         <SaleSummary
