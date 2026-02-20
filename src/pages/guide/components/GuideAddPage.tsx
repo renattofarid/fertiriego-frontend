@@ -70,7 +70,7 @@ export default function GuideAddPage() {
     vehicle_mtc: "-",
     remittent_id: "1860",
     shipping_guide_remittent_id: "",
-    origin_address: "",
+    origin_address: "CAL. CALLE 01 NRO. 191 P.J. AMPLIACION 9 DE OCTUBRE (CERCA ANTENA RADIO PROGRAMAS), LAMBAYEQUE - CHICLAYO - CHICLAYO",
     origin_ubigeo_id: "",
     destination_address: "",
     destination_ubigeo_id: "",

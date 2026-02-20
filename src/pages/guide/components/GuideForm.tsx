@@ -45,7 +45,6 @@ import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import { useSale } from "@/pages/sale/lib/sale.hook";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
-import { useRemittents } from "@/pages/person/lib/person.hook";
 import { findSaleById } from "@/pages/sale/lib/sale.actions";
 import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
 import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
@@ -57,6 +56,7 @@ import VehicleModal from "@/pages/vehicle/components/VehicleModal";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
 import { Separator } from "@/components/ui/separator";
+import { FormTextArea } from "@/components/FormTextArea";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -176,6 +176,7 @@ export const GuideForm = ({
     defaultValues: {
       ...defaultValues,
       transport_modality: defaultValues.transport_modality || "PRIVADO",
+      remittent_id: "1860",
     },
     mode: "onChange",
   });
@@ -392,7 +393,7 @@ export const GuideForm = ({
       .then((response) => {
         const driver = response.data;
         if (driver?.number_document) {
-          form.setValue("driver_license", driver.driver_license);
+          form.setValue("driver_license", driver.driver_license ?? "");
         }
       })
       .catch(console.error);
@@ -638,28 +639,6 @@ export const GuideForm = ({
             control={form.control}
             name="transfer_date"
             label="Fecha de Traslado"
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="remittent_id"
-            label="Remitente"
-            placeholder="Selecciona un remitente"
-            useQueryHook={useRemittents}
-            additionalParams={{
-              per_page: 1000,
-            }}
-            mapOptionFn={(remmitent) => ({
-              value: remmitent.id.toString(),
-              label:
-                remmitent.business_name ||
-                `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-              description: remmitent.business_name
-                ? ""
-                : `${remmitent.names} ${remmitent.father_surname} ${remmitent.mother_surname}`.trim(),
-            })}
-            preloadItemId={form.getValues("remittent_id") || undefined}
-            withValue
           />
 
           <FormSelect
@@ -925,11 +904,15 @@ export const GuideForm = ({
             label="Ubigeo de Origen"
             placeholder="Buscar ubigeo..."
             useQueryHook={useUbigeosFrom}
+            additionalParams={{
+              per_page: 1300,
+            }}
             mapOptionFn={(item: UbigeoResource) => ({
               value: item.id.toString(),
               label: item.name,
               description: item.cadena,
             })}
+            preloadItemId={defaultValues.origin_ubigeo_id}
           />
 
           <FormSelectAsync
@@ -945,35 +928,39 @@ export const GuideForm = ({
             })}
           />
 
-          <FormInput
-            control={form.control}
-            name="origin_address"
-            label="Dirección de Origen"
-            placeholder="Ingrese la dirección de origen"
-            maxLength={500}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="origin_address"
+              label="Dirección de Origen"
+              placeholder="Ingrese la dirección de origen"
+            />
+          </div>
 
-          <FormInput
-            control={form.control}
-            name="destination_address"
-            label="Dirección de Destino"
-            placeholder="Ingrese la dirección de destino"
-            maxLength={500}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="destination_address"
+              label="Dirección de Destino"
+              placeholder="Ingrese la dirección de destino"
+            />
+          </div>
           <Separator className="col-span-full" />
 
-          <FormSelectAsync
-            control={form.control}
-            name="secondary_vehicle_id"
-            label="Vehículo Secundario (Opcional)"
-            placeholder="Seleccione un vehículo secundario"
-            useQueryHook={useVehicles}
-            mapOptionFn={(vehicle) => ({
-              value: vehicle.id.toString(),
-              label: vehicle.plate,
-              description: `${vehicle.brand} ${vehicle.model}`,
-            })}
-          />
+          {transportModality === "PRIVADO" && (
+            <FormSelectAsync
+              control={form.control}
+              name="secondary_vehicle_id"
+              label="Vehículo Secundario (Opcional)"
+              placeholder="Seleccione un vehículo secundario"
+              useQueryHook={useVehicles}
+              mapOptionFn={(vehicle) => ({
+                value: vehicle.id.toString(),
+                label: vehicle.plate,
+                description: `${vehicle.brand} ${vehicle.model}`,
+              })}
+            />
+          )}
 
           <FormSelectAsync
             control={form.control}

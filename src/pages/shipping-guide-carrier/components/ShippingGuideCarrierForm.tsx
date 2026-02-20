@@ -44,6 +44,8 @@ import { useGuides } from "@/pages/guide/lib/guide.hook";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { Option } from "@/lib/core.interface";
 import { FormInput } from "@/components/FormInput";
+import { FormTextArea } from "@/components/FormTextArea";
+import { Separator } from "@/components/ui/separator";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -592,6 +594,8 @@ export function ShippingGuideCarrierForm({
               ]}
             />
 
+            <Separator className="col-span-full" />
+
             <FormSelectAsync
               control={form.control}
               name="driver_id"
@@ -779,19 +783,23 @@ export function ShippingGuideCarrierForm({
                 preloadItemId={initialValues?.destination_ubigeo_id}
                 defaultOption={guideAutoFill.destinationUbigeoOption}
               />
-              <FormInput
-                control={form.control}
-                name="origin_address"
-                label="Dirección de Origen"
-                placeholder="Calle, número, ciudad"
-              />
+              <div className="col-span-full">
+                <FormTextArea
+                  control={form.control}
+                  name="origin_address"
+                  label="Dirección de Origen"
+                  placeholder="Calle, número, ciudad"
+                />
+              </div>
 
-              <FormInput
-                control={form.control}
-                name="destination_address"
-                label="Dirección de Destino"
-                placeholder="Calle, número, ciudad"
-              />
+              <div className="col-span-full">
+                <FormTextArea
+                  control={form.control}
+                  name="destination_address"
+                  label="Dirección de Destino"
+                  placeholder="Calle, número, ciudad"
+                />
+              </div>
             </div>
           </GroupFormSection>
 
