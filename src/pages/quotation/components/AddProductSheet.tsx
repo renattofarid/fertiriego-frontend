@@ -502,7 +502,7 @@ export const AddProductSheet = ({
           title="Crear Nuevo Producto"
           subtitle="Complete los datos del nuevo producto"
           icon="Package"
-          size="3xl"
+          size="5xl"
         >
           <div
             onSubmit={(e) => {
