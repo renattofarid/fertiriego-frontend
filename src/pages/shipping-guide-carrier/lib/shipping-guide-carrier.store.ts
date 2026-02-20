@@ -132,6 +132,10 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           shipping_guide_remittent_id: data.shipping_guide_remittent_id
             ? Number(data.shipping_guide_remittent_id)
             : undefined,
+          third_party_id: data.third_party_id
+            ? Number(data.third_party_id)
+            : undefined,
+          payment_responsible: data.payment_responsible || undefined,
           origin_address: data.origin_address,
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
           destination_address: data.destination_address,
@@ -200,6 +204,14 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
             shipping_guide_remittent_id: data.shipping_guide_remittent_id
               ? Number(data.shipping_guide_remittent_id)
               : undefined,
+          }),
+          ...(data.third_party_id !== undefined && {
+            third_party_id: data.third_party_id
+              ? Number(data.third_party_id)
+              : undefined,
+          }),
+          ...(data.payment_responsible !== undefined && {
+            payment_responsible: data.payment_responsible || undefined,
           }),
           ...(data.origin_address && { origin_address: data.origin_address }),
           ...(data.origin_ubigeo_id && {
