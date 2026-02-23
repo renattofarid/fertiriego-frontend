@@ -30,8 +30,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
-import { useUsers } from "@/pages/users/lib/User.hook";
-import type { UserResource } from "@/pages/users/lib/User.interface";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export type ProductionDocumentFormValues = {
   warehouse_origin_id: string;
@@ -54,20 +53,6 @@ export type ProductionDocumentFormValues = {
   }[];
 };
 
-const defaultValues: ProductionDocumentFormValues = {
-  warehouse_origin_id: "",
-  warehouse_dest_id: "",
-  product_id: "",
-  user_id: "",
-  responsible_id: "",
-  production_date: "",
-  quantity_produced: "",
-  labor_cost: "",
-  overhead_cost: "",
-  observations: "",
-  components: [],
-};
-
 interface ProductionDocumentFormProps {
   mode?: "create" | "edit";
   onSubmit: (values: ProductionDocumentFormValues) => Promise<void> | void;
@@ -85,10 +70,24 @@ export function ProductionDocumentForm({
 }: ProductionDocumentFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_DOCUMENT;
   const navigate = useNavigate();
-
-  const componentForm = useForm<{ component_id: string }>({
-    defaultValues: { component_id: "" },
+  const { user } = useAuthStore();
+  const componentForm = useForm<{ component_id: string; user_id: string }>({
+    defaultValues: { component_id: "", user_id: user?.id.toString() || "" },
   });
+
+  const defaultValues: ProductionDocumentFormValues = {
+    warehouse_origin_id: "",
+    warehouse_dest_id: "",
+    product_id: "",
+    user_id: user?.id.toString() || "",
+    responsible_id: "",
+    production_date: "",
+    quantity_produced: "",
+    labor_cost: "",
+    overhead_cost: "",
+    observations: "",
+    components: [],
+  };
 
   // Estado para detalles
   type ComponentRow = {
@@ -353,22 +352,6 @@ export function ProductionDocumentForm({
                 value: p.id.toString(),
                 label: p.name,
                 description: p.unit_name,
-              })}
-              withValue
-            />
-
-            <FormSelectAsync
-              control={form.control}
-              name="user_id"
-              label="Usuario"
-              placeholder="Seleccione usuario"
-              useQueryHook={useUsers}
-              mapOptionFn={(u: UserResource) => ({
-                value: u.id.toString(),
-                label:
-                  u.person.business_name ||
-                  `${u.person.names} ${u.person.father_surname} ${u.person.mother_surname}`,
-                description: u.username,
               })}
               withValue
             />
