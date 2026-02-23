@@ -103,7 +103,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
       icon={TYPE_USER.ICON}
       footer={
         <div className="pt-4 w-full flex justify-end gap-2">
-          <Button type="submit" disabled={id === 1}>
+          <Button type="submit" form="type-user-access-form" disabled={id === 1}>
             Guardar
           </Button>
           <Button
@@ -123,6 +123,7 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
           <div className="flex flex-col items-center w-full h-full">
             <Form {...form}>
               <form
+                id="type-user-access-form"
                 className="w-full flex flex-col gap-3 justify-between"
                 onSubmit={form.handleSubmit(handleSubmit)}
               >
