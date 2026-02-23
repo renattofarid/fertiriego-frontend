@@ -27,10 +27,11 @@ import { toast } from "sonner";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
+import { useUsers } from "@/pages/users/lib/User.hook";
+import type { UserResource } from "@/pages/users/lib/User.interface";
 
 export type ProductionDocumentFormValues = {
   warehouse_origin_id: string;
@@ -45,6 +46,7 @@ export type ProductionDocumentFormValues = {
   observations?: string;
   components: {
     component_id: string;
+    component_name?: string;
     quantity_required: string;
     quantity_used: string;
     unit_cost: string;
@@ -72,8 +74,6 @@ interface ProductionDocumentFormProps {
   isSubmitting?: boolean;
   initialValues?: ProductionDocumentFormValues;
   warehouses: WarehouseResource[];
-  users: PersonResource[];
-  responsibles: PersonResource[];
 }
 
 export function ProductionDocumentForm({
@@ -82,12 +82,13 @@ export function ProductionDocumentForm({
   isSubmitting = false,
   initialValues,
   warehouses,
-  responsibles,
 }: ProductionDocumentFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_DOCUMENT;
   const navigate = useNavigate();
-  const { data: productsData } = useProduct();
-  const products: ProductResource[] = productsData?.data ?? [];
+
+  const componentForm = useForm<{ component_id: string }>({
+    defaultValues: { component_id: "" },
+  });
 
   // Estado para detalles
   type ComponentRow = {
@@ -126,9 +127,7 @@ export function ProductionDocumentForm({
       const mappedComponents: ComponentRow[] = initialValues.components.map(
         (c) => ({
           component_id: c.component_id,
-          component_name:
-            products.find((p) => p.id.toString() === c.component_id)?.name ||
-            "Componente desconocido",
+          component_name: c.component_name || "Componente desconocido",
           quantity_required: parseFloat(c.quantity_required) || 0,
           quantity_used: parseFloat(c.quantity_used) || 0,
           unit_cost: parseFloat(c.unit_cost) || 0,
@@ -137,12 +136,13 @@ export function ProductionDocumentForm({
       );
       setComponents(mappedComponents);
     }
-  }, [initialValues, products]);
+  }, [initialValues]);
 
   // Agregar/Actualizar componente
   const handleAddOrUpdateComponent = () => {
     if (
       !currentComponent.component_id ||
+      !currentComponent.component_name ||
       !currentComponent.quantity_required ||
       !currentComponent.quantity_used ||
       currentComponent.unit_cost === undefined
@@ -151,17 +151,9 @@ export function ProductionDocumentForm({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentComponent.component_id,
-    );
-    if (!product) {
-      toast.error("Componente no encontrado");
-      return;
-    }
-
     const newComponent: ComponentRow = {
       component_id: currentComponent.component_id,
-      component_name: product.name,
+      component_name: currentComponent.component_name,
       quantity_required: currentComponent.quantity_required,
       quantity_used: currentComponent.quantity_used,
       unit_cost: currentComponent.unit_cost,
@@ -177,8 +169,10 @@ export function ProductionDocumentForm({
       setComponents([...components, newComponent]);
     }
 
+    componentForm.reset({ component_id: "" });
     setCurrentComponent({
       component_id: "",
+      component_name: "",
       quantity_required: 0,
       quantity_used: 0,
       unit_cost: 0,
@@ -189,8 +183,10 @@ export function ProductionDocumentForm({
   // Editar componente
   const handleEditComponent = (index: number) => {
     const component = components[index];
+    componentForm.setValue("component_id", component.component_id);
     setCurrentComponent({
       component_id: component.component_id,
+      component_name: component.component_name,
       quantity_required: component.quantity_required,
       quantity_used: component.quantity_used,
       unit_cost: component.unit_cost,
@@ -258,7 +254,6 @@ export function ProductionDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -266,7 +261,6 @@ export function ProductionDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -321,7 +315,7 @@ export function ProductionDocumentForm({
           <GroupFormSection
             icon={Factory}
             title="Información General"
-            cols={{ sm: 1, md: 2 }}
+            cols={{ sm: 1, md: 2, lg: 3, xl: 4 }}
           >
             <FormSelect
               control={form.control}
@@ -368,25 +362,30 @@ export function ProductionDocumentForm({
               name="user_id"
               label="Usuario"
               placeholder="Seleccione usuario"
-              useQueryHook={useWorkers}
-              mapOptionFn={(u: PersonResource) => ({
+              useQueryHook={useUsers}
+              mapOptionFn={(u: UserResource) => ({
                 value: u.id.toString(),
-                label: u.business_name || `${u.names} ${u.father_surname}`,
-                description: u.email,
+                label:
+                  u.person.business_name ||
+                  `${u.person.names} ${u.person.father_surname} ${u.person.mother_surname}`,
+                description: u.username,
               })}
               withValue
             />
 
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="responsible_id"
               label="Responsable"
               placeholder="Seleccione responsable"
-              options={responsibles.map((r) => ({
-                value: r.id.toString(),
-                label: r.business_name || `${r.names} ${r.father_surname}`,
-                description: r.number_document,
-              }))}
+              useQueryHook={useWorkers}
+              mapOptionFn={(w: PersonResource) => ({
+                value: w.id.toString(),
+                label:
+                  w.business_name ||
+                  `${w.names} ${w.father_surname} ${w.mother_surname}`,
+                description: w.number_document,
+              })}
               withValue
             />
 
@@ -396,14 +395,7 @@ export function ProductionDocumentForm({
               label="Fecha de Producción"
               placeholder="Seleccione fecha"
             />
-          </GroupFormSection>
 
-          {/* Costos y Cantidad */}
-          <GroupFormSection
-            icon={Factory}
-            title="Costos y Cantidad"
-            cols={{ sm: 1, md: 2 }}
-          >
             <FormField
               control={form.control}
               name="quantity_produced"
@@ -463,51 +455,57 @@ export function ProductionDocumentForm({
                 </FormItem>
               )}
             />
-          </GroupFormSection>
 
-          {/* Observaciones */}
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={3}
-                    placeholder="Notas adicionales"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <div className="col-span-full">
+              {/* Observaciones */}
+              <FormField
+                control={form.control}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={3}
+                        placeholder="Notas adicionales"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </GroupFormSection>
 
           {/* Componentes */}
           <GroupFormSection icon={Factory} title="Componentes" cols={{ sm: 1 }}>
             <div className="space-y-4">
               {/* Formulario inline */}
               <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end border p-3 rounded-lg bg-muted/30">
-                <SearchableSelectAsync
-                  label="Componente"
-                  useQueryHook={useProduct}
-                  mapOptionFn={(product) => ({
-                    value: product.id.toString(),
-                    label: product.name,
-                    description: product.unit_name,
-                  })}
-                  value={currentComponent.component_id || ""}
-                  onChange={(value) =>
-                    setCurrentComponent({
-                      ...currentComponent,
-                      component_id: value,
-                    })
-                  }
-                  withValue
-                  placeholder="Buscar componente..."
-                  className="md:w-full"
-                />
+                <div className=" md:col-span-2">
+                  <FormSelectAsync
+                    control={componentForm.control}
+                    name="component_id"
+                    label="Componente"
+                    useQueryHook={useProduct}
+                    mapOptionFn={(p: ProductResource) => ({
+                      value: p.id.toString(),
+                      label: p.name,
+                      description: p.unit_name,
+                    })}
+                    onValueChange={(value, item) =>
+                      setCurrentComponent((prev) => ({
+                        ...prev,
+                        component_id: value,
+                        component_name: (item as ProductResource)?.name ?? "",
+                      }))
+                    }
+                    withValue
+                    placeholder="Buscar componente..."
+                    className="md:w-full"
+                  />
+                </div>
 
                 <div>
                   <label className="text-sm font-medium">Cant. Req.</label>
@@ -560,14 +558,8 @@ export function ProductionDocumentForm({
                   />
                 </div>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  
-                  onClick={handleAddOrUpdateComponent}
-                  className="h-10"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button type="button" onClick={handleAddOrUpdateComponent}>
+                  <Plus />
                   {editingComponentIndex !== null ? "Actualizar" : "Agregar"}
                 </Button>
               </div>
