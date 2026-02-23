@@ -6,6 +6,7 @@ import {
   SheetTitle,
   SheetDescription,
   SheetClose,
+  SheetFooter,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import * as LucideReact from "lucide-react";
@@ -13,6 +14,7 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -31,6 +33,7 @@ export interface GeneralSheetProps {
   size?: Size;
   type?: "default" | "tablet" | "mobile";
   preventAutoClose?: boolean;
+  footer?: React.ReactNode;
 }
 
 type Size = "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full";
@@ -60,6 +63,7 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
   icon,
   size = "lg",
   preventAutoClose = false,
+  footer,
 }) => {
   const IconComponent = icon
     ? (LucideReact[icon] as React.ComponentType<any>)
@@ -72,7 +76,11 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
 
   {
     return type === "default" ? (
-      <Sheet open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
+      <Sheet
+        open={open}
+        onOpenChange={(v) => !v && !preventAutoClose && onClose()}
+        modal={modal}
+      >
         <SheetContent
           side={side}
           className={cn(sizes[size], className, "overflow-y-auto gap-0!")}
@@ -93,16 +101,21 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
             </div>
             <SheetClose onClick={onClose} />
           </SheetHeader>
-          <div className="p-4">{children}</div>
+          <div className="no-scrollbar overflow-y-auto px-4">{children}</div>
+          {footer && <SheetFooter className="w-full">{footer}</SheetFooter>}
         </SheetContent>
       </Sheet>
     ) : (
-      <Drawer open={open} onOpenChange={(v) => !v && !preventAutoClose && onClose()} modal={modal}>
+      <Drawer
+        open={open}
+        onOpenChange={(v) => !v && !preventAutoClose && onClose()}
+        modal={modal}
+      >
         <DrawerContent
           className={cn(
             sizes[size],
             className,
-            "px-4 pb-4 flex flex-col max-h-[96vh]"
+            "px-4 pb-4 flex flex-col max-h-[96vh]",
           )}
           onInteractOutside={(e) => preventAutoClose && e.preventDefault()}
           onEscapeKeyDown={(e) => preventAutoClose && e.preventDefault()}
@@ -126,11 +139,14 @@ const GeneralSheet: React.FC<GeneralSheetProps> = ({
             <DrawerClose onClick={onClose} />
           </DrawerHeader>
           <div
-            className="mt-4 overflow-y-auto flex-1 min-h-0"
+            className="mt-4 no-scrollbar overflow-y-auto flex-1 min-h-0"
             data-vaul-no-drag
           >
             {children}
           </div>
+          {footer && (
+            <DrawerFooter className="w-full mt-4">{footer}</DrawerFooter>
+          )}
         </DrawerContent>
       </Drawer>
     );
