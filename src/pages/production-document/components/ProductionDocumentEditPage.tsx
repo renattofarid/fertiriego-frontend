@@ -13,7 +13,6 @@ import {
   type ProductionDocumentFormValues,
 } from "./ProductionDocumentForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
 export default function ProductionDocumentEditPage() {
@@ -26,8 +25,6 @@ export default function ProductionDocumentEditPage() {
   // Hooks para datos
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
-  const users = useAllPersons();
-  const responsibles = useAllPersons();
 
   // Cargar documento al montar
   useEffect(() => {
@@ -36,7 +33,7 @@ export default function ProductionDocumentEditPage() {
     }
   }, [id, fetchDocument]);
 
-  const isLoading = loadingWarehouses || !users || !responsibles || isFinding;
+  const isLoading = loadingWarehouses || isFinding;
 
   const onSubmit = async (values: ProductionDocumentFormValues) => {
     if (!id) return;
@@ -45,9 +42,7 @@ export default function ProductionDocumentEditPage() {
       successToast(SUCCESS_MESSAGE(MODEL, "edit"));
       navigate(ROUTE);
     } catch (error: any) {
-      errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"),
-      );
+      errorToast(error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"));
     }
   };
 
@@ -69,6 +64,7 @@ export default function ProductionDocumentEditPage() {
     observations: document.observations || "",
     components: document.details.map((d) => ({
       component_id: d.component_id.toString(),
+      component_name: d.component_name,
       quantity_required: d.quantity_required.toString(),
       quantity_used: d.quantity_used.toString(),
       unit_cost: d.unit_cost.toString(),
@@ -83,8 +79,6 @@ export default function ProductionDocumentEditPage() {
       isSubmitting={isSubmitting}
       initialValues={initialValues}
       warehouses={warehouses || []}
-      users={users || []}
-      responsibles={responsibles || []}
     />
   );
 }
