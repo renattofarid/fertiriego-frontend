@@ -192,12 +192,12 @@ function ProtectedRoute({
   children: JSX.Element;
   path?: string;
 }) {
-  const { token, access } = useAuthStore();
+  const { token, access, user } = useAuthStore();
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (path && ENABLE_PERMISSION_VALIDATION) {
+  if (path && ENABLE_PERMISSION_VALIDATION && user?.rol_id !== 1) {
     if (!access) {
       return <Navigate to="/inicio" replace />;
     }

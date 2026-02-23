@@ -506,8 +506,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [filteredNav, setFilteredNav] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!ENABLE_PERMISSION_VALIDATION) {
-      // Si no está habilitada la validación, mostrar todos los elementos
+    if (!ENABLE_PERMISSION_VALIDATION || user?.rol_id === 1) {
       setFilteredNav(data.navMain);
       return;
     }
@@ -524,7 +523,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       });
 
     setFilteredNav(filterNav(data.navMain));
-  }, [access]);
+  }, [access, user]);
 
   if (!user) {
     return null; // o spinner
