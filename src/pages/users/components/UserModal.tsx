@@ -13,7 +13,6 @@ import { USER, type UserResource } from "../lib/User.interface";
 import { useUser, useUsers } from "../lib/User.hook";
 import type { TypeDocument, TypePerson, UserSchema } from "../lib/User.schema";
 import { useUserStore } from "../lib/Users.store";
-import { useAllTypeUsers } from "@/pages/type-users/lib/typeUser.hook";
 
 interface Props {
   id?: number;
@@ -98,14 +97,14 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
     }
   };
 
-  const { data: typeUsers, isLoading: typeUsersLoading } = useAllTypeUsers();
-
-  const isLoadingAny = isSubmitting || findingUser || typeUsersLoading;
+  const isLoadingAny = isSubmitting || findingUser;
 
   useEffect(() => {
     if (userError && mode === "edit" && !errorShownRef.current) {
       const error = userError as any;
-      warningToast(error?.response?.data?.message ?? "Error al cargar el usuario");
+      warningToast(
+        error?.response?.data?.message ?? "Error al cargar el usuario",
+      );
       errorShownRef.current = true;
       onClose();
     }
@@ -116,11 +115,11 @@ export default function UserModal({ id, open, title, mode, onClose }: Props) {
       open={open}
       onClose={onClose}
       title={title}
-      maxWidth="!max-w-(--breakpoint-md)"
+      icon={USER.ICON}
+      size="3xl"
     >
-      {!isLoadingAny && user && typeUsers ? (
+      {!isLoadingAny && user ? (
         <UserForm
-          typeUsers={typeUsers}
           defaultValues={mapUserToForm(user)}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}

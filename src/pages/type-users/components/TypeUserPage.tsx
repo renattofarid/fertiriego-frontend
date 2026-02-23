@@ -27,12 +27,16 @@ export default function TypeUserPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useTypeUsers();
+  const { data, isLoading, refetch } = useTypeUsers({
+    page,
+    search,
+    per_page,
+  });
   const [permissionId, setPermissionId] = useState<number | null>(null);
   const [accessDialogOpen, setAccessDialogOpen] = useState(false);
 
   useEffect(() => {
-    refetch({ page, search, per_page });
+    setPage(1);
   }, [page, search, per_page]);
 
   const handleDelete = async () => {
@@ -42,7 +46,10 @@ export default function TypeUserPage() {
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response.data.message ?? error.response.data.error,
+        ERROR_MESSAGE(MODEL, "delete"),
+      );
     } finally {
       setDeleteId(null);
     }
@@ -74,18 +81,18 @@ export default function TypeUserPage() {
           onDelete: setDeleteId,
           onPermissions: handleAccessDialog,
         })}
-        data={data || []}
+        data={data?.data || []}
       >
         <TypeUserOptions search={search} setSearch={setSearch} />
       </TypeUserTable>
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       {/* Formularios */}
