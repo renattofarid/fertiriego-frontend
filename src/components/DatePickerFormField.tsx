@@ -149,7 +149,8 @@ export function DatePickerFormField<T extends FieldValues>({
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal truncate",
-                  !parsedDate && "text-muted-foreground"
+                  !parsedDate && "text-muted-foreground",
+                  parsedDate && "bg-muted"
                 )}
                 disabled={disabled}
               >

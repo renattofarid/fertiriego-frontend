@@ -79,7 +79,7 @@ export default function CarrierAddPage() {
         isSubmitting={isSubmitting}
         onCancel={() => navigate("/transportistas")}
         roleId={CARRIER_ROLE_ID}
-        isWorker={true}
+        isWorker={false}
       />
     </FormWrapper>
   );

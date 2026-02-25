@@ -11,6 +11,7 @@ export function useRemittents(params?: Record<string, unknown>) {
       getPersons({
         params: {
           ...params,
+          per_page: 100,
           role_names: [REMITTENT_ROLE_CODE],
         },
       }),

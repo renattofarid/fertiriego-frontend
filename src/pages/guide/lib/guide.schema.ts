@@ -31,8 +31,12 @@ export const guideSchema = z
     // INFORMACIÓN GENERAL
     // ===============================
     warehouse_id: requiredStringId("Debe seleccionar un almacén"),
-    issue_date: z.string().min(1, { message: "La fecha de emisión es requerida" }),
-    transfer_date: z.string().min(1, { message: "La fecha de traslado es requerida" }),
+    issue_date: z
+      .string()
+      .min(1, { message: "La fecha de emisión es requerida" }),
+    transfer_date: z
+      .string()
+      .min(1, { message: "La fecha de traslado es requerida" }),
     transfer_start_date: z.string().optional(),
     motive_id: requiredStringId("Debe seleccionar un motivo de traslado"),
     observations: z.string().max(1000).optional(),
@@ -40,28 +44,41 @@ export const guideSchema = z
     // ===============================
     // REFERENCIAS DOCUMENTALES
     // ===============================
+    order: z.string().max(100).optional(),
     order_id: optionalStringId("Debe seleccionar un pedido"),
     sale_id: optionalStringId("Debe seleccionar una venta"),
     purchase_id: optionalStringId("Debe seleccionar una compra"),
-    warehouse_document_id: optionalStringId("Debe seleccionar un documento de almacén"),
+    warehouse_document_id: optionalStringId(
+      "Debe seleccionar un documento de almacén",
+    ),
 
     // ===============================
     // PERSONAS
     // ===============================
     remittent_id: requiredStringId("Debe seleccionar un remitente"),
     recipient_id: optionalStringId("Debe seleccionar un destinatario"),
-    shipping_guide_remittent_id: optionalStringId("Debe seleccionar un remitente de guía"),
+    shipping_guide_remittent_id: optionalStringId(
+      "Debe seleccionar un remitente de guía",
+    ),
     dispatcher_id: optionalStringId("Debe seleccionar un despachador"),
 
     // ===============================
     // TRANSPORTE
     // ===============================
-    transport_modality: z.string().min(1, { message: "La modalidad de transporte es requerida" }),
-    carrier_id: requiredStringId("Debe seleccionar un transportista"),
+    transport_modality: z
+      .string()
+      .min(1, { message: "La modalidad de transporte es requerida" }),
+    carrier_id: optionalStringId("Debe seleccionar un transportista"),
     driver_id: optionalStringId("Debe seleccionar un conductor"),
-    driver_license: z.string().max(20).optional(),
+    driver_license: z
+      .string()
+      .min(1, { message: "La licencia del conductor es requerida" })
+      .max(20)
+      .optional(),
     vehicle_id: optionalStringId("Debe seleccionar un vehículo"),
-    secondary_vehicle_id: optionalStringId("Debe seleccionar un vehículo secundario"),
+    secondary_vehicle_id: optionalStringId(
+      "Debe seleccionar un vehículo secundario",
+    ),
     vehicle_plate: z.string().max(20).optional(),
     vehicle_brand: z.string().max(50).optional(),
     vehicle_model: z.string().max(50).optional(),
@@ -70,16 +87,46 @@ export const guideSchema = z
     // ===============================
     // DIRECCIONES
     // ===============================
-    origin_address: z.string().min(1, { message: "La dirección de origen es requerida" }).max(500),
+    origin_address: z
+      .string()
+      .min(1, { message: "La dirección de origen es requerida" })
+      .max(500),
     origin_ubigeo_id: requiredStringId("Debe seleccionar un ubigeo de origen"),
-    destination_address: z.string().min(1, { message: "La dirección de destino es requerida" }).max(500),
-    destination_ubigeo_id: requiredStringId("Debe seleccionar un ubigeo de destino"),
-    destination_warehouse_id: optionalStringId("Debe seleccionar un almacén de destino"),
+    destination_address: z
+      .string()
+      .min(1, { message: "La dirección de destino es requerida" })
+      .max(500),
+    destination_ubigeo_id: requiredStringId(
+      "Debe seleccionar un ubigeo de destino",
+    ),
+    destination_warehouse_id: optionalStringId(
+      "Debe seleccionar un almacén de destino",
+    ),
 
     // ===============================
     // DETALLES
     // ===============================
-    details: z.array(guideDetailSchema).min(1, { message: "Debe agregar al menos un detalle" }),
+    details: z
+      .array(guideDetailSchema)
+      .min(1, { message: "Debe agregar al menos un detalle" }),
+
+    // ===============================
+    // TOTALES
+    // ===============================
+    total_weight: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El peso total debe ser un número mayor a 0",
+      }),
+    total_packages: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El total de paquetes debe ser un número mayor a 0",
+      }),
   })
   // ===============================
   // VALIDACIONES CONDICIONALES
@@ -94,20 +141,9 @@ export const guideSchema = z
     {
       message: "El conductor es requerido para transporte privado",
       path: ["driver_id"],
-    }
-  )
-  .refine(
-    (data) => {
-      if (data.transport_modality === "PRIVADO") {
-        return data.driver_license && data.driver_license.trim() !== "";
-      }
-      return true;
     },
-    {
-      message: "La licencia del conductor es requerida para transporte privado",
-      path: ["driver_license"],
-    }
   )
+
   .refine(
     (data) => {
       if (data.transport_modality === "PRIVADO") {
@@ -118,7 +154,7 @@ export const guideSchema = z
     {
       message: "El vehículo es requerido para transporte privado",
       path: ["vehicle_id"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -130,7 +166,7 @@ export const guideSchema = z
     {
       message: "La placa del vehículo es requerida para transporte privado",
       path: ["vehicle_plate"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -142,7 +178,7 @@ export const guideSchema = z
     {
       message: "La marca del vehículo es requerida para transporte privado",
       path: ["vehicle_brand"],
-    }
+    },
   )
   .refine(
     (data) => {
@@ -154,19 +190,19 @@ export const guideSchema = z
     {
       message: "El modelo del vehículo es requerido para transporte privado",
       path: ["vehicle_model"],
-    }
+    },
   )
   .refine(
     (data) => {
-      if (data.transport_modality === "PRIVADO") {
-        return data.vehicle_mtc && data.vehicle_mtc.trim() !== "";
+      if (data.transport_modality === "PUBLICO") {
+        return data.carrier_id && data.carrier_id.trim() !== "";
       }
       return true;
     },
     {
-      message: "El certificado MTC es requerido para transporte privado",
-      path: ["vehicle_mtc"],
-    }
+      message: "El transportista es requerido para transporte público",
+      path: ["carrier_id"],
+    },
   );
 
 export type GuideSchema = z.infer<typeof guideSchema>;

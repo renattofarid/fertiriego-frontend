@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
-import FormWrapper from "@/components/FormWrapper";
 import {
   SHIPPING_GUIDE_CARRIER,
   UNIT_MEASUREMENTS,
@@ -20,7 +19,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2, Loader, Truck, MapPin, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
@@ -39,9 +37,20 @@ import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useUbigeosFrom, useUbigeosTo } from "@/pages/guide/lib/ubigeo.hook";
-import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
+import PageWrapper from "@/components/PageWrapper";
+import { useGuides } from "@/pages/guide/lib/guide.hook";
+import { useClients } from "@/pages/client/lib/client.hook";
+import type { Option } from "@/lib/core.interface";
+import { FormInput } from "@/components/FormInput";
+import { FormTextArea } from "@/components/FormTextArea";
+import { Separator } from "@/components/ui/separator";
+import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
+import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
+import VehicleModal from "@/pages/vehicle/components/VehicleModal";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
@@ -60,11 +69,15 @@ export type ShippingGuideCarrierFormValues = {
   secondary_vehicle_id?: string;
   order_id?: string;
   shipping_guide_remittent_id?: string;
+  third_party_id?: string;
+  payment_responsible?: string;
   origin_address: string;
   origin_ubigeo_id: string;
   destination_address: string;
   destination_ubigeo_id: string;
   observations?: string;
+  total_weight: number;
+  total_packages: number;
   details: {
     product_id: string;
     description: string;
@@ -75,7 +88,7 @@ export type ShippingGuideCarrierFormValues = {
 };
 
 const defaultValues: ShippingGuideCarrierFormValues = {
-  transport_modality: "PRIVADO",
+  transport_modality: "PUBLICO",
   carrier_id: "",
   driver_id: "",
   vehicle_id: "",
@@ -91,11 +104,15 @@ const defaultValues: ShippingGuideCarrierFormValues = {
   secondary_vehicle_id: "",
   order_id: "",
   shipping_guide_remittent_id: "",
+  third_party_id: "",
+  payment_responsible: "",
   origin_address: "",
   origin_ubigeo_id: "",
   destination_address: "",
   destination_ubigeo_id: "",
   observations: "",
+  total_weight: 0,
+  total_packages: 1,
   details: [
     {
       product_id: "",
@@ -112,9 +129,6 @@ interface ShippingGuideCarrierFormProps {
   onSubmit: (values: ShippingGuideCarrierFormValues) => Promise<void> | void;
   isSubmitting?: boolean;
   initialValues?: ShippingGuideCarrierFormValues;
-  remittents: PersonResource[];
-  recipients: PersonResource[];
-  guides: GuideResource[];
 }
 
 export function ShippingGuideCarrierForm({
@@ -122,8 +136,6 @@ export function ShippingGuideCarrierForm({
   onSubmit,
   isSubmitting = false,
   initialValues,
-  recipients,
-  guides,
 }: ShippingGuideCarrierFormProps) {
   const { ROUTE, MODEL, ICON } = SHIPPING_GUIDE_CARRIER;
   const navigate = useNavigate();
@@ -150,6 +162,13 @@ export function ShippingGuideCarrierForm({
     null,
   );
 
+  const [guideAutoFill, setGuideAutoFill] = useState<{
+    recipientOption?: Option;
+    originUbigeoOption?: Option;
+    destinationUbigeoOption?: Option;
+    selectorKey: number;
+  }>({ selectorKey: 0 });
+
   const form = useForm<ShippingGuideCarrierFormValues>({
     resolver: zodResolver(
       shippingGuideCarrierSchema,
@@ -163,9 +182,32 @@ export function ShippingGuideCarrierForm({
   const transportModality = form.watch("transport_modality");
   const selectedGuideId = form.watch("shipping_guide_remittent_id");
 
+  // Auto-setear transportista a 1860 cuando es PÚBLICO y limpiar campos de conductor/vehículo
+  useEffect(() => {
+    if (transportModality === "PUBLICO") {
+      if (mode === "create") {
+        form.setValue("carrier_id", "1860");
+      }
+      // Limpiar campos de conductor y vehículo cuando es público
+      form.setValue("driver_id", "");
+      form.setValue("vehicle_id", "");
+      form.setValue("secondary_vehicle_id", "");
+      form.setValue("driver_license", "");
+      form.setValue("vehicle_plate", "");
+      form.setValue("vehicle_brand", "");
+      form.setValue("vehicle_model", "");
+      form.setValue("vehicle_mtc", "");
+    }
+  }, [transportModality, mode, form]);
+
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
   >(undefined);
+
+  const [carrierModalOpen, setCarrierModalOpen] = useState(false);
+  const [driverModalOpen, setDriverModalOpen] = useState(false);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [clientModalOpen, setClientModalOpen] = useState(false);
 
   // Cargar detalles iniciales cuando hay initialValues
   useEffect(() => {
@@ -182,7 +224,7 @@ export function ShippingGuideCarrierForm({
     }
   }, [initialValues]);
 
-  // Cargar detalles cuando se selecciona una guía de remisión
+  // Cargar datos cuando se selecciona una guía de remisión
   useEffect(() => {
     const loadGuideDetails = async () => {
       if (!selectedGuideId || selectedGuideId === "") {
@@ -193,6 +235,60 @@ export function ShippingGuideCarrierForm({
         const response = await findGuideById(parseInt(selectedGuideId));
         const guide = response.data;
 
+        // Auto-llenar modalidad de transporte (siempre PUBLICO por defecto)
+        form.setValue("transport_modality", "PUBLICO");
+
+        // Auto-llenar destinatario
+        if (guide.recipient?.id) {
+          form.setValue("recipient_id", guide.recipient.id.toString());
+        }
+
+        // Auto-llenar ubigeos y direcciones
+        if (guide.originUbigeo?.id) {
+          form.setValue("origin_ubigeo_id", guide.originUbigeo.id.toString());
+        }
+        if (guide.destinationUbigeo?.id) {
+          form.setValue(
+            "destination_ubigeo_id",
+            guide.destinationUbigeo.id.toString(),
+          );
+        }
+        if (guide.origin_address) {
+          form.setValue("origin_address", guide.origin_address);
+        }
+        if (guide.destination_address) {
+          form.setValue("destination_address", guide.destination_address);
+        }
+
+        // Actualizar opciones para que los selects muestren la etiqueta correcta
+        setGuideAutoFill((prev) => ({
+          selectorKey: prev.selectorKey + 1,
+          recipientOption: guide.recipient?.id
+            ? {
+                value: guide.recipient.id.toString(),
+                label:
+                  guide.recipient.business_name ??
+                  `${guide.recipient.names ?? ""} ${guide.recipient.father_surname ?? ""}`.trim(),
+                description: guide.recipient.number_document ?? undefined,
+              }
+            : undefined,
+          originUbigeoOption: guide.originUbigeo?.id
+            ? {
+                value: guide.originUbigeo.id.toString(),
+                label: guide.originUbigeo.name,
+                description: guide.originUbigeo.cadena,
+              }
+            : undefined,
+          destinationUbigeoOption: guide.destinationUbigeo?.id
+            ? {
+                value: guide.destinationUbigeo.id.toString(),
+                label: guide.destinationUbigeo.name,
+                description: guide.destinationUbigeo.cadena,
+              }
+            : undefined,
+        }));
+
+        // Cargar detalles
         if (guide.details && guide.details.length > 0) {
           const mappedDetails: DetailRow[] = guide.details.map((detail) => ({
             product_id: detail.product_id.toString(),
@@ -293,6 +389,22 @@ export function ShippingGuideCarrierForm({
     form.setValue("details", formatted);
   }, [details, form]);
 
+  // Calcular automáticamente el peso total
+  useEffect(() => {
+    if (details.length > 0) {
+      const totalWeight = details.reduce(
+        (sum, detail) => sum + Number(detail.weight || 0),
+        0,
+      );
+
+      // Actualizar el total_weight solo si cambió
+      const currentTotalWeight = form.getValues("total_weight");
+      if (currentTotalWeight !== totalWeight && totalWeight > 0) {
+        form.setValue("total_weight", totalWeight, { shouldValidate: false });
+      }
+    }
+  }, [details, form]);
+
   // Columnas para DataTable
   const createDetailColumns = (
     onEdit: (index: number) => void,
@@ -332,7 +444,6 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -340,7 +451,6 @@ export function ShippingGuideCarrierForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -377,219 +487,340 @@ export function ShippingGuideCarrierForm({
   });
 
   return (
-    <FormWrapper>
-      <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} />
-        </div>
-      </div>
+    <PageWrapper>
+      <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} />
 
       <Form {...form}>
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <form
+          onSubmit={handleFormSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* Información General */}
           <GroupFormSection
             icon={Truck}
             title="Información General"
-            cols={{ sm: 1 }}
+            cols={{ sm: 1, md: 3 }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormSelect
+            <FormSelectAsync
+              control={form.control}
+              name="shipping_guide_remittent_id"
+              label="Guía de Remisión Remitente (GRR)"
+              placeholder="Seleccione GRR (Opcional)"
+              useQueryHook={useGuides}
+              mapOptionFn={(g: GuideResource) => ({
+                value: g.id.toString(),
+                label: g.full_guide_number,
+                description: `${g.issue_date} - ${g.status}`,
+              })}
+              withValue
+            />
+
+            <FormSelect
+              control={form.control}
+              name="transport_modality"
+              label="Modalidad de Transporte"
+              placeholder="Seleccione modalidad"
+              options={MODALITIES.map((mod) => ({
+                value: mod.value,
+                label: mod.label,
+              }))}
+            />
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione un transportista"
+                  useQueryHook={useCarriers}
+                  mapOptionFn={(carrier) => ({
+                    value: carrier.id.toString(),
+                    label:
+                      carrier.business_name ||
+                      `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                    description: carrier.number_document,
+                  })}
+                  withValue
+                  preloadItemId={form.getValues("carrier_id") ?? undefined}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear transportista"
+                onClick={() => setCarrierModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="remittent_id"
+                  label="Remitente"
+                  placeholder="Seleccione remitente"
+                  useQueryHook={useClients}
+                  additionalParams={{
+                    per_page: 1000,
+                  }}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.remittent_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  key={`recipient-${guideAutoFill.selectorKey}`}
+                  control={form.control}
+                  name="recipient_id"
+                  label="Destinatario (Opcional)"
+                  placeholder="Seleccione destinatario"
+                  useQueryHook={useClients}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  defaultOption={guideAutoFill.recipientOption}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="third_party_id"
+                  label="Tercero (Opcional)"
+                  placeholder="Seleccione tercero"
+                  useQueryHook={useClients}
+                  mapOptionFn={(p: PersonResource) => ({
+                    value: p.id.toString(),
+                    label: p.business_name ?? `${p.names} ${p.father_surname}`,
+                    description: p.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.third_party_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear cliente"
+                onClick={() => setClientModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <FormSelect
+              control={form.control}
+              name="payment_responsible"
+              label="Responsable de Pago (Opcional)"
+              placeholder="Seleccione responsable"
+              options={[
+                { value: "remitente", label: "Remitente" },
+                { value: "destinatario", label: "Destinatario" },
+                { value: "tercero", label: "Tercero" },
+              ]}
+            />
+
+            <Separator className="col-span-full" />
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="driver_id"
+                  label="Conductor"
+                  placeholder="Seleccione conductor"
+                  useQueryHook={useDrivers}
+                  mapOptionFn={(d: PersonResource) => ({
+                    value: d.id.toString(),
+                    label:
+                      d.business_name ??
+                      `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
+                    description: d.number_document,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.driver_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear conductor"
+                onClick={() => setDriverModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="vehicle_id"
+                  label="Vehículo"
+                  placeholder="Seleccione vehículo"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                  onValueChange={(_value, vehicle: any) => {
+                    if (vehicle) {
+                      form.setValue("vehicle_plate", vehicle.plate || "");
+                      form.setValue("vehicle_brand", vehicle.brand || "");
+                      form.setValue("vehicle_model", vehicle.model || "");
+                      form.setValue(
+                        "vehicle_mtc",
+                        vehicle.mtc_certificate || "",
+                      );
+                    }
+                  }}
+                  withValue
+                  preloadItemId={initialValues?.vehicle_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo"
+                onClick={() => setVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="secondary_vehicle_id"
+                  label="Vehículo Secundario (Opcional)"
+                  placeholder="Seleccione vehículo secundario"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                  withValue
+                  preloadItemId={initialValues?.secondary_vehicle_id}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo secundario"
+                onClick={() => setVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <FormInput
+              control={form.control}
+              name="driver_license"
+              label="Licencia del Conductor"
+              placeholder="Ej: B12345678"
+              className="border-dashed"
+            />
+
+            <FormInput
+              control={form.control}
+              name="vehicle_plate"
+              label="Placa del Vehículo"
+              placeholder="Ej: ABC-123"
+              className="border-dashed"
+            />
+
+            <FormInput
+              control={form.control}
+              name="vehicle_brand"
+              label="Marca del Vehículo"
+              placeholder="Ej: Toyota"
+              className="border-dashed"
+            />
+
+            <FormInput
+              control={form.control}
+              name="vehicle_model"
+              label="Modelo del Vehículo"
+              placeholder="Ej: Hilux"
+              className="border-dashed"
+            />
+
+            <FormInput
+              control={form.control}
+              name="vehicle_mtc"
+              label="Certificado MTC (Opcional)"
+              placeholder="Ej: MTC123456"
+              className="border-dashed"
+            />
+
+            {/* Observaciones */}
+            <div className="col-span-full">
+              <FormField
                 control={form.control}
-                name="transport_modality"
-                label="Modalidad de Transporte"
-                placeholder="Seleccione modalidad"
-                options={MODALITIES.map((mod) => ({
-                  value: mod.value,
-                  label: mod.label,
-                }))}
+                name="observations"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Observaciones</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        rows={3}
+                        placeholder="Notas adicionales"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-
-              <FormSelectAsync
-                control={form.control}
-                name="carrier_id"
-                label="Transportista"
-                placeholder="Seleccione un transportista"
-                useQueryHook={useCarriers}
-                mapOptionFn={(carrier) => ({
-                  value: carrier.id.toString(),
-                  label:
-                    carrier.business_name ||
-                    `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-                  description: carrier.number_document,
-                })}
-                withValue
-                preloadItemId={initialValues?.carrier_id}
-              />
-
-              <FormSelectAsync
-                control={form.control}
-                name="remittent_id"
-                label="Remitente"
-                placeholder="Seleccione remitente"
-                useQueryHook={useSuppliers}
-                mapOptionFn={(p: PersonResource) => ({
-                  value: p.id.toString(),
-                  label: p.business_name ?? `${p.names} ${p.father_surname}`,
-                  description: p.number_document,
-                })}
-                withValue
-                preloadItemId={initialValues?.remittent_id}
-              />
-
-              <FormSelect
-                control={form.control}
-                name="shipping_guide_remittent_id"
-                label="Guía de Remisión Remitente (GRR)"
-                placeholder="Seleccione GRR (Opcional)"
-                options={guides.map((g) => ({
-                  value: g.id.toString(),
-                  label: g.full_guide_number,
-                  description: `${g.issue_date} - ${g.status}`,
-                }))}
-                withValue
-              />
-
-              <FormSelect
-                control={form.control}
-                name="recipient_id"
-                label="Destinatario (Opcional)"
-                placeholder="Seleccione destinatario"
-                options={recipients.map((p) => ({
-                  value: p.id.toString(),
-                  label: p.business_name || `${p.names} ${p.father_surname}`,
-                  description: p.number_document,
-                }))}
-                withValue
-              />
-
-              {transportModality === "PRIVADO" && (
-                <>
-                  <FormSelectAsync
-                    control={form.control}
-                    name="driver_id"
-                    label="Conductor"
-                    placeholder="Seleccione conductor"
-                    useQueryHook={useDrivers}
-                    mapOptionFn={(d: PersonResource) => ({
-                      value: d.id.toString(),
-                      label:
-                        d.business_name ??
-                        `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
-                      description: d.number_document,
-                    })}
-                    withValue
-                    preloadItemId={initialValues?.driver_id}
-                  />
-
-                  <FormSelectAsync
-                    control={form.control}
-                    name="vehicle_id"
-                    label="Vehículo"
-                    placeholder="Seleccione vehículo"
-                    useQueryHook={useVehicles}
-                    mapOptionFn={(vehicle) => ({
-                      value: vehicle.id.toString(),
-                      label: vehicle.plate,
-                      description: `${vehicle.brand} ${vehicle.model}`,
-                    })}
-                    onValueChange={(_value, vehicle: any) => {
-                      if (vehicle) {
-                        form.setValue("vehicle_plate", vehicle.plate || "");
-                        form.setValue("vehicle_brand", vehicle.brand || "");
-                        form.setValue("vehicle_model", vehicle.model || "");
-                        form.setValue("vehicle_mtc", vehicle.mtc_certificate || "");
-                      }
-                    }}
-                    withValue
-                    preloadItemId={initialValues?.vehicle_id}
-                  />
-
-                  <FormSelectAsync
-                    control={form.control}
-                    name="secondary_vehicle_id"
-                    label="Vehículo Secundario (Opcional)"
-                    placeholder="Seleccione vehículo secundario"
-                    useQueryHook={useVehicles}
-                    mapOptionFn={(vehicle) => ({
-                      value: vehicle.id.toString(),
-                      label: vehicle.plate,
-                      description: `${vehicle.brand} ${vehicle.model}`,
-                    })}
-                    withValue
-                    preloadItemId={initialValues?.secondary_vehicle_id}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="driver_license"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Licencia del Conductor</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: B12345678" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="vehicle_plate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Placa del Vehículo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: ABC-123" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="vehicle_brand"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Marca del Vehículo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: Toyota" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="vehicle_model"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Modelo del Vehículo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: Hilux" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="vehicle_mtc"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Certificado MTC</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ej: MTC123456" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </>
-              )}
             </div>
           </GroupFormSection>
 
@@ -614,7 +845,26 @@ export function ShippingGuideCarrierForm({
                 placeholder="Seleccione fecha"
               />
 
+              <FormInput
+                control={form.control}
+                name="total_weight"
+                label="Peso Total (Kg)"
+                placeholder="Ej: 100"
+                type="number"
+                min={0}
+              />
+
+              <FormInput
+                control={form.control}
+                name="total_packages"
+                label="Total de Paquetes"
+                placeholder="Ej: 5"
+                type="number"
+                min={0}
+              />
+
               <FormSelectAsync
+                key={`origin-ubigeo-${guideAutoFill.selectorKey}`}
                 control={form.control}
                 name="origin_ubigeo_id"
                 label="Ubigeo de Origen"
@@ -626,9 +876,11 @@ export function ShippingGuideCarrierForm({
                   description: item.cadena,
                 })}
                 preloadItemId={initialValues?.origin_ubigeo_id}
+                defaultOption={guideAutoFill.originUbigeoOption}
               />
 
               <FormSelectAsync
+                key={`dest-ubigeo-${guideAutoFill.selectorKey}`}
                 control={form.control}
                 name="destination_ubigeo_id"
                 label="Ubigeo de Destino"
@@ -640,62 +892,34 @@ export function ShippingGuideCarrierForm({
                   description: item.cadena,
                 })}
                 preloadItemId={initialValues?.destination_ubigeo_id}
+                defaultOption={guideAutoFill.destinationUbigeoOption}
               />
+              <div className="col-span-full">
+                <FormTextArea
+                  control={form.control}
+                  name="origin_address"
+                  label="Dirección de Origen"
+                  placeholder="Calle, número, ciudad"
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="origin_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección de Origen</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Calle, número, ciudad" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="destination_address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección de Destino</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Calle, número, ciudad" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="col-span-full">
+                <FormTextArea
+                  control={form.control}
+                  name="destination_address"
+                  label="Dirección de Destino"
+                  placeholder="Calle, número, ciudad"
+                />
+              </div>
             </div>
           </GroupFormSection>
-
-          {/* Observaciones */}
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    rows={3}
-                    placeholder="Notas adicionales"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
 
           {/* Detalles de Productos */}
           <GroupFormSection
             icon={Truck}
             title="Detalles de Productos"
             cols={{ sm: 1 }}
+            className="col-span-full"
           >
             <div className="space-y-4">
               {/* Formulario inline */}
@@ -720,24 +944,20 @@ export function ShippingGuideCarrierForm({
                   className="md:w-full"
                 />
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Cantidad
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentDetail.quantity || ""}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        quantity: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
+                <FormInput
+                  name="quantity"
+                  label="Cantidad"
+                  placeholder="Ej: 10.5"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  onChange={(e) =>
+                    setCurrentDetail({
+                      ...currentDetail,
+                      quantity: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
 
                 <SearchableSelect
                   label="Unidad"
@@ -753,45 +973,34 @@ export function ShippingGuideCarrierForm({
                   className="md:w-full"
                 />
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Peso</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentDetail.weight || ""}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        weight: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="text-sm font-medium mb-2 block">
-                    Descripción
-                  </label>
-                  <Input
-                    value={currentDetail.description || ""}
-                    onChange={(e) =>
-                      setCurrentDetail({
-                        ...currentDetail,
-                        description: e.target.value,
-                      })
-                    }
-                    placeholder="Descripción adicional"
-                  />
-                </div>
+                <FormInput
+                  name="weight"
+                  label="Peso"
+                  placeholder="Ej: 10.5"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  onChange={(e) =>
+                    setCurrentDetail({
+                      ...currentDetail,
+                      weight: parseFloat(e.target.value) || 0,
+                    })
+                  }
+                />
+                <FormInput
+                  name="description"
+                  label="Descripción"
+                  placeholder="Ej: Producto frágil, manejar con cuidado"
+                  onChange={(e) =>
+                    setCurrentDetail({
+                      ...currentDetail,
+                      description: e.target.value,
+                    })
+                  }
+                />
 
                 <div className="md:col-span-6 flex justify-end">
-                  <Button
-                    type="button"
-                    onClick={handleAddOrUpdateDetail}
-                    size="sm"
-                  >
+                  <Button type="button" onClick={handleAddOrUpdateDetail}>
                     {editingDetailIndex !== null ? (
                       <>
                         <Pencil className="h-4 w-4 mr-1" /> Actualizar
@@ -814,7 +1023,7 @@ export function ShippingGuideCarrierForm({
 
           {form.formState.errors &&
             Object.keys(form.formState.errors).length > 0 && (
-              <div className="p-4 bg-red-100 text-red-800 rounded">
+              <div className="p-4 bg-red-100 text-red-800 rounded col-span-full">
                 <strong>Errores de validación:</strong>
                 <ul className="mt-2 list-disc list-inside">
                   {Object.entries(form.formState.errors).map(
@@ -854,7 +1063,7 @@ export function ShippingGuideCarrierForm({
               </div>
             )}
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-3 col-span-full">
             <Button
               type="button"
               variant="outline"
@@ -874,6 +1083,28 @@ export function ShippingGuideCarrierForm({
           </div>
         </form>
       </Form>
-    </FormWrapper>
+
+      <CarrierCreateModal
+        open={carrierModalOpen}
+        onClose={() => setCarrierModalOpen(false)}
+      />
+
+      <DriverCreateModal
+        open={driverModalOpen}
+        onClose={() => setDriverModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <ClientCreateModal
+        open={clientModalOpen}
+        onClose={() => setClientModalOpen(false)}
+      />
+    </PageWrapper>
   );
 }

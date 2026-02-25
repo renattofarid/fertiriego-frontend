@@ -9,7 +9,7 @@ const { ROUTE_ADD } = SHIPPING_GUIDE_CARRIER;
 export default function ShippingGuideCarrierActions() {
   return (
     <ActionsWrapper>
-      <Button size="sm" asChild>
+      <Button  asChild>
         <Link to={ROUTE_ADD}>
           <Plus className="mr-2 h-4 w-4" />
           Agregar

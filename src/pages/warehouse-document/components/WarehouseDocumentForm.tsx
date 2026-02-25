@@ -29,6 +29,7 @@ import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { toast } from "sonner";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
+import { FormInput } from "@/components/FormInput";
 
 interface WarehouseDocumentFormProps {
   onSubmit: (data: WarehouseDocumentSchema) => void;
@@ -75,6 +76,7 @@ export default function WarehouseDocumentForm({
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [currentDetail, setCurrentDetail] = useState<Partial<DetailRow>>({
     product_id: "",
+    product_name: "",
     quantity: 0,
     unit_cost: 0,
     observations: "",
@@ -111,17 +113,14 @@ export default function WarehouseDocumentForm({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id,
-    );
-    if (!product) {
+    if (!currentDetail.product_name) {
       toast.error("Producto no encontrado");
       return;
     }
 
     const newDetail: DetailRow = {
       product_id: currentDetail.product_id,
-      product_name: product.name,
+      product_name: currentDetail.product_name,
       quantity: currentDetail.quantity,
       unit_cost: currentDetail.unit_cost,
       total: currentDetail.quantity * currentDetail.unit_cost,
@@ -141,6 +140,7 @@ export default function WarehouseDocumentForm({
 
     setCurrentDetail({
       product_id: "",
+      product_name: "",
       quantity: 0,
       unit_cost: 0,
       observations: "",
@@ -152,6 +152,7 @@ export default function WarehouseDocumentForm({
     const detail = details[index];
     setCurrentDetail({
       product_id: detail.product_id,
+      product_name: detail.product_name,
       quantity: detail.quantity,
       unit_cost: detail.unit_cost,
       observations: detail.observations,
@@ -227,7 +228,7 @@ export default function WarehouseDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onEdit(row.index)}
           >
             <Pencil className="h-4 w-4" />
@@ -235,7 +236,7 @@ export default function WarehouseDocumentForm({
           <Button
             type="button"
             variant="ghost"
-            size="sm"
+            
             onClick={() => onDelete(row.index)}
           >
             <Trash2 className="h-4 w-4" />
@@ -301,18 +302,12 @@ export default function WarehouseDocumentForm({
             }))}
           />
 
-          <FormField
+          <FormInput
             control={form.control}
             name="document_number"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Número de Documento</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej: AJ-000123" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Número de Documento"
+            placeholder="Ej: AJ-000123"
+            uppercase
           />
 
           <FormSelectAsync
@@ -329,29 +324,15 @@ export default function WarehouseDocumentForm({
             })}
           />
 
-          <FormField
-            control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2 lg:col-span-3">
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Observaciones adicionales"
-                    className="resize-none"
-                    rows={2}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <DatePickerFormField
             control={form.control}
             name="document_date"
             label="Fecha del Documento"
+            dateFormat="dd/MM/yyyy"
+            placeholder="Seleccione la fecha"
+            disabledRange={{
+              after: new Date(),
+            }}
           />
 
           <FormField
@@ -394,10 +375,15 @@ export default function WarehouseDocumentForm({
                   })}
                   value={currentDetail.product_id || ""}
                   onChange={(value) =>
-                    setCurrentDetail({
-                      ...currentDetail,
-                      product_id: value,
-                    })
+                    setCurrentDetail((prev) => ({ ...prev, product_id: value }))
+                  }
+                  onValueChange={(_value, item) =>
+                    setCurrentDetail((prev) => ({
+                      ...prev,
+                      product_name: item
+                        ? (item as ProductResource).name
+                        : "",
+                    }))
                   }
                   withValue
                   placeholder="Buscar producto..."
@@ -456,7 +442,7 @@ export default function WarehouseDocumentForm({
                 <Button
                   type="button"
                   variant="default"
-                  size="sm"
+                  
                   onClick={handleAddOrUpdateDetail}
                   className="w-full h-10"
                 >

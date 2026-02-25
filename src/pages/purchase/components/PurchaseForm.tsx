@@ -28,7 +28,7 @@ import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-
 import { useState, useEffect } from "react";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
-import { truncDecimal, formatDecimalTrunc } from "@/lib/utils";
+import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -44,7 +44,7 @@ import {
   CURRENCIES,
 } from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
-import { format } from "date-fns";
+import { format, addMonths } from "date-fns";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { FileText, Package, CalendarDays, ShoppingCart } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
@@ -58,6 +58,8 @@ import { PurchaseDetailModal } from "./PurchaseDetailModal";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { PurchaseInstallmentModal } from "./PurchaseInstallmentModal";
 import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
+import { usePurchaseOrder } from "@/pages/purchase-order/lib/purchase-order.hook";
+import { DatePickerFormField } from "@/components/DatePickerFormField";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -66,7 +68,6 @@ interface PurchaseFormProps {
   isSubmitting?: boolean;
   mode?: "create" | "edit";
   warehouses: WarehouseResource[];
-  purchaseOrders: PurchaseOrderResource[];
   purchase?: PurchaseResource;
   currentUserId: number;
   // Props para modo edit
@@ -82,7 +83,7 @@ interface DetailRow {
   product_name?: string;
   quantity: string;
   unit_price: string;
-  tax: string;
+  tax: number;
   subtotal: number;
   total: number;
 }
@@ -99,7 +100,6 @@ export const PurchaseForm = ({
   isSubmitting = false,
   mode = "create",
   warehouses,
-  purchaseOrders,
   currentUserId,
   purchase,
   purchaseId,
@@ -135,7 +135,7 @@ export const PurchaseForm = ({
     product_id: "",
     quantity: "",
     unit_price: "",
-    tax: "",
+    tax: 0,
     subtotal: 0,
     total: 0,
   });
@@ -179,6 +179,10 @@ export const PurchaseForm = ({
     },
   });
 
+  // Estado para la orden de compra seleccionada desde el FormSelectAsync
+  const [selectedPurchaseOrder, setSelectedPurchaseOrder] =
+    useState<PurchaseOrderResource | null>(null);
+
   // Watch para la orden de compra seleccionada
   const selectedPurchaseOrderId = form.watch("purchase_order_id");
 
@@ -210,24 +214,24 @@ export const PurchaseForm = ({
         const updatedDetails = details.map((detail) => {
           const quantity = parseFloat(detail.quantity);
           const unitPrice = parseFloat(detail.unit_price);
-          let subtotal = truncDecimal(quantity * unitPrice, 2);
+          let subtotal = quantity * unitPrice;
           let tax = 0;
           let total = 0;
 
           if (watchIncludeIgv) {
-            // unitPrice incluye IGV: descomponer (truncando resultados)
-            const totalIncl = truncDecimal(quantity * unitPrice, 2);
-            subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-            tax = truncDecimal(totalIncl - subtotal, 2);
+            // unitPrice incluye IGV: descomponer
+            const totalIncl = quantity * unitPrice;
+            subtotal = totalIncl / (1 + IGV_RATE);
+            tax = totalIncl - subtotal;
             total = totalIncl;
           } else {
-            tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
-            total = truncDecimal(subtotal + tax, 2);
+            tax = subtotal * IGV_RATE;
+            total = subtotal + tax;
           }
 
           return {
             ...detail,
-            tax: formatDecimalTrunc(tax, 2),
+            tax,
             subtotal,
             total,
           };
@@ -284,11 +288,11 @@ export const PurchaseForm = ({
     });
   };
 
-  // Establecer fecha de emisión automáticamente al cargar el formulario
+  // Establecer fechas por defecto: emisión = hoy, vencimiento = hoy + 1 mes
   useEffect(() => {
     const today = new Date();
-    const formattedDate = format(today, "yyyy-MM-dd");
-    form.setValue("issue_date", formattedDate);
+    form.setValue("issue_date", format(today, "yyyy-MM-dd"));
+    form.setValue("due_date", format(addMonths(today, 1), "yyyy-MM-dd"));
   }, [form]);
 
   // Auto-llenar datos cuando se selecciona una orden de compra
@@ -301,9 +305,7 @@ export const PurchaseForm = ({
       return;
     }
 
-    const selectedPO = purchaseOrders.find(
-      (po) => po.id.toString() === selectedPurchaseOrderId,
-    );
+    const selectedPO = selectedPurchaseOrder;
 
     if (!selectedPO) return;
 
@@ -311,40 +313,41 @@ export const PurchaseForm = ({
     form.setValue("supplier_id", selectedPO.supplier_id.toString());
     form.setValue("warehouse_id", selectedPO.warehouse_id.toString());
 
-    // Setear el include_igv según el apply_igv de la orden
-    // Si apply_igv = true → se le aplicó IGV → los precios NO incluyen IGV → include_igv = false
-    // Si apply_igv = false → no se le aplicó IGV → los precios ya incluyen IGV → include_igv = true
-    const applyIgvBoolean = Boolean(selectedPO.apply_igv);
-    const includeIgvValue = !applyIgvBoolean; // Lógica inversa
-    igvForm.setValue("include_igv", includeIgvValue);
-    setIncludeIgv(includeIgvValue);
+    // apply_igv=false → precio ya incluye IGV → switch CHECKED (include_igv=true)
+    // apply_igv=true  → precio neto, se calculará IGV encima → switch UNCHECKED (include_igv=false)
+    const poApplyIgv = Boolean(selectedPO.apply_igv);
+    const priceIncludesIgv = !poApplyIgv;
+
+    igvForm.setValue("include_igv", priceIncludesIgv);
+    setIncludeIgv(priceIncludesIgv);
 
     // Auto-llenar detalles de la orden de compra
     if (selectedPO.details && selectedPO.details.length > 0) {
       const poDetails: DetailRow[] = selectedPO.details.map((detail) => {
         const quantity = parseFloat(detail.quantity_requested.toString());
-        const unitPrice = parseFloat(detail.unit_price_estimated);
-        let subtotal = truncDecimal(quantity * unitPrice, 2);
-        let tax = 0;
-        let total = 0;
+        const rawUnitPrice = parseFloat(detail.unit_price_estimated);
 
-        if (includeIgvValue) {
-          // unitPrice incluye IGV: descomponer (truncando resultados)
-          const totalIncl = truncDecimal(quantity * unitPrice, 2);
-          subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-          tax = truncDecimal(totalIncl - subtotal, 2);
+        let subtotal, tax, total;
+
+        if (priceIncludesIgv) {
+          // apply_igv=false: el precio incluye IGV → descomponer
+          const totalIncl = quantity * rawUnitPrice;
+          subtotal = totalIncl / (1 + IGV_RATE);
+          tax = totalIncl - subtotal;
           total = totalIncl;
         } else {
-          tax = truncDecimal(subtotal * IGV_RATE, 2);
-          total = truncDecimal(subtotal + tax, 2);
+          // apply_igv=true: el precio es neto → agregar IGV
+          subtotal = quantity * rawUnitPrice;
+          tax = subtotal * IGV_RATE;
+          total = subtotal + tax;
         }
 
         return {
           product_id: detail.product_id.toString(),
           product_name: detail.product_name,
           quantity: detail.quantity_requested.toString(),
-          unit_price: detail.unit_price_estimated.toString(),
-          tax: formatDecimalTrunc(tax, 2),
+          unit_price: String(rawUnitPrice),
+          tax,
           subtotal,
           total,
         };
@@ -353,7 +356,7 @@ export const PurchaseForm = ({
       setDetails(poDetails);
       form.setValue("details", poDetails);
     }
-  }, [selectedPurchaseOrderId, purchaseOrders, form, igvForm]);
+  }, [selectedPurchaseOrderId, selectedPurchaseOrder, form, igvForm]);
 
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
@@ -371,25 +374,25 @@ export const PurchaseForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
-    let subtotal = truncDecimal(quantity * unitPrice, 2);
+    let subtotal = quantity * unitPrice;
     let tax = 0;
     let total = 0;
 
     if (includeIgv) {
-      // unitPrice incluye IGV: descomponer (truncando resultados)
-      const totalIncl = truncDecimal(quantity * unitPrice, 2);
-      subtotal = truncDecimal(totalIncl / (1 + IGV_RATE), 2);
-      tax = truncDecimal(totalIncl - subtotal, 2);
+      // unitPrice incluye IGV: descomponer
+      const totalIncl = quantity * unitPrice;
+      subtotal = totalIncl / (1 + IGV_RATE);
+      tax = totalIncl - subtotal;
       total = totalIncl;
     } else {
-      tax = truncDecimal(subtotal * IGV_RATE, 2); // Calcular impuesto automáticamente (18%)
-      total = truncDecimal(subtotal + tax, 2);
+      tax = subtotal * IGV_RATE;
+      total = subtotal + tax;
     }
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: selectedProduct?.name,
-      tax: formatDecimalTrunc(tax, 2),
+      tax,
       subtotal,
       total,
     };
@@ -411,7 +414,7 @@ export const PurchaseForm = ({
       product_id: "",
       quantity: "",
       unit_price: "",
-      tax: "",
+      tax: 0,
       subtotal: 0,
       total: 0,
     });
@@ -439,7 +442,7 @@ export const PurchaseForm = ({
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   // Funciones para cuotas
@@ -507,7 +510,7 @@ export const PurchaseForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   // Validar si las cuotas coinciden con el total (si hay cuotas)
@@ -517,6 +520,34 @@ export const PurchaseForm = ({
     const installmentsTotal = calculateInstallmentsTotal();
     return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia acorde a 2 decimales
   };
+
+  // Auto-llenar cuota de 30 días cuando el pago es a crédito y cambian los detalles
+  useEffect(() => {
+    if (mode !== "create") return;
+
+    if (selectedPaymentType !== "CREDITO") {
+      // Limpiar cuotas si se cambia a otro tipo de pago
+      if (installments.length > 0) {
+        setInstallments([]);
+        form.setValue("installments", []);
+      }
+      return;
+    }
+
+    const total = details.reduce((sum, d) => sum + (d.total || 0), 0);
+    if (total <= 0) {
+      setInstallments([]);
+      form.setValue("installments", []);
+      return;
+    }
+
+    const autoInstallment: InstallmentRow = {
+      due_days: "30",
+      amount: formatDecimalTrunc(total, 2),
+    };
+    setInstallments([autoInstallment]);
+    form.setValue("installments", [autoInstallment]);
+  }, [details, selectedPaymentType, mode]);
 
   // Datos y funciones para el resumen (dependiendo del modo)
   const summaryDetails = mode === "edit" ? detailsFromStore : details;
@@ -528,7 +559,7 @@ export const PurchaseForm = ({
       (sum, detail: any) => sum + (parseFloat(detail.subtotal) || 0),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const calculateSummaryTaxTotal = () => {
@@ -537,7 +568,7 @@ export const PurchaseForm = ({
         sum + (isNaN(parseFloat(detail.tax)) ? 0 : parseFloat(detail.tax)),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const calculateSummaryDetailsTotal = () => {
@@ -545,7 +576,7 @@ export const PurchaseForm = ({
       (sum, detail: any) => sum + (parseFloat(detail.total) || 0),
       0,
     );
-    return truncDecimal(sum, 2);
+    return sum;
   };
 
   const handleFormSubmit = (data: any) => {
@@ -596,9 +627,14 @@ export const PurchaseForm = ({
         }));
     }
 
+    const apiDetails = details.map((detail) => ({
+      ...detail,
+      unit_price: String(detail.subtotal / parseFloat(detail.quantity)),
+    }));
+
     onSubmit({
       ...data,
-      details,
+      details: apiDetails,
       installments: validInstallments,
     });
   };
@@ -653,18 +689,19 @@ export const PurchaseForm = ({
               cols={{ sm: 1, md: 2, lg: 3 }}
             >
               <div className="md:col-span-2 lg:col-span-3">
-                <FormSelect
+                <FormSelectAsync
                   control={form.control}
                   name="purchase_order_id"
                   label="Orden de Compra (Opcional - Auto-llena los datos)"
                   placeholder="Seleccione una orden de compra"
-                  options={[
-                    { value: "", label: "Ninguna - Llenar manualmente" },
-                    ...purchaseOrders.map((po) => ({
-                      value: po.id.toString(),
-                      label: `${po.correlativo} (${po.supplier_fullname})`,
-                    })),
-                  ]}
+                  useQueryHook={usePurchaseOrder}
+                  mapOptionFn={(purchaseOrder: PurchaseOrderResource) => ({
+                    value: purchaseOrder.id.toString(),
+                    label: `${purchaseOrder.correlativo} (${purchaseOrder.supplier_fullname})`,
+                  })}
+                  onValueChange={(_value, item) => {
+                    setSelectedPurchaseOrder(item ?? null);
+                  }}
                 />
               </div>
 
@@ -683,7 +720,11 @@ export const PurchaseForm = ({
                       description: p.number_document,
                     })}
                     preloadItemId={
-                      mode === "edit" ? defaultValues.supplier_id : undefined
+                      mode === "edit"
+                        ? defaultValues.supplier_id
+                        : selectedPurchaseOrderId
+                          ? supplierWatch
+                          : undefined
                     }
                     disabled={mode === "edit"}
                   />
@@ -701,6 +742,17 @@ export const PurchaseForm = ({
                   </Button>
                 )}
               </div>
+
+              <FormSelect
+                control={form.control}
+                name="document_type"
+                label="Tipo de Documento"
+                placeholder="Seleccione tipo"
+                options={DOCUMENT_TYPES.map((dt) => ({
+                  value: dt.value,
+                  label: dt.label,
+                }))}
+              />
 
               <div className="flex gap-2 items-end">
                 <div className="flex-1 truncate ">
@@ -730,29 +782,12 @@ export const PurchaseForm = ({
                 )}
               </div>
 
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
-
-              <FormField
+              <FormInput
                 control={form.control}
                 name="document_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Número de Documento</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej: F001-001245" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Número de Documento"
+                placeholder="Ej: F001-001245"
+                uppercase
               />
 
               <FormSelect
@@ -777,16 +812,33 @@ export const PurchaseForm = ({
                 }))}
               />
 
-              <div className="lg:col-span-2">
-                <FormSwitch
-                  control={igvForm.control}
-                  name="include_igv"
-                  text="Los precios incluyen IGV"
-                  textDescription="El precio unitario de los productos incluye el IGV (18%)"
-                  autoHeight
-                  negate
-                />
-              </div>
+              <DatePickerFormField
+                control={form.control}
+                name="issue_date"
+                label="Fecha de Emisión"
+                placeholder="Seleccione la fecha de emisión"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="due_date"
+                label="Fecha de Vencimiento"
+                placeholder="Seleccione la fecha de vencimiento"
+                dateFormat="dd/MM/yyyy"
+              />
+
+              {mode === "create" && (
+                <div className="lg:col-span-2">
+                  <FormSwitch
+                    control={igvForm.control}
+                    name="include_igv"
+                    text="Los precios incluyen IGV"
+                    textDescription="El precio unitario de los productos incluye el IGV (18%)"
+                    autoHeight
+                  />
+                </div>
+              )}
 
               <div className="md:col-span-2 lg:col-span-3">
                 <FormField
@@ -828,6 +880,7 @@ export const PurchaseForm = ({
                       mapOptionFn={(product: ProductResource) => ({
                         value: product.id.toString(),
                         label: product.name,
+                        description: product.category_name,
                       })}
                       onValueChange={(_value, item) => {
                         setSelectedProduct(item);
@@ -842,7 +895,6 @@ export const PurchaseForm = ({
                       label="Cantidad"
                       type="number"
                       placeholder="0"
-                      className="h-9"
                     />
                   </div>
 
@@ -854,14 +906,12 @@ export const PurchaseForm = ({
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      className="h-9"
                     />
                   </div>
 
                   <div className="col-span-2 flex gap-1">
                     <Button
                       type="button"
-                      size="sm"
                       onClick={handleAddDetail}
                       disabled={
                         !currentDetail.product_id ||
@@ -885,7 +935,6 @@ export const PurchaseForm = ({
                     {editingDetailIndex !== null && (
                       <Button
                         type="button"
-                        size="sm"
                         variant="outline"
                         onClick={() => {
                           setEditingDetailIndex(null);
@@ -893,7 +942,7 @@ export const PurchaseForm = ({
                             product_id: "",
                             quantity: "",
                             unit_price: "",
-                            tax: "",
+                            tax: 0,
                             subtotal: 0,
                             total: 0,
                           });
@@ -921,7 +970,7 @@ export const PurchaseForm = ({
                           <TableHead className="text-right">Cantidad</TableHead>
                           <TableHead className="text-right">P. Unit.</TableHead>
                           <TableHead className="text-right">Subtotal</TableHead>
-                          <TableHead className="text-right">Impuesto</TableHead>
+                          <TableHead className="text-right">IGV</TableHead>
                           <TableHead className="text-right">Total</TableHead>
                           <TableHead className="w-16"></TableHead>
                         </TableRow>
@@ -942,7 +991,7 @@ export const PurchaseForm = ({
                               {formatNumber(detail.subtotal)}
                             </TableCell>
                             <TableCell className="text-right">
-                              {formatNumber(parseFloat(detail.tax || "0"))}
+                              {formatNumber(detail.tax ?? 0)}
                             </TableCell>
                             <TableCell className="text-right font-bold text-primary">
                               {formatNumber(detail.total)}
@@ -1088,7 +1137,6 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      size="sm"
                                       onClick={() =>
                                         handleEditInstallment(index)
                                       }
@@ -1098,7 +1146,6 @@ export const PurchaseForm = ({
                                     <Button
                                       type="button"
                                       variant="ghost"
-                                      size="sm"
                                       onClick={() =>
                                         handleRemoveInstallment(index)
                                       }

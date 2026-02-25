@@ -1,11 +1,4 @@
 import { useEffect, useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Trash2 } from "lucide-react";
 import {
@@ -23,6 +16,7 @@ import {
 } from "@/lib/core.function";
 import { USERBOXASSIGNMENT } from "@/pages/userboxassignment/lib/userboxassignment.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import GeneralSheet from "@/components/GeneralSheet";
 
 interface BoxAssignmentsSheetProps {
   open: boolean;
@@ -31,7 +25,7 @@ interface BoxAssignmentsSheetProps {
   boxName: string;
 }
 
-const { MODEL } = USERBOXASSIGNMENT;
+const { MODEL, ICON } = USERBOXASSIGNMENT;
 
 export default function BoxAssignmentsSheet({
   open,
@@ -40,7 +34,7 @@ export default function BoxAssignmentsSheet({
   boxName,
 }: BoxAssignmentsSheetProps) {
   const [assignments, setAssignments] = useState<UserBoxAssignmentResource[]>(
-    []
+    [],
   );
   const [isLoading, setIsLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -73,7 +67,7 @@ export default function BoxAssignmentsSheet({
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       errorToast(
-        error.response?.data?.message || ERROR_MESSAGE(MODEL, "delete")
+        error.response?.data?.message || ERROR_MESSAGE(MODEL, "delete"),
       );
     } finally {
       setDeleteId(null);
@@ -87,90 +81,83 @@ export default function BoxAssignmentsSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent className="sm:max-w-lg p-4">
-          <SheetHeader>
-            <SheetTitle>Asignaciones de {boxName}</SheetTitle>
-            <SheetDescription>Usuarios asignados a esta caja</SheetDescription>
-          </SheetHeader>
-
-          <div className="mt-6 space-y-4">
-            {assignments.length == 0 && (
-              <Button
-                onClick={() => setShowAddModal(true)}
-                className="w-full"
-                size="sm"
-              >
-                <Plus className="size-4 mr-2" />
-                Asignar Usuario
-              </Button>
-            )}
-
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="size-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : assignments.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No hay usuarios asignados a esta caja</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {assignments.map((assignment) => (
-                  <div
-                    key={assignment.id}
-                    className="flex items-center justify-between p-3 bg-muted rounded-lg border"
-                  >
-                    <div className="flex-1">
-                      <p className="font-semibold">{assignment.user_name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant={
-                            assignment.status === "active"
-                              ? "default"
-                              : "destructive"
-                          }
-                          className="text-xs"
-                        >
-                          {assignment.status === "active"
-                            ? "Activo"
-                            : "Inactivo"}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(assignment.assigned_at).toLocaleDateString(
-                            "es-PE",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            }
-                          )}
-                        </span>
-                      </div>
-                      {assignment.ended_at && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Finalizado:{" "}
-                          {new Date(assignment.ended_at).toLocaleDateString(
-                            "es-PE"
-                          )}
-                        </p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setDeleteId(assignment.id)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+      <GeneralSheet
+        open={open}
+        onClose={() => onOpenChange(false)}
+        title={`Asignaciones de ${boxName}`}
+        subtitle="Usuarios asignados a esta caja"
+        icon={ICON}
+      >
+        <div className="space-y-4">
+          <div className="w-full flex justify-end">
+            <Button onClick={() => setShowAddModal(true)} className="w-fit">
+              <Plus className="size-4 mr-2" />
+              Asignar Usuario
+            </Button>
           </div>
-        </SheetContent>
-      </Sheet>
+
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : assignments.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No hay usuarios asignados a esta caja</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {assignments.map((assignment) => (
+                <div
+                  key={assignment.id}
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg border"
+                >
+                  <div className="flex-1">
+                    <p className="font-semibold">{assignment.user_name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge
+                        variant={
+                          assignment.status === "Activo"
+                            ? "default"
+                            : "destructive"
+                        }
+                        className="text-xs"
+                      >
+                        {assignment.status === "Activo" ? "Activo" : "Inactivo"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(assignment.assigned_at).toLocaleDateString(
+                          "es-PE",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          },
+                        )}
+                      </span>
+                    </div>
+                    {assignment.ended_at && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Finalizado:{" "}
+                        {new Date(assignment.ended_at).toLocaleDateString(
+                          "es-PE",
+                        )}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteId(assignment.id)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </GeneralSheet>
 
       {showAddModal && (
         <UserBoxAssignmentModal

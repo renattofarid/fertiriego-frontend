@@ -1,13 +1,5 @@
 import { useParams } from "react-router-dom";
-import {
-  FileText,
-  Calendar,
-  Truck,
-  User,
-  Package,
-  FileCheck,
-  Route as RouteIcon,
-} from "lucide-react";
+import { Calendar, Truck, Package, FileCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
@@ -72,9 +64,9 @@ export default function ShippingGuideCarrierDetailPage() {
       />
 
       <div className="space-y-4">
-        {/* Resumen */}
+        {/* Documento */}
         <GroupFormSection
-          title="Resumen"
+          title="Información del Documento"
           icon={FileCheck}
           cols={{ sm: 2, md: 3 }}
         >
@@ -88,22 +80,6 @@ export default function ShippingGuideCarrierDetailPage() {
             </Badge>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Total Bultos</p>
-            <p className="text-lg font-bold">{guide.total_packages}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Peso Total (KG)</p>
-            <p className="text-lg font-bold">{guide.total_weight}</p>
-          </div>
-        </GroupFormSection>
-
-        {/* Documento */}
-        <GroupFormSection
-          title="Información del Documento"
-          icon={FileText}
-          cols={{ sm: 2, md: 3 }}
-        >
-          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Número</p>
             <p className="font-mono font-bold text-lg">
               {guide.full_guide_number}
@@ -116,6 +92,14 @@ export default function ShippingGuideCarrierDetailPage() {
             <p className="font-medium">{formatDate(guide.issue_date)}</p>
           </div>
           <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Total Bultos</p>
+            <p className="text-lg font-bold">{guide.total_packages}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Peso Total (KG)</p>
+            <p className="text-lg font-bold">{guide.total_weight}</p>
+          </div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Calendar className="h-3 w-3" /> Inicio Traslado
             </p>
@@ -125,17 +109,29 @@ export default function ShippingGuideCarrierDetailPage() {
           </div>
         </GroupFormSection>
 
-        {/* Participantes */}
+        {/* Transporte y Ruta */}
         <GroupFormSection
-          title="Participantes"
-          icon={User}
-          cols={{ sm: 1, md: 3 }}
+          title="Transporte y Ruta"
+          icon={Truck}
+          cols={{ sm: 2, md: 3 }}
         >
-          <div>
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Transportista</p>
             <p className="font-semibold">{guide.carrier?.business_name}</p>
           </div>
-          <div>
+          {guide.transport_modality === "PRIVADO" && (
+            <>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Conductor</p>
+                <p className="font-semibold">{guide.driver?.full_name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Vehículo Principal</p>
+                <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
+              </div>
+            </>
+          )}
+          <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Remitente</p>
             <p className="font-semibold">
               {guide.remittent?.business_name ??
@@ -146,73 +142,38 @@ export default function ShippingGuideCarrierDetailPage() {
                   (guide.remittent?.mother_surname ?? "")}
             </p>
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Conductor</p>
-            <p className="font-semibold">{guide.driver?.full_name}</p>
-          </div>
-        </GroupFormSection>
-
-        {/* Vehículos */}
-        <GroupFormSection
-          title="Vehículos"
-          icon={Truck}
-          cols={{ sm: 1, md: 3 }}
-        >
-          <div>
-            <p className="text-xs text-muted-foreground">Principal</p>
-            <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Secundario</p>
-            <p className="font-mono font-semibold">
-              {guide.secondary_vehicle?.plate || "-"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Licencia Conductor</p>
-            <p className="font-semibold">{guide.driver_license}</p>
-          </div>
-        </GroupFormSection>
-
-        {/* Rutas */}
-        <GroupFormSection
-          title="Rutas"
-          icon={RouteIcon}
-          cols={{ sm: 1, md: 2 }}
-        >
+          {guide.transport_modality === "PRIVADO" && (
+            <>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Licencia Conductor</p>
+                <p className="font-semibold">{guide.driver_license}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">Vehículo Secundario</p>
+                <p className="font-mono font-semibold">
+                  {guide.secondary_vehicle?.plate || "-"}
+                </p>
+              </div>
+            </>
+          )}
           <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Dirección Origen</p>
-              <p className="font-medium">{guide.origin_address}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Ubigeo Origen</p>
-              <Badge variant="outline" className="font-mono">
-                {guide.origin_ubigeo?.full_name || "-"}
-              </Badge>
-            </div>
+            <p className="text-xs text-muted-foreground">Origen</p>
+            <p className="font-medium">{guide.origin_address}</p>
+            <Badge variant="outline" className="font-mono">
+              {guide.origin_ubigeo?.full_name || "-"}
+            </Badge>
           </div>
           <div className="space-y-2">
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Dirección Destino</p>
-              <p className="font-medium">{guide.destination_address}</p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Ubigeo Destino</p>
-              <Badge variant="outline" className="font-mono">
-                {guide.destination_ubigeo?.full_name || "-"}
-              </Badge>
-            </div>
+            <p className="text-xs text-muted-foreground">Destino</p>
+            <p className="font-medium">{guide.destination_address}</p>
+            <Badge variant="outline" className="font-mono">
+              {guide.destination_ubigeo?.full_name || "-"}
+            </Badge>
           </div>
-        </GroupFormSection>
-
-        {/* Observaciones */}
-        <GroupFormSection
-          title="Observaciones"
-          icon={FileText}
-          cols={{ sm: 1 }}
-        >
-          <p className="text-sm">{guide.observations || "-"}</p>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Observaciones</p>
+            <p className="text-sm">{guide.observations || "-"}</p>
+          </div>
         </GroupFormSection>
 
         {/* Detalles */}

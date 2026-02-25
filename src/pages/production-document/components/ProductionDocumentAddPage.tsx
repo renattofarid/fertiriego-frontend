@@ -12,7 +12,6 @@ import {
   type ProductionDocumentFormValues,
 } from "./ProductionDocumentForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
 export default function ProductionDocumentAddPage() {
@@ -23,10 +22,8 @@ export default function ProductionDocumentAddPage() {
   // Hooks para datos
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
-  const users = useAllPersons();
-  const responsibles = useAllPersons();
 
-  const isLoading = loadingWarehouses || !users || !responsibles;
+  const isLoading = loadingWarehouses ;
 
   const onSubmit = async (values: ProductionDocumentFormValues) => {
     try {
@@ -50,8 +47,6 @@ export default function ProductionDocumentAddPage() {
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       warehouses={warehouses || []}
-      users={users || []}
-      responsibles={responsibles || []}
     />
   );
 }

@@ -187,7 +187,7 @@ export default function DatePicker({
                 !parsedDate && "text-muted-foreground",
                 error && "border-red-500"
               )}
-              size={"sm"}
+              
               disabled={disabled}
             >
               <span className="truncate">{displayValue}</span>

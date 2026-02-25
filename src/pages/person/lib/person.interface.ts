@@ -124,6 +124,7 @@ export interface PersonResource {
   user_id?: string;
   created_at: string;
   roles: Role[];
+  driver_license?: string;
 }
 
 interface Role {

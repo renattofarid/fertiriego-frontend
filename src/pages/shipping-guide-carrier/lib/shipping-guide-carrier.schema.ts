@@ -57,6 +57,8 @@ export const shippingGuideCarrierSchema = z
     shipping_guide_remittent_id: optionalStringId(
       "Debe seleccionar una guía de remitente",
     ),
+    third_party_id: optionalStringId("Debe seleccionar un tercero"),
+    payment_responsible: z.string().optional(),
     // Direcciones
     origin_address: z
       .string()
@@ -71,6 +73,21 @@ export const shippingGuideCarrierSchema = z
       "Debe seleccionar un ubigeo de destino",
     ),
     observations: z.string().max(1000).optional(),
+    // Totales
+    total_weight: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El peso total debe ser un número mayor a 0",
+      }),
+    total_packages: z
+      .string()
+      .or(z.number())
+      .transform((val) => (typeof val === "string" ? Number(val) : val))
+      .refine((val) => !isNaN(val) && val > 0, {
+        message: "El total de paquetes debe ser un número mayor a 0",
+      }),
     details: z
       .array(shippingGuideCarrierDetailSchema)
       .min(1, { message: "Debe agregar al menos un detalle" }),
@@ -166,19 +183,7 @@ export const shippingGuideCarrierSchema = z
       path: ["vehicle_model"],
     },
   )
-  .refine(
-    (data) => {
-      // Si es PRIVADO, vehicle_mtc es requerido
-      if (data.transport_modality === "PRIVADO") {
-        return data.vehicle_mtc && data.vehicle_mtc.trim() !== "";
-      }
-      return true;
-    },
-    {
-      message: "El certificado MTC es requerido para transporte privado",
-      path: ["vehicle_mtc"],
-    },
-  );
+;
 
 export type ShippingGuideCarrierSchema = z.infer<
   typeof shippingGuideCarrierSchema

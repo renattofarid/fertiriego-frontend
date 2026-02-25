@@ -10,6 +10,7 @@ import {
 import { TYPE_USER, type TypeUserResource } from "../lib/typeUser.interface";
 import { useTypeUser, useTypeUsers } from "../lib/typeUser.hook";
 import { useTypeUserStore } from "../lib/typeUsers.store";
+import { useQueryClient } from "@tanstack/react-query";
 import { TypeUserForm } from "./TypeUserForm";
 
 interface Props {
@@ -44,11 +45,11 @@ export default function TypeUserModal({
     : useTypeUser(id!);
 
   const mapTypeUserToForm = (
-    data: TypeUserResource
+    data: TypeUserResource,
   ): Partial<TypeUserSchema> => ({
     name: data.name,
   });
-
+  const queryClient = useQueryClient();
   const { isSubmitting, updateTypeUser, createTypeUser } = useTypeUserStore();
 
   const handleSubmit = async (data: TypeUserSchema) => {
@@ -58,12 +59,14 @@ export default function TypeUserModal({
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
           refetch();
+          queryClient.invalidateQueries({ queryKey: [TYPE_USER.QUERY_KEY] });
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "create")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
@@ -73,12 +76,14 @@ export default function TypeUserModal({
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           refetchTypeUser();
           refetch();
+          queryClient.invalidateQueries({ queryKey: [TYPE_USER.QUERY_KEY] });
         })
         .catch((error: any) => {
           errorToast(
-            (error.response.data.message ?? error.response.data.error) ??
+            error.response.data.message ??
               error.response.data.error ??
-              ERROR_MESSAGE(MODEL, "edit")
+              error.response.data.error ??
+              ERROR_MESSAGE(MODEL, "edit"),
           );
         });
     }

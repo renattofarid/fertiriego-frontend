@@ -23,7 +23,7 @@ export function ButtonAction({
     <Button
       type="button"
       variant={variant}
-      size="icon-xs"
+      size="icon"
       color={color}
       {...props}
     >

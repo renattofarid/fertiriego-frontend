@@ -12,10 +12,9 @@ import {
 import { Loader } from "lucide-react";
 import { useAllBoxes } from "@/pages/box/lib/box.hook";
 import { FormSelect } from "@/components/FormSelect";
-import { useEffect, useState } from "react";
-import { getAllUsers } from "@/pages/users/lib/User.actions";
-import type { UserResource } from "@/pages/users/lib/User.interface";
-import { getUserBoxAssignmentsByBoxId } from "../lib/userboxassignment.actions";
+import { useEffect } from "react";
+import { FormSelectAsync } from "@/components/FormSelectAsync.tsx";
+import { useUsers } from "@/pages/users/lib/User.hook.ts";
 
 interface UserBoxAssignmentFormProps {
   defaultValues: Partial<UserBoxAssignmentSchema>;
@@ -37,15 +36,12 @@ export const UserBoxAssignmentForm = ({
   preselectedBoxName,
 }: UserBoxAssignmentFormProps) => {
   const { data: boxes, isLoading: loadingBoxes } = useAllBoxes();
-  const [users, setUsers] = useState<UserResource[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [assignedUserIds, setAssignedUserIds] = useState<number[]>([]);
 
   const form = useForm({
     resolver: zodResolver(
       mode === "create"
         ? userBoxAssignmentSchemaCreate
-        : userBoxAssignmentSchemaUpdate
+        : userBoxAssignmentSchemaUpdate,
     ),
     defaultValues: {
       user_id: defaultValues.user_id || "",
@@ -58,42 +54,6 @@ export const UserBoxAssignmentForm = ({
 
   const selectedBoxId = form.watch("box_id");
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setLoadingUsers(true);
-      try {
-        const data = await getAllUsers();
-        setUsers(data);
-      } catch (error) {
-        console.error("Error loading users:", error);
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
-    fetchUsers();
-  }, []);
-
-  // Cargar usuarios ya asignados a la caja cuando cambie la caja seleccionada
-  useEffect(() => {
-    const fetchAssignedUsers = async () => {
-      const boxId = preselectedBoxId || selectedBoxId;
-      if (boxId) {
-        try {
-          const assignments = await getUserBoxAssignmentsByBoxId(Number(boxId));
-          // Obtener IDs de todos los usuarios asignados (activos e inactivos)
-          const userIds = assignments.map((assignment) => assignment.user_id);
-          setAssignedUserIds(userIds);
-        } catch (error) {
-          console.error("Error loading assigned users:", error);
-          setAssignedUserIds([]);
-        }
-      } else {
-        setAssignedUserIds([]);
-      }
-    };
-    fetchAssignedUsers();
-  }, [preselectedBoxId, selectedBoxId]);
-
   // Cuando hay una caja preseleccionada, actualizar el valor del campo
   useEffect(() => {
     if (preselectedBoxId) {
@@ -102,15 +62,6 @@ export const UserBoxAssignmentForm = ({
       });
     }
   }, [preselectedBoxId, form]);
-
-  // Filtrar usuarios que ya están asignados
-  const availableUsers = users.filter((user) => !assignedUserIds.includes(user.id));
-
-  const userOptions =
-    availableUsers?.map((user) => ({
-      value: user.id.toString(),
-      label: user.name,
-    })) || [];
 
   const boxOptions =
     boxes?.map((box) => ({
@@ -123,7 +74,7 @@ export const UserBoxAssignmentForm = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
         <div className="grid grid-cols-1 gap-4 bg-muted p-4 rounded-lg">
           {preselectedBoxId && preselectedBoxName && (
-            <div className="p-3 bg-muted rounded-md">
+            <div className="bg-muted rounded-md">
               <p className="text-sm text-muted-foreground">
                 Caja seleccionada:
               </p>
@@ -131,13 +82,17 @@ export const UserBoxAssignmentForm = ({
             </div>
           )}
 
-          <FormSelect
+          <FormSelectAsync
             name="user_id"
             label="Usuario"
             placeholder="Seleccione un usuario"
-            options={userOptions}
+            useQueryHook={useUsers}
+            mapOptionFn={(user) => ({
+              value: user.id.toString(),
+              label: user.name,
+            })}
+            additionalParams={{ box_id: Number(selectedBoxId) }}
             control={form.control}
-            disabled={loadingUsers}
           />
 
           {!preselectedBoxId && (

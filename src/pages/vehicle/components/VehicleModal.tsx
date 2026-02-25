@@ -11,6 +11,7 @@ import { VEHICLE, type VehicleResource } from "../lib/vehicle.interface";
 import { useVehicles, useVehicleById } from "../lib/vehicle.hook";
 import { useVehicleStore } from "../lib/vehicle.store";
 import { VehicleForm } from "./VehicleForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   id?: number;
@@ -20,7 +21,7 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, EMPTY } = VEHICLE;
+const { MODEL, EMPTY, ICON } = VEHICLE;
 
 export default function VehicleModal({
   id,
@@ -51,40 +52,42 @@ export default function VehicleModal({
     color: data?.color || "",
     vehicle_type: data?.vehicle_type || "",
     max_weight: data?.max_weight ? parseFloat(data.max_weight) : 0,
+    mtc: data?.mtc || "",
     owner_id: data?.owner?.id.toString() || "",
     observations: data?.observations || "",
   });
 
   const { isSubmitting, updateVehicle, createVehicle } = useVehicleStore();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: VehicleSchema) => {
     if (mode === "create") {
       await createVehicle(data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
+          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
           refetch();
         })
         .catch((error: any) => {
           errorToast(
             error.response.data.message ??
-              error.response.data.error ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "create"),
           );
         });
     } else {
       await updateVehicle(id!, data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
+          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
           refetchVehicle();
           refetch();
         })
         .catch((error: any) => {
           errorToast(
             error.response.data.message ??
-              error.response.data.error ??
               error.response.data.error ??
               ERROR_MESSAGE(MODEL, "edit"),
           );
@@ -95,7 +98,14 @@ export default function VehicleModal({
   const isLoadingAny = isSubmitting || findingVehicle;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title} size="xl">
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle="Complete el formulario para registrar un nuevo vehículo"
+      size="xl"
+      icon={ICON}
+    >
       {!isLoadingAny && vehicle ? (
         <VehicleForm
           defaultValues={mapVehicleToForm(vehicle)}

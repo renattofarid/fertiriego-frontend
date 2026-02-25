@@ -202,7 +202,7 @@ export default function InstallmentPaymentManagementSheet({
         onClose={onClose}
         title={`Gestionar Cuota ${installment.installment_number}`}
         icon={"Wallet"}
-        className="w-full sm:max-w-3xl p-4"
+        size="4xl"
       >
         <div className="space-y-6">
           {/* Installment Summary */}
@@ -303,7 +303,7 @@ export default function InstallmentPaymentManagementSheet({
                   <div className="space-y-3">
                     <p className="text-sm font-semibold">Métodos de Pago</p>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                       <FormField
                         control={form.control}
                         name="amount_cash"

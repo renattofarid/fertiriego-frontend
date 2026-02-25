@@ -168,7 +168,7 @@ export function ProductSalesHistoryDialog({
             </div>
             <Button
               variant={filterByCustomer ? "default" : "outline"}
-              size="sm"
+              
               onClick={handleToggleFilter}
               className="gap-2"
             >
@@ -272,7 +272,7 @@ export function ProductSalesHistoryDialog({
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page === 1}
                   >
@@ -285,7 +285,7 @@ export function ProductSalesHistoryDialog({
                   </div>
                   <Button
                     variant="outline"
-                    size="sm"
+                    
                     onClick={() => handlePageChange(page + 1)}
                     disabled={page === data.pagination.last_page}
                   >

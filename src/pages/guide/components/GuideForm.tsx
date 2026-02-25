@@ -12,11 +12,10 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Plus, Trash2, Pencil, Truck, Package2 } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Truck } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -24,7 +23,6 @@ import { guideSchema, type GuideSchema } from "../lib/guide.schema";
 import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
 import type { PurchaseResource } from "@/pages/purchase/lib/purchase.interface";
 import type { WarehouseDocumentResource } from "@/pages/warehouse-document/lib/warehouse-document.interface";
@@ -37,7 +35,6 @@ import { errorToast } from "@/lib/core.function";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { useRemittents } from "@/pages/person/lib/person.hook";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
@@ -45,6 +42,23 @@ import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
 import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
+import { useOrder } from "@/pages/order/lib/order.hook";
+import { useSale } from "@/pages/sale/lib/sale.hook";
+import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
+import { findSaleById } from "@/pages/sale/lib/sale.actions";
+import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
+import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
+import { findPersonById } from "@/pages/person/lib/person.actions";
+import { getVehicleById } from "@/pages/vehicle/lib/vehicle.actions";
+import { FormInput } from "@/components/FormInput";
+import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
+import VehicleModal from "@/pages/vehicle/components/VehicleModal";
+import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
+import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
+import { Separator } from "@/components/ui/separator";
+import { FormTextArea } from "@/components/FormTextArea";
+import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
+import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
 interface GuideFormProps {
   defaultValues: Partial<GuideSchema>;
@@ -54,12 +68,10 @@ interface GuideFormProps {
   mode?: "create" | "edit";
   warehouses: WarehouseResource[];
   motives: GuideMotiveResource[];
-  sales: SaleResource[];
-  warehouseDocuments: WarehouseDocumentResource[];
-  orders: OrderResource[];
 }
 
 interface DetailRow {
+  index: string;
   product_id: number;
   product_name?: string;
   description: string;
@@ -75,13 +87,11 @@ const createDetailColumns = (
   {
     accessorKey: "product_id",
     header: "Producto",
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm">
-          {row.original.product_name || row.original.description || "N/A"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <span className="text-sm">
+        {row.original.product_name || row.original.description || "N/A"}
+      </span>
+    ),
   },
   {
     accessorKey: "quantity",
@@ -111,18 +121,12 @@ const createDetailColumns = (
       const index = table.getRowModel().rows.findIndex((r) => r.id === row.id);
       return (
         <div className="flex justify-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(index)}
-          >
+          <Button type="button" variant="outline" onClick={() => onEdit(index)}>
             <Pencil className="h-3 w-3" />
           </Button>
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={() => onDelete(index)}
           >
             <Trash2 className="h-3 w-3 text-red-500" />
@@ -148,15 +152,19 @@ export const GuideForm = ({
   mode = "create",
   warehouses,
   motives,
-  sales,
-  warehouseDocuments,
-  orders,
 }: GuideFormProps) => {
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
   );
+  const [driverModalOpen, setDriverModalOpen] = useState(false);
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [carrierModalOpen, setCarrierModalOpen] = useState(false);
+  const [recipientModalOpen, setRecipientModalOpen] = useState(false);
+  const [secondaryVehicleModalOpen, setSecondaryVehicleModalOpen] = useState(false);
+  const [dispatcherModalOpen, setDispatcherModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
+    index: "",
     product_id: 0,
     description: "",
     quantity: "",
@@ -173,17 +181,28 @@ export const GuideForm = ({
     defaultValues: {
       ...defaultValues,
       transport_modality: defaultValues.transport_modality || "PRIVADO",
+      remittent_id: "1860",
     },
     mode: "onChange",
   });
 
   const transportModality = form.watch("transport_modality");
   const orderId = form.watch("order_id");
+  const saleId = form.watch("sale_id");
+  const purchaseId = form.watch("purchase_id");
+  const warehouseDocumentId = form.watch("warehouse_document_id");
+  const driverId = form.watch("driver_id");
+  const vehicleId = form.watch("vehicle_id");
 
   // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (saleId) form.setValue("sale_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
         setLoadingOrder(true);
         setHasNoPendingDetails(false);
         try {
@@ -198,7 +217,8 @@ export const GuideForm = ({
             } else {
               setHasNoPendingDetails(false);
               const orderDetails: DetailRow[] =
-                response.data.pending_details.map((detail) => ({
+                response.data.pending_details.map((detail, index) => ({
+                  index: index.toString(),
                   product_id: detail.product_id,
                   product_name: detail.product_name,
                   description: detail.product_name,
@@ -213,6 +233,14 @@ export const GuideForm = ({
             const orderData = response.data.order as any;
             if (orderData.driver_id) {
               form.setValue("driver_id", orderData.driver_id.toString());
+            }
+
+            // Setear el recipient_id con el customer_id del pedido
+            if (response.data.order?.customer?.id) {
+              form.setValue(
+                "recipient_id",
+                response.data.order.customer.id.toString(),
+              );
             }
           }
         } catch (error) {
@@ -233,6 +261,165 @@ export const GuideForm = ({
     loadOrder();
   }, [orderId, mode]);
 
+  // Cargar venta cuando se selecciona y setear el recipient_id y detalles
+  useEffect(() => {
+    const loadSale = async () => {
+      if (saleId && saleId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
+        try {
+          const response = await findSaleById(Number(saleId));
+
+          // Setear el recipient_id con el customer_id de la venta
+          if (response.data?.customer_id) {
+            form.setValue("recipient_id", response.data.customer_id.toString());
+          }
+
+          // Llenar automáticamente los detalles con los productos de la venta
+          if (response.data?.details && response.data.details.length > 0) {
+            const saleDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product?.name || "N/A",
+                description: detail.product?.name || "N/A",
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              }),
+            );
+            setDetails(saleDetails);
+          }
+        } catch (error) {
+          console.error("Error loading sale:", error);
+        }
+      } else {
+        // Si se deselecciona la venta, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadSale();
+  }, [saleId, form, mode]);
+
+  // Cargar compra cuando se selecciona y llenar detalles
+  useEffect(() => {
+    const loadPurchase = async () => {
+      if (purchaseId && purchaseId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (saleId) form.setValue("sale_id", "");
+        if (warehouseDocumentId) form.setValue("warehouse_document_id", "");
+
+        try {
+          const response = await findPurchaseById(Number(purchaseId));
+
+          // Llenar automáticamente los detalles con los productos de la compra
+          if (response.data?.details && response.data.details.length > 0) {
+            const purchaseDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product_name,
+                description: detail.product_name,
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              }),
+            );
+            setDetails(purchaseDetails);
+          }
+        } catch (error) {
+          console.error("Error loading purchase:", error);
+        }
+      } else {
+        // Si se deselecciona la compra, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadPurchase();
+  }, [purchaseId, mode]);
+
+  // Cargar documento de almacén cuando se selecciona y llenar detalles
+  useEffect(() => {
+    const loadWarehouseDocument = async () => {
+      if (warehouseDocumentId && warehouseDocumentId !== "") {
+        // Limpiar otros documentos seleccionados
+        if (orderId) form.setValue("order_id", "");
+        if (saleId) form.setValue("sale_id", "");
+        if (purchaseId) form.setValue("purchase_id", "");
+
+        try {
+          const response = await findWarehouseDocumentById(
+            Number(warehouseDocumentId),
+          );
+
+          // Llenar automáticamente los detalles con los productos del documento
+          if (response.data?.details && response.data.details.length > 0) {
+            const warehouseDocDetails: DetailRow[] = response.data.details.map(
+              (detail, index) => ({
+                index: index.toString(),
+                product_id: detail.product_id,
+                product_name: detail.product_name,
+                description: detail.product_name,
+                quantity: detail.quantity.toString(),
+                unit_measure: "UND",
+                weight: "0",
+              }),
+            );
+            setDetails(warehouseDocDetails);
+          }
+        } catch (error) {
+          console.error("Error loading warehouse document:", error);
+        }
+      } else {
+        // Si se deselecciona el documento, limpiar los detalles solo en modo create
+        if (mode === "create") {
+          setDetails([]);
+        }
+      }
+    };
+
+    loadWarehouseDocument();
+  }, [warehouseDocumentId, mode]);
+
+  // Autocompletar campos del conductor cuando se selecciona
+  useEffect(() => {
+    if (!driverId || driverId === "") return;
+    findPersonById(Number(driverId))
+      .then((response) => {
+        const driver = response.data;
+        if (driver?.number_document) {
+          form.setValue("driver_license", driver.driver_license ?? "");
+        }
+      })
+      .catch(console.error);
+  }, [driverId]);
+
+  // Autocompletar campos del vehículo cuando se selecciona
+  useEffect(() => {
+    if (!vehicleId || vehicleId === "") return;
+    getVehicleById(Number(vehicleId))
+      .then((response) => {
+        const vehicle = response.data;
+        if (vehicle) {
+          form.setValue("vehicle_plate", vehicle.plate || "-");
+          form.setValue("vehicle_brand", vehicle.brand || "-");
+          form.setValue("vehicle_model", vehicle.model || "-");
+          form.setValue("vehicle_mtc", vehicle.mtc || "-");
+        }
+      })
+      .catch(console.error);
+  }, [vehicleId]);
+
   // Establecer fechas automáticamente
   useEffect(() => {
     const today = new Date();
@@ -245,28 +432,20 @@ export const GuideForm = ({
     }
   }, [form]);
 
-  // Establecer almacén por defecto si solo hay uno
-  useEffect(() => {
-    if (
-      warehouses.length === 1 &&
-      !form.getValues("warehouse_id") &&
-      mode === "create"
-    ) {
-      form.setValue("warehouse_id", warehouses[0].id.toString());
-    }
-  }, [warehouses, mode, form]);
-
   // Cargar detalles existentes en modo edición
   useEffect(() => {
     if (mode === "edit" && defaultValues.details) {
-      const formattedDetails = defaultValues.details.map((detail: any) => ({
-        product_id: detail.product_id || 0,
-        product_name: detail.description || "",
-        description: detail.description || "",
-        quantity: detail.quantity?.toString() || "",
-        unit_measure: detail.unit_measure || "UND",
-        weight: detail.weight?.toString() || "",
-      }));
+      const formattedDetails = defaultValues.details.map(
+        (detail: any, index: number) => ({
+          index: index.toString(),
+          product_id: detail.product_id || 0,
+          product_name: detail.description || "",
+          description: detail.description || "",
+          quantity: detail.quantity?.toString() || "",
+          unit_measure: detail.unit_measure || "UND",
+          weight: detail.weight?.toString() || "",
+        }),
+      );
       setDetails(formattedDetails);
     }
   }, []);
@@ -293,6 +472,22 @@ export const GuideForm = ({
     }
   }, [details, form]);
 
+  // Calcular automáticamente el peso total cuando cambien los detalles
+  useEffect(() => {
+    if (details.length > 0) {
+      const totalWeight = details.reduce(
+        (sum, detail) => sum + Number(detail.weight || 0),
+        0,
+      );
+
+      // Actualizar el total_weight solo si cambió
+      const currentTotalWeight = form.getValues("total_weight");
+      if (currentTotalWeight !== totalWeight && totalWeight > 0) {
+        form.setValue("total_weight", totalWeight, { shouldValidate: false });
+      }
+    }
+  }, [details, form]);
+
   const handleAddDetail = () => {
     if (!currentDetail.product_id || !currentDetail.quantity) {
       errorToast("Seleccione producto y cantidad");
@@ -305,6 +500,13 @@ export const GuideForm = ({
         currentDetail.description || currentDetail.product_name || "",
     };
 
+    console.log(
+      "Adding/updating detail:",
+      detailToSave,
+      "Editing index:",
+      editingDetailIndex,
+    );
+
     if (editingDetailIndex !== null) {
       const updatedDetails = [...details];
       updatedDetails[editingDetailIndex] = detailToSave;
@@ -315,6 +517,7 @@ export const GuideForm = ({
     }
 
     setCurrentDetail({
+      index: "",
       product_id: 0,
       description: "",
       quantity: "",
@@ -366,7 +569,7 @@ export const GuideForm = ({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="space-y-6 w-full"
+        className="space-y-6 w-full grid grid-cols-1 md:grid-cols-2 gap-x-4"
       >
         {/* Información General */}
         <GroupFormSection
@@ -374,7 +577,40 @@ export const GuideForm = ({
           icon={Truck}
           cols={{ sm: 1, md: 2, lg: 3 }}
           gap="gap-3"
+          className=""
         >
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="recipient_id"
+                label="Destinatario"
+                placeholder="Selecciona un destinatario"
+                useQueryHook={useClients}
+                mapOptionFn={(client) => ({
+                  value: client.id.toString(),
+                  label:
+                    client.business_name ||
+                    `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                  description: client.business_name
+                    ? ""
+                    : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+                })}
+                withValue
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear destinatario"
+              onClick={() => setRecipientModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+
           <FormSelect
             control={form.control}
             name="warehouse_id"
@@ -385,6 +621,7 @@ export const GuideForm = ({
               label: warehouse.name,
               description: warehouse.address,
             }))}
+            autoSelectSingle
           />
 
           <FormSelect
@@ -423,66 +660,42 @@ export const GuideForm = ({
             label="Fecha de Traslado"
           />
 
-          <FormField
+          <FormSelect
             control={form.control}
-            name="observations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Observaciones</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Observaciones"
-                    {...field}
-                    value={field.value || ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            name="destination_warehouse_id"
+            label="Almacén Destino"
+            placeholder="Selecciona un almacén"
+            options={warehouses.map((warehouse) => ({
+              value: warehouse.id.toString(),
+              label: warehouse.name,
+              description: warehouse.address,
+            }))}
           />
-        </GroupFormSection>
 
-        {/* Referencias Documentales */}
-        <GroupFormSection
-          title="Referencias Documentales (Opcional)"
-          icon={Package2}
-          cols={{ sm: 1, md: 2, lg: 3 }}
-          gap="gap-3"
-        >
-          <FormSelectAsync
+          <Separator className="col-span-full" />
+
+          <FormInput
             control={form.control}
-            name="remittent_id"
-            label="Remitente"
-            placeholder="Seleccione un remitente"
-            useQueryHook={useRemittents}
-            mapOptionFn={(remittent: PersonResource) => ({
-              value: remittent.id.toString(),
-              label:
-                remittent.business_name ||
-                `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
-              description: remittent.number_document,
-            })}
-            // mapOptionFn={remittents.map((remittent) => ({
-            //   value: remittent.id.toString(),
-            //   label:
-            //     remittent.business_name ||
-            //     `${remittent.names} ${remittent.father_surname} ${remittent.mother_surname}`.trim(),
-            //   description: remittent.number_document,
-            // }))}
-            withValue
+            name="order"
+            label="Orden de Pedido"
+            placeholder="Ej: OC-00123"
+            uppercase
+            optional
+            maxLength={100}
           />
 
           <div className="relative">
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="order_id"
               label="Pedido"
               placeholder="Seleccione un pedido"
-              options={orders.map((order) => ({
+              useQueryHook={useOrder}
+              mapOptionFn={(order: OrderResource) => ({
                 value: order.id.toString(),
                 label: `#${order.order_number} - ${order.customer.full_name}`,
                 description: `Fecha: ${order.order_date}`,
-              }))}
+              })}
               withValue
             />
             {loadingOrder && (
@@ -494,16 +707,17 @@ export const GuideForm = ({
               <Badge variant="amber-outline">Sin productos pendientes</Badge>
             )}
           </div>
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="sale_id"
             label="Venta"
             placeholder="Selecciona una venta"
-            options={sales.map((sale) => ({
+            useQueryHook={useSale}
+            mapOptionFn={(sale: SaleResource) => ({
               value: sale.id.toString(),
-              label: sale.full_document_number || `Venta #${sale.id}`,
+              label: sale.sequential_number || `Venta #${sale.id}`,
               description: sale.customer.full_name,
-            }))}
+            })}
             withValue
           />
 
@@ -521,47 +735,36 @@ export const GuideForm = ({
             withValue
           />
 
-          <FormSelect
+          <FormSelectAsync
             control={form.control}
             name="warehouse_document_id"
             label="Documento Almacén"
             placeholder="Selecciona un documento"
-            options={warehouseDocuments.map((doc) => ({
-              value: doc.id.toString(),
-              label: `${doc.document_type} - ${doc.document_number}`,
-              description: doc.warehouse_name,
-            }))}
-            withValue
-          />
-
-          <FormSelect
-            control={form.control}
-            name="destination_warehouse_id"
-            label="Almacén Destino"
-            placeholder="Selecciona un almacén"
-            options={warehouses.map((warehouse) => ({
-              value: warehouse.id.toString(),
-              label: warehouse.name,
-              description: warehouse.address,
-            }))}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="recipient_id"
-            label="Destinatario"
-            placeholder="Selecciona un destinatario"
-            useQueryHook={useClients}
-            mapOptionFn={(client) => ({
-              value: client.id.toString(),
-              label:
-                client.business_name ||
-                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-              description: client.business_name
-                ? ""
-                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+            useQueryHook={useWarehouseDocuments}
+            mapOptionFn={(warehouseDocument: WarehouseDocumentResource) => ({
+              value: warehouseDocument.id.toString(),
+              label: `${warehouseDocument.document_type} - ${warehouseDocument.document_number}`,
+              description: warehouseDocument.warehouse_name,
             })}
             withValue
+          />
+
+          <FormField
+            control={form.control}
+            name="observations"
+            render={({ field }) => (
+              <FormItem className="col-span-full">
+                <FormLabel>Observaciones</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Observaciones"
+                    {...field}
+                    value={field.value || ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </GroupFormSection>
 
@@ -569,175 +772,150 @@ export const GuideForm = ({
         <GroupFormSection
           title="Transporte y Direcciones"
           icon={Truck}
-          cols={{ sm: 1, md: 2, lg: 3 }}
+          cols={{ sm: 1, md: 2 }}
           gap="gap-3"
         >
-          <FormSelectAsync
-            control={form.control}
-            name="carrier_id"
-            label="Transportista"
-            placeholder="Seleccione un transportista"
-            useQueryHook={useCarriers}
-            mapOptionFn={(carrier) => ({
-              value: carrier.id.toString(),
-              label:
-                carrier.business_name ||
-                `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-            })}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="dispatcher_id"
-            label="Despachador (Opcional)"
-            placeholder="Seleccione un despachador"
-            useQueryHook={useSuppliers}
-            mapOptionFn={(supplier) => ({
-              value: supplier.id.toString(),
-              label:
-                supplier.business_name ||
-                `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
-            })}
-          />
+          {transportModality !== "PRIVADO" && (
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="carrier_id"
+                  label="Transportista"
+                  placeholder="Seleccione un transportista"
+                  useQueryHook={useCarriers}
+                  mapOptionFn={(carrier) => ({
+                    value: carrier.id.toString(),
+                    label:
+                      carrier.business_name ||
+                      `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear transportista"
+                onClick={() => setCarrierModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
 
           {transportModality === "PRIVADO" && (
             <>
-              <FormSelectAsync
-                control={form.control}
-                name="driver_id"
-                label="Conductor"
-                placeholder="Seleccione un conductor"
-                useQueryHook={useDrivers}
-                mapOptionFn={(driver) => ({
-                  value: driver.id.toString(),
-                  label:
-                    driver.business_name ||
-                    `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
-                })}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelectAsync
+                    control={form.control}
+                    name="driver_id"
+                    label="Conductor"
+                    placeholder="Seleccione un conductor"
+                    useQueryHook={useDrivers}
+                    mapOptionFn={(driver) => ({
+                      value: driver.id.toString(),
+                      label:
+                        driver.business_name ||
+                        `${driver.names} ${driver.father_surname} ${driver.mother_surname}`.trim(),
+                      description: driver.number_document || "",
+                    })}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 mb-[2px]"
+                  title="Crear conductor"
+                  onClick={() => setDriverModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
-              <FormSelectAsync
-                control={form.control}
-                name="vehicle_id"
-                label="Vehículo"
-                placeholder="Seleccione un vehículo"
-                useQueryHook={useVehicles}
-                mapOptionFn={(vehicle) => ({
-                  value: vehicle.id.toString(),
-                  label: vehicle.plate,
-                  description: `${vehicle.brand} ${vehicle.model}`,
-                })}
-              />
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <FormSelectAsync
+                    control={form.control}
+                    name="vehicle_id"
+                    label="Vehículo"
+                    placeholder="Seleccione un vehículo"
+                    useQueryHook={useVehicles}
+                    mapOptionFn={(vehicle) => ({
+                      value: vehicle.id.toString(),
+                      label: vehicle.plate,
+                      description: `${vehicle.brand} ${vehicle.model}`,
+                    })}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 mb-[2px]"
+                  title="Crear vehículo"
+                  onClick={() => setVehicleModalOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia del Conductor</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: B12345678"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={20}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Licencia del Conductor"
+                placeholder="Ej: B12345678"
+                optional
+                maxLength={30}
+                uppercase
               />
 
-              <FormSelectAsync
-                control={form.control}
-                name="secondary_vehicle_id"
-                label="Vehículo Secundario (Opcional)"
-                placeholder="Seleccione un vehículo secundario"
-                useQueryHook={useVehicles}
-                mapOptionFn={(vehicle) => ({
-                  value: vehicle.id.toString(),
-                  label: vehicle.plate,
-                  description: `${vehicle.brand} ${vehicle.model}`,
-                })}
-              />
-
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_plate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Placa del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: ABC-123"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={20}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Placa del Vehículo"
+                placeholder="Ej: ABC-123"
+                optional
+                maxLength={20}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_brand"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Marca del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Toyota"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={100}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Marca del Vehículo"
+                placeholder="Ej: Toyota"
+                optional
+                maxLength={100}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_model"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modelo del Vehículo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: Hilux"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={100}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Modelo del Vehículo"
+                placeholder="Ej: Hilux"
+                optional
+                maxLength={100}
+                uppercase
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="vehicle_mtc"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Certificado MTC</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: MTC123456"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={50}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Certificado MTC"
+                placeholder="Ej: MTC123456"
+                optional
+                maxLength={50}
+                uppercase
               />
             </>
           )}
+
+          <Separator className="col-span-full" />
 
           <FormSelectAsync
             control={form.control}
@@ -745,11 +923,15 @@ export const GuideForm = ({
             label="Ubigeo de Origen"
             placeholder="Buscar ubigeo..."
             useQueryHook={useUbigeosFrom}
+            additionalParams={{
+              per_page: 1300,
+            }}
             mapOptionFn={(item: UbigeoResource) => ({
               value: item.id.toString(),
               label: item.name,
               description: item.cadena,
             })}
+            preloadItemId={defaultValues.origin_ubigeo_id}
           />
 
           <FormSelectAsync
@@ -765,43 +947,81 @@ export const GuideForm = ({
             })}
           />
 
-          <FormField
-            control={form.control}
-            name="origin_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Origen</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de origen"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="origin_address"
+              label="Dirección de Origen"
+              placeholder="Ingrese la dirección de origen"
+            />
+          </div>
 
-          <FormField
-            control={form.control}
-            name="destination_address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Dirección de Destino</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ingrese la dirección de destino"
-                    {...field}
-                    value={field.value || ""}
-                    maxLength={500}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="col-span-full">
+            <FormTextArea
+              control={form.control}
+              name="destination_address"
+              label="Dirección de Destino"
+              placeholder="Ingrese la dirección de destino"
+            />
+          </div>
+          <Separator className="col-span-full" />
+
+          {transportModality === "PRIVADO" && (
+            <div className="flex gap-2 items-end">
+              <div className="flex-1">
+                <FormSelectAsync
+                  control={form.control}
+                  name="secondary_vehicle_id"
+                  label="Vehículo Secundario (Opcional)"
+                  placeholder="Seleccione un vehículo secundario"
+                  useQueryHook={useVehicles}
+                  mapOptionFn={(vehicle) => ({
+                    value: vehicle.id.toString(),
+                    label: vehicle.plate,
+                    description: `${vehicle.brand} ${vehicle.model}`,
+                  })}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0 mb-[2px]"
+                title="Crear vehículo secundario"
+                onClick={() => setSecondaryVehicleModalOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="dispatcher_id"
+                label="Despachador (Opcional)"
+                placeholder="Seleccione un despachador"
+                useQueryHook={useSuppliers}
+                mapOptionFn={(supplier) => ({
+                  value: supplier.id.toString(),
+                  label:
+                    supplier.business_name ||
+                    `${supplier.names} ${supplier.father_surname} ${supplier.mother_surname}`.trim(),
+                })}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="shrink-0 mb-[2px]"
+              title="Crear despachador"
+              onClick={() => setDispatcherModalOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </GroupFormSection>
 
         {/* Detalles de Productos */}
@@ -809,6 +1029,7 @@ export const GuideForm = ({
           title="Detalles de Productos"
           icon={Truck}
           cols={{ sm: 1, md: 3 }}
+          className="col-span-full"
         >
           <FormField
             control={form.control}
@@ -842,27 +1063,29 @@ export const GuideForm = ({
                           description: item?.name || "",
                         });
                       }}
+                      preloadItemId={
+                        currentDetail.product_id > 0
+                          ? currentDetail.product_id.toString()
+                          : undefined
+                      }
                       placeholder="Selecciona un producto"
                       classNameDiv="md:col-span-2"
                       buttonSize="default"
                     />
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Cantidad
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Cantidad"
-                        value={currentDetail.quantity}
-                        onChange={(e) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            quantity: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                    <FormInput
+                      name="quantity"
+                      label="Cantidad"
+                      value={currentDetail.quantity}
+                      type="number"
+                      min={0}
+                      onChange={(e) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          quantity: e.target.value,
+                        })
+                      }
+                    />
 
                     <SearchableSelect
                       label="Unidad"
@@ -881,28 +1104,25 @@ export const GuideForm = ({
                       placeholder="Selecciona unidad"
                     />
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">
-                        Peso
-                      </label>
-                      <Input
-                        type="number"
-                        placeholder="Peso"
-                        value={currentDetail.weight}
-                        onChange={(e) =>
-                          setCurrentDetail({
-                            ...currentDetail,
-                            weight: e.target.value,
-                          })
-                        }
-                      />
-                    </div>
+                    <FormInput
+                      name="weight"
+                      label="Peso"
+                      value={currentDetail.weight}
+                      type="number"
+                      min={0}
+                      placeholder="Ej: 10.5"
+                      onChange={(e) =>
+                        setCurrentDetail({
+                          ...currentDetail,
+                          weight: e.target.value,
+                        })
+                      }
+                    />
 
                     <div className="flex items-end">
                       <Button
                         type="button"
                         onClick={handleAddDetail}
-                        size="sm"
                         className="w-full"
                         disabled={
                           !currentDetail.product_id || !currentDetail.quantity
@@ -935,6 +1155,45 @@ export const GuideForm = ({
                       variant="ghost"
                     />
                   )}
+
+                  {/* Campos de totales */}
+                  {details.length > 0 && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
+                      <FormInput
+                        name="unit_quantity"
+                        label="Cantidad de Unidades (Total)"
+                        type="number"
+                        readOnly
+                        disabled
+                        className="bg-muted "
+                        value={details
+                          .reduce(
+                            (sum, detail) => sum + Number(detail.quantity || 0),
+                            0,
+                          )
+                          .toString()}
+                        min={0}
+                      />
+
+                      <FormInput
+                        control={form.control}
+                        name="total_weight"
+                        label="Peso Total (Kg)"
+                        type="number"
+                        placeholder="Ej: 100"
+                        min={0}
+                      />
+
+                      <FormInput
+                        control={form.control}
+                        name="total_packages"
+                        label="Total de Paquetes"
+                        type="number"
+                        placeholder="Ej: 5"
+                        min={0}
+                      />
+                    </div>
+                  )}
                 </div>
                 <FormMessage />
               </FormItem>
@@ -949,7 +1208,7 @@ export const GuideForm = ({
         </pre> */}
 
         {/* Botones de Acción */}
-        <div className="flex justify-end gap-4">
+        <div className="flex justify-end gap-4 col-span-full">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
@@ -961,6 +1220,40 @@ export const GuideForm = ({
           </Button>
         </div>
       </form>
+
+      <DriverCreateModal
+        open={driverModalOpen}
+        onClose={() => setDriverModalOpen(false)}
+      />
+
+      <CarrierCreateModal
+        open={carrierModalOpen}
+        onClose={() => setCarrierModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={vehicleModalOpen}
+        onClose={() => setVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <ClientCreateModal
+        open={recipientModalOpen}
+        onClose={() => setRecipientModalOpen(false)}
+      />
+
+      <VehicleModal
+        open={secondaryVehicleModalOpen}
+        onClose={() => setSecondaryVehicleModalOpen(false)}
+        title={`Crear ${VEHICLE.MODEL.name}`}
+        mode="create"
+      />
+
+      <SupplierCreateModal
+        open={dispatcherModalOpen}
+        onClose={() => setDispatcherModalOpen(false)}
+      />
     </Form>
   );
 };

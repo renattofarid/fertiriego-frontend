@@ -14,12 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Pencil, Plus, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
@@ -44,7 +44,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { useBranchById } from "@/pages/branch/lib/branch.hook";
 import { TechnicalSheetsDialog } from "./TechnicalSheetsDialog";
 import { QuotationSummary } from "./QuotationSummary";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
@@ -88,8 +87,6 @@ export const QuotationForm = ({
   const { user } = useAuthStore();
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [branchHasIgv, setBranchHasIgv] = useState<boolean>(true);
-  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
     null,
   );
@@ -132,7 +129,6 @@ export const QuotationForm = ({
     },
   });
 
-  const warehouseId = form.watch("warehouse_id");
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
 
@@ -154,9 +150,6 @@ export const QuotationForm = ({
     });
   };
 
-  // Obtener datos de la branch solo cuando tengamos un branch_id válido
-  const { data: branchData } = useBranchById(selectedBranchId || 0);
-
   const handleEditDetail = useCallback(
     (index: number) => {
       const detail = details[index];
@@ -172,9 +165,16 @@ export const QuotationForm = ({
         tax: detail.tax,
         total: detail.total,
       };
-      setEditingDetail(productDetail);
-      setEditingIndex(index);
-      setSheetOpen(true);
+
+      // Primero cerrar el sheet si está abierto
+      setSheetOpen(false);
+
+      // Luego configurar el modo de edición y abrir
+      setTimeout(() => {
+        setEditingDetail(productDetail);
+        setEditingIndex(index);
+        setSheetOpen(true);
+      }, 0);
     },
     [details],
   );
@@ -215,36 +215,37 @@ export const QuotationForm = ({
         ),
       },
       {
-        accessorKey: "unit_price",
-        header: "V. Unitario",
+        accessorKey: "is_igv",
+        header: "IGV",
         cell: ({ row }) => (
-          <div className="text-right">
-            {parseFloat(row.original.unit_price).toFixed(4)}
+          <div className="flex justify-center">
+            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
+              {row.original.is_igv ? "Inc." : "No inc."}
+            </Badge>
           </div>
         ),
+      },
+      {
+        accessorKey: "unit_price",
+        header: "V. Unitario",
+        cell: ({ row }) => {
+          const { unit_price, is_igv } = row.original;
+          const value = is_igv
+            ? parseFloat(unit_price) / 1.18
+            : parseFloat(unit_price);
+          return <div className="text-right">{value.toFixed(4)}</div>;
+        },
       },
       {
         accessorKey: "unit_price_with_igv",
         header: "P. Unitario",
-        cell: ({ row }) => (
-          <div className="text-right">
-            {(
-              parseFloat(row.original.unit_price) *
-              (!row.original.is_igv ? 1.18 : 1)
-            ).toFixed(4)}
-          </div>
-        ),
-      },
-      {
-        accessorKey: "is_igv",
-        header: "IGV",
-        cell: ({ row }) => (
-          <div className="text-center">
-            <Badge variant={!row.original.is_igv ? "default" : "secondary"}>
-              {!row.original.is_igv ? "Sí" : "No"}
-            </Badge>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { unit_price, is_igv } = row.original;
+          const price = is_igv
+            ? parseFloat(unit_price)
+            : parseFloat(unit_price) * 1.18;
+          return <div className="text-right">{price.toFixed(4)}</div>;
+        },
       },
       {
         accessorKey: "subtotal",
@@ -277,7 +278,6 @@ export const QuotationForm = ({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
               onClick={() => handleViewTechnicalSheets(row.index)}
               disabled={
                 !row.original.technical_sheet ||
@@ -348,27 +348,6 @@ export const QuotationForm = ({
       setDetails(loadedDetails);
     }
   }, [mode, initialData]);
-
-  // Actualizar el branch_id cuando cambie el warehouse seleccionado
-  useEffect(() => {
-    if (warehouseId) {
-      const selectedWarehouse = warehouses.find(
-        (w) => w.id.toString() === warehouseId,
-      );
-      if (selectedWarehouse?.branch_id) {
-        setSelectedBranchId(selectedWarehouse.branch_id);
-      }
-    } else {
-      setSelectedBranchId(null);
-    }
-  }, [warehouseId, warehouses]);
-
-  // Actualizar has_igv cuando se obtengan los datos de la branch
-  useEffect(() => {
-    if (branchData) {
-      setBranchHasIgv(branchData.has_igv === 1);
-    }
-  }, [branchData]);
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -480,227 +459,224 @@ export const QuotationForm = ({
             icon={FileText}
             cols={{
               sm: 1,
+              md: 3,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex gap-2 items-end max-w-full">
-                <div className="flex-1 min-w-0">
-                  <FormSelectAsync
-                    control={form.control}
-                    name="customer_id"
-                    label="Cliente"
-                    useQueryHook={useClients}
-                    mapOptionFn={(client: PersonResource) => ({
-                      value: client.id.toString(),
-                      label:
-                        client.business_name ||
-                        `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
-                    })}
-                    placeholder="Seleccionar cliente"
-                    onValueChange={(_value, item) => {
-                      setSelectedCustomer(item ?? null);
-                    }}
-                  />
-                </div>
-                {mode === "create" && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setIsClientModalOpen(true)}
-                    className="flex-shrink-0"
-                    title="Crear nuevo cliente"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex gap-2 items-end max-w-full">
-                <div className="flex-1 min-w-0">
-                  <FormSelect
-                    control={form.control}
-                    name="warehouse_id"
-                    label="Almacén"
-                    options={warehousesList.map((w) => ({
-                      value: w.id.toString(),
-                      label: w.name,
-                    }))}
-                    placeholder="Seleccionar almacén"
-                  />
-                </div>
-                {mode === "create" && (
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setIsWarehouseModalOpen(true)}
-                    className="flex-shrink-0"
-                    title="Crear nuevo almacén"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <DatePickerFormField
-                control={form.control}
-                name="fecha_emision"
-                label="Fecha de Emisión"
-                placeholder="Seleccionar fecha"
-              />
-
-              <FormField
-                control={form.control}
-                name="delivery_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tiempo de Entrega</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ej: 3 días hábiles" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="validity_time"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tiempo de Vigencia</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ej: 10 días" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormSelect
-                control={form.control}
-                name="payment_type"
-                label="Tipo de Pago"
-                options={PAYMENT_TYPES.map((type) => ({
-                  value: type.value,
-                  label: type.label,
-                }))}
-                placeholder="Seleccionar tipo de pago"
-              />
-
-              {paymentType === "CREDITO" && (
-                <FormField
+            <div className="flex gap-2 items-end max-w-full">
+              <div className="flex-1 min-w-0">
+                <FormSelectAsync
                   control={form.control}
-                  name="days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Crédito</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          placeholder="Número de días"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  name="customer_id"
+                  label="Cliente"
+                  useQueryHook={useClients}
+                  mapOptionFn={(client: PersonResource) => ({
+                    value: client.id.toString(),
+                    label:
+                      client.business_name ||
+                      `${client.names} ${client.father_surname} ${client.mother_surname || ""}`,
+                  })}
+                  placeholder="Seleccionar cliente"
+                  onValueChange={(_value, item) => {
+                    setSelectedCustomer(item ?? null);
+                  }}
                 />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsClientModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo cliente"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
               )}
-
-              <FormSelect
-                control={form.control}
-                name="currency"
-                label="Moneda"
-                options={CURRENCIES.map((currency) => ({
-                  value: currency.value,
-                  label: currency.label,
-                }))}
-                placeholder="Seleccionar moneda"
-              />
-
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dirección</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Dirección de entrega" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Referencia</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Referencia de ubicación" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="order_purchase"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Compra</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Número de orden de compra"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="order_service"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Servicio</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        placeholder="Número de orden de servicio"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem className="md:col-span-3">
-                    <FormLabel>Observaciones</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Observaciones adicionales"
-                        rows={3}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
+
+            <div className="flex gap-2 items-end max-w-full">
+              <div className="flex-1 min-w-0">
+                <FormSelect
+                  control={form.control}
+                  name="warehouse_id"
+                  label="Almacén"
+                  options={warehousesList.map((w) => ({
+                    value: w.id.toString(),
+                    label: w.name,
+                  }))}
+                  placeholder="Seleccionar almacén"
+                  autoSelectSingle
+                />
+              </div>
+              {mode === "create" && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setIsWarehouseModalOpen(true)}
+                  className="flex-shrink-0"
+                  title="Crear nuevo almacén"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+
+            <DatePickerFormField
+              control={form.control}
+              name="fecha_emision"
+              label="Fecha de Emisión"
+              placeholder="Seleccionar fecha"
+            />
+
+            <FormField
+              control={form.control}
+              name="delivery_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tiempo de Entrega</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ej: 3 días hábiles" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="validity_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tiempo de Vigencia</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ej: 10 días" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormSelect
+              control={form.control}
+              name="payment_type"
+              label="Tipo de Pago"
+              options={PAYMENT_TYPES.map((type) => ({
+                value: type.value,
+                label: type.label,
+              }))}
+              placeholder="Seleccionar tipo de pago"
+            />
+
+            {paymentType === "CREDITO" && (
+              <FormField
+                control={form.control}
+                name="days"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Días de Crédito</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        placeholder="Número de días"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormSelect
+              control={form.control}
+              name="currency"
+              label="Moneda"
+              options={CURRENCIES.map((currency) => ({
+                value: currency.value,
+                label: currency.label,
+              }))}
+              placeholder="Seleccionar moneda"
+            />
+
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Dirección</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Dirección de entrega" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="reference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Referencia</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Referencia de ubicación" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="order_purchase"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Orden de Compra</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Número de orden de compra" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="order_service"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Orden de Servicio</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Número de orden de servicio"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="observations"
+              render={({ field }) => (
+                <FormItem className="md:col-span-3">
+                  <FormLabel>Observaciones</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Observaciones adicionales"
+                      rows={3}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </GroupFormSection>
 
           <GroupFormSection
@@ -711,11 +687,7 @@ export const QuotationForm = ({
             }}
           >
             <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => setSheetOpen(true)}
-                size="sm"
-              >
+              <Button type="button" onClick={() => setSheetOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
@@ -749,7 +721,6 @@ export const QuotationForm = ({
             open={sheetOpen}
             onClose={handleCloseSheet}
             onAdd={handleAddDetail}
-            defaultIsIgv={branchHasIgv}
             editingDetail={editingDetail}
             editIndex={editingIndex}
             onEdit={handleUpdateDetail}

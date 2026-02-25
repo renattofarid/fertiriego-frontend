@@ -21,6 +21,7 @@ import {
 } from "@/lib/core.function";
 import { PurchaseManagementSheet } from "./sheets/PurchaseManagementSheet";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const PurchasePage = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ export const PurchasePage = () => {
   const [selectedInstallment, setSelectedInstallment] =
     useState<PurchaseInstallmentResource | null>(null);
   const [isPaymentSheetOpen, setIsPaymentSheetOpen] = useState(false);
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { data, isLoading, refetch } = usePurchases({
     page,
     per_page,
@@ -45,6 +46,11 @@ export const PurchasePage = () => {
     payment_type: selectedPaymentType,
   });
   const { removePurchase } = usePurchaseStore();
+
+  useEffect(() => {
+    setOpen(true);
+    setOpenMobile(true);
+  }, []);
 
   useEffect(() => {
     setPage(1);

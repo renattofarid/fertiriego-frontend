@@ -40,6 +40,33 @@ export interface ProductSalesHistoryResponse {
   };
 }
 
+// ===== PRODUCT PURCHASE HISTORY =====
+
+export interface ProductPurchaseHistoryItem {
+  id: number;
+  documento: string;
+  tipo_documento: string;
+  fecha: string;
+  cantidad: string;
+  precio_unitario: string;
+  subtotal: string;
+  total: string;
+  proveedor: string;
+  usuario: string;
+  estado: string;
+  moneda: string;
+}
+
+export interface ProductPurchaseHistoryResponse {
+  success: boolean;
+  data: ProductPurchaseHistoryItem[];
+  pagination: ProductSalesHistoryPagination;
+  product: {
+    id: number;
+    name: string;
+  };
+}
+
 // ===== API RESOURCES =====
 
 export interface QuotationDetailResource {

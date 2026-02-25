@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 import { Eye, Pencil, RefreshCcw } from "lucide-react";
+import ExportButtons from "@/components/ExportButtons";
 
 interface ShippingGuideCarrierColumnsProps {
   onEdit: (id: number) => void;
@@ -144,6 +145,11 @@ export const ShippingGuideCarrierColumns = ({
       const id = row.original.id;
       return (
         <ColumnActions>
+          <ExportButtons
+            pdfEndpoint={`/shipping-guide-carriers/${row.original.id}/pdf`}
+            pdfFileName={`guia-transportista-${row.original.full_guide_number}.pdf`}
+            variant="separate"
+          />
           <ButtonAction
             icon={Eye}
             tooltip="Ver Detalle"

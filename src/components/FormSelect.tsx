@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import React from "react";
 import {
   Tooltip,
@@ -46,6 +46,7 @@ interface FormSelectProps {
   classNameOption?: string;
   strictFilter?: boolean;
   enableCodeSearch?: boolean; // Nueva prop para habilitar búsqueda por código
+  autoSelectSingle?: boolean;
 }
 
 export function FormSelect({
@@ -61,6 +62,7 @@ export function FormSelect({
   classNameOption,
   strictFilter = false,
   enableCodeSearch = false,
+  autoSelectSingle = false,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -72,6 +74,13 @@ export function FormSelect({
       name={name}
       render={({ field }) => {
         const selected = options.find((opt) => opt.value === field.value);
+
+        // Auto-select if only one option is available
+        useEffect(() => {
+          if (autoSelectSingle && options.length === 1 && !field.value && !disabled) {
+            field.onChange(options[0].value);
+          }
+        }, [options, field.value, disabled, autoSelectSingle]);
 
         return (
           <FormItem className="flex flex-col justify-start">
@@ -123,7 +132,7 @@ export function FormSelect({
                     className={cn(
                       "w-full justify-between min-h-7 flex min-w-0",
                       !field.value && "text-muted-foreground",
-                      field.value && "bg-muted"
+                      field.value && "bg-muted",
                     )}
                   >
                     <span className="!text-nowrap line-clamp-1">
@@ -139,7 +148,7 @@ export function FormSelect({
               </PopoverTrigger>
 
               <PopoverContent
-                className="p-0 !w-(--radix-popover-trigger-width)"
+                className="p-0 !min-w-(--radix-popover-trigger-width) w-auto"
                 onWheel={(e) => e.stopPropagation()}
                 onWheelCapture={(e) => e.stopPropagation()}
                 onTouchMove={(e) => e.stopPropagation()}
@@ -208,7 +217,7 @@ export function FormSelect({
                                   "mr-2 h-4 w-4 shrink-0",
                                   option.value === field.value
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                               <div className="flex flex-col min-w-0 flex-1">
@@ -272,7 +281,7 @@ export function FormSelect({
                                     "mr-2 h-4 w-4 shrink-0",
                                     option.value === field.value
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                                 <div className="flex flex-col min-w-0 flex-1">
@@ -340,7 +349,7 @@ export function FormSelect({
                               "mr-2 h-4 w-4 shrink-0",
                               option.value === field.value
                                 ? "opacity-100"
-                                : "opacity-0"
+                                : "opacity-0",
                             )}
                           />
                           <div className="flex flex-col min-w-0 flex-1">

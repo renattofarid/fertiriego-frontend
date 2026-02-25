@@ -49,6 +49,7 @@ export interface SaleResource {
   id: number;
   customer_id: number;
   warehouse_id: number;
+  status_facturado: string;
   user_id: number;
   customer_fullname: string;
   customer_document?: string;
@@ -57,7 +58,7 @@ export interface SaleResource {
   document_type: string;
   serie: string;
   numero: string;
-  full_document_number: string;
+  sequential_number: string;
   issue_date: string;
   payment_type: string;
   order_purchase?: string;
@@ -344,9 +345,9 @@ export const SaleEditRoute = "/ventas/actualizar/:id";
 // ===== STATUS & TYPE OPTIONS =====
 
 export const DOCUMENT_TYPES = [
-  { value: "FACTURA", label: "Factura" },
-  { value: "BOLETA", label: "Boleta" },
-  { value: "TICKET", label: "Nota de Venta" },
+  { value: "FACTURA", label: "Factura", type: 1 },
+  { value: "BOLETA", label: "Boleta", type: 3 },
+  // { value: "TICKET", label: "Nota de Venta" },
   // { value: "GUIA", label: "Guía de Remisión" },
 ] as const;
 

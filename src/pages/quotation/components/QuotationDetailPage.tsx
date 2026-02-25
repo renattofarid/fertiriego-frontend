@@ -221,10 +221,10 @@ export default function QuotationDetailPage() {
                           </TableCell>
                           <TableCell className="text-center">
                             <Badge
-                              variant={!detail.is_igv ? "default" : "secondary"}
+                              variant={detail.is_igv ? "default" : "secondary"}
                               className="text-xs"
                             >
-                              {!detail.is_igv ? "Sí" : "No"}
+                              {detail.is_igv ? "Sí incluido" : "No incluido"}
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right">

@@ -27,24 +27,14 @@ export default function OrderPage() {
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   const { setOpen, setOpenMobile } = useSidebar();
 
-  const {
-    data: orders,
-    isLoading,
-    refetch,
-    meta,
-  } = useOrder({
+  const { data, isLoading, refetch } = useOrder({
     page,
     search,
     per_page,
   });
 
   useEffect(() => {
-    const filterParams = {
-      page,
-      search,
-      per_page,
-    };
-    refetch(filterParams);
+    setPage(1);
   }, [page, search, per_page]);
 
   const { removeOrder } = useOrderStore();
@@ -106,14 +96,18 @@ export default function OrderPage() {
             excelEndpoint="/order/export"
             excelFileName="pedidos.xlsx"
           />
-          <Button size={"sm"} onClick={() => navigate("/pedidos/agregar")}>
+          <Button  onClick={() => navigate("/pedidos/agregar")}>
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Pedido
           </Button>
         </div>
       </div>
 
-      <OrderTable columns={columns} data={orders || []} isLoading={isLoading}>
+      <OrderTable
+        columns={columns}
+        data={data?.data || []}
+        isLoading={isLoading}
+      >
         <div className="flex items-center gap-2 mb-4">
           <Input
             placeholder="Buscar pedidos..."
@@ -126,11 +120,11 @@ export default function OrderPage() {
 
       <DataTablePagination
         page={page}
-        totalPages={meta?.last_page || 1}
+        totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
         setPerPage={setPerPage}
-        totalData={meta?.total || 0}
+        totalData={data?.meta?.total || 0}
       />
 
       <SimpleDeleteDialog

@@ -135,7 +135,10 @@ export const ProductForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-6 w-full grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
         {/* Información Básica */}
         <GroupFormSection
           title="Información Básica"
@@ -168,7 +171,8 @@ export const ProductForm = ({
                 useQueryHook={useCategory}
                 mapOptionFn={(category: CategoryResource) => ({
                   value: category.id.toString(),
-                  label: `${"  ".repeat(category.level - 1)}${category.name}`,
+                  label: category.name,
+                  description: category.code,
                 })}
               />
             </div>
@@ -176,7 +180,6 @@ export const ProductForm = ({
               type="button"
               variant="outline"
               size="icon"
-              className="h-10 w-10 shrink-0"
               onClick={() => setIsCategoryModalOpen(true)}
             >
               <Plus className="h-4 w-4" />
@@ -201,7 +204,6 @@ export const ProductForm = ({
               type="button"
               variant="outline"
               size="icon"
-              className="h-10 w-10 shrink-0"
               onClick={() => setIsProductTypeModalOpen(true)}
             >
               <Plus className="h-4 w-4" />
@@ -226,7 +228,6 @@ export const ProductForm = ({
               type="button"
               variant="outline"
               size="icon"
-              className="h-10 w-10 shrink-0"
               onClick={() => setIsBrandModalOpen(true)}
             >
               <Plus className="h-4 w-4" />
@@ -250,7 +251,6 @@ export const ProductForm = ({
               type="button"
               variant="outline"
               size="icon"
-              className="h-10 w-10 shrink-0"
               onClick={() => setIsUnitModalOpen(true)}
             >
               <Plus className="h-4 w-4" />
@@ -292,12 +292,7 @@ export const ProductForm = ({
           icon={File}
           cols={{ sm: 1 }}
           headerExtra={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={openFileDialog}
-            >
+            <Button type="button" variant="outline" onClick={openFileDialog}>
               <Upload className="h-4 w-4 mr-2" />
               Agregar Archivos
             </Button>
@@ -333,7 +328,6 @@ export const ProductForm = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
                     onClick={() => removeExistingFile(fileUrl)}
                   >
                     <X className="h-4 w-4" />
@@ -364,7 +358,6 @@ export const ProductForm = ({
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
                     onClick={() => removeSelectedFile(index)}
                   >
                     <X className="h-4 w-4" />
@@ -385,8 +378,8 @@ export const ProductForm = ({
           )}
         </GroupFormSection>
 
-        <div className="flex gap-4 w-full justify-end">
-          <Button type="button" variant="neutral" onClick={onCancel}>
+        <div className="flex gap-4 w-full justify-end col-span-full">
+          <Button type="button" variant="outline" onClick={onCancel}>
             Cancelar
           </Button>
 

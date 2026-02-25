@@ -106,7 +106,7 @@ export function PurchaseInstallmentTable({
                           <span>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              
                               disabled
                               className="cursor-not-allowed"
                             >
@@ -126,7 +126,7 @@ export function PurchaseInstallmentTable({
                   ) : (
                     <Button
                       variant="ghost"
-                      size="sm"
+                      
                       onClick={() => onEdit(inst.id)}
                     >
                       <Pencil className="h-4 w-4" />
@@ -144,7 +144,7 @@ export function PurchaseInstallmentTable({
                           <TooltipTrigger asChild>
                             <Button
                               variant="ghost"
-                              size="sm"
+                              
                               onClick={() => onSyncInstallment(inst.id, purchaseTotalAmount)}
                               className="text-blue-600 hover:text-blue-700"
                             >

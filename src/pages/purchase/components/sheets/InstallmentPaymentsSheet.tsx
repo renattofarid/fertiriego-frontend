@@ -211,7 +211,7 @@ export function InstallmentPaymentsSheet({
         ) : (
           <div className="space-y-3">
             {canAddPayment ? (
-              <Button onClick={handleAddPayment} className="w-full" size="sm">
+              <Button onClick={handleAddPayment} className="w-full" >
                 <Plus className="h-4 w-4 mr-2" />
                 Registrar Pago
               </Button>

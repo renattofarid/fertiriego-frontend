@@ -79,6 +79,7 @@ export default function DriverAddPage() {
         onCancel={() => navigate("/conductores")}
         roleId={DRIVER_ROLE_ID}
         isWorker={true}
+        showDriverLicense={true}
       />
     </FormWrapper>
   );

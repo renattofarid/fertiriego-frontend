@@ -74,7 +74,7 @@ export const CreditNoteForm = ({
   const saleOptions =
     sales?.map((sale) => ({
       value: sale.id.toString(),
-      label: `${sale.full_document_number} - ${sale.customer_fullname}`,
+      label: `${sale.sequential_number} - ${sale.customer_fullname}`,
       description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
 
@@ -221,7 +221,7 @@ export const CreditNoteForm = ({
             <Button
               type="button"
               onClick={handleAddDetail}
-              size="sm"
+              
               disabled={!selectedSaleId}
             >
               <Plus className="mr-2 h-4 w-4" />

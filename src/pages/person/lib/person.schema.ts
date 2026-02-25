@@ -83,6 +83,12 @@ export const personCreateSchema = z
     //   .optional()
     //   .or(z.literal("")),
 
+    driver_license: z
+      .string()
+      .max(20, "La licencia no puede exceder 20 caracteres")
+      .optional()
+      .or(z.literal("")),
+
     role_id: requiredStringId("Debe seleccionar un rol válido"),
   })
   .superRefine((data, ctx) => {

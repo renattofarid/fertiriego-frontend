@@ -3,13 +3,16 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Pencil } from "lucide-react";
+import { Eye, Pencil } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import ExportButtons from "@/components/ExportButtons";
 
 export const PurchaseOrderColumns = ({
+  onView,
   onEdit,
   onDelete,
 }: {
+  onView: (purchaseOrder: PurchaseOrderResource) => void;
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
 }): ColumnDef<PurchaseOrderResource>[] => [
@@ -119,6 +122,16 @@ export const PurchaseOrderColumns = ({
 
       return (
         <ColumnActions>
+          <ExportButtons
+            pdfEndpoint={`/purchaseorder/${row.original.id}/pdf`}
+            pdfFileName={`orden-compra-${row.original.correlativo}.pdf`}
+            variant="separate"
+          />
+          <ButtonAction
+            icon={Eye}
+            tooltip="Ver detalle"
+            onClick={() => onView(row.original)}
+          />
           <ButtonAction
             icon={Pencil}
             tooltip="Editar"

@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { PurchaseForm } from "./PurchaseForm";
 import { type PurchaseSchema } from "../lib/purchase.schema";
 import { usePurchaseStore } from "../lib/purchase.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
-import FormWrapper from "@/components/FormWrapper";
+import PageWrapper from "@/components/PageWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { PURCHASE } from "../lib/purchase.interface";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const PurchaseAddPage = () => {
   const navigate = useNavigate();
@@ -20,12 +20,10 @@ export const PurchaseAddPage = () => {
   const { ICON } = PURCHASE;
   const { user } = useAuthStore();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
-    useAllPurchaseOrders();
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { createPurchase } = usePurchaseStore();
 
-  const isLoading = warehousesLoading || purchaseOrdersLoading;
+  const isLoading = warehousesLoading;
 
   const getDefaultValues = (): Partial<PurchaseSchema> => ({
     supplier_id: "",
@@ -42,6 +40,11 @@ export const PurchaseAddPage = () => {
     installments: [],
   });
 
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
+
   const handleSubmit = async (data: PurchaseSchema) => {
     setIsSubmitting(true);
     try {
@@ -57,19 +60,19 @@ export const PurchaseAddPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Compra" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Compra" mode="create" icon={ICON} />
@@ -83,11 +86,10 @@ export const PurchaseAddPage = () => {
           isSubmitting={isSubmitting}
           mode="create"
           warehouses={warehouses}
-          purchaseOrders={purchaseOrders || []}
           currentUserId={user.id}
           onCancel={() => navigate("/compras")}
         />
       )}
-    </FormWrapper>
+    </PageWrapper>
   );
 };

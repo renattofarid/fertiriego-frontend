@@ -31,7 +31,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -68,6 +68,8 @@ import {
 import { SaleSummary } from "./SaleSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { usePersonById } from "@/pages/person/lib/person.hook";
+import { FormInput } from "@/components/FormInput";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -100,6 +102,13 @@ interface GuideRow {
   name: string;
   correlative: string;
 }
+
+// Adapter: adapta usePersonById al contrato (id: string) => { data, isLoading }
+// que requiere useQueryByIdHook en FormSelectAsync
+const useClientByIdForSelect = (id: string) => {
+  const { data, isFinding } = usePersonById(id ? Number(id) : 0);
+  return { data, isLoading: isFinding };
+};
 
 export const SaleForm = ({
   onCancel,
@@ -178,6 +187,16 @@ export const SaleForm = ({
     correlative: "",
   });
 
+  // Estado para controlar la sincronización bidireccional de precios
+  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+
+  // Ref para evitar auto-generación en el montaje inicial
+  const isInitialMount = useRef(true);
+
+  // Formatea un número a 4 decimales sin ceros innecesarios
+  const formatNumberLocal = (num: number): string =>
+    parseFloat(num.toFixed(4)).toString();
+
   // Formularios temporales
   const detailTempForm = useForm({
     defaultValues: {
@@ -185,6 +204,7 @@ export const SaleForm = ({
       temp_price_category_id: "",
       temp_quantity: currentDetail.quantity,
       temp_unit_price: currentDetail.unit_price,
+      temp_value_price: "",
     },
   });
 
@@ -211,6 +231,7 @@ export const SaleForm = ({
   );
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
+  const selectedValuePrice = detailTempForm.watch("temp_value_price");
 
   // Cargar precios del producto seleccionado
   const { data: productPricesData } = useProductPrices({
@@ -282,6 +303,40 @@ export const SaleForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
+
+  // Sincronización bidireccional: temp_unit_price → temp_value_price
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+    const price = parseFloat(selectedUnitPrice);
+    if (!isNaN(price) && price > 0) {
+      setIsUpdatingPrice(true);
+      detailTempForm.setValue(
+        "temp_value_price",
+        formatNumberLocal(price / 1.18),
+      );
+      setIsUpdatingPrice(false);
+    } else if (selectedUnitPrice === "") {
+      detailTempForm.setValue("temp_value_price", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedUnitPrice]);
+
+  // Sincronización bidireccional: temp_value_price → temp_unit_price
+  useEffect(() => {
+    if (isUpdatingPrice) return;
+    const value = parseFloat(selectedValuePrice);
+    if (!isNaN(value) && value > 0) {
+      setIsUpdatingPrice(true);
+      detailTempForm.setValue(
+        "temp_unit_price",
+        formatNumberLocal(value * 1.18),
+      );
+      setIsUpdatingPrice(false);
+    } else if (selectedValuePrice === "") {
+      detailTempForm.setValue("temp_unit_price", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedValuePrice]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -384,7 +439,7 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price);
+          const unitPrice = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
           const subtotal = roundTo6Decimals(quantity * unitPrice);
           const igv = roundTo6Decimals(subtotal * 0.18);
           const total = roundTo6Decimals(subtotal + igv);
@@ -437,6 +492,9 @@ export const SaleForm = ({
   // Watch para la moneda seleccionada
   const selectedCurrency = form.watch("currency");
 
+  // Watch para retención IGV
+  const isRetencionIGV = form.watch("is_retencionigv");
+
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
     if (selectedPriceCategoryId && productPricesData && selectedCurrency) {
@@ -453,7 +511,13 @@ export const SaleForm = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
+          setIsUpdatingPrice(true);
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
+          detailTempForm.setValue(
+            "temp_value_price",
+            formatNumberLocal(priceValue / 1.18),
+          );
+          setIsUpdatingPrice(false);
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -481,11 +545,12 @@ export const SaleForm = ({
           form.setValue("payment_type", sourceData.payment_type);
 
           // Auto-completar detalles desde cotización
-          const quotationDetails: DetailRow[] = sourceData.quotation_details.map(
-            (detail: any) => {
+          const quotationDetails: DetailRow[] =
+            sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price);
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
+              const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
+              const subtotal = roundTo6Decimals(quantity * valorUnitario);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -493,13 +558,12 @@ export const SaleForm = ({
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: detail.unit_price,
+                unit_price: valorUnitario.toString(),
                 subtotal,
                 igv,
                 total,
               };
-            },
-          );
+            });
 
           setDetails(quotationDetails);
           form.setValue("details", quotationDetails);
@@ -509,7 +573,14 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price);
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              // is_igv=true → unit_price viene CON IGV (precio unitario)
+              // is_igv=false → unit_price viene SIN IGV (valor unitario)
+              // is_igv=true → unit_price CON IGV → valor = unitPrice / 1.18
+              // is_igv=false → unit_price SIN IGV → valor = unitPrice
+              const valorUnitario = detail.is_igv
+                ? roundTo6Decimals(unitPrice / 1.18)
+                : unitPrice;
+              const subtotal = roundTo6Decimals(quantity * valorUnitario);
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -517,7 +588,7 @@ export const SaleForm = ({
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: detail.unit_price,
+                unit_price: valorUnitario.toString(), // SIN IGV → backend
                 subtotal,
                 igv,
                 total,
@@ -531,8 +602,8 @@ export const SaleForm = ({
       } else if (sourceType === "guide") {
         // Auto-completar desde guía de remisión
         // El cliente viene de la venta asociada a la guía
-        if (sourceData.sale?.customer_id) {
-          form.setValue("customer_id", sourceData.sale.customer_id.toString());
+        if (sourceData.recipient?.id) {
+          form.setValue("customer_id", sourceData.recipient.id.toString());
         }
 
         // El almacén viene de la guía
@@ -546,12 +617,35 @@ export const SaleForm = ({
 
         // Auto-completar detalles desde guía
         if (sourceData.details && sourceData.details.length > 0) {
+          // Crear un mapa de precios desde el documento origen (purchase, sale, order, warehouse_document)
+          const priceMap = new Map<number, number>();
+
+          // Si la guía viene de una venta, usar los precios de la venta
+          if (sourceData.sale?.details) {
+            sourceData.sale.details.forEach((detail: any) => {
+              priceMap.set(
+                detail.product_id,
+                parseFloat(detail.unit_price || "0"),
+              );
+            });
+          }
+
+          // Si la guía viene de una compra, usar los precios de la compra
+          if (sourceData.purchase?.details) {
+            sourceData.purchase.details.forEach((detail: any) => {
+              priceMap.set(
+                detail.product_id,
+                parseFloat(detail.unit_price || "0"),
+              );
+            });
+          }
+
           const guideDetails: DetailRow[] = sourceData.details.map(
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              // Para guías no tenemos precio unitario, se deja en 0 para que el usuario lo ingrese
-              const unitPrice = 0;
-              const subtotal = roundTo6Decimals(quantity * unitPrice);
+              // Intentar obtener el precio del documento origen, sino se deja en 0
+              const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
+              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
               const igv = roundTo6Decimals(subtotal * 0.18);
               const total = roundTo6Decimals(subtotal + igv);
 
@@ -569,6 +663,16 @@ export const SaleForm = ({
 
           setDetails(guideDetails);
           form.setValue("details", guideDetails);
+        }
+
+        // Agregar automáticamente la guía al apartado de guías
+        if (sourceData.full_guide_number) {
+          const guideRow: GuideRow = {
+            name: "Guía de Remisión",
+            correlative: sourceData.full_guide_number,
+          };
+          setGuides([guideRow]);
+          form.setValue("guides", [guideRow]);
         }
       }
     }
@@ -605,16 +709,17 @@ export const SaleForm = ({
     }
 
     const quantity = parseFloat(currentDetail.quantity);
-    const unitPrice = parseFloat(currentDetail.unit_price);
+    const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
+    const valorUnitario = roundTo6Decimals(unitPriceWithIGV / 1.18); // SIN IGV → lo que va al backend
 
-    // Calcular subtotal, IGV (18%) y total con redondeo a 6 decimales
-    const subtotal = roundTo6Decimals(quantity * unitPrice);
-    const igv = roundTo6Decimals(subtotal * 0.18); // IGV 18%
+    const subtotal = roundTo6Decimals(quantity * valorUnitario);
+    const igv = roundTo6Decimals(subtotal * 0.18);
     const total = roundTo6Decimals(subtotal + igv);
 
     const newDetail: DetailRow = {
       ...currentDetail,
       product_name: productSelected?.product_name,
+      unit_price: valorUnitario.toString(), // guardar SIN IGV
       subtotal,
       igv,
       total,
@@ -648,15 +753,25 @@ export const SaleForm = ({
       temp_price_category_id: "",
       temp_quantity: "",
       temp_unit_price: "",
+      temp_value_price: "",
     });
   };
 
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
+    setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
-    detailTempForm.setValue("temp_unit_price", detail.unit_price);
+    // unit_price guardado es SIN IGV (valor unitario)
+    detailTempForm.setValue("temp_value_price", detail.unit_price);
+    detailTempForm.setValue(
+      "temp_unit_price",
+      detail.unit_price
+        ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
+        : "",
+    );
+    setIsUpdatingPrice(false);
     setEditingDetailIndex(index);
   };
 
@@ -684,6 +799,51 @@ export const SaleForm = ({
     return roundTo6Decimals(sum);
   };
 
+  const calculateRetencion = () => {
+    if (!isRetencionIGV) return 0;
+    return roundTo6Decimals(calculateDetailsTotal() * 0.03);
+  };
+
+  const calculateNetTotal = () => {
+    return roundTo6Decimals(calculateDetailsTotal() - calculateRetencion());
+  };
+
+  // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
+  useEffect(() => {
+    if (
+      isRetencionIGV &&
+      selectedPaymentType === "CREDITO" &&
+      details.length > 0
+    ) {
+      const netTotal = calculateNetTotal();
+      const autoInstallment: InstallmentRow = {
+        due_days: "0",
+        amount: netTotal.toFixed(6),
+      };
+      setInstallments([autoInstallment]);
+      form.setValue("installments", [autoInstallment]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRetencionIGV, selectedPaymentType]);
+
+  // Auto-generar cuota de 30 días al cambiar a tipo de pago crédito
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (selectedPaymentType === "CREDITO") {
+      const netTotal = calculateNetTotal();
+      const autoInstallment: InstallmentRow = {
+        due_days: "30",
+        amount: netTotal.toFixed(6),
+      };
+      setInstallments([autoInstallment]);
+      form.setValue("installments", [autoInstallment]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPaymentType]);
+
   // Funciones para cuotas
   const handleAddInstallment = () => {
     if (!currentInstallment.due_days || !currentInstallment.amount) {
@@ -691,7 +851,7 @@ export const SaleForm = ({
     }
 
     const newAmount = parseFloat(currentInstallment.amount);
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
 
     // Calcular el total de cuotas (excluyendo la que se está editando si aplica)
     let currentInstallmentsTotal = installments.reduce((sum, inst, idx) => {
@@ -758,7 +918,7 @@ export const SaleForm = ({
 
   const installmentsMatchTotal = () => {
     if (installments.length === 0) return true;
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
     const installmentsTotal = calculateInstallmentsTotal();
     // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
     return Math.abs(saleTotal - installmentsTotal) < 0.01;
@@ -819,7 +979,7 @@ export const SaleForm = ({
 
   const paymentAmountsMatchTotal = () => {
     if (selectedPaymentType !== "CONTADO") return true;
-    const saleTotal = calculateDetailsTotal();
+    const saleTotal = calculateNetTotal();
     const paymentTotal = calculatePaymentTotal();
     // Comparar con tolerancia de 2 decimales (0.01) en lugar de 6 decimales
     return Math.abs(saleTotal - paymentTotal) < 0.01;
@@ -832,7 +992,7 @@ export const SaleForm = ({
         `El total pagado (${formatNumber(
           calculatePaymentTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal(),
+          calculateNetTotal(),
         )})`,
       );
       return;
@@ -850,7 +1010,7 @@ export const SaleForm = ({
         `El total de cuotas (${formatNumber(
           calculateInstallmentsTotal(),
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateDetailsTotal(),
+          calculateNetTotal(),
         )})`,
       );
       return;
@@ -902,7 +1062,7 @@ export const SaleForm = ({
             }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div className="flex gap-2 items-end">
+              <div className="flex gap-2 items-end col-span-1 md:col-span-2">
                 <div className="truncate! flex-1">
                   <FormSelectAsync
                     control={form.control}
@@ -915,16 +1075,22 @@ export const SaleForm = ({
                       label:
                         customer.business_name ??
                         `${customer.names} ${customer.father_surname} ${customer.mother_surname}`,
+                      description: customer.number_document,
                     })}
                     disabled={mode === "edit"}
                     onValueChange={(_value, item) => {
                       setSelectedCustomer(item ?? null);
                     }}
                     preloadItemId={
-                      mode === "edit" || (sourceData && sourceType === "guide")
+                      mode === "edit" ||
+                      (sourceData &&
+                        (sourceType === "guide" ||
+                          sourceType === "order" ||
+                          sourceType === "quotation"))
                         ? form.getValues("customer_id")
                         : undefined
                     }
+                    useQueryByIdHook={useClientByIdForSelect}
                   />
                 </div>
                 {mode === "create" && (
@@ -940,6 +1106,17 @@ export const SaleForm = ({
                   </Button>
                 )}
               </div>
+
+              <FormSelect
+                control={form.control}
+                name="document_type"
+                label="Tipo de Documento"
+                placeholder="Seleccione tipo"
+                options={DOCUMENT_TYPES.map((dt) => ({
+                  value: dt.value,
+                  label: dt.label,
+                }))}
+              />
 
               <div className="flex gap-2 items-end">
                 <div className="truncate! flex-1">
@@ -968,17 +1145,6 @@ export const SaleForm = ({
                   </Button>
                 )}
               </div>
-
-              <FormSelect
-                control={form.control}
-                name="document_type"
-                label="Tipo de Documento"
-                placeholder="Seleccione tipo"
-                options={DOCUMENT_TYPES.map((dt) => ({
-                  value: dt.value,
-                  label: dt.label,
-                }))}
-              />
 
               <DatePickerFormField
                 control={form.control}
@@ -1013,50 +1179,39 @@ export const SaleForm = ({
                 }))}
               />
 
-              <FormField
+              <FormInput
                 control={form.control}
                 name="order_purchase"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Orden de Compra</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ingrese número de orden" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Orden de Compra"
+                placeholder="Ingrese número de orden"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_anticipado"
-                text="Anticipo"
-                textDescription="Marque si es una venta anticipada"
-                className="h-12!"
+                label="Anticipo"
+                text="Marque si es una venta anticipada"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_deduccion"
-                text="Deducción"
-                textDescription="Marque si aplica deducción"
-                className="h-12!"
+                label="Deducción"
+                text="Marque si aplica deducción"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_retencionigv"
-                text="Retención IGV"
-                textDescription="Marque si aplica retención de IGV"
-                className="h-12!"
+                label="Retención IGV"
+                text="Marque si aplica retención de IGV"
               />
 
               <FormSwitch
                 control={form.control}
                 name="is_termine_condition"
-                text="Condición de Término"
-                textDescription="Marque si tiene condición de término"
-                className="h-12!"
+                label="Condición de Término"
+                text="Marque si tiene condición de término"
               />
 
               <div className="md:col-span-2 lg:col-span-3">
@@ -1088,7 +1243,7 @@ export const SaleForm = ({
               sm: 1,
             }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 bg-muted rounded-lg">
               <div className="md:col-span-2">
                 <Form {...detailTempForm}>
                   <FormSelectAsync
@@ -1132,36 +1287,33 @@ export const SaleForm = ({
                   </div>
                 )}
 
-              <FormField
+              <FormInput
                 control={detailTempForm.control}
                 name="temp_quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cantidad</FormLabel>
-                    <FormControl>
-                      <Input type="number" min={0} placeholder="0" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
+                label="Cantidad"
+                placeholder="0"
+                type="number"
+                min={0}
               />
 
-              <FormField
+              <FormInput
+                control={detailTempForm.control}
+                name="temp_value_price"
+                label="Valor Unit. (sin IGV)"
+                placeholder="0.0000"
+                type="number"
+                min={0}
+                step="0.0001"
+              />
+
+              <FormInput
                 control={detailTempForm.control}
                 name="temp_unit_price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Precio Unit.</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={0}
-                        step="0.000001"
-                        placeholder="0.000000"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
+                label="Precio Unit. (con IGV)"
+                placeholder="0.0000"
+                type="number"
+                min={0}
+                step="0.0001"
               />
 
               <div className="md:col-span-4 flex items-center justify-end">
@@ -1188,6 +1340,7 @@ export const SaleForm = ({
                     <TableRow>
                       <TableHead>Producto</TableHead>
                       <TableHead className="text-right">Cantidad</TableHead>
+                      <TableHead className="text-right">V. Unit.</TableHead>
                       <TableHead className="text-right">P. Unit.</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
                       <TableHead className="text-right">IGV (18%)</TableHead>
@@ -1206,9 +1359,12 @@ export const SaleForm = ({
                           {formatNumber(parseFloat(detail.unit_price))}
                         </TableCell>
                         <TableCell className="text-right">
+                          {formatNumber(parseFloat(detail.unit_price) * 1.18)}
+                        </TableCell>
+                        <TableCell className="text-right">
                           {formatNumber(detail.subtotal)}
                         </TableCell>
-                        <TableCell className="text-right text-orange-600">
+                        <TableCell className="text-right font-bold">
                           {formatNumber(detail.igv)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">
@@ -1219,7 +1375,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
                               onClick={() => handleEditDetail(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1227,7 +1382,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
                               onClick={() => handleRemoveDetail(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1237,13 +1391,13 @@ export const SaleForm = ({
                       </TableRow>
                     ))}
                     <TableRow>
-                      <TableCell colSpan={3} className="text-right font-bold">
-                        TOTALES:
+                      <TableCell colSpan={4} className="text-right font-bold">
+                        TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
                         {formatNumber(calculateDetailsSubtotal())}
                       </TableCell>
-                      <TableCell className="text-right font-bold text-lg text-orange-600">
+                      <TableCell className="text-right font-bold text-lg">
                         {formatNumber(calculateDetailsIGV())}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg text-primary">
@@ -1357,7 +1511,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
                               onClick={() => handleEditGuide(index)}
                             >
                               <Pencil className="h-4 w-4" />
@@ -1365,7 +1518,6 @@ export const SaleForm = ({
                             <Button
                               type="button"
                               variant="ghost"
-                              size="sm"
                               onClick={() => handleRemoveGuide(index)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
@@ -1470,7 +1622,7 @@ export const SaleForm = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold">Total de la Venta:</span>
                     <span className="text-lg font-bold text-primary">
-                      {formatNumber(calculateDetailsTotal())}
+                      {formatNumber(calculateNetTotal())}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -1583,7 +1735,6 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
                                   onClick={() => handleEditInstallment(index)}
                                 >
                                   <Pencil className="h-4 w-4" />
@@ -1591,7 +1742,6 @@ export const SaleForm = ({
                                 <Button
                                   type="button"
                                   variant="ghost"
-                                  size="sm"
                                   onClick={() => handleRemoveInstallment(index)}
                                 >
                                   <Trash2 className="h-4 w-4 text-red-500" />
@@ -1621,7 +1771,7 @@ export const SaleForm = ({
                         ⚠️ El total de cuotas (
                         {formatNumber(calculateInstallmentsTotal())}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateDetailsTotal())})
+                        {formatNumber(calculateNetTotal())})
                       </p>
                     </div>
                   )}
@@ -1644,10 +1794,10 @@ export const SaleForm = ({
           )}
 
           {/* <pre>
-          <code>{JSON.stringify(form.getValues(), null, 2)}</code>
-          <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
-        </pre>
-        <Button onClick={() => form.trigger()}>Button</Button> */}
+            <code>{JSON.stringify(form.getValues(), null, 2)}</code>
+            <code>{JSON.stringify(form.formState.errors, null, 2)}</code>
+          </pre>
+          <Button onClick={() => form.trigger()}>Button</Button> */}
         </div>
 
         <SaleSummary
@@ -1661,6 +1811,8 @@ export const SaleForm = ({
           calculateDetailsSubtotal={calculateDetailsSubtotal}
           calculateDetailsIGV={calculateDetailsIGV}
           calculateDetailsTotal={calculateDetailsTotal}
+          calculateRetencion={calculateRetencion}
+          calculateNetTotal={calculateNetTotal}
           calculatePaymentTotal={calculatePaymentTotal}
           installmentsMatchTotal={installmentsMatchTotal}
           paymentAmountsMatchTotal={paymentAmountsMatchTotal}

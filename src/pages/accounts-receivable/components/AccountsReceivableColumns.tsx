@@ -128,7 +128,7 @@ export const getAccountsReceivableColumns = (
         <div className="flex items-center justify-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            
             onClick={() => onOpenQuickView(row.original)}
             title="Vista rápida de pagos"
           >
@@ -138,7 +138,7 @@ export const getAccountsReceivableColumns = (
           {isPending && (
             <Button
               variant="default"
-              size="sm"
+              
               onClick={() => onOpenPayment(row.original)}
               title="Gestionar pagos"
             >

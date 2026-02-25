@@ -55,7 +55,16 @@ interface SearchableSelectAsyncProps {
   defaultOption?: Option;
   additionalParams?: Record<string, any>;
   onValueChange?: (value: string, item?: any) => void;
+  preloadItemId?: string;
+  useQueryByIdHook?: (id: string) => { data?: any; isLoading: boolean }; // Hook para buscar un item por ID directamente (evita paginar)
 }
+
+const _noopByIdHook = (
+  _id: string,
+): { data: undefined; isLoading: false } => ({
+  data: undefined,
+  isLoading: false,
+});
 
 export function SearchableSelectAsync({
   value,
@@ -68,7 +77,7 @@ export function SearchableSelectAsync({
   withValue = true,
   label,
   disabled = false,
-  buttonSize = "sm",
+  buttonSize = "default",
   useQueryHook,
   mapOptionFn,
   perPage = 10,
@@ -76,6 +85,8 @@ export function SearchableSelectAsync({
   defaultOption,
   additionalParams = {},
   onValueChange,
+  preloadItemId,
+  useQueryByIdHook,
 }: SearchableSelectAsyncProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -84,6 +95,7 @@ export function SearchableSelectAsync({
   const [allOptions, setAllOptions] = React.useState<Option[]>(
     defaultOption ? [defaultOption] : [],
   );
+  const [allRawItems, setAllRawItems] = React.useState<any[]>([]);
   const [selectedOption, setSelectedOption] = React.useState<Option | null>(
     defaultOption || null,
   );
@@ -100,6 +112,10 @@ export function SearchableSelectAsync({
     ...additionalParams,
   });
 
+  // Hook para lookup directo por ID (noop si no se provee)
+  const byIdHook = useQueryByIdHook ?? _noopByIdHook;
+  const { data: preloadedItem } = byIdHook(preloadItemId ?? "");
+
   // Debounce para el search
   React.useEffect(() => {
     if (debounceTimerRef.current) {
@@ -112,6 +128,7 @@ export function SearchableSelectAsync({
         setPage(1);
         if (search !== "" || open) {
           setAllOptions([]);
+          setAllRawItems([]);
         }
       }
     }, debounceMs);
@@ -129,7 +146,27 @@ export function SearchableSelectAsync({
       const newOptions = data.data.map(mapOptionFn);
 
       if (page === 1) {
-        setAllOptions(newOptions);
+        setAllOptions((prev) => {
+          // Preservar el item precargado si no está en los nuevos datos
+          if (preloadItemId) {
+            const preloadedOpt = prev.find((o) => o.value === preloadItemId);
+            if (preloadedOpt && !newOptions.some((n) => n.value === preloadItemId)) {
+              return [preloadedOpt, ...newOptions];
+            }
+          }
+          return newOptions;
+        });
+        setAllRawItems((prev) => {
+          if (preloadItemId) {
+            const preloadedRaw = prev.find(
+              (item) => mapOptionFn(item).value === preloadItemId,
+            );
+            if (preloadedRaw && !data.data.some((item) => mapOptionFn(item).value === preloadItemId)) {
+              return [preloadedRaw, ...data.data];
+            }
+          }
+          return data.data;
+        });
       } else {
         setAllOptions((prev) => {
           const existingIds = new Set(prev.map((opt) => opt.value));
@@ -138,9 +175,44 @@ export function SearchableSelectAsync({
           );
           return [...prev, ...uniqueNew];
         });
+        setAllRawItems((prev) => {
+          const existingIds = new Set(prev.map((item) => mapOptionFn(item).value));
+          return [...prev, ...data.data.filter((item) => !existingIds.has(mapOptionFn(item).value))];
+        });
       }
     }
   }, [data, page, mapOptionFn]);
+
+  // Inyectar item precargado via lookup directo (cuando se provee useQueryByIdHook)
+  React.useEffect(() => {
+    if (!preloadedItem || !preloadItemId) return;
+    const opt = mapOptionFn(preloadedItem);
+    setAllRawItems((prev) => {
+      if (prev.some((item) => mapOptionFn(item).value === preloadItemId)) return prev;
+      return [preloadedItem, ...prev];
+    });
+    setAllOptions((prev) => {
+      if (prev.some((o) => o.value === preloadItemId)) return prev;
+      return [opt, ...prev];
+    });
+  }, [preloadedItem, preloadItemId, mapOptionFn]);
+
+  // Precargar item buscando en páginas sucesivas (fallback cuando no hay useQueryByIdHook)
+  React.useEffect(() => {
+    if (useQueryByIdHook) return;
+    if (
+      preloadItemId &&
+      !isLoading &&
+      !isFetching &&
+      data?.meta?.last_page &&
+      page < data.meta.last_page
+    ) {
+      const itemFound = allOptions.some((opt) => opt.value === preloadItemId);
+      if (!itemFound) {
+        setPage((prev) => prev + 1);
+      }
+    }
+  }, [useQueryByIdHook, preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
 
   // Manejar scroll para cargar más
   const handleScroll = React.useCallback(
@@ -177,7 +249,7 @@ export function SearchableSelectAsync({
     onChange(newValue);
     setSelectedOption(newValue ? option : null);
     if (onValueChange) {
-      const selectedItem = data?.data?.find(
+      const selectedItem = allRawItems.find(
         (item) => mapOptionFn(item).value === option.value,
       );
       onValueChange(newValue, selectedItem);
@@ -188,6 +260,13 @@ export function SearchableSelectAsync({
   const selected =
     allOptions.find((opt) => opt.value === value) ||
     (value && selectedOption?.value === value ? selectedOption : null);
+
+  // Cuando hay lookup directo y no hay búsqueda activa, mostrar solo el item precargado.
+  // Al escribir en el buscador se muestran los resultados normales de la lista.
+  const displayedOptions =
+    useQueryByIdHook && !debouncedSearch && preloadItemId
+      ? allOptions.filter((o) => o.value === preloadItemId)
+      : allOptions;
 
   const commandContent = (
     <Command className="md:max-h-72 overflow-hidden" shouldFilter={false}>
@@ -212,7 +291,7 @@ export function SearchableSelectAsync({
             <CommandEmpty className="py-4 text-center text-sm">
               No hay resultados.
             </CommandEmpty>
-            {allOptions.map((option) => (
+            {displayedOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.value}

@@ -92,7 +92,7 @@ export default function QuotationPage() {
             excelEndpoint="/quotation/export"
             excelFileName="cotizaciones.xlsx"
           />
-          <Button size={"sm"} onClick={() => navigate("/cotizaciones/agregar")}>
+          <Button  onClick={() => navigate("/cotizaciones/agregar")}>
             <Plus className="mr-2 h-4 w-4" />
             Nueva Cotización
           </Button>

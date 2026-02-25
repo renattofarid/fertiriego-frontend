@@ -1,25 +1,20 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useGuideStore } from "./guide.store";
-import type { GetGuidesParams } from "./guide.actions";
+import { getGuides, type GetGuidesParams } from "./guide.actions";
+import { GUIDE } from "./guide.interface";
 
 // ============================================
 // GUIDE HOOKS
 // ============================================
 
+const { QUERY_KEY } = GUIDE;
+
 export function useGuides(params?: GetGuidesParams) {
-  const { guides, meta, isLoading, error, fetchGuides } = useGuideStore();
-
-  useEffect(() => {
-    fetchGuides(params);
-  }, [params?.page, params?.search, params?.per_page, fetchGuides]);
-
-  return {
-    data: guides,
-    meta,
-    isLoading,
-    error,
-    refetch: () => fetchGuides(params),
-  };
+  return useQuery({
+    queryKey: [QUERY_KEY, params],
+    queryFn: () => getGuides(params),
+  });
 }
 
 export function useAllGuides() {

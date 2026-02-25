@@ -30,6 +30,10 @@ export const vehicleSchema = z.object({
     .min(1, "El tipo de vehículo es requerido")
     .max(50, "El tipo debe tener máximo 50 caracteres"),
   max_weight: z.number().min(0, "El peso máximo debe ser mayor o igual a 0"),
+  mtc: z
+    .string()
+    .min(1, "El MTC es requerido")
+    .max(50, "El MTC debe tener máximo 50 caracteres"),
   owner_id: requiredStringId("El propietario es requerido"),
   observations: z
     .string()

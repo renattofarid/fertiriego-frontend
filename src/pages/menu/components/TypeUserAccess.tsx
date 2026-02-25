@@ -8,18 +8,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useTypeUser } from "../../type-users/lib/typeUser.hook";
 import { useOptionsMenus } from "../lib/menu.hook";
 import FormSkeleton from "@/components/FormSkeleton";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { errorToast, successToast } from "@/lib/core.function";
 import { usePermissionStore } from "../lib/menu.store";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import GeneralSheet from "@/components/GeneralSheet";
+import { TYPE_USER } from "@/pages/type-users/lib/typeUser.interface";
 
 interface CheckedItems {
   [key: number]: boolean;
@@ -87,9 +82,10 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
       })
       .catch((error: any) => {
         errorToast(
-          (error.response.data.message ?? error.response.data.error) ??
+          error.response.data.message ??
             error.response.data.error ??
-            "Error al actualizar permisos"
+            error.response.data.error ??
+            "Error al actualizar permisos",
         );
       })
       .finally(() => {
@@ -99,76 +95,60 @@ export function TypeUserAccess({ id, open, setOpen }: Props) {
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent className="overflow-auto md:overflow-hidden gap-0">
-        <SheetHeader>
-          <SheetTitle>Actualizar Permisos del Rol</SheetTitle>
-          <SheetDescription className="text-xs">
-            {id === 1 ? (
-              <>
-                <span>
-                  El rol
-                  <strong className="ml-1">{typeUser?.name}</strong> tiene todos
-                  los permisos por defecto.
-                </span>
-              </>
-            ) : (
-              <>
-                <span>Seleccione los permisos para el rol </span>
-                <strong className="ml-1">{typeUser?.name}</strong>.
-              </>
-            )}
-          </SheetDescription>
-        </SheetHeader>
-        {isFinding || isLoading ? (
-          <FormSkeleton />
-        ) : (
-          <div className="flex items-center justify-center p-4 h-full">
-            <div className="flex flex-col items-center w-full h-full">
-              <Form {...form}>
-                <form
-                  className="w-full flex flex-col gap-3 justify-between"
-                  onSubmit={form.handleSubmit(handleSubmit)}
-                >
-                  <div className="h-full max-h-[min(70vh,700px)] overflow-y-auto flex flex-col gap-2">
-                    {optionMenus.map((perm: any) => (
-                      <label
-                        key={perm.id}
-                        className="flex items-center gap-2 text-xs font-medium"
-                      >
-                        <Checkbox
-                          disabled={id === 1}
-                          checked={!!checkedItems[perm.id]}
-                          onCheckedChange={(val) =>
-                            handleCheckboxChange(perm.id, !!val)
-                          }
-                        />
-                        {perm.name}
-                        {/* <span className="text-[10px] text-muted-foreground">
-                          ({perm.action})
-                        </span> */}
-                      </label>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 w-full flex justify-end gap-2">
-                    <Button type="submit" disabled={id === 1}>
-                      Guardar
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setOpen(false)}
+    <GeneralSheet
+      open={open}
+      onClose={() => setOpen(false)}
+      title={`Permisos para ${typeUser?.name}`}
+      subtitle={`Configura los permisos para el rol`}
+      icon={TYPE_USER.ICON}
+      footer={
+        <div className="pt-4 w-full flex justify-end gap-2">
+          <Button type="submit" form="type-user-access-form" disabled={id === 1}>
+            Guardar
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setOpen(false)}
+          >
+            Cancelar
+          </Button>
+        </div>
+      }
+    >
+      {isFinding || isLoading ? (
+        <FormSkeleton />
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <div className="flex flex-col items-center w-full h-full">
+            <Form {...form}>
+              <form
+                id="type-user-access-form"
+                className="w-full flex flex-col gap-3 justify-between"
+                onSubmit={form.handleSubmit(handleSubmit)}
+              >
+                <div className="h-full flex flex-col gap-2">
+                  {optionMenus.map((perm: any) => (
+                    <label
+                      key={perm.id}
+                      className="flex items-center gap-2 text-xs font-medium"
                     >
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
+                      <Checkbox
+                        disabled={id === 1}
+                        checked={!!checkedItems[perm.id]}
+                        onCheckedChange={(val) =>
+                          handleCheckboxChange(perm.id, !!val)
+                        }
+                      />
+                      {perm.name}
+                    </label>
+                  ))}
+                </div>
+              </form>
+            </Form>
           </div>
-        )}
-      </SheetContent>
-    </Sheet>
+        </div>
+      )}
+    </GeneralSheet>
   );
 }

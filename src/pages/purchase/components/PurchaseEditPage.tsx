@@ -9,30 +9,33 @@ import { usePurchaseStore } from "../lib/purchase.store";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
-import { useAllPurchaseOrders } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PURCHASE, type PurchaseResource } from "../lib/purchase.interface";
-import FormWrapper from "@/components/FormWrapper";
+import PageWrapper from "@/components/PageWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { errorToast } from "@/lib/core.function";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export const PurchaseEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { ICON } = PURCHASE;
-
+  const { setOpen, setOpenMobile } = useSidebar();
   const { user } = useAuthStore();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
-  const { data: purchaseOrders, isLoading: purchaseOrdersLoading } =
-    useAllPurchaseOrders();
 
   const { updatePurchase, fetchPurchase, purchase, isFinding } =
     usePurchaseStore();
   const { fetchDetails, details } = usePurchaseDetailStore();
   const { fetchInstallments, installments } = usePurchaseInstallmentStore();
 
-  const isLoading = warehousesLoading || purchaseOrdersLoading || isFinding;
+  const isLoading = warehousesLoading || isFinding;
+
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   useEffect(() => {
     if (!id) {
@@ -100,32 +103,32 @@ export const PurchaseEditPage = () => {
 
   if (isLoading) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   if (!purchase) {
     return (
-      <FormWrapper>
+      <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
           <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Compra no encontrada</p>
         </div>
-      </FormWrapper>
+      </PageWrapper>
     );
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <TitleFormComponent title="Compra" mode="edit" icon={ICON} />
@@ -139,7 +142,6 @@ export const PurchaseEditPage = () => {
           isSubmitting={isSubmitting}
           mode="edit"
           warehouses={warehouses}
-          purchaseOrders={purchaseOrders || []}
           purchase={purchase}
           currentUserId={user.id}
           onCancel={() => navigate("/compras")}
@@ -150,6 +152,6 @@ export const PurchaseEditPage = () => {
           onRefreshInstallments={handleRefreshInstallments}
         />
       )}
-    </FormWrapper>
+    </PageWrapper>
   );
 };

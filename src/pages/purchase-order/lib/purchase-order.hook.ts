@@ -1,21 +1,21 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { usePurchaseOrderStore } from "./purchase-order.store";
+import { PURCHASE_ORDER } from "./purchase-order.interface";
+import { getPurchaseOrders } from "./purchase-order.actions";
+
+const { QUERY_KEY } = PURCHASE_ORDER;
 
 export function usePurchaseOrder(params?: Record<string, unknown>) {
-  const { purchaseOrders, meta, isLoading, error, fetchPurchaseOrders } =
-    usePurchaseOrderStore();
-
-  useEffect(() => {
-    if (!purchaseOrders) fetchPurchaseOrders(params);
-  }, [purchaseOrders, fetchPurchaseOrders]);
-
-  return {
-    data: purchaseOrders,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchPurchaseOrders,
-  };
+  return useQuery({
+    queryKey: [QUERY_KEY, params],
+    queryFn: () =>
+      getPurchaseOrders({
+        params: {
+          ...params,
+        },
+      }),
+  });
 }
 
 export function useAllPurchaseOrders() {

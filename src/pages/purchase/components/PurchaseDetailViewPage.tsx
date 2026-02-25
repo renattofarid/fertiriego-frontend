@@ -364,7 +364,7 @@ export const PurchaseDetailViewPage = () => {
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="outline"
-                                      size="sm"
+                                      
                                       onClick={() =>
                                         handleSyncInstallment(
                                           installment.id,
@@ -390,7 +390,7 @@ export const PurchaseDetailViewPage = () => {
                             )}
                             <Button
                               variant="outline"
-                              size="sm"
+                              
                               onClick={() =>
                                 handleViewInstallmentPayments(installment)
                               }

@@ -530,7 +530,7 @@ export const OrderForm = ({
               <Button
                 type="button"
                 onClick={() => setSheetOpen(true)}
-                size="sm"
+                
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
@@ -572,19 +572,21 @@ export const OrderForm = ({
                         {detail.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        {parseFloat(detail.unit_price).toFixed(4)}
+                        {detail.is_igv
+                          ? (parseFloat(detail.unit_price) / 1.18).toFixed(4)
+                          : parseFloat(detail.unit_price).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
                         {(
                           parseFloat(detail.unit_price) *
-                          (!detail.is_igv ? 1.18 : 1)
+                          (detail.is_igv ? 1 : 1.18)
                         ).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge
-                          variant={!detail.is_igv ? "default" : "secondary"}
+                          variant={detail.is_igv ? "default" : "secondary"}
                         >
-                          {!detail.is_igv ? "Sí" : "No"}
+                          {detail.is_igv ? "Sí" : "No"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -601,7 +603,7 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() => handleEditDetail(index)}
                           >
                             <Pencil className="h-4 w-4 text-blue-500" />
@@ -609,7 +611,7 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            size="sm"
+                            
                             onClick={() => handleRemoveDetail(index)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />

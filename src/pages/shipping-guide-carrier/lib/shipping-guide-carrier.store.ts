@@ -132,11 +132,17 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           shipping_guide_remittent_id: data.shipping_guide_remittent_id
             ? Number(data.shipping_guide_remittent_id)
             : undefined,
+          third_party_id: data.third_party_id
+            ? Number(data.third_party_id)
+            : undefined,
+          payment_responsible: data.payment_responsible || undefined,
           origin_address: data.origin_address,
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
           destination_address: data.destination_address,
           destination_ubigeo_id: Number(data.destination_ubigeo_id),
           observations: data.observations || "",
+          total_weight: Number(data.total_weight),
+          total_packages: Number(data.total_packages),
           details: data.details.map((detail) => ({
             product_id: Number(detail.product_id),
             description: detail.description,
@@ -199,6 +205,14 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
               ? Number(data.shipping_guide_remittent_id)
               : undefined,
           }),
+          ...(data.third_party_id !== undefined && {
+            third_party_id: data.third_party_id
+              ? Number(data.third_party_id)
+              : undefined,
+          }),
+          ...(data.payment_responsible !== undefined && {
+            payment_responsible: data.payment_responsible || undefined,
+          }),
           ...(data.origin_address && { origin_address: data.origin_address }),
           ...(data.origin_ubigeo_id && {
             origin_ubigeo_id: Number(data.origin_ubigeo_id),
@@ -211,6 +225,12 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           }),
           ...(data.observations !== undefined && {
             observations: data.observations || "",
+          }),
+          ...(data.total_weight !== undefined && {
+            total_weight: Number(data.total_weight),
+          }),
+          ...(data.total_packages !== undefined && {
+            total_packages: Number(data.total_packages),
           }),
           ...(data.details && {
             details: data.details.map((detail) => ({

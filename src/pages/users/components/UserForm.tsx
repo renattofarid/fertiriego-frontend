@@ -18,7 +18,6 @@ import {
   type UserSchema,
 } from "../lib/User.schema";
 import { FormSelect } from "@/components/FormSelect";
-import type { TypeUserResource } from "@/pages/type-users/lib/typeUser.interface";
 import { useState } from "react";
 import React from "react";
 import {
@@ -27,6 +26,8 @@ import {
   isValidData,
 } from "@/lib/document-search.service";
 import { Search } from "lucide-react";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { useTypeUsers } from "@/pages/type-users/lib/typeUser.hook";
 
 interface MetricFormProps {
   defaultValues: Partial<UserSchema>;
@@ -34,7 +35,6 @@ interface MetricFormProps {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "edit";
-  typeUsers: TypeUserResource[];
 }
 
 export const UserForm = ({
@@ -43,11 +43,10 @@ export const UserForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  typeUsers,
 }: MetricFormProps) => {
   const form = useForm({
     resolver: zodResolver(
-      mode === "create" ? userCreateSchema : userUpdateSchema
+      mode === "create" ? userCreateSchema : userUpdateSchema,
     ),
     defaultValues: {
       ...defaultValues,
@@ -83,7 +82,7 @@ export const UserForm = ({
     { value: "CE", label: "Carnet de Extranjería" },
     { value: "PASAPORTE", label: "Pasaporte" },
   ].filter((option) =>
-    getValidDocumentTypes(type_person ?? "").includes(option.value)
+    getValidDocumentTypes(type_person ?? "").includes(option.value),
   );
 
   // Resetear el tipo de documento si no es válido para el tipo de persona seleccionado
@@ -101,17 +100,18 @@ export const UserForm = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
-        <div className="bg-tertiary rounded-lg p-6 space-y-4">
+        <div className="bg-tertiary rounded-lg space-y-4">
           <div className="grid grid-cols-1">
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="rol_id"
               label="Tipo de Usuario"
               placeholder="Seleccione tipo de usuario"
-              options={typeUsers!.map((type) => ({
+              useQueryHook={useTypeUsers}
+              mapOptionFn={(type) => ({
                 value: type.id.toString(),
                 label: type.name,
-              }))}
+              })}
             />
           </div>
 
@@ -150,12 +150,12 @@ export const UserForm = ({
                           type_document === "RUC"
                             ? 11
                             : type_document === "DNI"
-                            ? 8
-                            : type_document === "CE"
-                            ? 12
-                            : type_document === "PASAPORTE"
-                            ? 9
-                            : 0
+                              ? 8
+                              : type_document === "CE"
+                                ? 12
+                                : type_document === "PASAPORTE"
+                                  ? 9
+                                  : 0
                         }
                         placeholder="Número de Documento"
                         {...field}
@@ -191,7 +191,7 @@ export const UserForm = ({
                                     if (isValidData(response.data.names)) {
                                       form.setValue(
                                         "names",
-                                        response.data.names
+                                        response.data.names,
                                       );
                                       newFieldsFromSearch.names = true;
                                     }
@@ -200,7 +200,7 @@ export const UserForm = ({
                                     ) {
                                       form.setValue(
                                         "father_surname",
-                                        response.data.father_surname
+                                        response.data.father_surname,
                                       );
                                       newFieldsFromSearch.father_surname = true;
                                     }
@@ -209,7 +209,7 @@ export const UserForm = ({
                                     ) {
                                       form.setValue(
                                         "mother_surname",
-                                        response.data.mother_surname
+                                        response.data.mother_surname,
                                       );
                                       newFieldsFromSearch.mother_surname = true;
                                     }
@@ -231,14 +231,14 @@ export const UserForm = ({
                                     ) {
                                       form.setValue(
                                         "business_name",
-                                        response.data.business_name
+                                        response.data.business_name,
                                       );
                                       newFieldsFromSearch.business_name = true;
                                     }
                                     if (isValidData(response.data.address)) {
                                       form.setValue(
                                         "address",
-                                        response.data.address!
+                                        response.data.address!,
                                       );
                                       newFieldsFromSearch.address = true;
                                     }
@@ -248,7 +248,7 @@ export const UserForm = ({
                               } catch (error) {
                                 console.error(
                                   "Error searching document:",
-                                  error
+                                  error,
                                 );
                               } finally {
                                 setIsSearching(false);

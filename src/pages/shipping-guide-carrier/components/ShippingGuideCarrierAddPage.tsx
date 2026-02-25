@@ -11,21 +11,15 @@ import {
   ShippingGuideCarrierForm,
   type ShippingGuideCarrierFormValues,
 } from "./ShippingGuideCarrierForm";
-import PageSkeleton from "@/components/PageSkeleton";
-import { useAllPersons } from "@/pages/person/lib/person.hook";
-import { useAllGuides } from "@/pages/guide/lib/guide.hook";
+import { useSidebar } from "@/components/ui/sidebar";
+import { useEffect } from "react";
 
 export default function ShippingGuideCarrierAddPage() {
   const { ROUTE, MODEL } = SHIPPING_GUIDE_CARRIER;
   const navigate = useNavigate();
   const { createGuide, isSubmitting } = useShippingGuideCarrierStore();
 
-  // Hooks para datos
-  const remittents = useAllPersons();
-  const recipients = useAllPersons();
-  const { data: guides = [], isLoading: loadingGuides } = useAllGuides();
-
-  const isLoading = loadingGuides || !remittents || !recipients;
+  const { setOpen, setOpenMobile } = useSidebar();
 
   const onSubmit = async (values: ShippingGuideCarrierFormValues) => {
     try {
@@ -39,18 +33,16 @@ export default function ShippingGuideCarrierAddPage() {
     }
   };
 
-  if (isLoading) {
-    return <PageSkeleton />;
-  }
+  useEffect(() => {
+    setOpen(false);
+    setOpenMobile(false);
+  }, []);
 
   return (
     <ShippingGuideCarrierForm
       mode="create"
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
-      remittents={remittents || []}
-      recipients={recipients || []}
-      guides={guides || []}
     />
   );
 }

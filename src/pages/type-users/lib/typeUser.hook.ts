@@ -1,38 +1,19 @@
-// hooks/useUsers.ts
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useTypeUserStore } from "./typeUsers.store";
+import { getTypeUser } from "./typeUser.actions";
+import { TYPE_USER } from "./typeUser.interface";
 
 export function useTypeUsers(params?: Record<string, unknown>) {
-  const { typeUsers, meta, isLoading, error, fetchTypeUsers } =
-    useTypeUserStore();
-
-  useEffect(() => {
-    if (!typeUsers) fetchTypeUsers(params);
-  }, [typeUsers, fetchTypeUsers]);
-
-  return {
-    data: typeUsers,
-    meta,
-    isLoading,
-    error,
-    refetch: fetchTypeUsers,
-  };
-}
-
-export function useAllTypeUsers() {
-  const { allTypeUsers, isLoadingAll, error, fetchAllTypeUsers } =
-    useTypeUserStore();
-
-  useEffect(() => {
-    if (!allTypeUsers) fetchAllTypeUsers();
-  }, [allTypeUsers, fetchAllTypeUsers]);
-
-  return {
-    data: allTypeUsers,
-    isLoading: isLoadingAll,
-    error,
-    refetch: fetchAllTypeUsers,
-  };
+  return useQuery({
+    queryKey: [TYPE_USER.QUERY_KEY, params],
+    queryFn: () =>
+      getTypeUser({
+        params: {
+          ...params,
+        },
+      }),
+  });
 }
 
 export function useTypeUser(id: number) {

@@ -39,6 +39,7 @@ export const PurchaseTable = ({
         isLoading={isLoading}
         initialColumnVisibility={{
           warehouse_name: false,
+          due_date: false,
         }}
       >
         {children}

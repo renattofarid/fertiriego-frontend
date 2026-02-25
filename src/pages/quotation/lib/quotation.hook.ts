@@ -4,6 +4,7 @@ import { useQuotationStore } from "./quotation.store";
 import {
   getQuotations,
   getProductSalesHistory,
+  getProductPurchaseHistory,
   type GetProductSalesHistoryParams,
 } from "./quotation.actions";
 import { QUOTATION } from "./quotation.interface";
@@ -11,12 +12,7 @@ import { QUOTATION } from "./quotation.interface";
 export function useQuotations(params?: Record<string, unknown>) {
   return useQuery({
     queryKey: [QUOTATION.QUERY_KEY, params],
-    queryFn: () =>
-      getQuotations({
-        params: {
-          ...params,
-        },
-      }),
+    queryFn: () => getQuotations(params),
   });
 }
 
@@ -42,6 +38,18 @@ export function useProductSalesHistory(
   return useQuery({
     queryKey: ["product-sales-history", params],
     queryFn: () => getProductSalesHistory(params),
+    enabled: enabled && params.productId > 0,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useProductPurchaseHistory(
+  params: GetProductSalesHistoryParams,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["product-purchase-history", params],
+    queryFn: () => getProductPurchaseHistory(params),
     enabled: enabled && params.productId > 0,
     refetchOnWindowFocus: false,
   });
