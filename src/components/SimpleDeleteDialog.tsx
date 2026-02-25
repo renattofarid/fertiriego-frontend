@@ -18,6 +18,8 @@ interface SimpleDeleteDialogProps {
   description?: string;
   confirmText?: string;
   isLoading?: boolean;
+  confirmVariant?: "default" | "destructive" | "outline" | "secondary";
+  loadingText?: string;
 }
 
 export const DeleteButton = ({
@@ -57,6 +59,8 @@ export function SimpleDeleteDialog({
   description = "Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminar este registro?",
   confirmText = "Confirmar",
   isLoading,
+  confirmVariant = "destructive",
+  loadingText = "Eliminando...",
 }: SimpleDeleteDialogProps) {
   const [internalLoading, setInternalLoading] = useState(false);
   const loading = isLoading ?? internalLoading;
@@ -95,11 +99,11 @@ export function SimpleDeleteDialog({
             Cancelar
           </Button>
           <Button
-            variant={"destructive"}
+            variant={confirmVariant}
             onClick={handleConfirm}
             disabled={loading}
           >
-            {loading ? "Eliminando..." : confirmText}
+            {loading ? loadingText : confirmText}
           </Button>
         </div>
       </DialogContent>

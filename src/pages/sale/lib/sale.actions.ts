@@ -88,6 +88,16 @@ export const deleteSale = async (id: number): Promise<{ message: string }> => {
   return response.data;
 };
 
+export const declararSunat = async (
+  saleId: number,
+  tipoId: number
+): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(
+    `${SALE_ENDPOINT}/${saleId}/declarar/${tipoId}`
+  );
+  return response.data;
+};
+
 // ============================================
 // SALE DETAIL - CRUD Actions (Nested in Sale)
 // ============================================

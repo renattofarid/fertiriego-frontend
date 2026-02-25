@@ -1,31 +1,26 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  MoreVertical,
   Trash2,
   Eye,
   Settings,
   Wallet,
   AlertTriangle,
   Pencil,
+  Send,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
 import { parse } from "date-fns";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 interface SaleColumnsProps {
@@ -34,6 +29,7 @@ interface SaleColumnsProps {
   onViewDetails: (sale: SaleResource) => void;
   onManage: (sale: SaleResource) => void;
   onQuickPay: (sale: SaleResource) => void;
+  onDeclararSunat: (sale: SaleResource) => void;
 }
 
 export const getSaleColumns = ({
@@ -42,6 +38,7 @@ export const getSaleColumns = ({
   onViewDetails,
   onManage,
   onQuickPay,
+  onDeclararSunat,
 }: SaleColumnsProps): ColumnDef<SaleResource>[] => [
   {
     accessorKey: "id",
@@ -176,7 +173,6 @@ export const getSaleColumns = ({
     cell: ({ row }) => (
       <Button
         variant="ghost"
-        
         onClick={() => onManage(row.original)}
         className="h-auto p-1"
       >
@@ -219,7 +215,6 @@ export const getSaleColumns = ({
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              
               onClick={() => onManage(row.original)}
               className="h-auto p-1"
             >
@@ -252,7 +247,6 @@ export const getSaleColumns = ({
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
                     disabled={!isValid}
@@ -319,6 +313,24 @@ export const getSaleColumns = ({
             disabled={hasPayments}
           />
 
+          {row.original.status === "REGISTRADA" && (
+            <ConfirmationDialog
+              trigger={
+                <ButtonAction
+                  icon={Send}
+                  color="blue"
+                  tooltip="Declarar a SUNAT"
+                />
+              }
+              title="Declarar a SUNAT"
+              description="¿Estás seguro de que deseas declarar esta venta a SUNAT? Esta acción no se puede deshacer."
+              confirmText="Declarar"
+              cancelText="Cancelar"
+              onConfirm={() => onDeclararSunat(row.original)}
+              icon="info"
+            />
+          )}
+
           <DeleteButton
             icon={Trash2}
             onClick={() => onDelete(row.original.id)}
@@ -329,39 +341,6 @@ export const getSaleColumns = ({
             }
             disabled={isPaid || hasPayments}
           />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-                <Eye className="mr-2 h-4 w-4" />
-                Ver Detalle
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onManage(row.original)}>
-                <Settings className="mr-2 h-4 w-4" />
-                Gestionar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => !hasPayments && onEdit(row.original)}
-                disabled={hasPayments}
-              >
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar {hasPayments && "(Tiene pagos)"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => !isPaid && onDelete(row.original.id)}
-                disabled={isPaid || hasPayments}
-                className="text-destructive"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Eliminar {isPaid && "(Pagada)"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       );
     },
