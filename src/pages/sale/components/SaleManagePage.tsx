@@ -83,7 +83,7 @@ export default function SaleManagePage() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <TitleFormComponent
-            title={`Gestionar Venta #${sale.full_document_number}`}
+            title={`Gestionar Venta #${sale.sequential_number}`}
             mode="detail"
             // subtitle={`${sale.full_document_number} - ${sale.customer_fullname}`}
             icon={"CreditCard"}
@@ -209,7 +209,7 @@ export default function SaleManagePage() {
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground">Número</p>
-              <p className="font-mono font-bold">{sale.full_document_number}</p>
+              <p className="font-mono font-bold">{sale.sequential_number}</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground flex items-center gap-1">

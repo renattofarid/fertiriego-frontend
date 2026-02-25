@@ -168,7 +168,7 @@ export default function SaleDetailSheet({
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Número</p>
                 <p className="font-mono font-bold text-lg">
-                  {sale.full_document_number}
+                  {sale.sequential_number}
                 </p>
               </div>
               <div className="space-y-1">
