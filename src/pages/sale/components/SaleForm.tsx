@@ -68,6 +68,7 @@ import {
 import { SaleSummary } from "./SaleSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
+import { usePersonById } from "@/pages/person/lib/person.hook";
 import { FormInput } from "@/components/FormInput";
 
 interface SaleFormProps {
@@ -101,6 +102,13 @@ interface GuideRow {
   name: string;
   correlative: string;
 }
+
+// Adapter: adapta usePersonById al contrato (id: string) => { data, isLoading }
+// que requiere useQueryByIdHook en FormSelectAsync
+const useClientByIdForSelect = (id: string) => {
+  const { data, isFinding } = usePersonById(id ? Number(id) : 0);
+  return { data, isLoading: isFinding };
+};
 
 export const SaleForm = ({
   onCancel,
@@ -1062,9 +1070,6 @@ export const SaleForm = ({
                     label="Cliente"
                     placeholder="Seleccione un cliente"
                     useQueryHook={useClients}
-                    additionalParams={{
-                      per_page: 100,
-                    }}
                     mapOptionFn={(customer: PersonResource) => ({
                       value: customer.id.toString(),
                       label:
@@ -1085,6 +1090,7 @@ export const SaleForm = ({
                         ? form.getValues("customer_id")
                         : undefined
                     }
+                    useQueryByIdHook={useClientByIdForSelect}
                   />
                 </div>
                 {mode === "create" && (

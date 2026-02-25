@@ -5,6 +5,7 @@ import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 import { Eye, Pencil } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import ExportButtons from "@/components/ExportButtons";
 
 export const PurchaseOrderColumns = ({
   onView,
@@ -121,6 +122,11 @@ export const PurchaseOrderColumns = ({
 
       return (
         <ColumnActions>
+          <ExportButtons
+            pdfEndpoint={`/purchaseorder/${row.original.id}/pdf`}
+            pdfFileName={`orden-compra-${row.original.correlativo}.pdf`}
+            variant="separate"
+          />
           <ButtonAction
             icon={Eye}
             tooltip="Ver detalle"

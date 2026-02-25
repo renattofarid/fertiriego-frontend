@@ -43,9 +43,11 @@ export default function ExportButtons({
       window.URL.revokeObjectURL(url);
 
       toast.success("Excel descargado exitosamente");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al descargar Excel:", error);
-      toast.error("Error al descargar el archivo Excel");
+      toast.error(
+        error.response?.data?.message || "Error al descargar el archivo Excel",
+      );
     }
   };
 
