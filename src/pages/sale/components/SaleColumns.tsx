@@ -50,7 +50,7 @@ export const getSaleColumns = ({
     ),
   },
   {
-    accessorKey: "full_document_number",
+    accessorKey: "sequential_number",
     header: "Documento",
     cell: ({ row }) => (
       <div className="flex flex-col">
@@ -58,7 +58,7 @@ export const getSaleColumns = ({
           {row.original.document_type}
         </span>
         <span className="font-mono font-semibold">
-          {row.original.full_document_number}
+          {row.original.sequential_number}
         </span>
       </div>
     ),
@@ -163,6 +163,18 @@ export const getSaleColumns = ({
       if (status === "REGISTRADO") variant = "secondary";
       if (status === "PAGADA") variant = "default";
       if (status === "CANCELADO") variant = "destructive";
+
+      return <Badge variant={variant}>{status}</Badge>;
+    },
+  },
+  {
+    accessorKey: "status_facturado",
+    header: "Estado",
+    cell: ({ row }) => {
+      const status = row.original.status_facturado;
+      let variant: "default" | "secondary" | "destructive" | "gray" = "default";
+
+      if (status === "PENDIENTE") variant = "gray";
 
       return <Badge variant={variant}>{status}</Badge>;
     },
@@ -289,7 +301,7 @@ export const getSaleColumns = ({
         <div className="flex items-center gap-1">
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
-            pdfFileName={`venta-${row.original.full_document_number}.pdf`}
+            pdfFileName={`venta-${row.original.sequential_number}.pdf`}
             variant="separate"
           />
           <ButtonAction
@@ -313,7 +325,7 @@ export const getSaleColumns = ({
             disabled={hasPayments}
           />
 
-          {row.original.status === "REGISTRADA" && (
+          {row.original.status_facturado === "PENDIENTE" && (
             <ConfirmationDialog
               trigger={
                 <ButtonAction

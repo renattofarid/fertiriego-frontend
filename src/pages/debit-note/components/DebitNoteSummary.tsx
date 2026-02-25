@@ -63,7 +63,7 @@ export function DebitNoteSummary({
 
   // Obtener información de la venta
   const saleInfo = selectedSale
-    ? `${selectedSale.full_document_number} - ${selectedSale.customer_fullname}`
+    ? `${selectedSale.sequential_number} - ${selectedSale.customer_fullname}`
     : "Sin seleccionar";
 
   // Obtener el símbolo de moneda de la venta

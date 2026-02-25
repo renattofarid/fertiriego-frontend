@@ -89,7 +89,7 @@ export const DebitNoteForm = ({
   const saleOptions =
     sales?.map((sale) => ({
       value: sale.id.toString(),
-      label: `${sale.full_document_number} - ${sale.customer_fullname}`,
+      label: `${sale.sequential_number} - ${sale.customer_fullname}`,
       description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
 

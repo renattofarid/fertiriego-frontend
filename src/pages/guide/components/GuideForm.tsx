@@ -715,7 +715,7 @@ export const GuideForm = ({
             useQueryHook={useSale}
             mapOptionFn={(sale: SaleResource) => ({
               value: sale.id.toString(),
-              label: sale.full_document_number || `Venta #${sale.id}`,
+              label: sale.sequential_number || `Venta #${sale.id}`,
               description: sale.customer.full_name,
             })}
             withValue
