@@ -56,7 +56,15 @@ interface SearchableSelectAsyncProps {
   additionalParams?: Record<string, any>;
   onValueChange?: (value: string, item?: any) => void;
   preloadItemId?: string;
+  useQueryByIdHook?: (id: string) => { data?: any; isLoading: boolean }; // Hook para buscar un item por ID directamente (evita paginar)
 }
+
+const _noopByIdHook = (
+  _id: string,
+): { data: undefined; isLoading: false } => ({
+  data: undefined,
+  isLoading: false,
+});
 
 export function SearchableSelectAsync({
   value,
@@ -78,6 +86,7 @@ export function SearchableSelectAsync({
   additionalParams = {},
   onValueChange,
   preloadItemId,
+  useQueryByIdHook,
 }: SearchableSelectAsyncProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -102,6 +111,10 @@ export function SearchableSelectAsync({
     per_page: perPage,
     ...additionalParams,
   });
+
+  // Hook para lookup directo por ID (noop si no se provee)
+  const byIdHook = useQueryByIdHook ?? _noopByIdHook;
+  const { data: preloadedItem } = byIdHook(preloadItemId ?? "");
 
   // Debounce para el search
   React.useEffect(() => {
@@ -133,8 +146,27 @@ export function SearchableSelectAsync({
       const newOptions = data.data.map(mapOptionFn);
 
       if (page === 1) {
-        setAllOptions(newOptions);
-        setAllRawItems(data.data);
+        setAllOptions((prev) => {
+          // Preservar el item precargado si no está en los nuevos datos
+          if (preloadItemId) {
+            const preloadedOpt = prev.find((o) => o.value === preloadItemId);
+            if (preloadedOpt && !newOptions.some((n) => n.value === preloadItemId)) {
+              return [preloadedOpt, ...newOptions];
+            }
+          }
+          return newOptions;
+        });
+        setAllRawItems((prev) => {
+          if (preloadItemId) {
+            const preloadedRaw = prev.find(
+              (item) => mapOptionFn(item).value === preloadItemId,
+            );
+            if (preloadedRaw && !data.data.some((item) => mapOptionFn(item).value === preloadItemId)) {
+              return [preloadedRaw, ...data.data];
+            }
+          }
+          return data.data;
+        });
       } else {
         setAllOptions((prev) => {
           const existingIds = new Set(prev.map((opt) => opt.value));
@@ -151,8 +183,23 @@ export function SearchableSelectAsync({
     }
   }, [data, page, mapOptionFn]);
 
-  // Precargar item específico buscando en todas las páginas
+  // Inyectar item precargado via lookup directo (cuando se provee useQueryByIdHook)
   React.useEffect(() => {
+    if (!preloadedItem || !preloadItemId) return;
+    const opt = mapOptionFn(preloadedItem);
+    setAllRawItems((prev) => {
+      if (prev.some((item) => mapOptionFn(item).value === preloadItemId)) return prev;
+      return [preloadedItem, ...prev];
+    });
+    setAllOptions((prev) => {
+      if (prev.some((o) => o.value === preloadItemId)) return prev;
+      return [opt, ...prev];
+    });
+  }, [preloadedItem, preloadItemId, mapOptionFn]);
+
+  // Precargar item buscando en páginas sucesivas (fallback cuando no hay useQueryByIdHook)
+  React.useEffect(() => {
+    if (useQueryByIdHook) return;
     if (
       preloadItemId &&
       !isLoading &&
@@ -165,7 +212,7 @@ export function SearchableSelectAsync({
         setPage((prev) => prev + 1);
       }
     }
-  }, [preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
+  }, [useQueryByIdHook, preloadItemId, allOptions, isLoading, isFetching, data?.meta?.last_page, page]);
 
   // Manejar scroll para cargar más
   const handleScroll = React.useCallback(
@@ -214,6 +261,13 @@ export function SearchableSelectAsync({
     allOptions.find((opt) => opt.value === value) ||
     (value && selectedOption?.value === value ? selectedOption : null);
 
+  // Cuando hay lookup directo y no hay búsqueda activa, mostrar solo el item precargado.
+  // Al escribir en el buscador se muestran los resultados normales de la lista.
+  const displayedOptions =
+    useQueryByIdHook && !debouncedSearch && preloadItemId
+      ? allOptions.filter((o) => o.value === preloadItemId)
+      : allOptions;
+
   const commandContent = (
     <Command className="md:max-h-72 overflow-hidden" shouldFilter={false}>
       <CommandInput
@@ -237,7 +291,7 @@ export function SearchableSelectAsync({
             <CommandEmpty className="py-4 text-center text-sm">
               No hay resultados.
             </CommandEmpty>
-            {allOptions.map((option) => (
+            {displayedOptions.map((option) => (
               <CommandItem
                 key={option.value}
                 value={option.value}

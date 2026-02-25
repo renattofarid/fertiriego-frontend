@@ -76,6 +76,7 @@ export default function WarehouseDocumentForm({
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [currentDetail, setCurrentDetail] = useState<Partial<DetailRow>>({
     product_id: "",
+    product_name: "",
     quantity: 0,
     unit_cost: 0,
     observations: "",
@@ -112,17 +113,14 @@ export default function WarehouseDocumentForm({
       return;
     }
 
-    const product = products.find(
-      (p) => p.id.toString() === currentDetail.product_id,
-    );
-    if (!product) {
+    if (!currentDetail.product_name) {
       toast.error("Producto no encontrado");
       return;
     }
 
     const newDetail: DetailRow = {
       product_id: currentDetail.product_id,
-      product_name: product.name,
+      product_name: currentDetail.product_name,
       quantity: currentDetail.quantity,
       unit_cost: currentDetail.unit_cost,
       total: currentDetail.quantity * currentDetail.unit_cost,
@@ -142,6 +140,7 @@ export default function WarehouseDocumentForm({
 
     setCurrentDetail({
       product_id: "",
+      product_name: "",
       quantity: 0,
       unit_cost: 0,
       observations: "",
@@ -153,6 +152,7 @@ export default function WarehouseDocumentForm({
     const detail = details[index];
     setCurrentDetail({
       product_id: detail.product_id,
+      product_name: detail.product_name,
       quantity: detail.quantity,
       unit_cost: detail.unit_cost,
       observations: detail.observations,
@@ -375,10 +375,15 @@ export default function WarehouseDocumentForm({
                   })}
                   value={currentDetail.product_id || ""}
                   onChange={(value) =>
-                    setCurrentDetail({
-                      ...currentDetail,
-                      product_id: value,
-                    })
+                    setCurrentDetail((prev) => ({ ...prev, product_id: value }))
+                  }
+                  onValueChange={(_value, item) =>
+                    setCurrentDetail((prev) => ({
+                      ...prev,
+                      product_name: item
+                        ? (item as ProductResource).name
+                        : "",
+                    }))
                   }
                   withValue
                   placeholder="Buscar producto..."
