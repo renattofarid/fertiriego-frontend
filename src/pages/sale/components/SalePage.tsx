@@ -10,15 +10,16 @@ import { useSaleStore } from "../lib/sales.store";
 import { useNavigate } from "react-router-dom";
 import {
   SALE,
+  DOCUMENT_TYPES,
   type SaleResource,
   type SaleInstallmentResource,
 } from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
-import { findSaleById } from "../lib/sale.actions";
+import { findSaleById, declararSunat } from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
-import { errorToast } from "@/lib/core.function";
+import { successToast, errorToast } from "@/lib/core.function";
 import PageWrapper from "@/components/PageWrapper";
 import DataTablePagination from "@/components/DataTablePagination";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
@@ -110,6 +111,23 @@ export default function SalePage() {
     }
   };
 
+  const handleDeclararSunat = async (sale: SaleResource) => {
+    const documentType = DOCUMENT_TYPES.find(
+      (dt) => dt.value === sale.document_type,
+    );
+    if (!documentType) {
+      errorToast("Tipo de documento no reconocido para declarar a SUNAT");
+      return;
+    }
+    try {
+      const result = await declararSunat(sale.id, documentType.type);
+      successToast(result.message || "Venta declarada a SUNAT correctamente");
+      refetch();
+    } catch {
+      errorToast("Error al declarar la venta a SUNAT");
+    }
+  };
+
   const handlePaymentSuccess = () => {
     refetch();
     setOpenPaymentSheet(false);
@@ -137,6 +155,7 @@ export default function SalePage() {
     onViewDetails: handleViewDetails,
     onManage: handleManage,
     onQuickPay: handleQuickPay,
+    onDeclararSunat: handleDeclararSunat,
   });
 
   return (
