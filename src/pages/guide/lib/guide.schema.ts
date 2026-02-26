@@ -79,7 +79,10 @@ export const guideSchema = z
     secondary_vehicle_id: optionalStringId(
       "Debe seleccionar un vehículo secundario",
     ),
-    vehicle_plate: z.string().max(20).optional(),
+    vehicle_plate: z
+      .string()
+      .min(1, { message: "La placa del vehículo es requerida" })
+      .max(20),
     vehicle_brand: z.string().max(50).optional(),
     vehicle_model: z.string().max(50).optional(),
     vehicle_mtc: z.string().max(30).optional(),

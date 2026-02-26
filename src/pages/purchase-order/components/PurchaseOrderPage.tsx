@@ -15,7 +15,10 @@ import {
 } from "@/lib/core.function";
 import { PurchaseOrderColumns } from "./PurchaseOrderColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { PURCHASE_ORDER, type PurchaseOrderResource } from "../lib/purchase-order.interface";
+import {
+  PURCHASE_ORDER,
+  type PurchaseOrderResource,
+} from "../lib/purchase-order.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import PurchaseOrderDetailSheet from "./PurchaseOrderDetailSheet";
 
@@ -35,7 +38,7 @@ export default function PurchaseOrderPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [page, search, per_page, selectedStatus, refetch]);
+  }, [search, per_page, selectedStatus, refetch]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
