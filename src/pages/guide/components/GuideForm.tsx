@@ -161,7 +161,8 @@ export const GuideForm = ({
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [carrierModalOpen, setCarrierModalOpen] = useState(false);
   const [recipientModalOpen, setRecipientModalOpen] = useState(false);
-  const [secondaryVehicleModalOpen, setSecondaryVehicleModalOpen] = useState(false);
+  const [secondaryVehicleModalOpen, setSecondaryVehicleModalOpen] =
+    useState(false);
   const [dispatcherModalOpen, setDispatcherModalOpen] = useState(false);
   const [currentDetail, setCurrentDetail] = useState<DetailRow>({
     index: "",
@@ -411,7 +412,7 @@ export const GuideForm = ({
       .then((response) => {
         const vehicle = response.data;
         if (vehicle) {
-          form.setValue("vehicle_plate", vehicle.plate || "-");
+          form.setValue("vehicle_plate", vehicle.plate || "");
           form.setValue("vehicle_brand", vehicle.brand || "-");
           form.setValue("vehicle_model", vehicle.model || "-");
           form.setValue("vehicle_mtc", vehicle.mtc || "-");
@@ -579,26 +580,23 @@ export const GuideForm = ({
           gap="gap-3"
           className=""
         >
-          <div className="flex gap-2 items-end">
-            <div className="flex-1">
-              <FormSelectAsync
-                control={form.control}
-                name="recipient_id"
-                label="Destinatario"
-                placeholder="Selecciona un destinatario"
-                useQueryHook={useClients}
-                mapOptionFn={(client) => ({
-                  value: client.id.toString(),
-                  label:
-                    client.business_name ||
-                    `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-                  description: client.business_name
-                    ? ""
-                    : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
-                })}
-                withValue
-              />
-            </div>
+          <FormSelectAsync
+            control={form.control}
+            name="recipient_id"
+            label="Destinatario"
+            placeholder="Selecciona un destinatario"
+            useQueryHook={useClients}
+            mapOptionFn={(client) => ({
+              value: client.id.toString(),
+              label:
+                client.business_name ||
+                `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+              description: client.business_name
+                ? ""
+                : `${client.names} ${client.father_surname} ${client.mother_surname}`.trim(),
+            })}
+            withValue
+          >
             <Button
               type="button"
               variant="outline"
@@ -609,7 +607,7 @@ export const GuideForm = ({
             >
               <Plus className="h-4 w-4" />
             </Button>
-          </div>
+          </FormSelectAsync>
 
           <FormSelect
             control={form.control}
@@ -776,22 +774,19 @@ export const GuideForm = ({
           gap="gap-3"
         >
           {transportModality !== "PRIVADO" && (
-            <div className="flex gap-2 items-end">
-              <div className="flex-1">
-                <FormSelectAsync
-                  control={form.control}
-                  name="carrier_id"
-                  label="Transportista"
-                  placeholder="Seleccione un transportista"
-                  useQueryHook={useCarriers}
-                  mapOptionFn={(carrier) => ({
-                    value: carrier.id.toString(),
-                    label:
-                      carrier.business_name ||
-                      `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
-                  })}
-                />
-              </div>
+            <FormSelectAsync
+              control={form.control}
+              name="carrier_id"
+              label="Transportista"
+              placeholder="Seleccione un transportista"
+              useQueryHook={useCarriers}
+              mapOptionFn={(carrier) => ({
+                value: carrier.id.toString(),
+                label:
+                  carrier.business_name ||
+                  `${carrier.names} ${carrier.father_surname} ${carrier.mother_surname}`.trim(),
+              })}
+            >
               <Button
                 type="button"
                 variant="outline"
@@ -802,8 +797,17 @@ export const GuideForm = ({
               >
                 <Plus className="h-4 w-4" />
               </Button>
-            </div>
+            </FormSelectAsync>
           )}
+
+          <FormInput
+            control={form.control}
+            name="vehicle_plate"
+            label="Placa del Vehículo"
+            placeholder="Ej: ABC-123"
+            maxLength={20}
+            uppercase
+          />
 
           {transportModality === "PRIVADO" && (
             <>
@@ -836,21 +840,18 @@ export const GuideForm = ({
                 </Button>
               </div>
 
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <FormSelectAsync
-                    control={form.control}
-                    name="vehicle_id"
-                    label="Vehículo"
-                    placeholder="Seleccione un vehículo"
-                    useQueryHook={useVehicles}
-                    mapOptionFn={(vehicle) => ({
-                      value: vehicle.id.toString(),
-                      label: vehicle.plate,
-                      description: `${vehicle.brand} ${vehicle.model}`,
-                    })}
-                  />
-                </div>
+              <FormSelectAsync
+                control={form.control}
+                name="vehicle_id"
+                label="Vehículo"
+                placeholder="Seleccione un vehículo"
+                useQueryHook={useVehicles}
+                mapOptionFn={(vehicle) => ({
+                  value: vehicle.id.toString(),
+                  label: vehicle.plate,
+                  description: `${vehicle.brand} ${vehicle.model}`,
+                })}
+              >
                 <Button
                   type="button"
                   variant="outline"
@@ -861,7 +862,7 @@ export const GuideForm = ({
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
-              </div>
+              </FormSelectAsync>
 
               <FormInput
                 control={form.control}
@@ -878,7 +879,6 @@ export const GuideForm = ({
                 name="vehicle_plate"
                 label="Placa del Vehículo"
                 placeholder="Ej: ABC-123"
-                optional
                 maxLength={20}
                 uppercase
               />

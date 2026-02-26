@@ -304,7 +304,7 @@ export function FormSelectAsync({
                       role="combobox"
                       disabled={disabled}
                       className={cn(
-                        "w-full justify-between min-h-7 flex min-w-0",
+                        "w-full justify-between min-h-7 flex min-w-0 truncate",
                         !field.value && "text-muted-foreground",
                         field.value && "bg-muted",
                         className,

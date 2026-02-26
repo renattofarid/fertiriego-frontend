@@ -54,7 +54,7 @@ export const PurchasePage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [page, search, per_page, selectedStatus, selectedPaymentType]);
+  }, [search, per_page, selectedStatus, selectedPaymentType]);
 
   const handleDelete = async () => {
     if (!deleteId) return;

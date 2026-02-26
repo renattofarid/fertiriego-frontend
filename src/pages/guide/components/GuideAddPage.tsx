@@ -64,7 +64,7 @@ export default function GuideAddPage() {
     vehicle_id: "",
     secondary_vehicle_id: "",
     driver_license: "-",
-    vehicle_plate: "-",
+    vehicle_plate: "",
     vehicle_brand: "-",
     vehicle_model: "-",
     vehicle_mtc: "-",

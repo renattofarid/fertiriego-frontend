@@ -42,7 +42,7 @@ export default function WarehouseProductPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [page, search, per_page, warehouseId, productId]);
+  }, [search, per_page, warehouseId, productId]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
