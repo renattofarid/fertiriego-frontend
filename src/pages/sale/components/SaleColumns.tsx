@@ -169,7 +169,7 @@ export const getSaleColumns = ({
   },
   {
     accessorKey: "status_facturado",
-    header: "Estado",
+    header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
       let variant: "default" | "secondary" | "destructive" | "gray" = "default";
