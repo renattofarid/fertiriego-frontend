@@ -1,14 +1,14 @@
 import axios from "axios";
 import { errorToast } from "./core.function";
 
-// const baseURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
-// export const prodAssetURL =
-//   "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
 const baseURL =
-  "https://develop.garzasoft.com:82/comercialferriego-backend/public/api/";
+  "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/";
 export const prodAssetURL =
-  "https://develop.garzasoft.com:82/comercialferriego-backend/public/storage/";
+  "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/storage/";
+// const baseURL =
+//   "https://develop.garzasoft.com:82/comercialferriego-backend/public/api/";
+// export const prodAssetURL =
+//   "https://develop.garzasoft.com:82/comercialferriego-backend/public/storage/";
 
 export const api = axios.create({
   baseURL,
