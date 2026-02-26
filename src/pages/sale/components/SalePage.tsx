@@ -51,7 +51,7 @@ export default function SalePage() {
 
   useEffect(() => {
     setPage(1);
-  }, [page, per_page, search, startDate, endDate]);
+  }, [per_page, search, startDate, endDate]);
 
   const { removeSale } = useSaleStore();
 

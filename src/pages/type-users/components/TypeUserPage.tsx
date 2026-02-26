@@ -37,7 +37,7 @@ export default function TypeUserPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [page, search, per_page]);
+  }, [search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;

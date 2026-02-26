@@ -35,7 +35,7 @@ export default function OrderPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [page, search, per_page]);
+  }, [search, per_page]);
 
   const { removeOrder } = useOrderStore();
 
@@ -96,7 +96,7 @@ export default function OrderPage() {
             excelEndpoint="/order/export"
             excelFileName="pedidos.xlsx"
           />
-          <Button  onClick={() => navigate("/pedidos/agregar")}>
+          <Button onClick={() => navigate("/pedidos/agregar")}>
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Pedido
           </Button>
