@@ -80,6 +80,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       const request: CreatePurchaseOrderRequest = {
         supplier_id: Number(data.supplier_id),
         warehouse_id: Number(data.warehouse_id),
+        currency: data.currency,
         issue_date: data.issue_date,
         expected_date: data.expected_date,
         observations: data.observations || "",
@@ -120,6 +121,7 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       const request: any = {};
       if (data.supplier_id) request.supplier_id = Number(data.supplier_id);
       if (data.warehouse_id) request.warehouse_id = Number(data.warehouse_id);
+      if (data.currency !== undefined) request.currency = data.currency;
       if (data.issue_date) request.issue_date = data.issue_date;
       if (data.expected_date) request.expected_date = data.expected_date;
       if (data.observations !== undefined)
