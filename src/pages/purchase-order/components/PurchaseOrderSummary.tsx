@@ -28,6 +28,7 @@ interface PurchaseOrderSummaryProps {
   totalWithIgv: number;
   applyIgv: boolean;
   selectedSupplier?: PersonResource;
+  currencySymbol?: string;
   onCancel?: () => void;
 }
 
@@ -42,6 +43,7 @@ export function PurchaseOrderSummary({
   totalWithIgv,
   applyIgv,
   selectedSupplier,
+  currencySymbol = "S/.",
   onCancel,
 }: PurchaseOrderSummaryProps) {
   const warehouseWatch = form.watch("warehouse_id");
@@ -153,7 +155,7 @@ export function PurchaseOrderSummary({
                         {detail.product_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {detail.quantity_requested} x S/.{" "}
+                        {detail.quantity_requested} x {currencySymbol}{" "}
                         {parseFloat(detail.unit_price_estimated).toLocaleString(
                           "es-PE",
                           {
@@ -164,7 +166,7 @@ export function PurchaseOrderSummary({
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      S/.{" "}
+                      {currencySymbol}{" "}
                       {detail.subtotal.toLocaleString("es-PE", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2,
@@ -184,7 +186,7 @@ export function PurchaseOrderSummary({
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-medium">
                 {formatCurrency(subtotalBase, {
-                  currencySymbol: "S/.",
+                  currencySymbol,
                   decimals: 2,
                 })}
               </span>
@@ -195,7 +197,7 @@ export function PurchaseOrderSummary({
                 <span className="text-muted-foreground">IGV (18%)</span>
                 <span className="font-medium">
                   {formatCurrency(igvAmount, {
-                    currencySymbol: "S/.",
+                    currencySymbol,
                     decimals: 2,
                   })}
                 </span>
@@ -210,7 +212,7 @@ export function PurchaseOrderSummary({
               </span>
               <span className="text-xl font-bold text-primary">
                 {formatCurrency(applyIgv ? totalWithIgv : subtotalBase, {
-                  currencySymbol: "S/.",
+                  currencySymbol,
                   decimals: 2,
                 })}
               </span>

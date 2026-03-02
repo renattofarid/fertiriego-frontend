@@ -20,6 +20,7 @@ export const purchaseOrderDetailSchema = z.object({
 export const purchaseOrderSchemaCreate = z.object({
   supplier_id: requiredStringId("Debe seleccionar un proveedor"),
   warehouse_id: requiredStringId("Debe seleccionar un almacén"),
+  currency: z.string().optional(),
   apply_igv: z.boolean().optional(),
   issue_date: z
     .string()

@@ -6,6 +6,12 @@ import type { PurchaseOrderSchema } from "./purchase-order.schema";
 const ROUTE = "/ordenes-compra";
 const NAME = "Orden de Compra";
 
+export const CURRENCIES = [
+  { value: "PEN", label: "S/. Soles", symbol: "S/." },
+  { value: "USD", label: "$ Dólares", symbol: "$" },
+  { value: "EUR", label: "€ Euros", symbol: "€" },
+] as const;
+
 export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
   MODEL: {
     name: NAME,
@@ -37,6 +43,7 @@ export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
   EMPTY: {
     supplier_id: "",
     warehouse_id: "",
+    currency: "PEN",
     apply_igv: false,
     issue_date: "",
     expected_date: "",
@@ -62,6 +69,7 @@ export interface PurchaseOrderResource {
   user_id: number;
   user_name: string;
   order_number?: string;
+  currency?: string;
   issue_date: string;
   expected_date: string;
   status: string;
@@ -80,6 +88,7 @@ export interface PurchaseOrderResourceById {
 export interface CreatePurchaseOrderRequest {
   supplier_id: number;
   warehouse_id: number;
+  currency?: string;
   issue_date: string;
   expected_date: string;
   observations: string | null;
@@ -92,6 +101,7 @@ export interface UpdatePurchaseOrderRequest {
   supplier_id?: number;
   warehouse_id?: number;
   order_number?: string;
+  currency?: string;
   issue_date?: string;
   expected_date?: string;
   observations?: string | null;
