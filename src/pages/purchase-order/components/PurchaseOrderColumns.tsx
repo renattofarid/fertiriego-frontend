@@ -1,4 +1,7 @@
-import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
+import {
+  type PurchaseOrderResource,
+  CURRENCIES,
+} from "../lib/purchase-order.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnActions } from "@/components/SelectActions";
@@ -95,10 +98,15 @@ export const PurchaseOrderColumns = ({
   {
     accessorKey: "total_estimated",
     header: "Total Estimado",
-    cell: ({ getValue }) => {
+    cell: ({ getValue, row }) => {
       const total = Number(getValue() as string);
+      const currencySymbol =
+        CURRENCIES.find((c) => c.value === row.original.currency)?.symbol ??
+        "S/.";
       return (
-        <span className="font-bold text-primary">S/. {total.toFixed(2)}</span>
+        <span className="font-bold text-primary">
+          {currencySymbol} {total.toFixed(2)}
+        </span>
       );
     },
   },
