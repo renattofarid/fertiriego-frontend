@@ -185,6 +185,16 @@ export function FormSelectAsync({
     }
   }, [data, page, mapOptionFn]);
 
+  // Sincronizar cuando defaultOption cambia después del montaje (ej: seleccionar cotización)
+  useEffect(() => {
+    if (!defaultOption) return;
+    setSelectedOption(defaultOption);
+    setAllOptions((prev) => {
+      if (prev.some((o) => o.value === defaultOption.value)) return prev;
+      return [defaultOption, ...prev];
+    });
+  }, [defaultOption?.value]);
+
   // Inyectar item precargado via lookup directo (cuando se provee useQueryByIdHook)
   useEffect(() => {
     if (!preloadedItem || !preloadItemId) return;
@@ -264,11 +274,15 @@ export function FormSelectAsync({
       control={control}
       name={name}
       render={({ field }) => {
-        // Buscar la opción seleccionada en las opciones cargadas o usar la cache
+        // Buscar la opción seleccionada en las opciones cargadas, cache o defaultOption
+        const found = allOptions.find((opt) => opt.value === field.value);
         const selected =
-          allOptions.find((opt) => opt.value === field.value) ||
+          found ||
           (field.value && selectedOption?.value === field.value
             ? selectedOption
+            : null) ||
+          (field.value && defaultOption?.value === field.value
+            ? defaultOption
             : null);
 
         return (

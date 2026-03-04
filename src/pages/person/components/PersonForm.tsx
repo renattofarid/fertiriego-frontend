@@ -502,7 +502,7 @@ export const PersonForm = ({
             <DatePickerFormField
               control={form.control}
               name="birth_date"
-              label="Fecha de Nacimiento"
+              label="Fecha de Nacimiento (opcional)"
               placeholder="Seleccione fecha"
               captionLayout="dropdown"
               endMonth={
@@ -680,7 +680,8 @@ export const PersonForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className={errors.email ? "text-destructive" : ""}>
-                  Correo Electrónico {errors.email && "*"}
+                  Correo Electrónico{" "}
+                  {errors.email ? "*" : <span className="text-muted-foreground font-normal">(opcional)</span>}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -718,7 +719,8 @@ export const PersonForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel className={errors.phone ? "text-destructive" : ""}>
-                  Teléfono {errors.phone && "*"}
+                  Teléfono{" "}
+                  {errors.phone ? "*" : <span className="text-muted-foreground font-normal">(opcional)</span>}
                 </FormLabel>
                 <FormControl>
                   <Input
