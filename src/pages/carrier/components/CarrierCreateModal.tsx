@@ -41,8 +41,8 @@ export default function CarrierCreateModal({ open, onClose }: Props) {
         business_name: data.business_name || "",
         commercial_name: data.commercial_name || "",
         address: data.address || "",
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         status: "Activo",
         role_id: CARRIER_ROLE_ID,
       };
