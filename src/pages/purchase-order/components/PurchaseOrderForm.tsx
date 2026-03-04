@@ -27,7 +27,10 @@ import {
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
-import type { PurchaseOrderResource } from "../lib/purchase-order.interface";
+import {
+  type PurchaseOrderResource,
+  CURRENCIES,
+} from "../lib/purchase-order.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
 import { useState, useEffect } from "react";
@@ -121,6 +124,7 @@ export const PurchaseOrderForm = ({
     ),
     defaultValues: {
       ...defaultValues,
+      currency: (defaultValues as any)?.currency || "PEN",
       observations: defaultValues.observations ?? "",
       details: details.length > 0 ? details : [],
       apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
@@ -133,6 +137,11 @@ export const PurchaseOrderForm = ({
 
   // Vigilar el switch de aplicar IGV para mostrar referencia en UI (no modifica payload)
   const applyIgv = form.watch("apply_igv") ?? false;
+
+  // Símbolo de moneda según selección
+  const currencyWatch = form.watch("currency");
+  const currencySymbol =
+    CURRENCIES.find((c) => c.value === currencyWatch)?.symbol ?? "S/.";
 
   // Obtener proveedor seleccionado
   const supplierWatch = form.watch("supplier_id");
@@ -308,6 +317,7 @@ export const PurchaseOrderForm = ({
     onSubmit({
       supplier_id: Number(data.supplier_id),
       warehouse_id: Number(data.warehouse_id),
+      currency: data.currency,
       order_number: data.order_number,
       issue_date: data.issue_date,
       expected_date: data.expected_date,
@@ -404,6 +414,17 @@ export const PurchaseOrderForm = ({
                 label="Fecha Esperada"
                 placeholder="Seleccione la fecha esperada"
                 dateFormat="dd/MM/yyyy"
+              />
+
+              <FormSelect
+                control={form.control}
+                name="currency"
+                label="Moneda"
+                placeholder="Seleccione moneda"
+                options={CURRENCIES.map((c) => ({
+                  value: c.value,
+                  label: c.label,
+                }))}
               />
 
               <FormSwitch
@@ -555,12 +576,12 @@ export const PurchaseOrderForm = ({
                           <TableCell className="text-right">
                             {formatCurrency(
                               parseFloat(detail.unit_price_estimated),
-                              { currencySymbol: "S/.", decimals: 2 },
+                              { currencySymbol, decimals: 2 },
                             )}
                           </TableCell>
                           <TableCell className="text-right font-bold text-primary">
                             {formatCurrency(detail.subtotal, {
-                              currencySymbol: "S/.",
+                              currencySymbol,
                               decimals: 2,
                             })}
                           </TableCell>
@@ -613,6 +634,7 @@ export const PurchaseOrderForm = ({
             totalWithIgv={totalWithIgv}
             applyIgv={applyIgv}
             selectedSupplier={selectedSupplier}
+            currencySymbol={currencySymbol}
             onCancel={onCancel}
           />
         </div>
