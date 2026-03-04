@@ -85,9 +85,6 @@ export const OrderForm = ({
   const [editingIndex, setEditingIndex] = useState<number | undefined>(
     undefined,
   );
-  const { data: quotationsResponse } = useQuotations();
-  const quotations = quotationsResponse?.data;
-
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
@@ -123,8 +120,6 @@ export const OrderForm = ({
       customer_id: "",
     },
   });
-
-  const quotationId = form.watch("quotation_id");
 
   // Actualizar listas cuando cambien las props
   useEffect(() => {
@@ -190,68 +185,50 @@ export const OrderForm = ({
     }
   }, [mode, order, form]);
 
-  useEffect(() => {
-    if (quotationId && quotations) {
-      const selectedQuotation = quotations.find(
-        (q) => q.id === parseInt(quotationId),
-      );
-
-      if (selectedQuotation) {
-        // Establecer el cliente con su información para que aparezca en el dropdown
-        const customerLabel =
-          selectedQuotation.customer?.business_name ||
-          selectedQuotation.customer?.names +
-            " " +
-            (selectedQuotation.customer?.father_surname || "") +
-            " " +
-            (selectedQuotation.customer?.mother_surname || "");
-
-        setDefaultCustomerOption({
-          value: selectedQuotation.customer_id.toString(),
-          label: customerLabel,
-        });
-
-        // Establecer el ID para precargar automáticamente
-        setPreloadCustomerId(selectedQuotation.customer_id.toString());
-
-        if (mode === "create") {
-          // Prellenar datos del formulario
-          form.setValue(
-            "customer_id",
-            selectedQuotation.customer_id.toString(),
-          );
-          form.setValue(
-            "warehouse_id",
-            selectedQuotation.warehouse_id.toString(),
-          );
-          form.setValue("currency", selectedQuotation.currency);
-          form.setValue("address", selectedQuotation.address || "");
-          form.setValue("observations", selectedQuotation.observations || "");
-
-          // Prellenar los detalles de productos
-          const quotationDetails: DetailRow[] =
-            selectedQuotation.quotation_details.map((detail) => ({
-              product_id: detail.product_id.toString(),
-              product_name: detail.product.name,
-              is_igv: detail.is_igv,
-              quantity: detail.quantity,
-              unit_price: detail.unit_price,
-              purchase_price: detail.purchase_price,
-              subtotal: parseFloat(detail.subtotal),
-              tax: parseFloat(detail.tax),
-              total: parseFloat(detail.total),
-            }));
-
-          setDetails(quotationDetails);
-        }
-      }
-    } else {
-      // Limpiar cuando se quita la cotización
+  const handleQuotationChange = (_value: string, quotation?: QuotationResource) => {
+    if (!quotation) {
       setDefaultCustomerOption(undefined);
       setPreloadCustomerId(undefined);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotationId, quotations]);
+
+    const customerLabel =
+      quotation.customer?.business_name ||
+      quotation.customer?.names +
+        " " +
+        (quotation.customer?.father_surname || "") +
+        " " +
+        (quotation.customer?.mother_surname || "");
+
+    setDefaultCustomerOption({
+      value: quotation.customer_id.toString(),
+      label: customerLabel,
+    });
+    setPreloadCustomerId(quotation.customer_id.toString());
+
+    if (mode === "create") {
+      form.setValue("customer_id", quotation.customer_id.toString());
+      form.setValue("warehouse_id", quotation.warehouse_id.toString());
+      form.setValue("currency", quotation.currency);
+      form.setValue("address", quotation.address || "");
+      form.setValue("observations", quotation.observations || "");
+
+      const quotationDetails: DetailRow[] =
+        quotation.quotation_details.map((detail) => ({
+          product_id: detail.product_id.toString(),
+          product_name: detail.product.name,
+          is_igv: detail.is_igv,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          purchase_price: detail.purchase_price,
+          subtotal: parseFloat(detail.subtotal),
+          tax: parseFloat(detail.tax),
+          total: parseFloat(detail.total),
+        }));
+
+      setDetails(quotationDetails);
+    }
+  };
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -388,6 +365,7 @@ export const OrderForm = ({
                 label: `#${q.id} - ${q.quotation_number} - ${q.customer?.business_name || q.customer?.names || "Cliente"}`,
               })}
               placeholder="Seleccionar cotización"
+              onValueChange={handleQuotationChange}
             />
 
             <div className="flex gap-2 items-end max-w-full">

@@ -78,6 +78,10 @@ export default function GuidePage() {
     navigate(`/ventas/agregar?guide_id=${guide.id}`);
   };
 
+  const handleDuplicate = (guide: GuideResource) => {
+    navigate(`${GUIDE.ROUTE}/agregar`, { state: { duplicateFrom: guide } });
+  };
+
   const confirmStatusChange = async (newStatus: GuideStatus) => {
     if (!statusChangeData) return;
     try {
@@ -123,6 +127,7 @@ export default function GuidePage() {
           onView: handleView,
           onChangeStatus: handleChangeStatus,
           onGenerateSale: handleGenerateSale,
+          onDuplicate: handleDuplicate,
         })}
         data={data?.data || []}
       >

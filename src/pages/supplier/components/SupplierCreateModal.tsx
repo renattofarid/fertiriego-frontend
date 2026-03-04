@@ -45,19 +45,19 @@ export const SupplierCreateModal = ({
         business_name: data.business_name || "",
         commercial_name: data.commercial_name || "",
         address: data.address || "",
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         status: "Activo",
         role_id: Number(data.role_id),
       };
 
       const response = await createPersonWithRole(
         createPersonData,
-        Number(data.role_id)
+        Number(data.role_id),
       );
 
       successToast(
-        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
 
       if (onSupplierCreated && response?.data) {
@@ -72,7 +72,7 @@ export const SupplierCreateModal = ({
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);

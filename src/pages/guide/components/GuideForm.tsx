@@ -433,9 +433,9 @@ export const GuideForm = ({
     }
   }, [form]);
 
-  // Cargar detalles existentes en modo edición
+  // Cargar detalles existentes en modo edición o duplicación
   useEffect(() => {
-    if (mode === "edit" && defaultValues.details) {
+    if (defaultValues.details && defaultValues.details.length > 0) {
       const formattedDetails = defaultValues.details.map(
         (detail: any, index: number) => ({
           index: index.toString(),

@@ -68,14 +68,16 @@ export const personCreateSchema = z
 
     phone: z
       .string()
-      .min(1, "El teléfono es obligatorio")
-      .regex(/^[0-9]{9}$/, "El teléfono debe tener exactamente 9 dígitos"),
+      .regex(/^[0-9]{9}$/, "El teléfono debe tener exactamente 9 dígitos")
+      .optional()
+      .or(z.literal("")),
 
     email: z
       .string()
-      .min(1, "El correo electrónico es obligatorio")
       .email("Ingrese un correo electrónico válido")
-      .max(255, "El correo no puede exceder 255 caracteres"),
+      .max(255, "El correo no puede exceder 255 caracteres")
+      .optional()
+      .or(z.literal("")),
 
     // ocupation: z
     //   .string()
@@ -138,15 +140,6 @@ export const personCreateSchema = z
           code: z.ZodIssueCode.custom,
           message: "El género es obligatorio para personas naturales",
           path: ["gender"],
-        });
-      }
-
-      if (!data.birth_date || data.birth_date.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message:
-            "La fecha de nacimiento es obligatoria para personas naturales",
-          path: ["birth_date"],
         });
       }
 

@@ -40,8 +40,8 @@ export default function SupplierAddPage() {
         business_name: data.business_name || "",
         commercial_name: data.commercial_name || "",
         address: data.address || "",
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         status: "Activo",
         role_id: Number(data.role_id),
       };
