@@ -325,9 +325,9 @@ export const QuotationForm = ({
     [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets],
   );
 
-  // Cargar detalles iniciales cuando se está editando
+  // Cargar detalles iniciales cuando se está editando o duplicando
   useEffect(() => {
-    if (mode === "edit" && initialData?.quotation_details) {
+    if (initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
         (detail: QuotationDetailResource) => ({
           product_id: detail.product_id.toString(),

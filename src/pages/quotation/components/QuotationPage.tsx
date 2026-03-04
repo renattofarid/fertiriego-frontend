@@ -58,6 +58,10 @@ export default function QuotationPage() {
     navigate(`/cotizaciones/${quotation.id}`);
   };
 
+  const handleDuplicate = (quotation: QuotationResource) => {
+    navigate("/cotizaciones/agregar", { state: { duplicateFrom: quotation } });
+  };
+
   const confirmDelete = async () => {
     if (quotationToDelete) {
       try {
@@ -77,6 +81,7 @@ export default function QuotationPage() {
     onEdit: handleEdit,
     onDelete: handleDelete,
     onViewDetails: handleViewDetails,
+    onDuplicate: handleDuplicate,
   });
 
   return (
