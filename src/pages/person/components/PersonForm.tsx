@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Form,
   FormControl,
@@ -88,23 +88,6 @@ export const PersonForm = ({
     business_name: false,
     address: false,
   });
-
-  // Auto-set person type based on document type
-  useEffect(() => {
-    if (type_document === "DNI" && type_person !== "NATURAL") {
-      form.setValue("type_person", "NATURAL", { shouldValidate: true });
-    } else if (type_document === "RUC" && type_person !== "JURIDICA") {
-      form.setValue("type_person", "JURIDICA", { shouldValidate: true });
-    }
-  }, [type_document, type_person, form]);
-
-  // Reset document type when person type changes to JURIDICA
-  useEffect(() => {
-    if (type_person === "JURIDICA" && type_document !== "RUC") {
-      form.setValue("type_document", "RUC", { shouldValidate: true });
-      form.setValue("number_document", "", { shouldValidate: true });
-    }
-  }, [type_person, type_document, form]);
 
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
@@ -211,21 +194,35 @@ export const PersonForm = ({
         >
           <FormSelect
             control={form.control}
+            name="type_person"
+            label="Tipo de Persona"
+            placeholder="Seleccione tipo"
+            options={
+              isWorker
+                ? [{ value: "NATURAL", label: "Natural" }] // Workers are always natural
+                : [
+                    { value: "NATURAL", label: "Natural" },
+                    { value: "JURIDICA", label: "Jurídica" },
+                  ]
+            }
+          />
+
+          <FormSelect
+            control={form.control}
             name="type_document"
             label="Tipo de Documento"
             placeholder="Seleccione tipo"
-            disabled={isWorker || isEditing} // Workers can only use DNI
             options={
               isWorker
                 ? [{ value: "DNI", label: "DNI" }] // Workers can only use DNI
                 : type_person === "JURIDICA"
-                ? [{ value: "RUC", label: "RUC" }]
-                : [
-                    { value: "DNI", label: "DNI" },
-                    { value: "RUC", label: "RUC" },
-                    { value: "CE", label: "CE" },
-                    { value: "PASAPORTE", label: "PASAPORTE" },
-                  ]
+                  ? [{ value: "RUC", label: "RUC" }]
+                  : [
+                      { value: "DNI", label: "DNI" },
+                      { value: "RUC", label: "RUC" },
+                      { value: "CE", label: "CE" },
+                      { value: "PASAPORTE", label: "PASAPORTE" },
+                    ]
             }
           />
 
@@ -242,17 +239,16 @@ export const PersonForm = ({
                 <FormControl>
                   <div className="relative">
                     <Input
-                      disabled={isEditing}
                       placeholder={
                         type_document === "DNI"
                           ? "Ingrese 8 dígitos"
                           : type_document === "RUC"
-                          ? "Ingrese 11 dígitos"
-                          : type_document === "CE"
-                          ? "Ingrese 8-9 dígitos"
-                          : type_document === "PASAPORTE"
-                          ? "Ingrese 8-11 caracteres"
-                          : "Ingrese el número"
+                            ? "Ingrese 11 dígitos"
+                            : type_document === "CE"
+                              ? "Ingrese 8-9 dígitos"
+                              : type_document === "PASAPORTE"
+                                ? "Ingrese 8-11 caracteres"
+                                : "Ingrese el número"
                       }
                       {...field}
                       className={`
@@ -276,12 +272,12 @@ export const PersonForm = ({
                         type_document === "DNI"
                           ? 8
                           : type_document === "RUC"
-                          ? 11
-                          : type_document === "CE"
-                          ? 9
-                          : type_document === "PASAPORTE"
-                          ? 11
-                          : 11
+                            ? 11
+                            : type_document === "CE"
+                              ? 9
+                              : type_document === "PASAPORTE"
+                                ? 11
+                                : 11
                       }
                       onChange={(e) => {
                         let value;
@@ -312,10 +308,9 @@ export const PersonForm = ({
                       <Button
                         type="button"
                         variant="ghost"
-                        
                         className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                         onClick={handleDocumentSearch}
-                        disabled={isSearching || !field.value || isEditing}
+                        disabled={isSearching || !field.value}
                       >
                         {isSearching ? (
                           <Loader className="h-4 w-4 animate-spin" />
@@ -379,39 +374,24 @@ export const PersonForm = ({
             )}
           />
 
-          <FormSelect
-            control={form.control}
-            name="type_person"
-            label="Tipo de Persona"
-            placeholder="Seleccione tipo"
-            disabled={isWorker || isEditing} // Workers are always natural persons
-            options={
-              isWorker
-                ? [{ value: "NATURAL", label: "Natural" }] // Workers are always natural
-                : [
-                    { value: "NATURAL", label: "Natural" },
-                    { value: "JURIDICA", label: "Jurídica" },
-                  ]
-            }
-          />
-
           {/* Personal Information - Natural Person */}
           {type_person === "NATURAL" && (
             <>
               <FormField
-              control={form.control}
-              name="names"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={errors.names ? "text-destructive" : ""}>
-                    Nombres {errors.names && "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isEditing}
-                      placeholder="Ingrese los nombres"
-                      {...field}
-                      className={`
+                control={form.control}
+                name="names"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={errors.names ? "text-destructive" : ""}
+                    >
+                      Nombres {errors.names && "*"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese los nombres"
+                        {...field}
+                        className={`
                         ${
                           fieldsFromSearch.names
                             ? "bg-blue-50 border-blue-200"
@@ -428,116 +408,116 @@ export const PersonForm = ({
                             : ""
                         }
                       `}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for feedback */}
-                  <div className="h-4 text-xs">
-                    {!errors.names && dirtyFields.names && (
-                      <p className="text-primary">✓ Nombres válidos</p>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="father_surname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellido Paterno</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isEditing}
-                      placeholder="Ingrese apellido paterno"
-                      {...field}
-                      className={
-                        fieldsFromSearch.father_surname ? "bg-blue-50" : ""
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for consistency */}
-                  <div className="h-4"></div>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="mother_surname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Apellido Materno</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isEditing}
-                      placeholder="Ingrese apellido materno"
-                      {...field}
-                      className={
-                        fieldsFromSearch.mother_surname ? "bg-blue-50" : ""
-                      }
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for consistency */}
-                  <div className="h-4"></div>
-                </FormItem>
-              )}
-            />
-
-            <FormSelect
-              control={form.control}
-              name="gender"
-              label="Género"
-              placeholder="Seleccione género"
-              options={[
-                { value: "M", label: "Masculino" },
-                { value: "F", label: "Femenino" },
-                { value: "O", label: "Otro" },
-              ]}
-            />
-
-            <DatePickerFormField
-              control={form.control}
-              name="birth_date"
-              label="Fecha de Nacimiento (opcional)"
-              placeholder="Seleccione fecha"
-              captionLayout="dropdown"
-              endMonth={
-                new Date(
-                  new Date().getFullYear() - 18,
-                  new Date().getMonth(),
-                  new Date().getDate()
-                )
-              }
-            />
-
-            {showDriverLicense && (
-              <FormField
-                control={form.control}
-                name="driver_license"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Licencia de Conducir</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej: B II-12345"
-                        {...field}
-                        value={field.value || ""}
-                        maxLength={20}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       />
                     </FormControl>
                     <FormMessage />
+                    {/* Fixed height container for feedback */}
+                    <div className="h-4 text-xs">
+                      {!errors.names && dirtyFields.names && (
+                        <p className="text-primary">✓ Nombres válidos</p>
+                      )}
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="father_surname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido Paterno</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese apellido paterno"
+                        {...field}
+                        className={
+                          fieldsFromSearch.father_surname ? "bg-blue-50" : ""
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {/* Fixed height container for consistency */}
                     <div className="h-4"></div>
                   </FormItem>
                 )}
               />
-            )}
 
-            {/* <FormField
+              <FormField
+                control={form.control}
+                name="mother_surname"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Apellido Materno</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese apellido materno"
+                        {...field}
+                        className={
+                          fieldsFromSearch.mother_surname ? "bg-blue-50" : ""
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {/* Fixed height container for consistency */}
+                    <div className="h-4"></div>
+                  </FormItem>
+                )}
+              />
+
+              <FormSelect
+                control={form.control}
+                name="gender"
+                label="Género"
+                placeholder="Seleccione género"
+                options={[
+                  { value: "M", label: "Masculino" },
+                  { value: "F", label: "Femenino" },
+                  { value: "O", label: "Otro" },
+                ]}
+              />
+
+              <DatePickerFormField
+                control={form.control}
+                name="birth_date"
+                label="Fecha de Nacimiento (opcional)"
+                placeholder="Seleccione fecha"
+                captionLayout="dropdown"
+                endMonth={
+                  new Date(
+                    new Date().getFullYear() - 18,
+                    new Date().getMonth(),
+                    new Date().getDate(),
+                  )
+                }
+              />
+
+              {showDriverLicense && (
+                <FormField
+                  control={form.control}
+                  name="driver_license"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Licencia de Conducir</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ej: B II-12345"
+                          {...field}
+                          value={field.value || ""}
+                          maxLength={20}
+                          onChange={(e) =>
+                            field.onChange(e.target.value.toUpperCase())
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                      <div className="h-4"></div>
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* <FormField
               control={form.control}
               name="ocupation"
               render={({ field }) => (
@@ -582,21 +562,20 @@ export const PersonForm = ({
           {type_person === "JURIDICA" && (
             <>
               <FormField
-              control={form.control}
-              name="business_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel
-                    className={errors.business_name ? "text-destructive" : ""}
-                  >
-                    Razón Social {errors.business_name && "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled={isEditing}
-                      placeholder="Ingrese la razón social"
-                      {...field}
-                      className={`
+                control={form.control}
+                name="business_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={errors.business_name ? "text-destructive" : ""}
+                    >
+                      Razón Social {errors.business_name && "*"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese la razón social"
+                        {...field}
+                        className={`
                         ${
                           fieldsFromSearch.business_name
                             ? "bg-blue-50 border-blue-200"
@@ -613,34 +592,36 @@ export const PersonForm = ({
                             : ""
                         }
                       `}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for feedback */}
-                  <div className="h-4 text-xs">
-                    {!errors.business_name && dirtyFields.business_name && (
-                      <p className="text-primary">✓ Razón social válida</p>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {/* Fixed height container for feedback */}
+                    <div className="h-4 text-xs">
+                      {!errors.business_name && dirtyFields.business_name && (
+                        <p className="text-primary">✓ Razón social válida</p>
+                      )}
+                    </div>
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="commercial_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel
-                    className={errors.commercial_name ? "text-destructive" : ""}
-                  >
-                    Nombre Comercial {errors.commercial_name && "*"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ingrese el nombre comercial"
-                      {...field}
-                      className={`
+              <FormField
+                control={form.control}
+                name="commercial_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel
+                      className={
+                        errors.commercial_name ? "text-destructive" : ""
+                      }
+                    >
+                      Nombre Comercial {errors.commercial_name && "*"}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ingrese el nombre comercial"
+                        {...field}
+                        className={`
                         ${
                           errors.commercial_name
                             ? "border-destructive focus-visible:ring-destructive"
@@ -652,18 +633,21 @@ export const PersonForm = ({
                             : ""
                         }
                       `}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for feedback */}
-                  <div className="h-4 text-xs">
-                    {!errors.commercial_name && dirtyFields.commercial_name && (
-                      <p className="text-primary">✓ Nombre comercial válido</p>
-                    )}
-                  </div>
-                </FormItem>
-              )}
-            />
+                      />
+                    </FormControl>
+                    <FormMessage />
+                    {/* Fixed height container for feedback */}
+                    <div className="h-4 text-xs">
+                      {!errors.commercial_name &&
+                        dirtyFields.commercial_name && (
+                          <p className="text-primary">
+                            ✓ Nombre comercial válido
+                          </p>
+                        )}
+                    </div>
+                  </FormItem>
+                )}
+              />
             </>
           )}
         </GroupFormSection>
@@ -681,7 +665,13 @@ export const PersonForm = ({
               <FormItem>
                 <FormLabel className={errors.email ? "text-destructive" : ""}>
                   Correo Electrónico{" "}
-                  {errors.email ? "*" : <span className="text-muted-foreground font-normal">(opcional)</span>}
+                  {errors.email ? (
+                    "*"
+                  ) : (
+                    <span className="text-muted-foreground font-normal">
+                      (opcional)
+                    </span>
+                  )}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -720,7 +710,13 @@ export const PersonForm = ({
               <FormItem>
                 <FormLabel className={errors.phone ? "text-destructive" : ""}>
                   Teléfono{" "}
-                  {errors.phone ? "*" : <span className="text-muted-foreground font-normal">(opcional)</span>}
+                  {errors.phone ? (
+                    "*"
+                  ) : (
+                    <span className="text-muted-foreground font-normal">
+                      (opcional)
+                    </span>
+                  )}
                 </FormLabel>
                 <FormControl>
                   <Input

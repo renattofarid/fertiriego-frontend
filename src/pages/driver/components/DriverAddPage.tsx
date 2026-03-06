@@ -78,7 +78,6 @@ export default function DriverAddPage() {
         isSubmitting={isSubmitting}
         onCancel={() => navigate("/conductores")}
         roleId={DRIVER_ROLE_ID}
-        isWorker={true}
         showDriverLicense={true}
       />
     </FormWrapper>

@@ -17,7 +17,7 @@ export const CARRIER: ModelComplete<any> = {
   QUERY_KEY: "carriers",
   ROUTE,
   ROUTE_ADD: `${ROUTE}/agregar`,
-  ROUTE_UPDATE: `${ROUTE}/actualizar`,
+  ROUTE_UPDATE: `${ROUTE}/editar`,
   TITLES: {
     create: {
       title: `Crear ${NAME}`,
