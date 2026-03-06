@@ -69,6 +69,15 @@ export const SaleEditPage = () => {
     currency: data.currency,
     observations: data.observations || "",
     order_purchase: data.order_purchase || "",
+    is_anticipado: data.is_anticipado ?? false,
+    is_deduccion: data.is_deduccion ?? false,
+    is_retencionigv: data.is_retencionigv ?? false,
+    is_termine_condition: data.is_termine_condition ?? false,
+    guides:
+      data.guides?.map((g) => ({
+        name: g.name,
+        correlative: g.correlative,
+      })) ?? [],
     details:
       data.details?.map((detail) => ({
         product_id: detail.product_id.toString(),

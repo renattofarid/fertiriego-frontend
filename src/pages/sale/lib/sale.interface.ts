@@ -49,8 +49,8 @@ export interface SaleResource {
   id: number;
   customer_id: number;
   warehouse_id: number;
-  status_facturado: string;
   user_id: number;
+  status_facturado: string;
   customer_fullname: string;
   customer_document?: string;
   warehouse_name?: string;

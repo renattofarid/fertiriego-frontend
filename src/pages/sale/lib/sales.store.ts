@@ -180,7 +180,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
       successToast(SUCCESS_MESSAGE(MODEL, "edit"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "edit"));
       throw error;
     }
   },

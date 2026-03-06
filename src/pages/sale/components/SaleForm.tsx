@@ -470,6 +470,16 @@ export const SaleForm = ({
         form.setValue("installments", initialInstallments);
       }
 
+      // Inicializar guías
+      if (defaultValues.guides && defaultValues.guides.length > 0) {
+        const initialGuides = defaultValues.guides.map((g: any) => ({
+          name: g.name,
+          correlative: g.correlative,
+        }));
+        setGuides(initialGuides);
+        form.setValue("guides", initialGuides);
+      }
+
       // Disparar validación después de setear valores en modo edición
       form.trigger();
     }
@@ -810,6 +820,7 @@ export const SaleForm = ({
 
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
   useEffect(() => {
+    if (mode === "edit") return;
     if (
       isRetencionIGV &&
       selectedPaymentType === "CREDITO" &&
@@ -832,6 +843,7 @@ export const SaleForm = ({
       isInitialMount.current = false;
       return;
     }
+    if (mode === "edit") return;
     if (selectedPaymentType === "CREDITO") {
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
@@ -914,6 +926,24 @@ export const SaleForm = ({
       0,
     );
     return roundTo6Decimals(sum);
+  };
+
+  const handleRecalculateInstallments = () => {
+    if (installments.length === 0) return;
+    const netTotal = calculateNetTotal();
+    const baseAmount = roundTo6Decimals(netTotal / installments.length);
+    // El último absorbe el residuo por redondeo
+    const updated = installments.map((inst, i) => ({
+      ...inst,
+      amount:
+        i === installments.length - 1
+          ? roundTo6Decimals(
+              netTotal - baseAmount * (installments.length - 1),
+            ).toFixed(6)
+          : baseAmount.toFixed(6),
+    }));
+    setInstallments(updated);
+    form.setValue("installments", updated);
   };
 
   const installmentsMatchTotal = () => {
@@ -1116,6 +1146,7 @@ export const SaleForm = ({
                   value: dt.value,
                   label: dt.label,
                 }))}
+                disabled={mode === "edit"}
               />
 
               <div className="flex gap-2 items-end">
@@ -1166,6 +1197,7 @@ export const SaleForm = ({
                   value: pt.value,
                   label: pt.label,
                 }))}
+                disabled={mode === "edit"}
               />
 
               <FormSelect
@@ -1708,6 +1740,16 @@ export const SaleForm = ({
 
               {installments.length > 0 ? (
                 <>
+                  <div className="flex justify-end mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRecalculateInstallments}
+                    >
+                      Recalcular cuotas
+                    </Button>
+                  </div>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
