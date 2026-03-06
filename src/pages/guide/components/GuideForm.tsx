@@ -15,7 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Plus, Trash2, Pencil, Truck } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Truck, ChevronDown, ChevronUp } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -176,6 +176,7 @@ export const GuideForm = ({
   // Estado para pedido seleccionado
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [hasNoPendingDetails, setHasNoPendingDetails] = useState(false);
+  const [showExtraVehicleFields, setShowExtraVehicleFields] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(guideSchema) as any,
@@ -883,35 +884,54 @@ export const GuideForm = ({
                 uppercase
               />
 
-              <FormInput
-                control={form.control}
-                name="vehicle_brand"
-                label="Marca del Vehículo"
-                placeholder="Ej: Toyota"
-                optional
-                maxLength={100}
-                uppercase
-              />
+              <div className="col-span-full">
+                <button
+                  type="button"
+                  onClick={() => setShowExtraVehicleFields((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showExtraVehicleFields ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                  {showExtraVehicleFields ? "Ocultar datos adicionales del vehículo" : "Mostrar datos adicionales del vehículo"}
+                </button>
+              </div>
 
-              <FormInput
-                control={form.control}
-                name="vehicle_model"
-                label="Modelo del Vehículo"
-                placeholder="Ej: Hilux"
-                optional
-                maxLength={100}
-                uppercase
-              />
+              {showExtraVehicleFields && (
+                <>
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_brand"
+                    label="Marca del Vehículo"
+                    placeholder="Ej: Toyota"
+                    optional
+                    maxLength={100}
+                    uppercase
+                  />
 
-              <FormInput
-                control={form.control}
-                name="vehicle_mtc"
-                label="Certificado MTC"
-                placeholder="Ej: MTC123456"
-                optional
-                maxLength={50}
-                uppercase
-              />
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_model"
+                    label="Modelo del Vehículo"
+                    placeholder="Ej: Hilux"
+                    optional
+                    maxLength={100}
+                    uppercase
+                  />
+
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_mtc"
+                    label="Certificado MTC"
+                    placeholder="Ej: MTC123456"
+                    optional
+                    maxLength={50}
+                    uppercase
+                  />
+                </>
+              )}
             </>
           )}
 
