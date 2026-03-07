@@ -265,20 +265,24 @@ export const getSaleColumns = ({
                     variant="ghost"
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
-                    disabled={!isValid}
+                    disabled={!isValid || row.original.status_facturado === "PENDIENTE"}
                   >
                     <Wallet
                       className={`h-4 w-4 ${
-                        isValid ? "text-primary" : "text-gray-400"
+                        isValid && row.original.status_facturado !== "PENDIENTE"
+                          ? "text-primary"
+                          : "text-gray-400"
                       }`}
                     />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    {isValid
-                      ? "Pago rápido"
-                      : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
+                    {row.original.status_facturado === "PENDIENTE"
+                      ? "No se puede realizar pago rápido. El documento aún no ha sido enviado a SUNAT."
+                      : isValid
+                        ? "Pago rápido"
+                        : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
                   </p>
                 </TooltipContent>
               </Tooltip>
