@@ -158,6 +158,16 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.order_purchase !== undefined && {
           order_purchase: data.order_purchase,
         }),
+        ...(data.amount_cash !== undefined && { amount_cash: data.amount_cash }),
+        ...(data.amount_card !== undefined && { amount_card: data.amount_card }),
+        ...(data.amount_yape !== undefined && { amount_yape: data.amount_yape }),
+        is_anticipado: data.is_anticipado ?? false,
+        is_deduccion: data.is_deduccion ?? false,
+        is_retencionigv: data.is_retencionigv ?? false,
+        is_termine_condition: data.is_termine_condition ?? false,
+        ...(data.guides !== undefined && {
+          guides: data.guides.length > 0 ? data.guides : undefined,
+        }),
         ...(data.details &&
           data.details.length > 0 && {
             details: data.details.map((detail) => ({

@@ -177,6 +177,7 @@ export const GuideForm = ({
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [hasNoPendingDetails, setHasNoPendingDetails] = useState(false);
   const [showExtraVehicleFields, setShowExtraVehicleFields] = useState(false);
+  const [showDocumentFields, setShowDocumentFields] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(guideSchema) as any,
@@ -706,47 +707,66 @@ export const GuideForm = ({
               <Badge variant="amber-outline">Sin productos pendientes</Badge>
             )}
           </div>
-          <FormSelectAsync
-            control={form.control}
-            name="sale_id"
-            label="Venta"
-            placeholder="Selecciona una venta"
-            useQueryHook={useSale}
-            mapOptionFn={(sale: SaleResource) => ({
-              value: sale.id.toString(),
-              label: sale.sequential_number || `Venta #${sale.id}`,
-              description: sale.customer.full_name,
-            })}
-            withValue
-          />
+          <div className="col-span-full">
+            <button
+              type="button"
+              onClick={() => setShowDocumentFields((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showDocumentFields ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+              {showDocumentFields ? "Ocultar documentos asociados" : "Mostrar documentos asociados"}
+            </button>
+          </div>
 
-          <FormSelectAsync
-            control={form.control}
-            name="purchase_id"
-            label="Compra"
-            placeholder="Selecciona una compra"
-            useQueryHook={usePurchases}
-            mapOptionFn={(purchase: PurchaseResource) => ({
-              value: purchase.id.toString(),
-              label: purchase.document_number || `Compra #${purchase.id}`,
-              description: purchase.supplier_fullname,
-            })}
-            withValue
-          />
+          {showDocumentFields && (
+            <>
+              <FormSelectAsync
+                control={form.control}
+                name="sale_id"
+                label="Venta"
+                placeholder="Selecciona una venta"
+                useQueryHook={useSale}
+                mapOptionFn={(sale: SaleResource) => ({
+                  value: sale.id.toString(),
+                  label: sale.sequential_number || `Venta #${sale.id}`,
+                  description: sale.customer.full_name,
+                })}
+                withValue
+              />
 
-          <FormSelectAsync
-            control={form.control}
-            name="warehouse_document_id"
-            label="Documento Almacén"
-            placeholder="Selecciona un documento"
-            useQueryHook={useWarehouseDocuments}
-            mapOptionFn={(warehouseDocument: WarehouseDocumentResource) => ({
-              value: warehouseDocument.id.toString(),
-              label: `${warehouseDocument.document_type} - ${warehouseDocument.document_number}`,
-              description: warehouseDocument.warehouse_name,
-            })}
-            withValue
-          />
+              <FormSelectAsync
+                control={form.control}
+                name="purchase_id"
+                label="Compra"
+                placeholder="Selecciona una compra"
+                useQueryHook={usePurchases}
+                mapOptionFn={(purchase: PurchaseResource) => ({
+                  value: purchase.id.toString(),
+                  label: purchase.document_number || `Compra #${purchase.id}`,
+                  description: purchase.supplier_fullname,
+                })}
+                withValue
+              />
+
+              <FormSelectAsync
+                control={form.control}
+                name="warehouse_document_id"
+                label="Documento Almacén"
+                placeholder="Selecciona un documento"
+                useQueryHook={useWarehouseDocuments}
+                mapOptionFn={(warehouseDocument: WarehouseDocumentResource) => ({
+                  value: warehouseDocument.id.toString(),
+                  label: `${warehouseDocument.document_type} - ${warehouseDocument.document_number}`,
+                  description: warehouseDocument.warehouse_name,
+                })}
+                withValue
+              />
+            </>
+          )}
 
           <FormField
             control={form.control}
@@ -800,15 +820,6 @@ export const GuideForm = ({
               </Button>
             </FormSelectAsync>
           )}
-
-          <FormInput
-            control={form.control}
-            name="vehicle_plate"
-            label="Placa del Vehículo"
-            placeholder="Ej: ABC-123"
-            maxLength={20}
-            uppercase
-          />
 
           {transportModality === "PRIVADO" && (
             <>

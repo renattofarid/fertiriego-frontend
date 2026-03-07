@@ -79,11 +79,12 @@ export const SaleEditPage = () => {
         correlative: g.correlative,
       })) ?? [],
     details:
-      data.details?.map((detail) => ({
+      (data.details?.map((detail) => ({
         product_id: detail.product_id.toString(),
+        product_name: detail.product?.name,
         quantity: detail.quantity.toString(),
         unit_price: detail.unit_price.toString(),
-      })) ?? [],
+      })) ?? []) as any,
     installments:
       data.installments?.map((inst) => ({
         installment_number: inst.installment_number.toString(),
