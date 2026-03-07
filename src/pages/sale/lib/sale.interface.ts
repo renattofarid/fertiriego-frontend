@@ -203,6 +203,14 @@ export interface UpdateSaleRequest {
   currency?: string;
   observations?: string;
   order_purchase?: string;
+  amount_cash?: string;
+  amount_card?: string;
+  amount_yape?: string;
+  is_anticipado?: boolean;
+  is_deduccion?: boolean;
+  is_retencionigv?: boolean;
+  is_termine_condition?: boolean;
+  guides?: GuideRequest[];
   details?: {
     product_id: number;
     quantity: number;

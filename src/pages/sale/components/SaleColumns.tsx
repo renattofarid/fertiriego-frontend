@@ -214,13 +214,17 @@ export const getSaleColumns = ({
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
+      // Si tiene retención IGV, el total esperado es el 97% (se descuenta 3%)
       const totalAmount = row.original.total_amount;
+      const expectedTotal = row.original.is_retencionigv
+        ? totalAmount * 0.97
+        : totalAmount;
       const sumOfInstallments =
         row.original.installments?.reduce(
           (sum, inst) => sum + inst.amount,
           0,
         ) || 0;
-      const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
+      const isValid = Math.abs(expectedTotal - sumOfInstallments) < 0.01;
 
       return (
         <TooltipProvider>
@@ -246,7 +250,7 @@ export const getSaleColumns = ({
                 <TooltipContent>
                   <p className="text-xs">
                     La suma de cuotas ({sumOfInstallments.toFixed(2)}) no
-                    coincide con el total ({totalAmount.toFixed(2)}).
+                    coincide con el total ({expectedTotal.toFixed(2)}).
                     <br />
                     Por favor, sincronice las cuotas.
                   </p>
@@ -261,20 +265,24 @@ export const getSaleColumns = ({
                     variant="ghost"
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
-                    disabled={!isValid}
+                    disabled={!isValid || row.original.status_facturado === "PENDIENTE"}
                   >
                     <Wallet
                       className={`h-4 w-4 ${
-                        isValid ? "text-primary" : "text-gray-400"
+                        isValid && row.original.status_facturado !== "PENDIENTE"
+                          ? "text-primary"
+                          : "text-gray-400"
                       }`}
                     />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    {isValid
-                      ? "Pago rápido"
-                      : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
+                    {row.original.status_facturado === "PENDIENTE"
+                      ? "No se puede realizar pago rápido. El documento aún no ha sido enviado a SUNAT."
+                      : isValid
+                        ? "Pago rápido"
+                        : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
                   </p>
                 </TooltipContent>
               </Tooltip>

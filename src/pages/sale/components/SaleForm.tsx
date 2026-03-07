@@ -1292,6 +1292,14 @@ export const SaleForm = ({
                     additionalParams={{
                       warehouse_id: selectedWarehouseId,
                     }}
+                    defaultOption={
+                      currentDetail.product_id && currentDetail.product_name
+                        ? {
+                            value: currentDetail.product_id,
+                            label: currentDetail.product_name,
+                          }
+                        : undefined
+                    }
                     onValueChange={(_value, item) => {
                       setProductSelected(item ?? null);
                     }}
