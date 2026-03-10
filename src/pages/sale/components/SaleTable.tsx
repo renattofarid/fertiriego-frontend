@@ -23,6 +23,7 @@ export default function SaleTable({
         isLoading={isLoading}
         initialColumnVisibility={{
           id: false,
+          details: false,
         }}
       >
         {children}
