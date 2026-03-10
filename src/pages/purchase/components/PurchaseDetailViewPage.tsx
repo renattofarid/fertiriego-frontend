@@ -5,7 +5,6 @@ import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { usePurchaseInstallmentStore } from "../lib/purchase-installment.store";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,24 +13,19 @@ import {
   CreditCard,
   Wallet,
   Pencil,
-  RefreshCw,
   FileText,
 } from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
+import { InstallmentTimeline } from "./InstallmentTimeline";
 import {
   PURCHASE,
   type PurchaseInstallmentResource,
 } from "../lib/purchase.interface";
 import { errorToast, successToast } from "@/lib/core.function";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { GroupFormSection } from "@/components/GroupFormSection";
+import { parse } from "date-fns";
 
 export const PurchaseDetailViewPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -178,12 +172,18 @@ export const PurchaseDetailViewPage = () => {
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Número de Documento</p>
-            <p className="font-semibold font-mono">{purchase.document_number}</p>
+            <p className="font-semibold font-mono">
+              {purchase.document_number}
+            </p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Fecha de Emisión</p>
             <p className="font-semibold">
-              {new Date(purchase.issue_date).toLocaleDateString("es-ES", {
+              {parse(
+                purchase.issue_date,
+                "yyyy-MM-dd",
+                new Date(),
+              ).toLocaleDateString("es-ES", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",
@@ -300,149 +300,14 @@ export const PurchaseDetailViewPage = () => {
               icon={CreditCard}
               cols={{ sm: 1 }}
             >
-              <div className="space-y-4">
-                {/* Advertencia de desincronización */}
-                {purchase &&
-                  purchase.payment_type === "CONTADO" &&
-                  installments &&
-                  installments.length > 0 &&
-                  (() => {
-                    const totalAmount = parseFloat(purchase.total_amount);
-                    const installmentAmount = parseFloat(
-                      installments[0]?.amount || "0",
-                    );
-                    const hasNoPayments =
-                      parseFloat(installments[0]?.pending_amount || "0") ===
-                      installmentAmount;
-                    const hasDifference =
-                      Math.abs(installmentAmount - totalAmount) > 0.01;
-
-                    if (hasNoPayments && hasDifference) {
-                      return (
-                        <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                          <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                            ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
-                            coincide con el total de la compra (
-                            {totalAmount.toFixed(2)}). Debe sincronizar la cuota
-                            usando el botón "Sincronizar"
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                {installments && installments.length > 0 ? (
-                  installments.map((installment) => (
-                    <Card
-                      key={installment.id}
-                      className="border-l-4 border-l-primary"
-                    >
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-4">
-                            <CardTitle className="text-base">
-                              Cuota #{installment.installment_number} -{" "}
-                              {installment.correlativo}
-                            </CardTitle>
-                            <Badge
-                              variant={
-                                installment.status === "PAGADO"
-                                  ? "default"
-                                  : installment.status === "VENCIDO"
-                                    ? "destructive"
-                                    : "secondary"
-                              }
-                            >
-                              {installment.status}
-                            </Badge>
-                          </div>
-                          <div className="flex gap-2">
-                            {shouldShowSyncButton(installment) && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      
-                                      onClick={() =>
-                                        handleSyncInstallment(
-                                          installment.id,
-                                          parseFloat(
-                                            purchase?.total_amount || "0",
-                                          ),
-                                        )
-                                      }
-                                      color="blue"
-                                    >
-                                      <RefreshCw className="h-4 w-4 mr-2" />
-                                      Sincronizar
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p>
-                                      Sincronizar con total de compra (
-                                      {purchase?.total_amount})
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                            <Button
-                              variant="outline"
-                              
-                              onClick={() =>
-                                handleViewInstallmentPayments(installment)
-                              }
-                            >
-                              <Wallet className="h-4 w-4 mr-2" />
-                              Ver Pagos
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">
-                              Fecha Vencimiento
-                            </p>
-                            <p className="font-semibold">
-                              {new Date(installment.due_date).toLocaleDateString(
-                                "es-ES",
-                              )}
-                            </p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Días</p>
-                            <p className="font-semibold">
-                              {installment.due_days} días
-                            </p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Monto</p>
-                            <p className="font-semibold text-lg">
-                              {parseFloat(installment.amount).toFixed(2)}
-                            </p>
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs text-muted-foreground">Saldo</p>
-                            <p className="font-semibold text-lg text-orange-600">
-                              {parseFloat(installment.pending_amount).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Badge variant="outline" className="text-lg p-3">
-                      No hay cuotas registradas
-                    </Badge>
-                  </div>
-                )}
-              </div>
+              <InstallmentTimeline
+                installments={installments || []}
+                currency={purchase.currency}
+                purchaseTotalAmount={purchase.total_amount}
+                onViewPayments={handleViewInstallmentPayments}
+                onSync={handleSyncInstallment}
+                shouldShowSync={shouldShowSyncButton}
+              />
             </GroupFormSection>
           </TabsContent>
 
@@ -453,7 +318,9 @@ export const PurchaseDetailViewPage = () => {
               cols={{ sm: 1, md: 2, lg: 3 }}
             >
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">Total de la Compra</p>
+                <p className="text-xs text-muted-foreground">
+                  Total de la Compra
+                </p>
                 <p className="font-bold text-2xl text-primary">
                   {purchase.currency === "PEN"
                     ? "S/."
@@ -504,7 +371,9 @@ export const PurchaseDetailViewPage = () => {
                   <CreditCard className="h-3 w-3" />
                   Cuotas
                 </p>
-                <p className="font-bold text-3xl">{installments?.length || 0}</p>
+                <p className="font-bold text-3xl">
+                  {installments?.length || 0}
+                </p>
               </div>
             </GroupFormSection>
           </TabsContent>
