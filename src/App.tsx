@@ -46,8 +46,8 @@ import { CLIENT } from "./pages/client/lib/client.interface";
 import { SUPPLIER } from "./pages/supplier/lib/supplier.interface";
 import { WORKER } from "./pages/worker/lib/worker.interface";
 import { DRIVER } from "./pages/driver/lib/driver.interface";
-import type { Access } from "./pages/auth/lib/auth.interface";
 import { ENABLE_PERMISSION_VALIDATION } from "./lib/permissions.config";
+import { hasAccessToRoute } from "./lib/route-access";
 import { PRODUCT_TYPE } from "./pages/product-type/lib/product-type.interface";
 import ProductTypePage from "./pages/product-type/components/ProductTypePage";
 import { PURCHASE_ORDER } from "./pages/purchase-order/lib/purchase-order.interface";
@@ -172,18 +172,6 @@ const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
 
-export const hasAccessToRoute = (access: Access[], route: string): boolean => {
-  const transformRoute = route.split("/").pop();
-  for (const node of access) {
-    if (node.permissions.some((p) => p.routes.includes(transformRoute!))) {
-      return true;
-    }
-    if (node.children && hasAccessToRoute(node.children, transformRoute!)) {
-      return true;
-    }
-  }
-  return false;
-};
 
 function ProtectedRoute({
   children,

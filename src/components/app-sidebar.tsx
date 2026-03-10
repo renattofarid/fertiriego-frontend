@@ -43,7 +43,7 @@ import { ACCOUNTS_PAYABLE } from "@/pages/accounts-payable/lib/accounts-payable.
 import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { WAREHOUSE_DOCUMENT } from "@/pages/warehouse-document/lib/warehouse-document.interface";
 import { BOX_SHIFT } from "@/pages/box-shift/lib/box-shift.interface";
-import { hasAccessToRoute } from "@/App";
+import { hasAccessToRoute } from "@/lib/route-access";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";

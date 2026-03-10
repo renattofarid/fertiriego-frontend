@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type { CreditNoteResource } from "../lib/credit-note.interface";
+import { parse } from "date-fns";
 import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
@@ -19,25 +20,52 @@ export const CreditNoteColumns = ({
 
   return [
     {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => (
+        <Badge variant="outline" className="font-mono">
+          #{row.original.id}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "sequential_number",
+      header: "Documento",
+      cell: ({ row }) => (
+        <span className="font-mono font-semibold">
+          {row.original.full_document_number}
+        </span>
+      ),
+    },
+    {
       accessorKey: "sale",
       header: "Venta",
       cell: ({ getValue }) => {
         const sale = getValue() as CreditNoteResource["sale"];
-        return sale.serie + "-" + sale.numero;
+        return (
+          <div className="flex flex-col">
+            <span className="font-medium text-xs text-muted-foreground">
+              {sale.document_type}
+            </span>
+            <span className="font-mono font-semibold">
+              {sale.sequential_number}
+            </span>
+          </div>
+        );
       },
     },
     {
-      accessorKey: "sale.customer_fullname",
+      accessorKey: "customer.fullname",
       header: "Cliente",
       cell: ({ row }) => {
-        return row.original.sale.customer.full_name;
+        return row.original.customer.full_name;
       },
     },
     {
       accessorKey: "issue_date",
       header: "Fecha de Emisión",
       cell: ({ getValue }) => {
-        const date = new Date(getValue() as string);
+        const date = parse(getValue() as string, "yyyy-MM-dd", new Date());
         return date.toLocaleDateString("es-PE", {
           day: "2-digit",
           month: "2-digit",
@@ -46,17 +74,12 @@ export const CreditNoteColumns = ({
       },
     },
     {
-      accessorKey: "credit_note_type",
-      header: "Tipo",
+      accessorKey: "reason",
+      header: "Motivo",
       cell: ({ getValue }) => {
-        const type = getValue() as string;
-        const typeLabels: Record<string, string> = {
-          DEVOLUCION: "Devolución",
-          DESCUENTO: "Descuento",
-          ANULACION: "Anulación",
-          BONIFICACION: "Bonificación",
-        };
-        return typeLabels[type] || type;
+        return (
+          <span className="max-w-[200px] truncate">{getValue() as string}</span>
+        );
       },
     },
     {
@@ -88,13 +111,41 @@ export const CreditNoteColumns = ({
           <Badge
             variant={
               status === "PROCESADO"
-                ? "default"
+                ? "green"
                 : status === "PENDIENTE"
-                  ? "secondary"
-                  : "destructive"
+                  ? "amber"
+                  : status === "EMITIDA"
+                    ? "blue"
+                    : "gray"
             }
           >
             {status}
+          </Badge>
+        );
+      },
+    },
+    {
+      accessorKey: "sunat_status",
+      header: "Estado SUNAT",
+      cell: ({ getValue }) => {
+        const sunatStatus = getValue() as string;
+        const config: Record<
+          string,
+          {
+            label: string;
+            variant: "green" | "red" | "amber" | "blue" | "gray";
+          }
+        > = {
+          ACEPTADO: { label: "Aceptado", variant: "green" },
+          RECHAZADO: { label: "Rechazado", variant: "red" },
+          PENDIENTE: { label: "Pendiente", variant: "amber" },
+          ENVIADO: { label: "ENVIADO", variant: "green" },
+          BAJA: { label: "Baja", variant: "gray" },
+        };
+        const matched = config[sunatStatus?.toUpperCase()];
+        return (
+          <Badge variant={matched?.variant ?? "gray"}>
+            {matched?.label ?? (sunatStatus || "—")}
           </Badge>
         );
       },

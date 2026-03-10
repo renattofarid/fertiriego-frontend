@@ -103,7 +103,7 @@ export const getSaleColumns = ({
     cell: ({ row }) => (
       <Badge
         variant={
-          row.original.payment_type === "CONTADO" ? "default" : "secondary"
+          row.original.payment_type === "CONTADO" ? "blue" : "purple"
         }
       >
         {row.original.payment_type}
@@ -158,11 +158,11 @@ export const getSaleColumns = ({
     header: "Estado",
     cell: ({ row }) => {
       const status = row.original.status;
-      let variant: "default" | "secondary" | "destructive" = "default";
+      let variant: "green" | "red" | "gray" = "gray";
 
-      if (status === "REGISTRADO") variant = "secondary";
-      if (status === "PAGADA") variant = "default";
-      if (status === "CANCELADO") variant = "destructive";
+      if (status === "REGISTRADO") variant = "gray";
+      if (status === "PAGADA") variant = "green";
+      if (status === "CANCELADO") variant = "red";
 
       return <Badge variant={variant}>{status}</Badge>;
     },
@@ -172,9 +172,11 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      let variant: "default" | "secondary" | "destructive" | "gray" = "default";
+      let variant: "default" | "secondary" | "amber" | "gray" | "green" =
+        "default";
 
-      if (status === "PENDIENTE") variant = "gray";
+      if (status === "ENVIADO") variant = "green";
+      if (status === "PENDIENTE") variant = "amber";
 
       return <Badge variant={variant}>{status}</Badge>;
     },
@@ -214,11 +216,9 @@ export const getSaleColumns = ({
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
-      // Si tiene retención IGV, el total esperado es el 97% (se descuenta 3%)
+      // total_amount ya viene del back con retención aplicada
       const totalAmount = row.original.total_amount;
-      const expectedTotal = row.original.is_retencionigv
-        ? totalAmount * 0.97
-        : totalAmount;
+      const expectedTotal = totalAmount;
       const sumOfInstallments =
         row.original.installments?.reduce(
           (sum, inst) => sum + inst.amount,
@@ -265,7 +265,9 @@ export const getSaleColumns = ({
                     variant="ghost"
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
-                    disabled={!isValid || row.original.status_facturado === "PENDIENTE"}
+                    disabled={
+                      !isValid || row.original.status_facturado === "PENDIENTE"
+                    }
                   >
                     <Wallet
                       className={`h-4 w-4 ${
