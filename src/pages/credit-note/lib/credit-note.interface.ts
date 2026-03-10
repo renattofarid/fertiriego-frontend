@@ -222,3 +222,10 @@ export interface CreditNoteResourceById {
 export interface getCreditNoteProps {
   params?: Record<string, any>;
 }
+
+export interface CreditNoteReason {
+  id: number;
+  code: string;
+  name: string;
+  active: number;
+}
