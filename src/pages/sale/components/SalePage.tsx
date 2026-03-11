@@ -16,7 +16,7 @@ import {
 } from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
-import { findSaleById, declararSunat } from "../lib/sale.actions";
+import { findSaleById, declararSunat, anularBoleta, anularFactura } from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -140,6 +140,20 @@ export default function SalePage() {
     }
   };
 
+  const handleAnular = async (sale: SaleResource) => {
+    try {
+      if (sale.document_type === "FACTURA") {
+        await anularFactura(sale.id);
+      } else {
+        await anularBoleta(sale.id);
+      }
+      successToast("Documento anulado correctamente");
+      refetch();
+    } catch (error: any) {
+      errorToast(error?.response?.data?.message || "Error al anular el documento");
+    }
+  };
+
   const handlePaymentSuccess = () => {
     refetch();
     setOpenPaymentSheet(false);
@@ -168,6 +182,7 @@ export default function SalePage() {
     onManage: handleManage,
     onQuickPay: handleQuickPay,
     onDeclararSunat: handleDeclararSunat,
+    onAnular: handleAnular,
   });
 
   return (

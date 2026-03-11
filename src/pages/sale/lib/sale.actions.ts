@@ -88,6 +88,16 @@ export const deleteSale = async (id: number): Promise<{ message: string }> => {
   return response.data;
 };
 
+export const anularBoleta = async (saleId: number): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`anularBoleta/${saleId}`);
+  return response.data;
+};
+
+export const anularFactura = async (saleId: number): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`anularFactura/${saleId}`);
+  return response.data;
+};
+
 export const declararSunat = async (
   saleId: number,
   tipoId: number,
