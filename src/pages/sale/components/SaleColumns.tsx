@@ -7,6 +7,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Trash2,
   Eye,
   Settings,
@@ -14,6 +21,10 @@ import {
   AlertTriangle,
   Pencil,
   Send,
+  FileCode2,
+  FileArchive,
+  XCircle,
+  MoreHorizontal,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
@@ -21,7 +32,25 @@ import { parse } from "date-fns";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { api } from "@/lib/config";
+import { toast } from "sonner";
+
+const downloadXml = async (endpoint: string, fileName: string) => {
+  try {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success("XML descargado exitosamente");
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Error al descargar el XML");
+  }
+};
 
 interface SaleColumnsProps {
   onEdit: (sale: SaleResource) => void;
@@ -30,6 +59,7 @@ interface SaleColumnsProps {
   onManage: (sale: SaleResource) => void;
   onQuickPay: (sale: SaleResource) => void;
   onDeclararSunat: (sale: SaleResource) => void;
+  onAnular: (sale: SaleResource) => void;
 }
 
 export const getSaleColumns = ({
@@ -39,6 +69,7 @@ export const getSaleColumns = ({
   onManage,
   onQuickPay,
   onDeclararSunat,
+  onAnular,
 }: SaleColumnsProps): ColumnDef<SaleResource>[] => [
   {
     accessorKey: "id",
@@ -306,43 +337,59 @@ export const getSaleColumns = ({
         row.original.installments?.some(
           (inst) => inst.pending_amount < inst.amount,
         ) ?? false;
+      const isEnviado = row.original.status_facturado === "ENVIADO";
 
       return (
         <div className="flex items-center gap-1">
+          {/* PDF */}
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
             pdfFileName={`venta-${row.original.sequential_number}.pdf`}
             variant="separate"
           />
+
+          {/* XML / CDR — al lado del PDF, solo si está enviado */}
+          {row.original.status_facturado === "ENVIADO" && (
+            <TooltipProvider>
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600">
+                        <FileCode2 className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Descargar XML / CDR</p>
+                  </TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocument/${row.original.id}/venta`, `xml-venta-${row.original.sequential_number}.xml`)}>
+                    <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
+                    XML Venta
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocumentCDR/${row.original.id}/venta`, `cdr-venta-${row.original.sequential_number}.zip`)}>
+                    <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
+                    CDR Venta
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipProvider>
+          )}
+
+          {/* Ver detalle */}
           <ButtonAction
             icon={Eye}
             onClick={() => onViewDetails(row.original)}
             tooltip="Ver Detalle"
           />
 
-          <ButtonAction
-            icon={Settings}
-            onClick={() => onManage(row.original)}
-            tooltip="Gestionar"
-          />
-
-          <ButtonAction
-            icon={Pencil}
-            onClick={() => onEdit(row.original)}
-            tooltip={
-              hasPayments ? "No se puede editar (tiene pagos)" : "Editar"
-            }
-            disabled={hasPayments}
-          />
-
+          {/* Declarar SUNAT */}
           {row.original.status_facturado === "PENDIENTE" && (
             <ConfirmationDialog
               trigger={
-                <ButtonAction
-                  icon={Send}
-                  color="blue"
-                  tooltip="Declarar a SUNAT"
-                />
+                <ButtonAction icon={Send} color="blue" tooltip="Declarar a SUNAT" />
               }
               title="Declarar a SUNAT"
               description="¿Estás seguro de que deseas declarar esta venta a SUNAT? Esta acción no se puede deshacer."
@@ -353,16 +400,60 @@ export const getSaleColumns = ({
             />
           )}
 
-          <DeleteButton
-            icon={Trash2}
-            onClick={() => onDelete(row.original.id)}
-            tooltip={
-              isPaid || hasPayments
-                ? "No se puede eliminar (pagada o tiene pagos)"
-                : "Eliminar"
-            }
-            disabled={isPaid || hasPayments}
-          />
+          {/* Anular */}
+          {row.original.status_facturado === "ENVIADO" && (
+            <ConfirmationDialog
+              trigger={
+                <ButtonAction icon={XCircle} color="red" tooltip="Anular documento" />
+              }
+              title="Anular documento"
+              description={`¿Estás seguro de que deseas anular esta ${row.original.document_type === "FACTURA" ? "factura" : "boleta"}? Esta acción no se puede deshacer.`}
+              confirmText="Anular"
+              cancelText="Cancelar"
+              onConfirm={() => onAnular(row.original)}
+              icon="warning"
+            />
+          )}
+
+          {/* Más opciones: Gestionar + Eliminar */}
+          <DropdownMenu>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Más opciones</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onManage(row.original)}>
+                <Settings className="h-4 w-4 mr-2 text-muted-foreground" />
+                Gestionar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onEdit(row.original)}
+                disabled={isPaid || hasPayments || isEnviado}
+              >
+                <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
+                {isPaid || hasPayments || isEnviado ? "No se puede editar" : "Editar"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(row.original.id)}
+                disabled={isPaid || hasPayments || isEnviado}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isPaid || hasPayments || isEnviado ? "No se puede eliminar" : "Eliminar"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },

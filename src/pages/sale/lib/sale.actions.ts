@@ -88,14 +88,29 @@ export const deleteSale = async (id: number): Promise<{ message: string }> => {
   return response.data;
 };
 
+export const anularBoleta = async (saleId: number): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`anularBoleta/${saleId}`);
+  return response.data;
+};
+
+export const anularFactura = async (saleId: number): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(`anularFactura/${saleId}`);
+  return response.data;
+};
+
 export const declararSunat = async (
   saleId: number,
   tipoId: number,
-): Promise<{ message: string }> => {
-  const response = await api.post<{ message: string }>(
+): Promise<{ blob: Blob; filename: string }> => {
+  const response = await api.post(
     `sales/${saleId}/declarar/${tipoId}`,
+    null,
+    { responseType: "blob" },
   );
-  return response.data;
+  const disposition = (response.headers["content-disposition"] ?? "") as string;
+  const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+  const filename = match?.[1]?.replace(/['"]/g, "") || `cdr-${saleId}.xml`;
+  return { blob: response.data as Blob, filename };
 };
 
 // ============================================

@@ -93,6 +93,9 @@ export const saleSchemaCreate = z.object({
   is_anticipado: z.boolean().optional().default(false),
   is_deduccion: z.boolean().optional().default(false),
   is_retencionigv: z.boolean().optional().default(false),
+  is_detraccion: z.boolean().optional().default(false),
+  codigos_detraccion: z.string().optional(),
+  tipo_cambio: z.string().optional(),
   is_termine_condition: z.boolean().optional().default(false),
   guides: z.array(guideSchema).optional().default([]),
   details: z

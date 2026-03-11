@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Banknote,
+  Percent,
 } from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
 import TraceabilityTimeline from "@/components/TraceabilityTimeline";
@@ -104,6 +105,30 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
           </div>
         )}
 
+        {/* Banner Detracción */}
+        {sale.is_detraccion && (
+          <div className="flex items-center gap-3 p-3.5 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+            <Percent className="h-5 w-5 text-blue-500 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+                Sujeta a Detracción
+              </p>
+              <div className="flex flex-wrap gap-3 mt-0.5">
+                {sale.codigos_detraccion && (
+                  <p className="text-xs text-blue-600/70 dark:text-blue-500/80">
+                    Código: <span className="font-medium">{sale.codigos_detraccion}</span>
+                  </p>
+                )}
+                {sale.tipo_cambio && (
+                  <p className="text-xs text-blue-600/70 dark:text-blue-500/80">
+                    T/C SUNAT: <span className="font-medium">{sale.tipo_cambio}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Totales */}
         <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border">
           <div className="bg-background px-4 py-3">
@@ -169,7 +194,7 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
           )}
 
           {/* Condiciones especiales */}
-          {(sale.is_anticipado || sale.is_deduccion || sale.is_retencionigv || sale.is_termine_condition) && (
+          {(sale.is_anticipado || sale.is_deduccion || sale.is_retencionigv || sale.is_detraccion || sale.is_termine_condition) && (
             <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t">
               {sale.is_anticipado && (
                 <Badge variant="secondary" className="text-xs gap-1">
@@ -184,6 +209,11 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
               {sale.is_retencionigv && (
                 <Badge className="text-xs gap-1 bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-400/30 hover:bg-amber-500/15">
                   <ShieldAlert className="h-3 w-3" />Retención IGV
+                </Badge>
+              )}
+              {sale.is_detraccion && (
+                <Badge className="text-xs gap-1 bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-400/30 hover:bg-blue-500/15">
+                  <Percent className="h-3 w-3" />Detracción {sale.codigos_detraccion && `· ${sale.codigos_detraccion}`}
                 </Badge>
               )}
               {sale.is_termine_condition && (

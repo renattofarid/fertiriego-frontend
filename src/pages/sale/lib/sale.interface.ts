@@ -67,6 +67,9 @@ export interface SaleResource {
   is_anticipado: boolean;
   is_deduccion: boolean;
   is_retencionigv: boolean;
+  is_detraccion: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
   guides?: GuideInfo[];
   is_termine_condition: boolean;
   amount_cash: number;
@@ -188,6 +191,9 @@ export interface CreateSaleRequest {
   is_anticipado?: boolean;
   is_deduccion?: boolean;
   is_retencionigv?: boolean;
+  is_detraccion?: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
   is_termine_condition?: boolean;
   guides?: GuideRequest[];
   details: CreateSaleDetailRequest[];
@@ -209,6 +215,9 @@ export interface UpdateSaleRequest {
   is_anticipado?: boolean;
   is_deduccion?: boolean;
   is_retencionigv?: boolean;
+  is_detraccion?: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
   is_termine_condition?: boolean;
   guides?: GuideRequest[];
   details?: {
@@ -381,6 +390,16 @@ export const INSTALLMENT_STATUSES = [
   { value: "PAGADO", label: "Pagado" },
   { value: "VENCIDO", label: "Vencido" },
 ] as const;
+
+// ===== CDR RESPONSE =====
+
+export interface CdrResponse {
+  message: string;
+  url: string;
+  filename: string;
+  xml_content: string;
+  xml_base64: string;
+}
 
 // ===== MODEL COMPLETE =====
 
