@@ -120,11 +120,23 @@ export default function SalePage() {
       return;
     }
     try {
-      const result = await declararSunat(sale.id, documentType.type);
-      successToast(result.message || "Venta declarada a SUNAT correctamente");
+      const { blob, filename } = await declararSunat(sale.id, documentType.type);
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+      successToast("CDR generado y descargado correctamente");
       refetch();
-    } catch {
-      errorToast("Error al declarar la venta a SUNAT");
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Error al declarar la venta a SUNAT";
+      errorToast(msg);
     }
   };
 

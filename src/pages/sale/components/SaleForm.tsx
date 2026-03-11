@@ -31,7 +31,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -427,6 +427,9 @@ export const SaleForm = ({
       is_anticipado: defaultValues.is_anticipado || false,
       is_deduccion: defaultValues.is_deduccion || false,
       is_retencionigv: defaultValues.is_retencionigv || false,
+      is_detraccion: (defaultValues as any).is_detraccion || false,
+      codigos_detraccion: (defaultValues as any).codigos_detraccion || "",
+      tipo_cambio: (defaultValues as any).tipo_cambio?.toString() || "",
       is_termine_condition: defaultValues.is_termine_condition || false,
     },
     mode: "onChange",
@@ -504,6 +507,66 @@ export const SaleForm = ({
 
   // Watch para retención IGV
   const isRetencionIGV = form.watch("is_retencionigv");
+
+  // Watch para detracción
+  const isDetraccion = form.watch("is_detraccion" as any);
+  const watchedIssueDate = form.watch("issue_date");
+  const [tipoCambio, setTipoCambio] = useState<string>((defaultValues as any).tipo_cambio?.toString() || "");
+  const [tipoCambioError, setTipoCambioError] = useState<string>("");
+
+  const fetchTipoCambio = useCallback(async (issueDate: string) => {
+    if (!issueDate) return;
+    // Validar: si la fecha de emisión es más de 1 día antes de hoy, no permitir
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const emission = new Date(issueDate + "T00:00:00");
+    const diffDays = Math.floor((today.getTime() - emission.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays > 1) {
+      setTipoCambioError("No se puede aplicar detracción: la fecha de emisión tiene más de 1 día de antigüedad.");
+      setTipoCambio("");
+      form.setValue("tipo_cambio" as any, "");
+      return;
+    }
+    setTipoCambioError("");
+    try {
+      const res = await fetch(`https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=${issueDate}`);
+      const json = await res.json();
+      const valor = json?.precioVenta || json?.compra || "";
+      setTipoCambio(valor.toString());
+      form.setValue("tipo_cambio" as any, valor.toString());
+    } catch {
+      setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+      setTipoCambio("");
+      form.setValue("tipo_cambio" as any, "");
+    }
+  }, [form]);
+
+  // Fetch tipo de cambio cuando se activa detracción o cambia la fecha
+  useEffect(() => {
+    if (isDetraccion && watchedIssueDate) {
+      fetchTipoCambio(watchedIssueDate);
+    } else if (!isDetraccion) {
+      setTipoCambio("");
+      setTipoCambioError("");
+      form.setValue("tipo_cambio" as any, "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetraccion, watchedIssueDate]);
+
+  // Exclusión mutua: detracción y retención IGV no pueden coexistir
+  useEffect(() => {
+    if (isDetraccion && isRetencionIGV) {
+      form.setValue("is_retencionigv", false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetraccion]);
+
+  useEffect(() => {
+    if (isRetencionIGV && isDetraccion) {
+      form.setValue("is_detraccion" as any, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRetencionIGV]);
 
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
@@ -1073,6 +1136,7 @@ export const SaleForm = ({
       order_id: data.order_id ? parseInt(data.order_id) : undefined,
       quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
       guide_id: data.guide_id ? parseInt(data.guide_id) : undefined,
+      tipo_cambio: tipoCambio ? parseFloat(tipoCambio) : undefined,
     });
   };
 
@@ -1238,6 +1302,46 @@ export const SaleForm = ({
                 label="Retención IGV"
                 text="Marque si aplica retención de IGV"
               />
+
+              <FormSwitch
+                control={form.control}
+                name={"is_detraccion" as any}
+                label="Detracción"
+                text={isRetencionIGV ? "No disponible con Retención IGV activa" : "Marque si aplica detracción"}
+                disabled={isRetencionIGV}
+              />
+
+              {isDetraccion && (
+                <>
+                  <FormSelect
+                    control={form.control}
+                    name={"codigos_detraccion" as any}
+                    label="Código de Detracción"
+                    placeholder="Seleccione código"
+                    options={[
+                      { value: "027", label: "027 - Demás bienes y servicios" },
+                      { value: "019", label: "019 - Arrendamiento de bienes muebles" },
+                    ]}
+                  />
+                  <div>
+                    <label className="text-sm font-medium">Tipo de Cambio SUNAT</label>
+                    <div className="mt-1.5 flex items-center gap-2">
+                      <Input
+                        value={tipoCambio}
+                        readOnly
+                        placeholder="Se obtiene automáticamente"
+                        className="bg-muted text-muted-foreground"
+                      />
+                    </div>
+                    {tipoCambioError && (
+                      <p className="text-xs text-destructive mt-1">{tipoCambioError}</p>
+                    )}
+                    {!tipoCambioError && !tipoCambio && (
+                      <p className="text-xs text-muted-foreground mt-1">Se obtiene de SUNAT según la fecha de emisión.</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               <FormSwitch
                 control={form.control}
