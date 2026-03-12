@@ -117,9 +117,11 @@ export const CreditNoteColumns = ({
     {
       accessorKey: "total_amount",
       header: "Total",
-      cell: ({ getValue }) => {
+      cell: ({ getValue, row }) => {
         const amount = Number(getValue() as string);
-        return `S/ ${amount.toFixed(2)}`;
+        const currency = row.original.currency;
+        const symbol = currency === "USD" ? "$ " : "S/ ";
+        return `${symbol}${amount.toFixed(2)}`;
       },
     },
     {
@@ -209,13 +211,18 @@ export const CreditNoteColumns = ({
               pdfFileName={`nota-credito-${row.original.document_number}.pdf`}
               variant="separate"
             />
-            {["ENVIADO", "ACEPTADO"].includes(row.original.sunat_status?.toUpperCase()) && (
+            {["ENVIADO", "ACEPTADO"].includes(
+              row.original.sunat_status?.toUpperCase(),
+            ) && (
               <TooltipProvider>
                 <DropdownMenu>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600">
+                        <Button
+                          variant="ghost"
+                          className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                        >
                           <FileCode2 className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -225,11 +232,25 @@ export const CreditNoteColumns = ({
                     </TooltipContent>
                   </Tooltip>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocument/${row.original.id}/nota`, `xml-nota-credito-${row.original.full_document_number}.xml`)}>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        downloadXml(
+                          `/getArchivosDocument/${row.original.id}/nota`,
+                          `xml-nota-credito-${row.original.full_document_number}.xml`,
+                        )
+                      }
+                    >
                       <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
                       XML Nota Crédito
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocumentCDR/${row.original.id}/nota`, `cdr-nota-credito-${row.original.full_document_number}.zip`)}>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        downloadXml(
+                          `/getArchivosDocumentCDR/${row.original.id}/nota`,
+                          `cdr-nota-credito-${row.original.full_document_number}.zip`,
+                        )
+                      }
+                    >
                       <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
                       CDR Nota Crédito
                     </DropdownMenuItem>
