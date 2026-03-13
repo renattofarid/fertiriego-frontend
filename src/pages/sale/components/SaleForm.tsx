@@ -751,7 +751,7 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = roundTo6Decimals(unitPriceWithIGV / 1.18); // SIN IGV → lo que va al backend
+    const valorUnitario = unitPriceWithIGV / 1.18; // SIN IGV → lo que va al backend (precisión completa)
     const total = roundTo6Decimals(quantity * unitPriceWithIGV);
     const subtotal = roundTo6Decimals(total / 1.18);
     const igv = roundTo6Decimals(total - subtotal);

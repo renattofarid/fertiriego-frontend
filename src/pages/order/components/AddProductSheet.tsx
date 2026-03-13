@@ -6,7 +6,7 @@ import { FormSwitch } from "@/components/FormSwitch";
 import { useForm } from "react-hook-form";
 import { Pencil, Plus } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
@@ -73,6 +73,8 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+  // Precisión completa del valor unitario (sin IGV) para enviar al backend
+  const fullPrecisionUnitValue = useRef<number | null>(null);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
@@ -117,6 +119,7 @@ export const AddProductSheet = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
+          fullPrecisionUnitValue.current = priceValue / 1.18;
           form.setValue("unit_price", formatNumber(priceValue));
           form.setValue("unit_value", formatNumber(priceValue / 1.18));
           setLastSetPrice(priceValue.toString());
@@ -143,12 +146,14 @@ export const AddProductSheet = ({
           unitValueField = formatNumber(
             parseFloat(editingDetail.unit_price) / 1.18,
           );
+          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price) / 1.18;
         } else {
           // unit_price guardado = valor sin IGV
           unitValueField = editingDetail.unit_price;
           unitPriceField = formatNumber(
             parseFloat(editingDetail.unit_price) * 1.18,
           );
+          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price);
         }
 
         form.reset({
@@ -162,6 +167,7 @@ export const AddProductSheet = ({
           description: editingDetail.description || "",
         });
       } else {
+        fullPrecisionUnitValue.current = null;
         form.reset({
           product_id: "",
           price_category_id: "",
@@ -211,11 +217,11 @@ export const AddProductSheet = ({
     const productName = selectedProduct?.name ?? editingDetail?.product_name;
     if (!productName) return;
 
-    // is_igv=true → se manda el precio con IGV (unit_price)
-    // is_igv=false → se manda el valor sin IGV (unit_value)
+    // is_igv=true → se manda el precio con IGV (unit_price, digitado directo)
+    // is_igv=false → se manda el valor sin IGV con precisión completa
     const sentUnitPrice = formData.is_igv
       ? formData.unit_price
-      : formData.unit_value;
+      : (fullPrecisionUnitValue.current?.toString() ?? formData.unit_value);
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
@@ -374,8 +380,10 @@ export const AddProductSheet = ({
             onAfterChange={(val) => {
               const v = parseFloat(String(val));
               if (!isNaN(v) && v > 0) {
+                fullPrecisionUnitValue.current = v;
                 form.setValue("unit_price", formatNumber(v * 1.18));
               } else if (val === "") {
+                fullPrecisionUnitValue.current = null;
                 form.setValue("unit_price", "");
               }
             }}
@@ -392,8 +400,10 @@ export const AddProductSheet = ({
             onAfterChange={(val) => {
               const p = parseFloat(String(val));
               if (!isNaN(p) && p > 0) {
+                fullPrecisionUnitValue.current = p / 1.18;
                 form.setValue("unit_value", formatNumber(p / 1.18));
               } else if (val === "") {
+                fullPrecisionUnitValue.current = null;
                 form.setValue("unit_value", "");
               }
             }}
