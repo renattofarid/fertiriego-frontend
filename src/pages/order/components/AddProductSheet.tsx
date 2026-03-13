@@ -73,7 +73,6 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
   const [showCreateProductModal, setShowCreateProductModal] = useState(false);
@@ -88,8 +87,6 @@ export const AddProductSheet = ({
   const isIgv = form.watch("is_igv");
   const quantity = form.watch("quantity");
   const unitValue = form.watch("unit_value");
-  const unitPrice = form.watch("unit_price");
-
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
 
@@ -100,40 +97,8 @@ export const AddProductSheet = ({
 
   // Función para formatear número sin ceros innecesarios
   const formatNumber = (num: number): string => {
-    // Redondear a 4 decimales pero eliminar ceros trailing
     return parseFloat(num.toFixed(4)).toString();
   };
-
-  // Sincronizar unit_value y unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const value = parseFloat(unitValue);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      const price = value * 1.18;
-      form.setValue("unit_price", formatNumber(price));
-      setIsUpdatingPrice(false);
-    } else if (unitValue === "") {
-      form.setValue("unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitValue]);
-
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const price = parseFloat(unitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      const value = price / 1.18;
-      form.setValue("unit_value", formatNumber(value));
-      setIsUpdatingPrice(false);
-    } else if (unitPrice === "") {
-      form.setValue("unit_value", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitPrice]);
 
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
@@ -145,19 +110,14 @@ export const AddProductSheet = ({
       if (selectedPrice) {
         let priceValue: number = 0;
 
-        // Seleccionar el precio según la moneda (usar 0 si no existe)
         if (selectedPrice.prices) {
           priceValue = selectedPrice.prices[currency] ?? 0;
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          // Asumimos que el precio de la categoría es con IGV
-          setIsUpdatingPrice(true);
           form.setValue("unit_price", formatNumber(priceValue));
-          const value = priceValue / 1.18;
-          form.setValue("unit_value", formatNumber(value));
+          form.setValue("unit_value", formatNumber(priceValue / 1.18));
           setLastSetPrice(priceValue.toString());
-          setIsUpdatingPrice(false);
         }
       }
     }
@@ -410,6 +370,14 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const v = parseFloat(String(val));
+              if (!isNaN(v) && v > 0) {
+                form.setValue("unit_price", formatNumber(v * 1.18));
+              } else if (val === "") {
+                form.setValue("unit_price", "");
+              }
+            }}
           />
 
           <FormInput
@@ -420,6 +388,14 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const p = parseFloat(String(val));
+              if (!isNaN(p) && p > 0) {
+                form.setValue("unit_value", formatNumber(p / 1.18));
+              } else if (val === "") {
+                form.setValue("unit_value", "");
+              }
+            }}
           />
         </div>
 

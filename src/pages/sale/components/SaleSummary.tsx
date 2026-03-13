@@ -41,6 +41,10 @@ interface SaleSummaryProps {
   paymentAmountsMatchTotal?: () => boolean;
   onCancel?: () => void;
   selectedPaymentType?: string;
+  tipoCambio?: string;
+  porcentajeIgv?: number;
+  totalExonerada?: number;
+  totalInafecta?: number;
 }
 
 export function SaleSummary({
@@ -61,6 +65,10 @@ export function SaleSummary({
   paymentAmountsMatchTotal,
   onCancel,
   selectedPaymentType,
+  tipoCambio,
+  porcentajeIgv = 18,
+  totalExonerada = 0,
+  totalInafecta = 0,
 }: SaleSummaryProps) {
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
@@ -209,25 +217,60 @@ export function SaleSummary({
 
           <Separator className="bg-muted-foreground/20" />
 
+          {/* Tipo de cambio */}
+          {tipoCambio && (
+            <div className="flex justify-between items-center text-sm px-1">
+              <span className="text-muted-foreground">Tipo de Cambio</span>
+              <span className="font-medium">S/ {tipoCambio}</span>
+            </div>
+          )}
+
           {/* Totales */}
-          <div className="space-y-3">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Subtotal</span>
+          <div className="space-y-3 border pt-2 rounded-lg">
+            <div className="flex justify-between items-center text-sm px-2">
+              <span className="text-muted-foreground font-mono uppercase">
+                Op. Gravada
+              </span>
               <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateDetailsSubtotal())}
+                {currencySymbol}{" "}
+                {formatNumber(calculateDetailsSubtotal())}
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">IGV (18%)</span>
+            {totalExonerada > 0 && (
+              <div className="flex justify-between items-center text-sm px-2">
+                <span className="text-muted-foreground font-mono uppercase">
+                  Op. Exonerada
+                </span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(totalExonerada)}
+                </span>
+              </div>
+            )}
+
+            {totalInafecta > 0 && (
+              <div className="flex justify-between items-center text-sm px-2">
+                <span className="text-muted-foreground font-mono uppercase">
+                  Op. Inafecta
+                </span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(totalInafecta)}
+                </span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center text-sm px-2">
+              <span className="text-muted-foreground font-mono uppercase">
+                IGV ({porcentajeIgv}%)
+              </span>
               <span className="font-medium">
                 {currencySymbol} {formatNumber(calculateDetailsIGV())}
               </span>
             </div>
 
             {calculateRetencion && calculateRetencion() > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">
+              <div className="flex justify-between items-center text-sm px-2">
+                <span className="text-muted-foreground font-mono uppercase">
                   Retención IGV (3%)
                 </span>
                 <span className="font-medium text-destructive">
@@ -236,15 +279,15 @@ export function SaleSummary({
               </div>
             )}
 
-            <Separator className="bg-primary/20" />
+            <div className="border border-dashed border-primary/20 m-0" />
 
-            <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary/30">
-              <span className="text-base font-semibold text-primary">
+            <div className="flex justify-between items-center p-3 bg-muted rounded-b-lg">
+              <span className="text-base font-semibold font-mono uppercase text-primary dark:text-primary">
                 {calculateRetencion && calculateRetencion() > 0
                   ? "Total a Cobrar"
                   : "Total"}
               </span>
-              <span className="text-xl font-bold text-primary">
+              <span className="text-2xl font-medium text-primary dark:text-primary">
                 {currencySymbol}{" "}
                 {formatNumber(
                   calculateNetTotal
@@ -253,15 +296,7 @@ export function SaleSummary({
                 )}
               </span>
             </div>
-            {selectedPaymentType && (
-              <p className="text-xs text-center text-muted-foreground">
-                Tipo de pago:{" "}
-                <span className="font-semibold">{selectedPaymentType}</span>
-              </p>
-            )}
           </div>
-
-          <Separator className="bg-muted-foreground/20" />
 
           {/* Action Buttons */}
           <div className="space-y-2 pt-4">

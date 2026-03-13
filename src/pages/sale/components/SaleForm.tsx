@@ -57,6 +57,7 @@ import {
   CURRENCIES,
 } from "../lib/sale.interface";
 import { errorToast } from "@/lib/core.function";
+import { api } from "@/lib/config";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
   Empty,
@@ -187,9 +188,6 @@ export const SaleForm = ({
     correlative: "",
   });
 
-  // Estado para controlar la sincronización bidireccional de precios
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
-
   // Ref para evitar auto-generación en el montaje inicial
   const isInitialMount = useRef(true);
 
@@ -231,7 +229,6 @@ export const SaleForm = ({
   );
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
-  const selectedValuePrice = detailTempForm.watch("temp_value_price");
 
   // Cargar precios del producto seleccionado
   const { data: productPricesData } = useProductPrices({
@@ -304,39 +301,6 @@ export const SaleForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
-  // Sincronización bidireccional: temp_unit_price → temp_value_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const price = parseFloat(selectedUnitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_value_price",
-        formatNumberLocal(price / 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedUnitPrice === "") {
-      detailTempForm.setValue("temp_value_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUnitPrice]);
-
-  // Sincronización bidireccional: temp_value_price → temp_unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const value = parseFloat(selectedValuePrice);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_unit_price",
-        formatNumberLocal(value * 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedValuePrice === "") {
-      detailTempForm.setValue("temp_unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedValuePrice]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -513,45 +477,53 @@ export const SaleForm = ({
   const watchedIssueDate = form.watch("issue_date");
   const [tipoCambio, setTipoCambio] = useState<string>((defaultValues as any).tipo_cambio?.toString() || "");
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
+  const tipoCambioCache = useRef<Record<string, string>>({});
+  const tipoCambioFetching = useRef<Set<string>>(new Set());
 
   const fetchTipoCambio = useCallback(async (issueDate: string) => {
     if (!issueDate) return;
-    // Validar: si la fecha de emisión es más de 1 día antes de hoy, no permitir
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const emission = new Date(issueDate + "T00:00:00");
-    const diffDays = Math.floor((today.getTime() - emission.getTime()) / (1000 * 60 * 60 * 24));
-    if (diffDays > 1) {
-      setTipoCambioError("No se puede aplicar detracción: la fecha de emisión tiene más de 1 día de antigüedad.");
-      setTipoCambio("");
-      form.setValue("tipo_cambio" as any, "");
+
+    // Si ya tenemos el valor en cache, usarlo directamente
+    if (tipoCambioCache.current[issueDate]) {
+      const cached = tipoCambioCache.current[issueDate];
+      setTipoCambioError("");
+      setTipoCambio(cached);
+      form.setValue("tipo_cambio" as any, cached);
       return;
     }
+
+    // Si ya hay un fetch en curso para esta fecha, no lanzar otro
+    if (tipoCambioFetching.current.has(issueDate)) return;
+
+    tipoCambioFetching.current.add(issueDate);
     setTipoCambioError("");
     try {
-      const res = await fetch(`https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=${issueDate}`);
-      const json = await res.json();
-      const valor = json?.precioVenta || json?.compra || "";
-      setTipoCambio(valor.toString());
-      form.setValue("tipo_cambio" as any, valor.toString());
+      const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
+      const valor = data?.venta || data?.compra || "";
+      const valorStr = valor.toString();
+      tipoCambioCache.current[issueDate] = valorStr;
+      setTipoCambio(valorStr);
+      form.setValue("tipo_cambio" as any, valorStr);
     } catch {
       setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
       setTipoCambio("");
       form.setValue("tipo_cambio" as any, "");
+    } finally {
+      tipoCambioFetching.current.delete(issueDate);
     }
   }, [form]);
 
-  // Fetch tipo de cambio cuando se activa detracción o cambia la fecha
+  // Fetch tipo de cambio siempre que cambie la fecha de emisión
   useEffect(() => {
-    if (isDetraccion && watchedIssueDate) {
+    if (watchedIssueDate) {
       fetchTipoCambio(watchedIssueDate);
-    } else if (!isDetraccion) {
+    } else {
       setTipoCambio("");
       setTipoCambioError("");
       form.setValue("tipo_cambio" as any, "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDetraccion, watchedIssueDate]);
+  }, [watchedIssueDate]);
 
   // Exclusión mutua: detracción y retención IGV no pueden coexistir
   useEffect(() => {
@@ -584,13 +556,11 @@ export const SaleForm = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          setIsUpdatingPrice(true);
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
           detailTempForm.setValue(
             "temp_value_price",
             formatNumberLocal(priceValue / 1.18),
           );
-          setIsUpdatingPrice(false);
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -833,7 +803,6 @@ export const SaleForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
-    setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     // unit_price guardado es SIN IGV (valor unitario)
@@ -844,7 +813,6 @@ export const SaleForm = ({
         ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
         : "",
     );
-    setIsUpdatingPrice(false);
     setEditingDetailIndex(index);
   };
 
@@ -1323,23 +1291,16 @@ export const SaleForm = ({
                       { value: "019", label: "019 - Arrendamiento de bienes muebles" },
                     ]}
                   />
-                  <div>
-                    <label className="text-sm font-medium">Tipo de Cambio SUNAT</label>
-                    <div className="mt-1.5 flex items-center gap-2">
-                      <Input
-                        value={tipoCambio}
-                        readOnly
-                        placeholder="Se obtiene automáticamente"
-                        className="bg-muted text-muted-foreground"
-                      />
-                    </div>
-                    {tipoCambioError && (
-                      <p className="text-xs text-destructive mt-1">{tipoCambioError}</p>
-                    )}
-                    {!tipoCambioError && !tipoCambio && (
-                      <p className="text-xs text-muted-foreground mt-1">Se obtiene de SUNAT según la fecha de emisión.</p>
-                    )}
-                  </div>
+                  <FormInput
+                    name="tipoCambio"
+                    label="Tipo de Cambio SUNAT"
+                    value={tipoCambio}
+                    readOnly
+                    placeholder="Se obtiene automáticamente"
+                    className="bg-muted text-muted-foreground"
+                    error={tipoCambioError}
+                    description={!tipoCambioError && !tipoCambio ? "Se obtiene de SUNAT según la fecha de emisión." : undefined}
+                  />
                 </>
               )}
 
@@ -1448,6 +1409,14 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const v = parseFloat(String(val));
+                  if (!isNaN(v) && v > 0) {
+                    detailTempForm.setValue("temp_unit_price", formatNumberLocal(v * 1.18));
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_unit_price", "");
+                  }
+                }}
               />
 
               <FormInput
@@ -1458,6 +1427,14 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const p = parseFloat(String(val));
+                  if (!isNaN(p) && p > 0) {
+                    detailTempForm.setValue("temp_value_price", formatNumberLocal(p / 1.18));
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_value_price", "");
+                  }
+                }}
               />
 
               <div className="md:col-span-4 flex items-center justify-end">
@@ -1972,6 +1949,7 @@ export const SaleForm = ({
           paymentAmountsMatchTotal={paymentAmountsMatchTotal}
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
+          tipoCambio={tipoCambio}
         />
       </form>
 
