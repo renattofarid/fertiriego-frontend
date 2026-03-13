@@ -188,9 +188,6 @@ export const SaleForm = ({
     correlative: "",
   });
 
-  // Estado para controlar la sincronización bidireccional de precios
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
-
   // Ref para evitar auto-generación en el montaje inicial
   const isInitialMount = useRef(true);
 
@@ -305,39 +302,6 @@ export const SaleForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
-  // Sincronización bidireccional: temp_unit_price → temp_value_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const price = parseFloat(selectedUnitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_value_price",
-        formatNumberLocal(price / 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedUnitPrice === "") {
-      detailTempForm.setValue("temp_value_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUnitPrice]);
-
-  // Sincronización bidireccional: temp_value_price → temp_unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const value = parseFloat(selectedValuePrice);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_unit_price",
-        formatNumberLocal(value * 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedValuePrice === "") {
-      detailTempForm.setValue("temp_unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedValuePrice]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -593,13 +557,11 @@ export const SaleForm = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          setIsUpdatingPrice(true);
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
           detailTempForm.setValue(
             "temp_value_price",
             formatNumberLocal(priceValue / 1.18),
           );
-          setIsUpdatingPrice(false);
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -842,7 +804,6 @@ export const SaleForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
-    setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     // unit_price guardado es SIN IGV (valor unitario)
@@ -853,7 +814,6 @@ export const SaleForm = ({
         ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
         : "",
     );
-    setIsUpdatingPrice(false);
     setEditingDetailIndex(index);
   };
 
@@ -1450,6 +1410,14 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const v = parseFloat(String(val));
+                  if (!isNaN(v) && v > 0) {
+                    detailTempForm.setValue("temp_unit_price", formatNumberLocal(v * 1.18));
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_unit_price", "");
+                  }
+                }}
               />
 
               <FormInput
@@ -1460,6 +1428,14 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const p = parseFloat(String(val));
+                  if (!isNaN(p) && p > 0) {
+                    detailTempForm.setValue("temp_value_price", formatNumberLocal(p / 1.18));
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_value_price", "");
+                  }
+                }}
               />
 
               <div className="md:col-span-4 flex items-center justify-end">
