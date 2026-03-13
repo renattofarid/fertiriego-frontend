@@ -40,6 +40,7 @@ export const WAREHOUSE_DOCUMENT: ModelComplete<WarehouseDocumentSchema> = {
     document_number: "",
     person_id: "",
     document_date: "",
+    currency: "",
     observations: "",
     details: [],
   },
@@ -89,6 +90,7 @@ export interface WarehouseDocumentResource {
   document_date: string;
   posting_date: null;
   status: DocumentStatus;
+  currency: string;
   observations: string;
   details: WarehouseDocumentDetail[];
   created_at: string;
@@ -106,12 +108,19 @@ export interface WarehouseDocumentResourceById {
 }
 
 // Request Types
+export const CURRENCIES = [
+  { value: "PEN", label: "S/. Soles" },
+  { value: "USD", label: "$ Dólares" },
+  { value: "EUR", label: "€ Euros" },
+] as const;
+
 export interface CreateWarehouseDocumentRequest {
   warehouse_id: number;
   document_type: DocumentType;
   document_number: string;
   person_id: number;
   document_date: string;
+  currency: string;
   observations?: string;
   details: {
     product_id: number;
@@ -127,6 +136,7 @@ export interface UpdateWarehouseDocumentRequest {
   document_number?: string;
   person_id?: number;
   document_date?: string;
+  currency?: string;
   observations?: string;
   details?: {
     id?: number;

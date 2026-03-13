@@ -26,7 +26,7 @@ import {
   getDocumentTypeLabel,
   getDocumentStatusVariant,
 } from "../lib/warehouse-document.constants";
-import { errorToast, successToast } from "@/lib/core.function";
+import { errorToast, successToast, matchCurrency } from "@/lib/core.function";
 import {
   Table,
   TableBody,
@@ -147,6 +147,7 @@ export default function WarehouseDocumentDetailPage() {
   }
 
   const isEntry = document.document_type.startsWith("ENTRADA_");
+  const currencySymbol = matchCurrency(document.currency || "PEN");
 
   return (
     <FormWrapper>
@@ -247,6 +248,10 @@ export default function WarehouseDocumentDetailPage() {
             </div>
           </div>
           <div>
+            <span className="text-sm text-muted-foreground">Moneda</span>
+            <p className="font-semibold">{document.currency || "PEN"}</p>
+          </div>
+          <div>
             <span className="text-sm text-muted-foreground">
               Fecha de Creación
             </span>
@@ -302,10 +307,10 @@ export default function WarehouseDocumentDetailPage() {
                         {detail.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        S/. {Number(detail.unit_cost).toFixed(2)}
+                        {currencySymbol} {Number(detail.unit_cost).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        S/. {(detail.quantity * detail.unit_cost).toFixed(2)}
+                        {currencySymbol} {(detail.quantity * detail.unit_cost).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {detail.observations || "-"}
@@ -320,7 +325,7 @@ export default function WarehouseDocumentDetailPage() {
                       Total:
                     </TableCell>
                     <TableCell className="text-right font-bold text-lg text-primary">
-                      S/.{" "}
+                      {currencySymbol}{" "}
                       {document.details
                         .reduce(
                           (sum, detail) =>
