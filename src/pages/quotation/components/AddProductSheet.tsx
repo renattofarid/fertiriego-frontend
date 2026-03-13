@@ -85,6 +85,7 @@ export const AddProductSheet = ({
   const isIgv = form.watch("is_igv");
   const quantity = form.watch("quantity");
   const unitValue = form.watch("unit_value");
+  const unitPrice = form.watch("unit_price");
 
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
@@ -178,20 +179,20 @@ export const AddProductSheet = ({
     setLastSetPrice(null);
   }, [productId]);
 
-  // Calcular valores (subtotal, tax, total) siempre usando el valor sin IGV
+  // Calcular valores: total = qty × precio_con_igv, subtotal = total/1.18, igv = total - subtotal
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
-    const value = parseFloat(unitValue) || 0;
+    const price = parseFloat(String(unitPrice)) || 0;
 
-    if (qty > 0 && value > 0) {
-      const subtotal = qty * value;
-      const tax = subtotal * 0.18;
-      const total = subtotal + tax;
+    if (qty > 0 && price > 0) {
+      const total = qty * price;
+      const subtotal = total / 1.18;
+      const tax = total - subtotal;
       setCalculatedValues({ subtotal, tax, total });
     } else {
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
-  }, [quantity, unitValue]);
+  }, [quantity, unitPrice]);
 
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
