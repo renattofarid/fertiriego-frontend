@@ -79,14 +79,12 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
   const isIgv = form.watch("is_igv");
   const quantity = form.watch("quantity");
   const unitValue = form.watch("unit_value");
-  const unitPrice = form.watch("unit_price");
 
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
@@ -100,37 +98,6 @@ export const AddProductSheet = ({
   const formatNumber = (num: number): string => {
     return parseFloat(num.toFixed(4)).toString();
   };
-
-  // Sincronizar unit_value y unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const value = parseFloat(unitValue);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      const price = value * 1.18;
-      form.setValue("unit_price", formatNumber(price));
-      setIsUpdatingPrice(false);
-    } else if (unitValue === "") {
-      form.setValue("unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitValue]);
-
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const price = parseFloat(unitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      const value = price / 1.18;
-      form.setValue("unit_value", formatNumber(value));
-      setIsUpdatingPrice(false);
-    } else if (unitPrice === "") {
-      form.setValue("unit_value", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitPrice]);
 
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
@@ -147,13 +114,9 @@ export const AddProductSheet = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          // El precio de la categoría es con IGV
-          setIsUpdatingPrice(true);
           form.setValue("unit_price", formatNumber(priceValue));
-          const value = priceValue / 1.18;
-          form.setValue("unit_value", formatNumber(value));
+          form.setValue("unit_value", formatNumber(priceValue / 1.18));
           setLastSetPrice(priceValue.toString());
-          setIsUpdatingPrice(false);
         }
       }
     }
@@ -410,6 +373,14 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const v = parseFloat(String(val));
+              if (!isNaN(v) && v > 0) {
+                form.setValue("unit_price", formatNumber(v * 1.18));
+              } else if (val === "") {
+                form.setValue("unit_price", "");
+              }
+            }}
           />
 
           <FormInput
@@ -420,6 +391,14 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const p = parseFloat(String(val));
+              if (!isNaN(p) && p > 0) {
+                form.setValue("unit_value", formatNumber(p / 1.18));
+              } else if (val === "") {
+                form.setValue("unit_value", "");
+              }
+            }}
           />
         </div>
 

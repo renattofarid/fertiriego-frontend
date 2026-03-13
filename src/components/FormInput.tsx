@@ -34,6 +34,7 @@ interface FormInputProps extends Omit<
   error?: string;
   uppercase?: boolean;
   optional?: boolean;
+  onAfterChange?: (value: string | number) => void;
 }
 
 export function FormInput({
@@ -52,6 +53,7 @@ export function FormInput({
   onChange,
   uppercase,
   optional,
+  onAfterChange,
   ...inputProps
 }: FormInputProps) {
   const isNumberType = inputProps.type === "number";
@@ -154,13 +156,16 @@ export function FormInput({
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           if (isNumberType) {
             const val = e.target.value;
+            const numVal = val === "" ? "" : Number(val);
             // Permitir string vacío temporalmente
-            field.onChange(val === "" ? "" : Number(val));
+            field.onChange(numVal);
+            onAfterChange?.(numVal);
           } else {
             const val = uppercase
               ? e.target.value.toUpperCase()
               : e.target.value;
             field.onChange(val);
+            onAfterChange?.(val);
           }
         };
 
