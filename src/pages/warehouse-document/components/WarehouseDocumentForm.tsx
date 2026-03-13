@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { DOCUMENT_TYPES } from "../lib/warehouse-document.constants";
+import { CURRENCIES } from "../lib/warehouse-document.interface";
+import { matchCurrency } from "@/lib/core.function";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -67,10 +69,13 @@ export default function WarehouseDocumentForm({
       document_number: "",
       person_id: "",
       document_date: "",
+      currency: "",
       observations: "",
       details: [],
     },
   });
+
+  const currencySymbol = matchCurrency(form.watch("currency") || "PEN");
 
   // Estado para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -184,6 +189,7 @@ export default function WarehouseDocumentForm({
   const createDetailColumns = (
     onEdit: (index: number) => void,
     onDelete: (index: number) => void,
+    symbol: string,
   ): ColumnDef<DetailRow>[] => [
     {
       accessorKey: "product_name",
@@ -200,14 +206,14 @@ export default function WarehouseDocumentForm({
     {
       accessorKey: "unit_cost",
       header: "Costo Unit.",
-      cell: ({ row }) => <span>S/ {row.original.unit_cost.toFixed(2)}</span>,
+      cell: ({ row }) => <span>{symbol} {row.original.unit_cost.toFixed(2)}</span>,
     },
     {
       accessorKey: "total",
       header: "Total",
       cell: ({ row }) => (
         <span className="font-semibold">
-          S/ {row.original.total.toFixed(2)}
+          {symbol} {row.original.total.toFixed(2)}
         </span>
       ),
     },
@@ -249,6 +255,7 @@ export default function WarehouseDocumentForm({
   const detailColumns = createDetailColumns(
     handleEditDetail,
     handleDeleteDetail,
+    currencySymbol,
   );
 
   // Submit con validación
@@ -333,6 +340,17 @@ export default function WarehouseDocumentForm({
             disabledRange={{
               after: new Date(),
             }}
+          />
+
+          <FormSelect
+            control={form.control}
+            name="currency"
+            label="Moneda"
+            placeholder="Seleccione una moneda"
+            options={CURRENCIES.map((c) => ({
+              value: c.value,
+              label: c.label,
+            }))}
           />
 
           <FormField
@@ -462,7 +480,7 @@ export default function WarehouseDocumentForm({
                   <div className="w-full md:w-1/3 space-y-2 border-t pt-4">
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Subtotal:</span>
-                      <span>S/ {subtotal.toFixed(2)}</span>
+                      <span>{currencySymbol} {subtotal.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>

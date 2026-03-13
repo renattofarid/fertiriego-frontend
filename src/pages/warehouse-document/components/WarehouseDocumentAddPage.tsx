@@ -42,6 +42,7 @@ export default function WarehouseDocumentAddPage() {
         document_number: data.document_number,
         person_id: parseInt(data.person_id),
         document_date: data.document_date,
+        currency: data.currency,
         observations: data.observations,
         details: data.details.map((detail) => ({
           product_id: parseInt(detail.product_id),

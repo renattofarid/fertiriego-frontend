@@ -34,6 +34,7 @@ export default function WarehouseDocumentEditPage() {
         document_number: data.document_number,
         person_id: parseInt(data.person_id),
         document_date: data.document_date,
+        currency: data.currency,
         observations: data.observations,
         details: data.details.map((detail) => ({
           id: detail.id,
@@ -78,6 +79,7 @@ export default function WarehouseDocumentEditPage() {
     document_number: document.document_number,
     person_id: document.person_id.toString(),
     document_date: document.document_date,
+    currency: document.currency || "",
     observations: document.observations || "",
     details: document.details.map((detail) => ({
       id: detail.id,
