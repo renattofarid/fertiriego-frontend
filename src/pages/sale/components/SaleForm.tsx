@@ -229,7 +229,6 @@ export const SaleForm = ({
   );
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
-  const selectedValuePrice = detailTempForm.watch("temp_value_price");
 
   // Cargar precios del producto seleccionado
   const { data: productPricesData } = useProductPrices({
