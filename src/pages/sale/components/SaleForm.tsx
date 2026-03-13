@@ -406,10 +406,10 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
-          const igv = roundTo6Decimals(subtotal * 0.18);
-          const total = roundTo6Decimals(subtotal + igv);
+          const unitPriceSin = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
+          const total = roundTo6Decimals(quantity * unitPriceSin * 1.18);
+          const subtotal = roundTo6Decimals(total / 1.18);
+          const igv = roundTo6Decimals(total - subtotal);
 
           return {
             product_id: detail.product_id,
@@ -593,9 +593,9 @@ export const SaleForm = ({
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
               const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
-              const subtotal = roundTo6Decimals(quantity * valorUnitario);
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              const total = roundTo6Decimals(quantity * unitPrice);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -616,16 +616,14 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price);
-              // is_igv=true → unit_price viene CON IGV (precio unitario)
-              // is_igv=false → unit_price viene SIN IGV (valor unitario)
-              // is_igv=true → unit_price CON IGV → valor = unitPrice / 1.18
-              // is_igv=false → unit_price SIN IGV → valor = unitPrice
-              const valorUnitario = detail.is_igv
-                ? roundTo6Decimals(unitPrice / 1.18)
-                : unitPrice;
-              const subtotal = roundTo6Decimals(quantity * valorUnitario);
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
+              const unitPriceCon = detail.is_igv
+                ? unitPrice
+                : roundTo6Decimals(unitPrice * 1.18);
+              const valorUnitario = roundTo6Decimals(unitPriceCon / 1.18); // SIN IGV → backend
+              const total = roundTo6Decimals(quantity * unitPriceCon);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -688,9 +686,9 @@ export const SaleForm = ({
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
               const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
-              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              const total = roundTo6Decimals(quantity * unitPrice);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -753,11 +751,10 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = roundTo6Decimals(unitPriceWithIGV / 1.18); // SIN IGV → lo que va al backend
-
-    const subtotal = roundTo6Decimals(quantity * valorUnitario);
-    const igv = roundTo6Decimals(subtotal * 0.18);
-    const total = roundTo6Decimals(subtotal + igv);
+    const valorUnitario = unitPriceWithIGV / 1.18; // SIN IGV → lo que va al backend (precisión completa)
+    const total = roundTo6Decimals(quantity * unitPriceWithIGV);
+    const subtotal = roundTo6Decimals(total / 1.18);
+    const igv = roundTo6Decimals(total - subtotal);
 
     const newDetail: DetailRow = {
       ...currentDetail,
