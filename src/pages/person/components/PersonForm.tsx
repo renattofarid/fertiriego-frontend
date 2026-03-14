@@ -79,10 +79,19 @@ export const PersonForm = ({
   const type_document = form.watch("type_document");
   const [isSearching, setIsSearching] = useState(false);
 
-  // Auto-set RUC when JURIDICA is selected
+  // Clear opposite fields and auto-set document type when switching person type
   useEffect(() => {
     if (type_person === "JURIDICA") {
       form.setValue("type_document", "RUC", { shouldValidate: true });
+      form.setValue("names", "");
+      form.setValue("father_surname", "");
+      form.setValue("mother_surname", "");
+      form.setValue("birth_date", "");
+      setFieldsFromSearch((prev) => ({ ...prev, names: false, father_surname: false, mother_surname: false }));
+    } else if (type_person === "NATURAL") {
+      form.setValue("business_name", "");
+      form.setValue("commercial_name", "");
+      setFieldsFromSearch((prev) => ({ ...prev, business_name: false }));
     }
   }, [type_person]);
 
