@@ -103,13 +103,6 @@ export const personCreateSchema = z
           path: ["business_name"],
         });
       }
-      if (!data.commercial_name || data.commercial_name.trim() === "") {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "El nombre comercial es obligatorio para personas jurídicas",
-          path: ["commercial_name"],
-        });
-      }
     }
     if (data.type_person === "NATURAL") {
       if (!data.names || data.names.trim() === "") {
@@ -132,14 +125,6 @@ export const personCreateSchema = z
           code: z.ZodIssueCode.custom,
           message: "El apellido materno es obligatorio para personas naturales",
           path: ["mother_surname"],
-        });
-      }
-
-      if (!data.gender) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "El género es obligatorio para personas naturales",
-          path: ["gender"],
         });
       }
 

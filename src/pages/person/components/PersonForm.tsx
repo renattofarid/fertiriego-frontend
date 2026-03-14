@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Form,
   FormControl,
@@ -78,6 +78,13 @@ export const PersonForm = ({
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
   const [isSearching, setIsSearching] = useState(false);
+
+  // Auto-set RUC when JURIDICA is selected
+  useEffect(() => {
+    if (type_person === "JURIDICA") {
+      form.setValue("type_document", "RUC", { shouldValidate: true });
+    }
+  }, [type_person]);
 
   // Get form state for better UX
   const { errors, isValid, dirtyFields } = form.formState;
@@ -792,7 +799,7 @@ export const PersonForm = ({
           )}
           <Button
             type="submit"
-            disabled={isSubmitting || !isValid}
+            disabled={isSubmitting}
             className={`gap-2 ${!isValid ? "opacity-50" : ""}`}
           >
             {isSubmitting ? (
