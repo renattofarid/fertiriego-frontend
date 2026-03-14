@@ -758,7 +758,7 @@ export const SaleForm = ({
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: productSelected?.product_name,
+      product_name: productSelected?.product_name ?? currentDetail.product_name,
       unit_price: valorUnitario.toString(), // guardar SIN IGV
       subtotal,
       igv,
