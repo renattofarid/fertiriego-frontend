@@ -135,14 +135,6 @@ export const personCreateSchema = z
         });
       }
 
-      if (!data.gender) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "El género es obligatorio para personas naturales",
-          path: ["gender"],
-        });
-      }
-
       // if (!data.ocupation || data.ocupation.trim() === "") {
       //   ctx.addIssue({
       //     code: z.ZodIssueCode.custom,

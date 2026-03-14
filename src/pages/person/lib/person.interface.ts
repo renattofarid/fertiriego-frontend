@@ -152,6 +152,7 @@ export interface CreatePersonRequest {
   phone: string;
   email: string;
   ocupation?: string;
+  driver_license?: string;
   status: string;
   role_id: number;
   number_document: string;
@@ -169,6 +170,7 @@ export interface UpdatePersonRequest {
   address?: string;
   phone?: string;
   email?: string;
+  driver_license?: string;
   rol_id?: number;
   number_document?: string;
 }
