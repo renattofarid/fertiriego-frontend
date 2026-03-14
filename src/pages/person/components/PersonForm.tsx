@@ -78,6 +78,13 @@ export const PersonForm = ({
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
   const [isSearching, setIsSearching] = useState(false);
+  const [fieldsFromSearch, setFieldsFromSearch] = useState({
+    names: false,
+    father_surname: false,
+    mother_surname: false,
+    business_name: false,
+    address: false,
+  });
 
   // Clear opposite fields and auto-set document type when switching person type
   useEffect(() => {
@@ -97,13 +104,6 @@ export const PersonForm = ({
 
   // Get form state for better UX
   const { errors, isValid, dirtyFields } = form.formState;
-  const [fieldsFromSearch, setFieldsFromSearch] = useState({
-    names: false,
-    father_surname: false,
-    mother_surname: false,
-    business_name: false,
-    address: false,
-  });
 
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
