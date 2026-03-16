@@ -117,36 +117,57 @@ export default function ShippingGuideCarrierDetailPage() {
         >
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Transportista</p>
-            <p className="font-semibold">{guide.carrier?.business_name}</p>
+            <p className="font-semibold">{guide.carrier?.business_name || "-"}</p>
           </div>
           {guide.transport_modality === "PRIVADO" && (
             <>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Conductor</p>
-                <p className="font-semibold">{guide.driver?.full_name}</p>
+                <p className="font-semibold">{guide.driver?.full_name || "-"}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Vehículo Principal</p>
-                <p className="font-mono font-semibold">{guide.vehicle?.plate}</p>
+                <p className="font-mono font-semibold">{guide.vehicle?.plate || "-"}</p>
               </div>
             </>
           )}
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Remitente</p>
             <p className="font-semibold">
-              {guide.remittent?.business_name ??
-                (guide.remittent?.names ?? "") +
-                  " " +
-                  (guide.remittent?.father_surname ?? "") +
-                  " " +
-                  (guide.remittent?.mother_surname ?? "")}
+              {(guide.remittent?.business_name ??
+                [
+                  guide.remittent?.names,
+                  guide.remittent?.father_surname,
+                  guide.remittent?.mother_surname,
+                ]
+                  .filter(Boolean)
+                  .join(" ")) ||
+                "-"}
             </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Destinatario</p>
+            <p className="font-semibold">
+              {(guide.recipient?.business_name ??
+                [
+                  guide.recipient?.names,
+                  guide.recipient?.father_surname,
+                  guide.recipient?.mother_surname,
+                ]
+                  .filter(Boolean)
+                  .join(" ")) ||
+                "-"}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Pago responsable</p>
+            <p className="font-semibold capitalize">{guide.payment_responsible || "-"}</p>
           </div>
           {guide.transport_modality === "PRIVADO" && (
             <>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Licencia Conductor</p>
-                <p className="font-semibold">{guide.driver_license}</p>
+                <p className="font-semibold">{guide.driver_license || "-"}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Vehículo Secundario</p>
@@ -160,14 +181,14 @@ export default function ShippingGuideCarrierDetailPage() {
             <p className="text-xs text-muted-foreground">Origen</p>
             <p className="font-medium">{guide.origin_address}</p>
             <Badge variant="outline" className="font-mono">
-              {guide.origin_ubigeo?.full_name || "-"}
+              {guide.origin_ubigeo?.cadena || "-"}
             </Badge>
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">Destino</p>
             <p className="font-medium">{guide.destination_address}</p>
             <Badge variant="outline" className="font-mono">
-              {guide.destination_ubigeo?.full_name || "-"}
+              {guide.destination_ubigeo?.cadena || "-"}
             </Badge>
           </div>
           <div className="space-y-1">
