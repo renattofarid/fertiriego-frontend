@@ -353,51 +353,55 @@ export const getSaleColumns = ({
           />
 
           {/* XML / CDR — al lado del PDF, solo si está enviado */}
-          {row.original.status_facturado === "ACEPTADO" && (
-            <TooltipProvider>
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <FileCode2 className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Descargar XML / CDR</p>
-                  </TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
-                      downloadXml(
-                        `/getArchivosDocument/${row.original.id}/venta`,
-                        `xml-venta-${row.original.sequential_number}.xml`,
-                      )
-                    }
-                  >
-                    <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
-                    XML Venta
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      downloadXml(
-                        `/getArchivosDocumentCDR/${row.original.id}/venta`,
-                        `cdr-venta-${row.original.sequential_number}.zip`,
-                      )
-                    }
-                  >
-                    <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
-                    CDR Venta
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TooltipProvider>
-          )}
+          <TooltipProvider>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                      <FileCode2 className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Descargar XML / CDR</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  disabled={
+                    !["ENVIADO", "ACEPTADO"].includes(
+                      row.original.status_facturado,
+                    )
+                  }
+                  onClick={() =>
+                    downloadXml(
+                      `/getArchivosDocument/${row.original.id}/venta`,
+                      `xml-venta-${row.original.sequential_number}.xml`,
+                    )
+                  }
+                >
+                  <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
+                  XML Venta
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={row.original.status_facturado !== "ACEPTADO"}
+                  onClick={() =>
+                    downloadXml(
+                      `/getArchivosDocumentCDR/${row.original.id}/venta`,
+                      `cdr-venta-${row.original.sequential_number}.zip`,
+                    )
+                  }
+                >
+                  <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
+                  CDR Venta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TooltipProvider>
 
           {/* Ver detalle */}
           <ButtonAction
