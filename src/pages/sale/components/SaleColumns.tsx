@@ -133,9 +133,7 @@ export const getSaleColumns = ({
     header: "Tipo Pago",
     cell: ({ row }) => (
       <Badge
-        variant={
-          row.original.payment_type === "CONTADO" ? "blue" : "purple"
-        }
+        variant={row.original.payment_type === "CONTADO" ? "blue" : "purple"}
       >
         {row.original.payment_type}
       </Badge>
@@ -203,12 +201,14 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      let variant: "default" | "secondary" | "amber" | "gray" | "green" =
-        "default";
-
-      if (status === "ENVIADO") variant = "green";
-      if (status === "PENDIENTE") variant = "amber";
-
+      const variantMap: Record<string, "yellow" | "blue" | "green" | "gray" | "red"> = {
+        PENDIENTE: "yellow",
+        ENVIADO: "blue",
+        ACEPTADO: "green",
+        BAJA: "gray",
+        RECHAZADO: "red",
+      };
+      const variant = variantMap[status] ?? "gray";
       return <Badge variant={variant}>{status}</Badge>;
     },
   },
@@ -355,7 +355,10 @@ export const getSaleColumns = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600">
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                      >
                         <FileCode2 className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -365,11 +368,25 @@ export const getSaleColumns = ({
                   </TooltipContent>
                 </Tooltip>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocument/${row.original.id}/venta`, `xml-venta-${row.original.sequential_number}.xml`)}>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocument/${row.original.id}/venta`,
+                        `xml-venta-${row.original.sequential_number}.xml`,
+                      )
+                    }
+                  >
                     <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
                     XML Venta
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => downloadXml(`/getArchivosDocumentCDR/${row.original.id}/venta`, `cdr-venta-${row.original.sequential_number}.zip`)}>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocumentCDR/${row.original.id}/venta`,
+                        `cdr-venta-${row.original.sequential_number}.zip`,
+                      )
+                    }
+                  >
                     <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
                     CDR Venta
                   </DropdownMenuItem>
@@ -389,7 +406,11 @@ export const getSaleColumns = ({
           {row.original.status_facturado === "PENDIENTE" && (
             <ConfirmationDialog
               trigger={
-                <ButtonAction icon={Send} color="blue" tooltip="Declarar a SUNAT" />
+                <ButtonAction
+                  icon={Send}
+                  color="blue"
+                  tooltip="Declarar a SUNAT"
+                />
               }
               title="Declarar a SUNAT"
               description="¿Estás seguro de que deseas declarar esta venta a SUNAT? Esta acción no se puede deshacer."
@@ -404,7 +425,11 @@ export const getSaleColumns = ({
           {row.original.status_facturado === "ENVIADO" && (
             <ConfirmationDialog
               trigger={
-                <ButtonAction icon={XCircle} color="red" tooltip="Anular documento" />
+                <ButtonAction
+                  icon={XCircle}
+                  color="red"
+                  tooltip="Anular documento"
+                />
               }
               title="Anular documento"
               description={`¿Estás seguro de que deseas anular esta ${row.original.document_type === "FACTURA" ? "factura" : "boleta"}? Esta acción no se puede deshacer.`}
@@ -438,10 +463,10 @@ export const getSaleColumns = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onEdit(row.original)}
-                disabled={isPaid || hasPayments || isEnviado}
+                disabled={hasPayments || isEnviado}
               >
                 <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
-                {isPaid || hasPayments || isEnviado ? "No se puede editar" : "Editar"}
+                {hasPayments || isEnviado ? "No se puede editar" : "Editar"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -450,7 +475,9 @@ export const getSaleColumns = ({
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {isPaid || hasPayments || isEnviado ? "No se puede eliminar" : "Eliminar"}
+                {isPaid || hasPayments || isEnviado
+                  ? "No se puede eliminar"
+                  : "Eliminar"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

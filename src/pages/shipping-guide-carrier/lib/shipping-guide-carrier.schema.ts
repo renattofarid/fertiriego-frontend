@@ -32,6 +32,7 @@ export const shippingGuideCarrierSchema = z
     transport_modality: z
       .string()
       .min(1, { message: "La modalidad de transporte es requerida" }),
+    motive_id: requiredStringId("Debe seleccionar un motivo de traslado"),
     // Campos condicionales
     carrier_id: requiredStringId("Debe seleccionar un transportista"),
     driver_id: optionalStringId("Debe seleccionar un conductor"),
@@ -60,15 +61,11 @@ export const shippingGuideCarrierSchema = z
     third_party_id: optionalStringId("Debe seleccionar un tercero"),
     payment_responsible: z.string().optional(),
     // Direcciones
-    origin_address: z
-      .string()
-      .min(1, { message: "La dirección de origen es requerida" })
-      .max(500),
+    origin_address_id: optionalStringId("Dirección de origen"),
+    destination_address_id: optionalStringId("Dirección de destino"),
+    origin_address: z.string().max(500).optional(),
     origin_ubigeo_id: requiredStringId("Debe seleccionar un ubigeo de origen"),
-    destination_address: z
-      .string()
-      .min(1, { message: "La dirección de destino es requerida" })
-      .max(500),
+    destination_address: z.string().max(500).optional(),
     destination_ubigeo_id: requiredStringId(
       "Debe seleccionar un ubigeo de destino",
     ),

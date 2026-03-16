@@ -63,10 +63,10 @@ export default function ShippingGuideCarrierEditPage() {
     remittent_id: guide.remittent?.id?.toString() || "",
     recipient_id: guide.recipient?.id?.toString() || "",
     shipping_guide_remittent_id: "",
-    driver_id: guide.driver.id.toString(),
-    vehicle_id: guide.vehicle.id.toString(),
-    secondary_vehicle_id: guide.secondary_vehicle?.id.toString() || "",
-    driver_license: guide.driver_license,
+    driver_id: guide.driver?.id?.toString() || "",
+    vehicle_id: guide.vehicle?.id?.toString() || "",
+    secondary_vehicle_id: guide.secondary_vehicle?.id?.toString() || "",
+    driver_license: guide.driver_license?.toString() || "",
     origin_address: guide.origin_address,
     origin_ubigeo_id: guide.origin_ubigeo?.id.toString() || "",
     destination_address: guide.destination_address,
@@ -81,6 +81,13 @@ export default function ShippingGuideCarrierEditPage() {
     })),
     total_weight: Number(guide.total_weight),
     total_packages: guide.total_packages,
+    motive_id: guide.motive_id.toString(),
+    payment_responsible: guide.payment_responsible || "",
+    destination_address_id: "",
+    origin_address_id: "",
+    vehicle_brand: guide.vehicle?.brand || "",
+    vehicle_model: guide.vehicle?.model || "",
+    vehicle_plate: guide.vehicle?.plate || "",
   };
 
   return (

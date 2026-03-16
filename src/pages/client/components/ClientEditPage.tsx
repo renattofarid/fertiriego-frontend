@@ -63,9 +63,8 @@ export default function ClientEditPage() {
         type_person: data.type_person,
         number_document: data.number_document,
         names: data.names || "",
-        gender: data.type_person === "NATURAL" ? data.gender || "M" : undefined,
-        birth_date:
-          data.type_person === "NATURAL" ? data.birth_date || "" : undefined,
+        gender: data.type_person === "NATURAL" ? data.gender || "M" : "",
+        birth_date: data.type_person === "NATURAL" ? data.birth_date || "" : "",
         father_surname: data.father_surname || "",
         mother_surname: data.mother_surname || "",
         business_name: data.business_name || "",

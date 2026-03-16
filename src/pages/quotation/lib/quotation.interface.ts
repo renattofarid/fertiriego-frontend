@@ -101,6 +101,7 @@ export interface QuotationResource {
   id: number;
   quotation_number: string;
   fecha_emision: string;
+  tipo_cambio?: number;
   delivery_time: string;
   validity_time: string;
   currency: string;
@@ -200,6 +201,7 @@ export interface CreateQuotationRequest {
   warehouse_id: number;
   customer_id: number;
   user_id: number;
+  tipo_cambio?: number;
   quotation_details: CreateQuotationDetailRequest[];
 }
 
@@ -219,6 +221,7 @@ export interface UpdateQuotationRequest {
   warehouse_id?: number;
   customer_id?: number;
   user_id?: number;
+  tipo_cambio?: number;
   quotation_details?: CreateQuotationDetailRequest[];
 }
 

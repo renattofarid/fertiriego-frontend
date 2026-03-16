@@ -11,13 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Package, Plus, Trash2, Pencil } from "lucide-react";
+import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { QuotationResource } from "@/pages/quotation/lib/quotation.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { api } from "@/lib/config";
+import { FormInput } from "@/components/FormInput";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import {
@@ -118,8 +120,54 @@ export const OrderForm = ({
       status: "Pendiente",
       quotation_id: "",
       customer_id: "",
+      tipo_cambio: "",
     },
   });
+
+  const watchedOrderDate = form.watch("order_date");
+  const [tipoCambioError, setTipoCambioError] = useState<string>("");
+  const tipoCambioCache = useRef<Record<string, string>>({});
+  const tipoCambioFetching = useRef<Set<string>>(new Set());
+
+  const fetchTipoCambio = useCallback(
+    async (fecha: string, force = false) => {
+      if (!fecha) return;
+
+      if (!force && tipoCambioCache.current[fecha]) {
+        setTipoCambioError("");
+        form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        return;
+      }
+
+      if (tipoCambioFetching.current.has(fecha)) return;
+
+      tipoCambioFetching.current.add(fecha);
+      setTipoCambioError("");
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${fecha}`);
+        const valorStr = (data?.venta || data?.compra || "").toString();
+        tipoCambioCache.current[fecha] = valorStr;
+        form.setValue("tipo_cambio", valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        form.setValue("tipo_cambio", "");
+      } finally {
+        tipoCambioFetching.current.delete(fecha);
+      }
+    },
+    [form],
+  );
+
+  useEffect(() => {
+    if (watchedOrderDate) {
+      if (mode === "edit" && order?.tipo_cambio) return;
+      fetchTipoCambio(watchedOrderDate);
+    } else {
+      setTipoCambioError("");
+      form.setValue("tipo_cambio", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedOrderDate]);
 
   // Actualizar listas cuando cambien las props
   useEffect(() => {
@@ -162,6 +210,10 @@ export const OrderForm = ({
       // Setear quotation_id si existe en el pedido
       if (order.quotation_id) {
         form.setValue("quotation_id", order.quotation_id.toString());
+      }
+
+      if (order.tipo_cambio) {
+        form.setValue("tipo_cambio", order.tipo_cambio.toString());
       }
 
       // Establecer defaultCustomerOption si existe el cliente en el pedido
@@ -211,6 +263,9 @@ export const OrderForm = ({
       form.setValue("warehouse_id", quotation.warehouse_id.toString());
       form.setValue("currency", quotation.currency);
       form.setValue("address", quotation.address || "");
+      if (quotation.tipo_cambio) {
+        form.setValue("tipo_cambio", quotation.tipo_cambio.toString());
+      }
       form.setValue("observations", quotation.observations || "");
 
       const quotationDetails: DetailRow[] =
@@ -311,6 +366,7 @@ export const OrderForm = ({
       ...(formData.quotation_id && {
         quotation_id: parseInt(formData.quotation_id),
       }),
+      tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
       order_details: details.map((detail) => ({
         product_id: parseInt(detail.product_id),
         is_igv: detail.is_igv,
@@ -463,6 +519,33 @@ export const OrderForm = ({
               }))}
               placeholder="Seleccionar moneda"
             />
+
+            <div className="flex items-end gap-2">
+              <div className="flex-1 min-w-0">
+                <FormInput
+                  control={form.control}
+                  name="tipo_cambio"
+                  label="Tipo de Cambio SUNAT"
+                  placeholder="Se obtiene automáticamente"
+                  error={tipoCambioError}
+                  description={
+                    !tipoCambioError && !form.watch("tipo_cambio")
+                      ? "Se obtiene de SUNAT según la fecha de pedido."
+                      : undefined
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                tooltip="Volver a consultar tipo de cambio SUNAT"
+                onClick={() => watchedOrderDate && fetchTipoCambio(watchedOrderDate, true)}
+                disabled={!watchedOrderDate}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
 
             <FormField
               control={form.control}
@@ -634,6 +717,7 @@ export const OrderForm = ({
           calculateTaxTotal={calculateTaxTotal}
           calculateDetailsTotal={calculateDetailsTotal}
           onCancel={onCancel}
+          tipoCambio={form.watch("tipo_cambio") || ""}
         />
       </form>
 

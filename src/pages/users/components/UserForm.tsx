@@ -86,16 +86,24 @@ export const UserForm = ({
   );
 
   // Resetear el tipo de documento si no es válido para el tipo de persona seleccionado
+  // y limpiar los campos del tipo anterior al cambiar tipo de persona
   React.useEffect(() => {
-    if (
-      type_person &&
-      type_document &&
-      !getValidDocumentTypes(type_person).includes(type_document)
-    ) {
-      form.setValue("type_document", undefined);
-      form.setValue("number_document", "");
+    if (type_person) {
+      if (!getValidDocumentTypes(type_person).includes(type_document ?? "")) {
+        form.setValue("type_document", undefined);
+        form.setValue("number_document", "");
+      }
+      if (type_person === "JURIDICA") {
+        form.setValue("names", "");
+        form.setValue("father_surname", "");
+        form.setValue("mother_surname", "");
+        setFieldsFromSearch((prev) => ({ ...prev, names: false, father_surname: false, mother_surname: false }));
+      } else if (type_person === "NATURAL") {
+        form.setValue("business_name", "");
+        setFieldsFromSearch((prev) => ({ ...prev, business_name: false }));
+      }
     }
-  }, [type_person, type_document, form]);
+  }, [type_person]);
 
   return (
     <Form {...form}>

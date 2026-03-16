@@ -24,6 +24,7 @@ import {
   CreditCard,
   ListCheck,
   ListChecks,
+  RefreshCw,
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
@@ -120,6 +121,7 @@ export const SaleForm = ({
   warehouses,
   sourceData,
   sourceType,
+  sale,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -301,7 +303,6 @@ export const SaleForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
-
   // Observers para cuotas
   useEffect(() => {
     if (selectedDueDays !== currentInstallment.due_days) {
@@ -475,50 +476,46 @@ export const SaleForm = ({
   // Watch para detracción
   const isDetraccion = form.watch("is_detraccion" as any);
   const watchedIssueDate = form.watch("issue_date");
-  const [tipoCambio, setTipoCambio] = useState<string>((defaultValues as any).tipo_cambio?.toString() || "");
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
   const tipoCambioCache = useRef<Record<string, string>>({});
   const tipoCambioFetching = useRef<Set<string>>(new Set());
 
-  const fetchTipoCambio = useCallback(async (issueDate: string) => {
-    if (!issueDate) return;
+  const fetchTipoCambio = useCallback(
+    async (issueDate: string, force = false) => {
+      if (!issueDate) return;
 
-    // Si ya tenemos el valor en cache, usarlo directamente
-    if (tipoCambioCache.current[issueDate]) {
-      const cached = tipoCambioCache.current[issueDate];
+      if (!force && tipoCambioCache.current[issueDate]) {
+        setTipoCambioError("");
+        form.setValue("tipo_cambio" as any, tipoCambioCache.current[issueDate]);
+        return;
+      }
+
+      if (tipoCambioFetching.current.has(issueDate)) return;
+
+      tipoCambioFetching.current.add(issueDate);
       setTipoCambioError("");
-      setTipoCambio(cached);
-      form.setValue("tipo_cambio" as any, cached);
-      return;
-    }
-
-    // Si ya hay un fetch en curso para esta fecha, no lanzar otro
-    if (tipoCambioFetching.current.has(issueDate)) return;
-
-    tipoCambioFetching.current.add(issueDate);
-    setTipoCambioError("");
-    try {
-      const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
-      const valor = data?.venta || data?.compra || "";
-      const valorStr = valor.toString();
-      tipoCambioCache.current[issueDate] = valorStr;
-      setTipoCambio(valorStr);
-      form.setValue("tipo_cambio" as any, valorStr);
-    } catch {
-      setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
-      setTipoCambio("");
-      form.setValue("tipo_cambio" as any, "");
-    } finally {
-      tipoCambioFetching.current.delete(issueDate);
-    }
-  }, [form]);
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
+        const valorStr = (data?.venta || data?.compra || "").toString();
+        tipoCambioCache.current[issueDate] = valorStr;
+        form.setValue("tipo_cambio" as any, valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        form.setValue("tipo_cambio" as any, "");
+      } finally {
+        tipoCambioFetching.current.delete(issueDate);
+      }
+    },
+    [form],
+  );
 
   // Fetch tipo de cambio siempre que cambie la fecha de emisión
   useEffect(() => {
     if (watchedIssueDate) {
+      // En edición, si ya existe el valor del recurso no llamamos a SUNAT
+      if (mode === "edit" && sale?.tipo_cambio) return;
       fetchTipoCambio(watchedIssueDate);
     } else {
-      setTipoCambio("");
       setTipoCambioError("");
       form.setValue("tipo_cambio" as any, "");
     }
@@ -1101,7 +1098,7 @@ export const SaleForm = ({
       order_id: data.order_id ? parseInt(data.order_id) : undefined,
       quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
       guide_id: data.guide_id ? parseInt(data.guide_id) : undefined,
-      tipo_cambio: tipoCambio ? parseFloat(tipoCambio) : undefined,
+      tipo_cambio: data.tipo_cambio ? parseFloat(data.tipo_cambio as any) : 0,
     });
   };
 
@@ -1272,7 +1269,11 @@ export const SaleForm = ({
                 control={form.control}
                 name={"is_detraccion" as any}
                 label="Detracción"
-                text={isRetencionIGV ? "No disponible con Retención IGV activa" : "Marque si aplica detracción"}
+                text={
+                  isRetencionIGV
+                    ? "No disponible con Retención IGV activa"
+                    : "Marque si aplica detracción"
+                }
                 disabled={isRetencionIGV}
               />
 
@@ -1285,21 +1286,41 @@ export const SaleForm = ({
                     placeholder="Seleccione código"
                     options={[
                       { value: "027", label: "027 - Demás bienes y servicios" },
-                      { value: "019", label: "019 - Arrendamiento de bienes muebles" },
+                      {
+                        value: "019",
+                        label: "019 - Arrendamiento de bienes muebles",
+                      },
                     ]}
-                  />
-                  <FormInput
-                    name="tipoCambio"
-                    label="Tipo de Cambio SUNAT"
-                    value={tipoCambio}
-                    readOnly
-                    placeholder="Se obtiene automáticamente"
-                    className="bg-muted text-muted-foreground"
-                    error={tipoCambioError}
-                    description={!tipoCambioError && !tipoCambio ? "Se obtiene de SUNAT según la fecha de emisión." : undefined}
                   />
                 </>
               )}
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <FormInput
+                    control={form.control}
+                    name="tipo_cambio"
+                    label="Tipo de Cambio SUNAT"
+                    placeholder="Se obtiene automáticamente"
+                    error={tipoCambioError}
+                    description={
+                      !tipoCambioError && !form.watch("tipo_cambio" as any)
+                        ? "Se obtiene de SUNAT según la fecha de emisión."
+                        : undefined
+                    }
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  tooltip="Volver a consultar tipo de cambio SUNAT"
+                  onClick={() => watchedIssueDate && fetchTipoCambio(watchedIssueDate, true)}
+                  disabled={!watchedIssueDate}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
 
               <FormSwitch
                 control={form.control}
@@ -1409,7 +1430,10 @@ export const SaleForm = ({
                 onAfterChange={(val) => {
                   const v = parseFloat(String(val));
                   if (!isNaN(v) && v > 0) {
-                    detailTempForm.setValue("temp_unit_price", formatNumberLocal(v * 1.18));
+                    detailTempForm.setValue(
+                      "temp_unit_price",
+                      formatNumberLocal(v * 1.18),
+                    );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_unit_price", "");
                   }
@@ -1427,7 +1451,10 @@ export const SaleForm = ({
                 onAfterChange={(val) => {
                   const p = parseFloat(String(val));
                   if (!isNaN(p) && p > 0) {
-                    detailTempForm.setValue("temp_value_price", formatNumberLocal(p / 1.18));
+                    detailTempForm.setValue(
+                      "temp_value_price",
+                      formatNumberLocal(p / 1.18),
+                    );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_value_price", "");
                   }
@@ -1664,7 +1691,7 @@ export const SaleForm = ({
           </GroupFormSection>
 
           {/* Métodos de Pago - Solo mostrar si es al contado */}
-          {mode === "create" && selectedPaymentType === "CONTADO" && (
+          {selectedPaymentType === "CONTADO" && (
             <GroupFormSection
               title="Métodos de Pago"
               icon={CreditCard}
@@ -1946,7 +1973,7 @@ export const SaleForm = ({
           paymentAmountsMatchTotal={paymentAmountsMatchTotal}
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
-          tipoCambio={tipoCambio}
+          tipoCambio={form.watch("tipo_cambio" as any) || ""}
         />
       </form>
 

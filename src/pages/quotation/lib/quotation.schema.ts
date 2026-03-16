@@ -17,6 +17,7 @@ export const quotationFormSchema = z.object({
   warehouse_id: requiredStringId("El almacén es requerido"),
   customer_id: requiredStringId("El cliente es requerido"),
   status: z.string().optional(),
+  tipo_cambio: z.string().optional(),
 });
 
 // Tipo inferido del schema

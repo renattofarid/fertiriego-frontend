@@ -112,6 +112,7 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
       try {
         const request: CreateShippingGuideCarrierRequest = {
           transport_modality: data.transport_modality,
+          motive_id: data.motive_id ? Number(data.motive_id) : undefined,
           carrier_id: data.carrier_id ? Number(data.carrier_id) : undefined,
           issue_date: data.issue_date,
           transfer_start_date: data.transfer_start_date,
@@ -136,9 +137,9 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
             ? Number(data.third_party_id)
             : undefined,
           payment_responsible: data.payment_responsible || undefined,
-          origin_address: data.origin_address,
+          origin_address_id: data.origin_address_id ? Number(data.origin_address_id) : undefined,
+          destination_address_id: data.destination_address_id ? Number(data.destination_address_id) : undefined,
           origin_ubigeo_id: Number(data.origin_ubigeo_id),
-          destination_address: data.destination_address,
           destination_ubigeo_id: Number(data.destination_ubigeo_id),
           observations: data.observations || "",
           total_weight: Number(data.total_weight),
@@ -170,6 +171,9 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
         const request: UpdateShippingGuideCarrierRequest = {
           ...(data.transport_modality && {
             transport_modality: data.transport_modality,
+          }),
+          ...(data.motive_id !== undefined && {
+            motive_id: data.motive_id ? Number(data.motive_id) : undefined,
           }),
           ...(data.carrier_id !== undefined && {
             carrier_id: data.carrier_id ? Number(data.carrier_id) : undefined,
@@ -213,12 +217,14 @@ export const useShippingGuideCarrierStore = create<ShippingGuideCarrierStore>(
           ...(data.payment_responsible !== undefined && {
             payment_responsible: data.payment_responsible || undefined,
           }),
-          ...(data.origin_address && { origin_address: data.origin_address }),
+          ...(data.origin_address_id !== undefined && {
+            origin_address_id: data.origin_address_id ? Number(data.origin_address_id) : undefined,
+          }),
+          ...(data.destination_address_id !== undefined && {
+            destination_address_id: data.destination_address_id ? Number(data.destination_address_id) : undefined,
+          }),
           ...(data.origin_ubigeo_id && {
             origin_ubigeo_id: Number(data.origin_ubigeo_id),
-          }),
-          ...(data.destination_address && {
-            destination_address: data.destination_address,
           }),
           ...(data.destination_ubigeo_id && {
             destination_ubigeo_id: Number(data.destination_ubigeo_id),

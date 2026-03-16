@@ -19,6 +19,7 @@ import {
   User,
   Building2,
   Mail,
+  MapPin,
 } from "lucide-react";
 import { personCreateSchema, type PersonSchema } from "../lib/person.schema";
 import { FormSelect } from "@/components/FormSelect";
@@ -30,10 +31,12 @@ import {
 import type { PersonResource } from "../lib/person.interface";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
+import { PersonAddressMiniCrud } from "./PersonAddressMiniCrud";
+import type { PendingAddress } from "../lib/person.address.interface";
 
 interface PersonFormProps {
   initialData?: PersonResource | null;
-  onSubmit: (data: PersonSchema) => Promise<void>;
+  onSubmit: (data: PersonSchema, addresses: PendingAddress[]) => Promise<void>;
   isSubmitting?: boolean;
   onCancel?: () => void;
   roleId: number; // Role ID to assign automatically
@@ -78,23 +81,32 @@ export const PersonForm = ({
   const type_person = form.watch("type_person");
   const type_document = form.watch("type_document");
   const [isSearching, setIsSearching] = useState(false);
-
-  // Auto-set RUC when JURIDICA is selected
-  useEffect(() => {
-    if (type_person === "JURIDICA") {
-      form.setValue("type_document", "RUC", { shouldValidate: true });
-    }
-  }, [type_person]);
-
-  // Get form state for better UX
-  const { errors, isValid, dirtyFields } = form.formState;
+  const [pendingAddresses, setPendingAddresses] = useState<PendingAddress[]>([]);
   const [fieldsFromSearch, setFieldsFromSearch] = useState({
     names: false,
     father_surname: false,
     mother_surname: false,
     business_name: false,
-    address: false,
   });
+
+  // Clear opposite fields and auto-set document type when switching person type
+  useEffect(() => {
+    if (type_person === "JURIDICA") {
+      form.setValue("type_document", "RUC", { shouldValidate: true });
+      form.setValue("names", "");
+      form.setValue("father_surname", "");
+      form.setValue("mother_surname", "");
+      form.setValue("birth_date", "");
+      setFieldsFromSearch((prev) => ({ ...prev, names: false, father_surname: false, mother_surname: false }));
+    } else if (type_person === "NATURAL") {
+      form.setValue("business_name", "");
+      form.setValue("commercial_name", "");
+      setFieldsFromSearch((prev) => ({ ...prev, business_name: false }));
+    }
+  }, [type_person]);
+
+  // Get form state for better UX
+  const { errors, isValid, dirtyFields } = form.formState;
 
   const handleDocumentSearch = async () => {
     const numberDocument = form.getValues("number_document");
@@ -143,13 +155,10 @@ export const PersonForm = ({
             father_surname: false,
             mother_surname: false,
             business_name: false,
-            address: false,
           };
 
           updates.business_name = result.data.business_name || "";
-          updates.address = result.data.address || "";
           fieldsSet.business_name = true;
-          fieldsSet.address = true;
 
           Object.keys(updates).forEach((key) => {
             form.setValue(key as keyof PersonSchema, updates[key], {
@@ -177,9 +186,10 @@ export const PersonForm = ({
         submitData.names = data.business_name;
       }
 
-      await onSubmit(submitData);
+      await onSubmit(submitData, pendingAddresses);
       if (!isEditing) {
         form.reset();
+        setPendingAddresses([]);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -767,28 +777,18 @@ export const PersonForm = ({
             )}
           />
 
-          <div className="md:col-span-2">
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Ingrese la dirección"
-                      {...field}
-                      className={fieldsFromSearch.address ? "bg-blue-50" : ""}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  {/* Fixed height container for consistency */}
-                  <div className="h-4"></div>
-                </FormItem>
-              )}
-            />
-          </div>
         </GroupFormSection>
+
+        {/* Addresses mini CRUD - only shown when creating */}
+        {!isEditing && (
+          <GroupFormSection
+            title="Direcciones"
+            icon={MapPin}
+            cols={{ sm: 1, md: 1 }}
+          >
+            <PersonAddressMiniCrud onChange={setPendingAddresses} />
+          </GroupFormSection>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end gap-3">

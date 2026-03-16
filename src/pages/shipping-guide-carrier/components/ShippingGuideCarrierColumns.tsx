@@ -130,6 +130,24 @@ export const ShippingGuideCarrierColumns = ({
     },
   },
   {
+    accessorKey: "recipient",
+    header: "Destinatario",
+    cell: ({ row }) => {
+      const recipient = row.original.recipient;
+      return (
+        <span className="text-sm text-wrap">
+          {recipient?.business_name ||
+            (recipient?.names ?? "") +
+              " " +
+              (recipient?.father_surname ?? "") +
+              " " +
+              (recipient?.mother_surname ?? "") ||
+            "-"}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "driver",
     header: "Conductor",
     cell: ({ row }) => {
