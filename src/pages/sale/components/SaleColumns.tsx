@@ -201,7 +201,10 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      const variantMap: Record<string, "yellow" | "blue" | "green" | "gray" | "red"> = {
+      const variantMap: Record<
+        string,
+        "yellow" | "blue" | "green" | "gray" | "red"
+      > = {
         PENDIENTE: "yellow",
         ENVIADO: "blue",
         ACEPTADO: "green",
@@ -337,7 +340,8 @@ export const getSaleColumns = ({
         row.original.installments?.some(
           (inst) => inst.pending_amount < inst.amount,
         ) ?? false;
-      const isEnviado = row.original.status_facturado === "ENVIADO";
+      const isEnviado = row.original.status_facturado === "ACEPTADO";
+      const isRechazado = row.original.status_facturado === "RECHAZADO";
 
       return (
         <div className="flex items-center gap-1">
@@ -349,7 +353,7 @@ export const getSaleColumns = ({
           />
 
           {/* XML / CDR — al lado del PDF, solo si está enviado */}
-          {row.original.status_facturado === "ENVIADO" && (
+          {row.original.status_facturado === "ACEPTADO" && (
             <TooltipProvider>
               <DropdownMenu>
                 <Tooltip>
@@ -422,7 +426,7 @@ export const getSaleColumns = ({
           )}
 
           {/* Anular */}
-          {row.original.status_facturado === "ENVIADO" && (
+          {row.original.status_facturado === "ACEPTADO" && (
             <ConfirmationDialog
               trigger={
                 <ButtonAction
@@ -463,19 +467,21 @@ export const getSaleColumns = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onEdit(row.original)}
-                disabled={hasPayments || isEnviado}
+                disabled={hasPayments || isEnviado || isRechazado}
               >
                 <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
-                {hasPayments || isEnviado ? "No se puede editar" : "Editar"}
+                {hasPayments || isEnviado || isRechazado
+                  ? "No se puede editar"
+                  : "Editar"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
-                disabled={isPaid || hasPayments || isEnviado}
+                disabled={isPaid || hasPayments || isEnviado || isRechazado}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {isPaid || hasPayments || isEnviado
+                {isPaid || hasPayments || isEnviado || isRechazado
                   ? "No se puede eliminar"
                   : "Eliminar"}
               </DropdownMenuItem>
