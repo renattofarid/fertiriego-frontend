@@ -30,7 +30,7 @@ import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import PageWrapper from "@/components/PageWrapper";
-import { useGuides } from "@/pages/guide/lib/guide.hook";
+import { useGuides, useGuideMotives } from "@/pages/guide/lib/guide.hook";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { Option } from "@/lib/core.interface";
 import { FormInput } from "@/components/FormInput";
@@ -45,6 +45,7 @@ import { FormTextArea } from "@/components/FormTextArea";
 
 export type ShippingGuideCarrierFormValues = {
   transport_modality: string;
+  motive_id: string;
   carrier_id?: string;
   driver_id?: string;
   vehicle_id?: string;
@@ -64,9 +65,9 @@ export type ShippingGuideCarrierFormValues = {
   payment_responsible?: string;
   origin_address_id?: string;
   destination_address_id?: string;
-  origin_address: string;
+  origin_address?: string;
   origin_ubigeo_id: string;
-  destination_address: string;
+  destination_address?: string;
   destination_ubigeo_id: string;
   observations?: string;
   total_weight: number;
@@ -82,6 +83,7 @@ export type ShippingGuideCarrierFormValues = {
 
 const defaultValues: ShippingGuideCarrierFormValues = {
   transport_modality: "PUBLICO",
+  motive_id: "1",
   carrier_id: "",
   driver_id: "",
   vehicle_id: "",
@@ -178,6 +180,7 @@ export function ShippingGuideCarrierForm({
   const selectedGuideId = form.watch("shipping_guide_remittent_id");
   const remittentId = form.watch("remittent_id");
   const recipientId = form.watch("recipient_id");
+  const { data: motives = [] } = useGuideMotives();
 
   // Auto-setear transportista a 1860 cuando es PÚBLICO y limpiar campos de conductor/vehículo
   useEffect(() => {
@@ -523,6 +526,17 @@ export function ShippingGuideCarrierForm({
               }))}
             />
 
+            <FormSelect
+              control={form.control}
+              name="motive_id"
+              label="Motivo de Traslado"
+              placeholder="Seleccione un motivo"
+              options={(motives ?? []).map((motive) => ({
+                value: motive.id.toString(),
+                label: motive.name,
+              }))}
+            />
+
             <FormSelectAsync
               control={form.control}
               name="carrier_id"
@@ -781,16 +795,6 @@ export function ShippingGuideCarrierForm({
               className="border-dashed"
             />
 
-            {/* Observaciones */}
-            <div className="col-span-full">
-              <FormTextArea
-                control={form.control}
-                name="observations"
-                label="Observaciones"
-                placeholder="Notas adicionales"
-                rows={3}
-              />
-            </div>
           </GroupFormSection>
 
           {/* Fechas y Direcciones */}
@@ -887,6 +891,16 @@ export function ShippingGuideCarrierForm({
                   }}
                   label="Dirección de Destino"
                   personLabel="destinatario"
+                />
+              </div>
+
+              <div className="col-span-full">
+                <FormTextArea
+                  control={form.control}
+                  name="observations"
+                  label="Observaciones"
+                  placeholder="Notas adicionales"
+                  rows={3}
                 />
               </div>
             </div>

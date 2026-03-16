@@ -169,6 +169,7 @@ export interface CreateShippingGuideCarrierDetailRequest {
 
 export interface CreateShippingGuideCarrierRequest {
   transport_modality: string;
+  motive_id?: number | null;
   // Campos para TRANSPORTE PÚBLICO
   carrier_id?: number | null;
   // Campos para TRANSPORTE PRIVADO
@@ -189,10 +190,10 @@ export interface CreateShippingGuideCarrierRequest {
   shipping_guide_remittent_id?: number | null;
   third_party_id?: number | null;
   payment_responsible?: string;
-  // Direcciones (pueden digitarse manualmente)
-  origin_address: string;
+  // Direcciones
+  origin_address_id?: number | null;
+  destination_address_id?: number | null;
   origin_ubigeo_id: number;
-  destination_address: string;
   destination_ubigeo_id: number;
   observations?: string;
   // Totales
@@ -203,6 +204,7 @@ export interface CreateShippingGuideCarrierRequest {
 
 export interface UpdateShippingGuideCarrierRequest {
   transport_modality?: string;
+  motive_id?: number | null;
   // Campos para TRANSPORTE PÚBLICO
   carrier_id?: number | null;
   // Campos para TRANSPORTE PRIVADO
@@ -224,9 +226,9 @@ export interface UpdateShippingGuideCarrierRequest {
   third_party_id?: number | null;
   payment_responsible?: string;
   // Direcciones
-  origin_address?: string;
+  origin_address_id?: number | null;
+  destination_address_id?: number | null;
   origin_ubigeo_id?: number;
-  destination_address?: string;
   destination_ubigeo_id?: number;
   observations?: string;
   // Totales
