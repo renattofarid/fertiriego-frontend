@@ -263,6 +263,9 @@ export const OrderForm = ({
       form.setValue("warehouse_id", quotation.warehouse_id.toString());
       form.setValue("currency", quotation.currency);
       form.setValue("address", quotation.address || "");
+      if (quotation.tipo_cambio) {
+        form.setValue("tipo_cambio", quotation.tipo_cambio.toString());
+      }
       form.setValue("observations", quotation.observations || "");
 
       const quotationDetails: DetailRow[] =
