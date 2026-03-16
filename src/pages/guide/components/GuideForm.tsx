@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Form,
@@ -15,12 +15,11 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader, Plus, Trash2, Pencil, Truck } from "lucide-react";
+import { Loader, Plus, Trash2, Pencil, Truck, ChevronDown, ChevronUp } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { guideSchema, type GuideSchema } from "../lib/guide.schema";
-import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
@@ -40,7 +39,6 @@ import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
-import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
 import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import { useSale } from "@/pages/sale/lib/sale.hook";
@@ -50,13 +48,13 @@ import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
 import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
 import { findPersonById } from "@/pages/person/lib/person.actions";
 import { getVehicleById } from "@/pages/vehicle/lib/vehicle.actions";
+import { AddressPickerField } from "./AddressPickerField";
 import { FormInput } from "@/components/FormInput";
 import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
 import VehicleModal from "@/pages/vehicle/components/VehicleModal";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
 import { Separator } from "@/components/ui/separator";
-import { FormTextArea } from "@/components/FormTextArea";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
@@ -153,6 +151,7 @@ export const GuideForm = ({
   warehouses,
   motives,
 }: GuideFormProps) => {
+  const initialOrderId = useRef(mode === "edit" ? defaultValues.order_id : null);
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
@@ -176,6 +175,8 @@ export const GuideForm = ({
   // Estado para pedido seleccionado
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [hasNoPendingDetails, setHasNoPendingDetails] = useState(false);
+  const [showExtraVehicleFields, setShowExtraVehicleFields] = useState(false);
+  const [showDocumentFields, setShowDocumentFields] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(guideSchema) as any,
@@ -194,11 +195,14 @@ export const GuideForm = ({
   const warehouseDocumentId = form.watch("warehouse_document_id");
   const driverId = form.watch("driver_id");
   const vehicleId = form.watch("vehicle_id");
+  const recipientId = form.watch("recipient_id");
 
   // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
+        // En modo edición, no consultar si el pedido no cambió respecto al original
+        if (orderId === initialOrderId.current) return;
         // Limpiar otros documentos seleccionados
         if (saleId) form.setValue("sale_id", "");
         if (purchaseId) form.setValue("purchase_id", "");
@@ -433,9 +437,9 @@ export const GuideForm = ({
     }
   }, [form]);
 
-  // Cargar detalles existentes en modo edición
+  // Cargar detalles existentes en modo edición o duplicación
   useEffect(() => {
-    if (mode === "edit" && defaultValues.details) {
+    if (defaultValues.details && defaultValues.details.length > 0) {
       const formattedDetails = defaultValues.details.map(
         (detail: any, index: number) => ({
           index: index.toString(),
@@ -558,6 +562,10 @@ export const GuideForm = ({
     const payload: GuideSchema = {
       ...data,
       details: formattedDetails,
+      // Limpiar campos según modalidad de transporte
+      ...(data.transport_modality === "PRIVADO"
+        ? { carrier_id: undefined }
+        : { driver_id: undefined, vehicle_id: undefined, secondary_vehicle_id: undefined }),
     };
 
     console.log("✅ Payload siendo enviado:", payload);
@@ -705,47 +713,66 @@ export const GuideForm = ({
               <Badge variant="amber-outline">Sin productos pendientes</Badge>
             )}
           </div>
-          <FormSelectAsync
-            control={form.control}
-            name="sale_id"
-            label="Venta"
-            placeholder="Selecciona una venta"
-            useQueryHook={useSale}
-            mapOptionFn={(sale: SaleResource) => ({
-              value: sale.id.toString(),
-              label: sale.sequential_number || `Venta #${sale.id}`,
-              description: sale.customer.full_name,
-            })}
-            withValue
-          />
+          <div className="col-span-full">
+            <button
+              type="button"
+              onClick={() => setShowDocumentFields((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showDocumentFields ? (
+                <ChevronUp className="h-3 w-3" />
+              ) : (
+                <ChevronDown className="h-3 w-3" />
+              )}
+              {showDocumentFields ? "Ocultar documentos asociados" : "Mostrar documentos asociados"}
+            </button>
+          </div>
 
-          <FormSelectAsync
-            control={form.control}
-            name="purchase_id"
-            label="Compra"
-            placeholder="Selecciona una compra"
-            useQueryHook={usePurchases}
-            mapOptionFn={(purchase: PurchaseResource) => ({
-              value: purchase.id.toString(),
-              label: purchase.document_number || `Compra #${purchase.id}`,
-              description: purchase.supplier_fullname,
-            })}
-            withValue
-          />
+          {showDocumentFields && (
+            <>
+              <FormSelectAsync
+                control={form.control}
+                name="sale_id"
+                label="Venta"
+                placeholder="Selecciona una venta"
+                useQueryHook={useSale}
+                mapOptionFn={(sale: SaleResource) => ({
+                  value: sale.id.toString(),
+                  label: sale.sequential_number || `Venta #${sale.id}`,
+                  description: sale.customer.full_name,
+                })}
+                withValue
+              />
 
-          <FormSelectAsync
-            control={form.control}
-            name="warehouse_document_id"
-            label="Documento Almacén"
-            placeholder="Selecciona un documento"
-            useQueryHook={useWarehouseDocuments}
-            mapOptionFn={(warehouseDocument: WarehouseDocumentResource) => ({
-              value: warehouseDocument.id.toString(),
-              label: `${warehouseDocument.document_type} - ${warehouseDocument.document_number}`,
-              description: warehouseDocument.warehouse_name,
-            })}
-            withValue
-          />
+              <FormSelectAsync
+                control={form.control}
+                name="purchase_id"
+                label="Compra"
+                placeholder="Selecciona una compra"
+                useQueryHook={usePurchases}
+                mapOptionFn={(purchase: PurchaseResource) => ({
+                  value: purchase.id.toString(),
+                  label: purchase.document_number || `Compra #${purchase.id}`,
+                  description: purchase.supplier_fullname,
+                })}
+                withValue
+              />
+
+              <FormSelectAsync
+                control={form.control}
+                name="warehouse_document_id"
+                label="Documento Almacén"
+                placeholder="Selecciona un documento"
+                useQueryHook={useWarehouseDocuments}
+                mapOptionFn={(warehouseDocument: WarehouseDocumentResource) => ({
+                  value: warehouseDocument.id.toString(),
+                  label: `${warehouseDocument.document_type} - ${warehouseDocument.document_number}`,
+                  description: warehouseDocument.warehouse_name,
+                })}
+                withValue
+              />
+            </>
+          )}
 
           <FormField
             control={form.control}
@@ -799,15 +826,6 @@ export const GuideForm = ({
               </Button>
             </FormSelectAsync>
           )}
-
-          <FormInput
-            control={form.control}
-            name="vehicle_plate"
-            label="Placa del Vehículo"
-            placeholder="Ej: ABC-123"
-            maxLength={20}
-            uppercase
-          />
 
           {transportModality === "PRIVADO" && (
             <>
@@ -883,85 +901,92 @@ export const GuideForm = ({
                 uppercase
               />
 
-              <FormInput
-                control={form.control}
-                name="vehicle_brand"
-                label="Marca del Vehículo"
-                placeholder="Ej: Toyota"
-                optional
-                maxLength={100}
-                uppercase
-              />
+              <div className="col-span-full">
+                <button
+                  type="button"
+                  onClick={() => setShowExtraVehicleFields((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showExtraVehicleFields ? (
+                    <ChevronUp className="h-3 w-3" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3" />
+                  )}
+                  {showExtraVehicleFields ? "Ocultar datos adicionales del vehículo" : "Mostrar datos adicionales del vehículo"}
+                </button>
+              </div>
 
-              <FormInput
-                control={form.control}
-                name="vehicle_model"
-                label="Modelo del Vehículo"
-                placeholder="Ej: Hilux"
-                optional
-                maxLength={100}
-                uppercase
-              />
+              {showExtraVehicleFields && (
+                <>
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_brand"
+                    label="Marca del Vehículo"
+                    placeholder="Ej: Toyota"
+                    optional
+                    maxLength={100}
+                    uppercase
+                  />
 
-              <FormInput
-                control={form.control}
-                name="vehicle_mtc"
-                label="Certificado MTC"
-                placeholder="Ej: MTC123456"
-                optional
-                maxLength={50}
-                uppercase
-              />
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_model"
+                    label="Modelo del Vehículo"
+                    placeholder="Ej: Hilux"
+                    optional
+                    maxLength={100}
+                    uppercase
+                  />
+
+                  <FormInput
+                    control={form.control}
+                    name="vehicle_mtc"
+                    label="Certificado MTC"
+                    placeholder="Ej: MTC123456"
+                    optional
+                    maxLength={50}
+                    uppercase
+                  />
+                </>
+              )}
             </>
           )}
 
           <Separator className="col-span-full" />
 
-          <FormSelectAsync
-            control={form.control}
-            name="origin_ubigeo_id"
-            label="Ubigeo de Origen"
-            placeholder="Buscar ubigeo..."
-            useQueryHook={useUbigeosFrom}
-            additionalParams={{
-              per_page: 1300,
-            }}
-            mapOptionFn={(item: UbigeoResource) => ({
-              value: item.id.toString(),
-              label: item.name,
-              description: item.cadena,
-            })}
-            preloadItemId={defaultValues.origin_ubigeo_id}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="destination_ubigeo_id"
-            label="Ubigeo de Destino"
-            placeholder="Buscar ubigeo..."
-            useQueryHook={useUbigeosTo}
-            mapOptionFn={(item: UbigeoResource) => ({
-              value: item.id.toString(),
-              label: item.name,
-              description: item.cadena,
-            })}
-          />
+          {/* Inputs ocultos para registrar los campos de dirección en RHF */}
+          <input type="hidden" {...form.register("origin_address_id")} />
+          <input type="hidden" {...form.register("destination_address_id")} />
+          <input type="hidden" {...form.register("origin_address")} />
+          <input type="hidden" {...form.register("destination_address")} />
+          <input type="hidden" {...form.register("origin_ubigeo_id")} />
+          <input type="hidden" {...form.register("destination_ubigeo_id")} />
 
           <div className="col-span-full">
-            <FormTextArea
-              control={form.control}
-              name="origin_address"
+            <AddressPickerField
+              personId={1860}
+              value={form.watch("origin_address_id") || ""}
+              onChange={(addressId, address) => {
+                form.setValue("origin_address_id", addressId, { shouldValidate: true });
+                form.setValue("origin_address", address.direccion, { shouldValidate: true });
+                form.setValue("origin_ubigeo_id", address.district.id.toString(), { shouldValidate: true });
+              }}
               label="Dirección de Origen"
-              placeholder="Ingrese la dirección de origen"
+              personLabel="remitente"
             />
           </div>
 
           <div className="col-span-full">
-            <FormTextArea
-              control={form.control}
-              name="destination_address"
+            <AddressPickerField
+              personId={recipientId ? Number(recipientId) : null}
+              value={form.watch("destination_address_id") || ""}
+              onChange={(addressId, address) => {
+                form.setValue("destination_address_id", addressId, { shouldValidate: true });
+                form.setValue("destination_address", address.direccion, { shouldValidate: true });
+                form.setValue("destination_ubigeo_id", address.district.id.toString(), { shouldValidate: true });
+              }}
               label="Dirección de Destino"
-              placeholder="Ingrese la dirección de destino"
+              personLabel="destinatario"
             />
           </div>
           <Separator className="col-span-full" />

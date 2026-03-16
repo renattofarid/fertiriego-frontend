@@ -2,6 +2,17 @@
 
 import SearchInput from "@/components/SearchInput";
 import DatePicker from "@/components/DatePicker";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import type { Option } from "@/lib/core.interface";
+
+const sunatStatusOptions: Option[] = [
+  { value: "", label: "Todos los estados SUNAT" },
+  { value: "PENDIENTE", label: "Pendiente" },
+  { value: "ENVIADO", label: "Enviado" },
+  { value: "ACEPTADO", label: "Aceptado" },
+  { value: "BAJA", label: "Baja" },
+  { value: "RECHAZADO", label: "Rechazado" },
+];
 
 export default function SaleOptions({
   search,
@@ -10,6 +21,8 @@ export default function SaleOptions({
   setStartDate,
   endDate,
   setEndDate,
+  statusSunat,
+  setStatusSunat,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -17,6 +30,8 @@ export default function SaleOptions({
   setStartDate?: (value: string) => void;
   endDate?: string;
   setEndDate?: (value: string) => void;
+  statusSunat?: string;
+  setStatusSunat?: (value: string) => void;
 }) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (setStartDate) {
@@ -53,6 +68,16 @@ export default function SaleOptions({
           onChange={handleEndDateChange}
           placeholder="Fecha Fin (to)"
           className="w-52"
+        />
+      )}
+
+      {setStatusSunat && (
+        <SearchableSelect
+          options={sunatStatusOptions}
+          value={statusSunat ?? ""}
+          onChange={setStatusSunat}
+          placeholder="Estado SUNAT"
+          className="w-full md:w-[200px]"
         />
       )}
     </div>

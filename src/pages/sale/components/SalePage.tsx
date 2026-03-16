@@ -16,7 +16,7 @@ import {
 } from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
-import { findSaleById, declararSunat } from "../lib/sale.actions";
+import { findSaleById, declararSunat, anularBoleta, anularFactura } from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -30,6 +30,7 @@ export default function SalePage() {
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [statusSunat, setStatusSunat] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -47,11 +48,12 @@ export default function SalePage() {
     per_page,
     from: startDate,
     to: endDate,
+    status_facturado: statusSunat || undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [per_page, search, startDate, endDate]);
+  }, [per_page, search, startDate, endDate, statusSunat]);
 
   const { removeSale } = useSaleStore();
 
@@ -120,11 +122,37 @@ export default function SalePage() {
       return;
     }
     try {
-      const result = await declararSunat(sale.id, documentType.type);
-      successToast(result.message || "Venta declarada a SUNAT correctamente");
+      const { blob, filename } = await declararSunat(sale.id, documentType.type);
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(blobUrl);
+      successToast("CDR generado y descargado correctamente");
       refetch();
-    } catch {
-      errorToast("Error al declarar la venta a SUNAT");
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Error al declarar la venta a SUNAT";
+      errorToast(msg);
+    }
+  };
+
+  const handleAnular = async (sale: SaleResource) => {
+    try {
+      if (sale.document_type === "FACTURA") {
+        await anularFactura(sale.id);
+      } else {
+        await anularBoleta(sale.id);
+      }
+      successToast("Documento anulado correctamente");
+      refetch();
+    } catch (error: any) {
+      errorToast(error?.response?.data?.message || "Error al anular el documento");
     }
   };
 
@@ -156,6 +184,7 @@ export default function SalePage() {
     onManage: handleManage,
     onQuickPay: handleQuickPay,
     onDeclararSunat: handleDeclararSunat,
+    onAnular: handleAnular,
   });
 
   return (
@@ -181,6 +210,8 @@ export default function SalePage() {
           setStartDate={setStartDate}
           endDate={endDate}
           setEndDate={setEndDate}
+          statusSunat={statusSunat}
+          setStatusSunat={setStatusSunat}
         />
       </SaleTable>
 

@@ -40,8 +40,8 @@ export default function DriverAddPage() {
         business_name: data.business_name || "",
         commercial_name: data.commercial_name || "",
         address: data.address || "",
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         status: "Activo",
         role_id: Number(data.role_id),
       };
@@ -78,7 +78,6 @@ export default function DriverAddPage() {
         isSubmitting={isSubmitting}
         onCancel={() => navigate("/conductores")}
         roleId={DRIVER_ROLE_ID}
-        isWorker={true}
         showDriverLicense={true}
       />
     </FormWrapper>

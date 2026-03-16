@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil } from "lucide-react";
+import { Copy, Eye, Pencil } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { QuotationResource } from "../lib/quotation.interface";
 import ExportButtons from "@/components/ExportButtons";
@@ -10,12 +10,14 @@ interface QuotationColumnsProps {
   onEdit: (quotation: QuotationResource) => void;
   onDelete: (id: number) => void;
   onViewDetails: (quotation: QuotationResource) => void;
+  onDuplicate: (quotation: QuotationResource) => void;
 }
 
 export const getQuotationColumns = ({
   onEdit,
   onDelete,
   onViewDetails,
+  onDuplicate,
 }: QuotationColumnsProps): ColumnDef<QuotationResource>[] => [
   {
     accessorKey: "id",
@@ -81,7 +83,7 @@ export const getQuotationColumns = ({
   },
   {
     accessorKey: "days",
-    header: "Días",
+    header: "Días de Crédito",
     cell: ({ row }) => {
       if (row.original.payment_type === "CREDITO" && row.original.days) {
         return <span>{row.original.days} días</span>;
@@ -92,7 +94,18 @@ export const getQuotationColumns = ({
   {
     accessorKey: "currency",
     header: "Moneda",
-    cell: ({ row }) => <Badge variant="outline">{row.original.currency}</Badge>,
+    cell: ({ row }) => <Badge variant="ghost">{row.original.currency}</Badge>,
+  },
+  {
+    accessorKey: "total",
+    header: "Total",
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {row.original.quotation_details
+          .reduce((sum, detail) => sum + parseFloat(detail.total), 0)
+          .toFixed(2)}
+      </Badge>
+    ),
   },
   {
     accessorKey: "status",
@@ -150,6 +163,11 @@ export const getQuotationColumns = ({
           icon={Eye}
           onClick={() => onViewDetails(row.original)}
           tooltip="Ver Detalles"
+        />
+        <ButtonAction
+          icon={Copy}
+          onClick={() => onDuplicate(row.original)}
+          tooltip="Duplicar"
         />
         <ButtonAction
           icon={Pencil}

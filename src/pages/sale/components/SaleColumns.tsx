@@ -7,6 +7,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Trash2,
   Eye,
   Settings,
@@ -14,6 +21,10 @@ import {
   AlertTriangle,
   Pencil,
   Send,
+  FileCode2,
+  FileArchive,
+  XCircle,
+  MoreHorizontal,
 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
@@ -21,7 +32,25 @@ import { parse } from "date-fns";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { api } from "@/lib/config";
+import { toast } from "sonner";
+
+const downloadXml = async (endpoint: string, fileName: string) => {
+  try {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success("XML descargado exitosamente");
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Error al descargar el XML");
+  }
+};
 
 interface SaleColumnsProps {
   onEdit: (sale: SaleResource) => void;
@@ -30,6 +59,7 @@ interface SaleColumnsProps {
   onManage: (sale: SaleResource) => void;
   onQuickPay: (sale: SaleResource) => void;
   onDeclararSunat: (sale: SaleResource) => void;
+  onAnular: (sale: SaleResource) => void;
 }
 
 export const getSaleColumns = ({
@@ -39,6 +69,7 @@ export const getSaleColumns = ({
   onManage,
   onQuickPay,
   onDeclararSunat,
+  onAnular,
 }: SaleColumnsProps): ColumnDef<SaleResource>[] => [
   {
     accessorKey: "id",
@@ -102,9 +133,7 @@ export const getSaleColumns = ({
     header: "Tipo Pago",
     cell: ({ row }) => (
       <Badge
-        variant={
-          row.original.payment_type === "CONTADO" ? "default" : "secondary"
-        }
+        variant={row.original.payment_type === "CONTADO" ? "blue" : "purple"}
       >
         {row.original.payment_type}
       </Badge>
@@ -158,11 +187,11 @@ export const getSaleColumns = ({
     header: "Estado",
     cell: ({ row }) => {
       const status = row.original.status;
-      let variant: "default" | "secondary" | "destructive" = "default";
+      let variant: "green" | "red" | "gray" = "gray";
 
-      if (status === "REGISTRADO") variant = "secondary";
-      if (status === "PAGADA") variant = "default";
-      if (status === "CANCELADO") variant = "destructive";
+      if (status === "REGISTRADO") variant = "gray";
+      if (status === "PAGADA") variant = "green";
+      if (status === "CANCELADO") variant = "red";
 
       return <Badge variant={variant}>{status}</Badge>;
     },
@@ -172,10 +201,14 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      let variant: "default" | "secondary" | "destructive" | "gray" = "default";
-
-      if (status === "PENDIENTE") variant = "gray";
-
+      const variantMap: Record<string, "yellow" | "blue" | "green" | "gray" | "red"> = {
+        PENDIENTE: "yellow",
+        ENVIADO: "blue",
+        ACEPTADO: "green",
+        BAJA: "gray",
+        RECHAZADO: "red",
+      };
+      const variant = variantMap[status] ?? "gray";
       return <Badge variant={variant}>{status}</Badge>;
     },
   },
@@ -214,13 +247,15 @@ export const getSaleColumns = ({
       );
 
       // Validar que la suma de cuotas sea igual al total de la venta
+      // total_amount ya viene del back con retención aplicada
       const totalAmount = row.original.total_amount;
+      const expectedTotal = totalAmount;
       const sumOfInstallments =
         row.original.installments?.reduce(
           (sum, inst) => sum + inst.amount,
           0,
         ) || 0;
-      const isValid = Math.abs(totalAmount - sumOfInstallments) < 0.01;
+      const isValid = Math.abs(expectedTotal - sumOfInstallments) < 0.01;
 
       return (
         <TooltipProvider>
@@ -246,7 +281,7 @@ export const getSaleColumns = ({
                 <TooltipContent>
                   <p className="text-xs">
                     La suma de cuotas ({sumOfInstallments.toFixed(2)}) no
-                    coincide con el total ({totalAmount.toFixed(2)}).
+                    coincide con el total ({expectedTotal.toFixed(2)}).
                     <br />
                     Por favor, sincronice las cuotas.
                   </p>
@@ -261,20 +296,26 @@ export const getSaleColumns = ({
                     variant="ghost"
                     onClick={() => onQuickPay(row.original)}
                     className="h-8 w-8 p-0"
-                    disabled={!isValid}
+                    disabled={
+                      !isValid || row.original.status_facturado === "PENDIENTE"
+                    }
                   >
                     <Wallet
                       className={`h-4 w-4 ${
-                        isValid ? "text-primary" : "text-gray-400"
+                        isValid && row.original.status_facturado !== "PENDIENTE"
+                          ? "text-primary"
+                          : "text-gray-400"
                       }`}
                     />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    {isValid
-                      ? "Pago rápido"
-                      : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
+                    {row.original.status_facturado === "PENDIENTE"
+                      ? "No se puede realizar pago rápido. El documento aún no ha sido enviado a SUNAT."
+                      : isValid
+                        ? "Pago rápido"
+                        : "No se puede realizar pago rápido. Debe sincronizar las cuotas primero."}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -296,35 +337,72 @@ export const getSaleColumns = ({
         row.original.installments?.some(
           (inst) => inst.pending_amount < inst.amount,
         ) ?? false;
+      const isEnviado = row.original.status_facturado === "ENVIADO";
 
       return (
         <div className="flex items-center gap-1">
+          {/* PDF */}
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
             pdfFileName={`venta-${row.original.sequential_number}.pdf`}
             variant="separate"
           />
+
+          {/* XML / CDR — al lado del PDF, solo si está enviado */}
+          {row.original.status_facturado === "ENVIADO" && (
+            <TooltipProvider>
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <FileCode2 className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Descargar XML / CDR</p>
+                  </TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocument/${row.original.id}/venta`,
+                        `xml-venta-${row.original.sequential_number}.xml`,
+                      )
+                    }
+                  >
+                    <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
+                    XML Venta
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocumentCDR/${row.original.id}/venta`,
+                        `cdr-venta-${row.original.sequential_number}.zip`,
+                      )
+                    }
+                  >
+                    <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
+                    CDR Venta
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipProvider>
+          )}
+
+          {/* Ver detalle */}
           <ButtonAction
             icon={Eye}
             onClick={() => onViewDetails(row.original)}
             tooltip="Ver Detalle"
           />
 
-          <ButtonAction
-            icon={Settings}
-            onClick={() => onManage(row.original)}
-            tooltip="Gestionar"
-          />
-
-          <ButtonAction
-            icon={Pencil}
-            onClick={() => onEdit(row.original)}
-            tooltip={
-              hasPayments ? "No se puede editar (tiene pagos)" : "Editar"
-            }
-            disabled={hasPayments}
-          />
-
+          {/* Declarar SUNAT */}
           {row.original.status_facturado === "PENDIENTE" && (
             <ConfirmationDialog
               trigger={
@@ -343,16 +421,66 @@ export const getSaleColumns = ({
             />
           )}
 
-          <DeleteButton
-            icon={Trash2}
-            onClick={() => onDelete(row.original.id)}
-            tooltip={
-              isPaid || hasPayments
-                ? "No se puede eliminar (pagada o tiene pagos)"
-                : "Eliminar"
-            }
-            disabled={isPaid || hasPayments}
-          />
+          {/* Anular */}
+          {row.original.status_facturado === "ENVIADO" && (
+            <ConfirmationDialog
+              trigger={
+                <ButtonAction
+                  icon={XCircle}
+                  color="red"
+                  tooltip="Anular documento"
+                />
+              }
+              title="Anular documento"
+              description={`¿Estás seguro de que deseas anular esta ${row.original.document_type === "FACTURA" ? "factura" : "boleta"}? Esta acción no se puede deshacer.`}
+              confirmText="Anular"
+              cancelText="Cancelar"
+              onConfirm={() => onAnular(row.original)}
+              icon="warning"
+            />
+          )}
+
+          {/* Más opciones: Gestionar + Eliminar */}
+          <DropdownMenu>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Más opciones</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onManage(row.original)}>
+                <Settings className="h-4 w-4 mr-2 text-muted-foreground" />
+                Gestionar
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onEdit(row.original)}
+                disabled={hasPayments || isEnviado}
+              >
+                <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
+                {hasPayments || isEnviado ? "No se puede editar" : "Editar"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete(row.original.id)}
+                disabled={isPaid || hasPayments || isEnviado}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {isPaid || hasPayments || isEnviado
+                  ? "No se puede eliminar"
+                  : "Eliminar"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       );
     },

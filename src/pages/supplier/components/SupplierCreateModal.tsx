@@ -5,6 +5,8 @@ import { GeneralModal } from "@/components/GeneralModal";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { createPersonWithRole } from "@/pages/person/lib/person.actions";
+import { createAddress } from "@/pages/person/lib/person.address.actions";
+import type { PendingAddress } from "@/pages/person/lib/person.address.interface";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -27,7 +29,7 @@ export const SupplierCreateModal = ({
 }: SupplierCreateModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: PersonSchema) => {
+  const handleSubmit = async (data: PersonSchema, addresses: PendingAddress[]) => {
     setIsSubmitting(true);
     try {
       const createPersonData = {
@@ -45,19 +47,25 @@ export const SupplierCreateModal = ({
         business_name: data.business_name || "",
         commercial_name: data.commercial_name || "",
         address: data.address || "",
-        phone: data.phone,
-        email: data.email,
+        phone: data.phone || "",
+        email: data.email || "",
         status: "Activo",
         role_id: Number(data.role_id),
       };
 
       const response = await createPersonWithRole(
         createPersonData,
-        Number(data.role_id)
+        Number(data.role_id),
       );
 
+      if (response.data?.id && addresses.length > 0) {
+        for (const addr of addresses) {
+          await createAddress(response.data.id, addr);
+        }
+      }
+
       successToast(
-        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
 
       if (onSupplierCreated && response?.data) {
@@ -72,7 +80,7 @@ export const SupplierCreateModal = ({
 
       errorToast(
         errorMessage,
-        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create")
+        ERROR_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );
     } finally {
       setIsSubmitting(false);

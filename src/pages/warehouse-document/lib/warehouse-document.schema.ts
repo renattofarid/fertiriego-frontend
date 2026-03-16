@@ -28,6 +28,7 @@ export const warehouseDocumentSchemaCreate = z.object({
   document_date: z
     .string()
     .min(1, { message: "La fecha del documento es requerida" }),
+  currency: z.string().min(1, { message: "Debe seleccionar una moneda" }),
   observations: z
     .string()
     .max(1000, { message: "Las observaciones no pueden exceder 1000 caracteres" })

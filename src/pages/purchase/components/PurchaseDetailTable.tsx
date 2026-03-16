@@ -1,24 +1,18 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { ColumnDef } from "@tanstack/react-table";
 import type { PurchaseDetailResource } from "../lib/purchase.interface";
 import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import { DataTable } from "@/components/DataTable";
 
 interface PurchaseDetailTableProps {
   details: PurchaseDetailResource[];
@@ -38,20 +32,128 @@ export function PurchaseDetailTable({
 
   const handleDelete = async () => {
     if (!deleteId) return;
-
     try {
       await deleteDetail(deleteId);
       onRefresh();
-    } catch (error: any) {
+    } catch {
       // El error ya se maneja en el store
     } finally {
       setDeleteId(null);
     }
   };
 
-  const calculateTotal = () => {
-    return details.reduce((sum, detail) => sum + parseFloat(detail.total), 0);
-  };
+  const calculateTotal = () =>
+    details.reduce((sum, detail) => sum + parseFloat(detail.total), 0);
+
+  const columns: ColumnDef<PurchaseDetailResource>[] = [
+    {
+      accessorKey: "correlativo",
+      header: "Correlativo",
+      cell: ({ row }) => (
+        <span className="text-sm font-semibold text-blue-600">
+          {row.original.correlativo}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "product_name",
+      header: "Producto",
+    },
+    {
+      accessorKey: "quantity",
+      header: () => <div className="text-right">Cantidad</div>,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {parseFloat(row.original.quantity).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "unit_price",
+      header: () => <div className="text-right">P. Unit.</div>,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {parseFloat(row.original.unit_price).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "subtotal",
+      header: () => <div className="text-right">Subtotal</div>,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {parseFloat(row.original.subtotal).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "tax",
+      header: () => <div className="text-right">Impuesto</div>,
+      cell: ({ row }) => (
+        <div className="text-right">
+          {parseFloat(row.original.tax).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "total",
+      header: () => <div className="text-right">Total</div>,
+      cell: ({ row }) => (
+        <div className="text-right font-bold text-primary">
+          {parseFloat(row.original.total).toFixed(2)}
+        </div>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-center">Acciones</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center gap-2">
+          {isPurchasePaid ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button variant="ghost" disabled className="cursor-not-allowed">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>No se puede editar un detalle de compra pagada</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <Button variant="ghost" onClick={() => onEdit(row.original.id)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+
+          {isPurchasePaid ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button variant="ghost" disabled className="cursor-not-allowed">
+                      <Trash2 className="h-4 w-4 text-red-500" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>No se puede eliminar un detalle de compra pagada</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <Button variant="ghost" onClick={() => setDeleteId(row.original.id)}>
+              <Trash2 className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   if (!details || details.length === 0) {
     return (
@@ -66,120 +168,18 @@ export function PurchaseDetailTable({
 
   return (
     <>
-      <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Correlativo</TableHead>
-              <TableHead>Producto</TableHead>
-              <TableHead className="text-right">Cantidad</TableHead>
-              <TableHead className="text-right">P. Unit.</TableHead>
-              <TableHead className="text-right">Subtotal</TableHead>
-              <TableHead className="text-right">Impuesto</TableHead>
-              <TableHead className="text-right">Total</TableHead>
-              <TableHead className="text-center">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {details.map((detail) => (
-              <TableRow key={detail.id}>
-                <TableCell>
-                  <span className="text-sm font-semibold text-blue-600">
-                    {detail.correlativo}
-                  </span>
-                </TableCell>
-                <TableCell>{detail.product_name}</TableCell>
-                <TableCell className="text-right">
-                  {parseFloat(detail.quantity).toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {parseFloat(detail.unit_price).toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {parseFloat(detail.subtotal).toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {parseFloat(detail.tax).toFixed(2)}
-                </TableCell>
-                <TableCell className="text-right font-bold text-primary">
-                  {parseFloat(detail.total).toFixed(2)}
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    {isPurchasePaid ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>
-                              <Button
-                                variant="ghost"
-                                
-                                disabled
-                                className="cursor-not-allowed"
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>No se puede editar un detalle de compra pagada</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        
-                        onClick={() => onEdit(detail.id)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    )}
+      <DataTable
+        columns={columns}
+        data={details}
+        variant="outline"
+        isVisibleColumnFilter={false}
+      />
 
-                    {isPurchasePaid ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <span>
-                              <Button
-                                variant="ghost"
-                                
-                                disabled
-                                className="cursor-not-allowed"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </Button>
-                            </span>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>No se puede eliminar un detalle de compra pagada</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        
-                        onClick={() => setDeleteId(detail.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-            <TableRow className="bg-muted">
-              <TableCell colSpan={6} className="text-right font-bold">
-                TOTAL:
-              </TableCell>
-              <TableCell className="text-right font-bold text-lg text-primary">
-                {calculateTotal().toFixed(2)}
-              </TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+      <div className="flex justify-end mt-1 px-2">
+        <span className="font-bold text-sm text-muted-foreground mr-4">TOTAL:</span>
+        <span className="font-bold text-lg text-primary">
+          {calculateTotal().toFixed(2)}
+        </span>
       </div>
 
       {deleteId !== null && (

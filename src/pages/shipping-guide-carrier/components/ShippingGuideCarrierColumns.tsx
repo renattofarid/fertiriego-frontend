@@ -4,10 +4,42 @@ import type {
   ShippingGuideCarrierStatus,
 } from "../lib/shipping-guide-carrier.interface";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Eye, Pencil, RefreshCcw } from "lucide-react";
+import { Eye, Pencil, RefreshCcw, FileCode2, FileArchive } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
+import { api } from "@/lib/config";
+import { toast } from "sonner";
+
+const downloadXml = async (endpoint: string, fileName: string) => {
+  try {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success("XML descargado exitosamente");
+  } catch (error: any) {
+    toast.error(error.response?.data?.message || "Error al descargar el XML");
+  }
+};
 
 interface ShippingGuideCarrierColumnsProps {
   onEdit: (id: number) => void;
@@ -98,6 +130,24 @@ export const ShippingGuideCarrierColumns = ({
     },
   },
   {
+    accessorKey: "recipient",
+    header: "Destinatario",
+    cell: ({ row }) => {
+      const recipient = row.original.recipient;
+      return (
+        <span className="text-sm text-wrap">
+          {recipient?.business_name ||
+            (recipient?.names ?? "") +
+              " " +
+              (recipient?.father_surname ?? "") +
+              " " +
+              (recipient?.mother_surname ?? "") ||
+            "-"}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "driver",
     header: "Conductor",
     cell: ({ row }) => {
@@ -150,6 +200,53 @@ export const ShippingGuideCarrierColumns = ({
             pdfFileName={`guia-transportista-${row.original.full_guide_number}.pdf`}
             variant="separate"
           />
+          {["EN_TRANSITO", "ENTREGADA", "DECLARADA"].includes(
+            row.original.status,
+          ) && (
+            <TooltipProvider>
+              <DropdownMenu>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                      >
+                        <FileCode2 className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Descargar XML / CDR</p>
+                  </TooltipContent>
+                </Tooltip>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocument/${row.original.id}/guiatransportista`,
+                        `xml-guia-transportista-${row.original.full_guide_number}.xml`,
+                      )
+                    }
+                  >
+                    <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
+                    XML Guía Transportista
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      downloadXml(
+                        `/getArchivosDocumentCDR/${row.original.id}/guiatransportista`,
+                        `cdr-guia-transportista-${row.original.full_guide_number}.zip`,
+                      )
+                    }
+                  >
+                    <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
+                    CDR Guía Transportista
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipProvider>
+          )}
           <ButtonAction
             icon={Eye}
             tooltip="Ver Detalle"

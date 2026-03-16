@@ -23,6 +23,7 @@ export default function QuotationTable({
         isLoading={isLoading}
         initialColumnVisibility={{
           id: false,
+          days: false,
         }}
       >
         {children}

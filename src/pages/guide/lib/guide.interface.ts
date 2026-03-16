@@ -111,7 +111,9 @@ export interface CreateGuideRequest {
   remittent_id: number;
   shipping_guide_remittent_id?: number | null;
   dispatcher_id?: number | null;
-  // Direcciones (ahora se pueden digitar manualmente)
+  // Direcciones
+  origin_address_id?: number | null;
+  destination_address_id?: number | null;
   origin_address: string;
   origin_ubigeo_id: number;
   destination_address: string;
@@ -152,6 +154,8 @@ export interface UpdateGuideRequest {
   shipping_guide_remittent_id?: number | null;
   dispatcher_id?: number | null;
   // Direcciones
+  origin_address_id?: number | null;
+  destination_address_id?: number | null;
   origin_address?: string;
   origin_ubigeo_id?: number;
   destination_address?: string;

@@ -55,9 +55,6 @@ export const onlyLettersSchema = (field: string) =>
   z
     .string()
     .max(255, `El ${field} no puede exceder 255 caracteres`)
-    .refine((val) => !val || /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/.test(val), {
-      message: `El ${field} solo puede contener letras y espacios`,
-    })
     .optional()
     .or(z.literal("")); // si quieres permitir vacío explícito
 

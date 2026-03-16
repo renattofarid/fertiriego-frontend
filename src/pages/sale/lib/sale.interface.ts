@@ -49,8 +49,8 @@ export interface SaleResource {
   id: number;
   customer_id: number;
   warehouse_id: number;
-  status_facturado: string;
   user_id: number;
+  status_facturado: string;
   customer_fullname: string;
   customer_document?: string;
   warehouse_name?: string;
@@ -67,6 +67,9 @@ export interface SaleResource {
   is_anticipado: boolean;
   is_deduccion: boolean;
   is_retencionigv: boolean;
+  is_detraccion: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
   guides?: GuideInfo[];
   is_termine_condition: boolean;
   amount_cash: number;
@@ -188,6 +191,9 @@ export interface CreateSaleRequest {
   is_anticipado?: boolean;
   is_deduccion?: boolean;
   is_retencionigv?: boolean;
+  is_detraccion?: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
   is_termine_condition?: boolean;
   guides?: GuideRequest[];
   details: CreateSaleDetailRequest[];
@@ -203,6 +209,17 @@ export interface UpdateSaleRequest {
   currency?: string;
   observations?: string;
   order_purchase?: string;
+  amount_cash?: string;
+  amount_card?: string;
+  amount_yape?: string;
+  is_anticipado?: boolean;
+  is_deduccion?: boolean;
+  is_retencionigv?: boolean;
+  is_detraccion?: boolean;
+  codigos_detraccion?: string;
+  tipo_cambio?: number;
+  is_termine_condition?: boolean;
+  guides?: GuideRequest[];
   details?: {
     product_id: number;
     quantity: number;
@@ -368,11 +385,29 @@ export const SALE_STATUSES = [
   { value: "CANCELADO", label: "Cancelado" },
 ] as const;
 
+export const SUNAT_STATUSES = [
+  { value: "PENDIENTE", label: "Pendiente" },
+  { value: "ENVIADO", label: "Enviado" },
+  { value: "ACEPTADO", label: "Aceptado" },
+  { value: "BAJA", label: "Baja" },
+  { value: "RECHAZADO", label: "Rechazado" },
+] as const;
+
 export const INSTALLMENT_STATUSES = [
   { value: "PENDIENTE", label: "Pendiente" },
   { value: "PAGADO", label: "Pagado" },
   { value: "VENCIDO", label: "Vencido" },
 ] as const;
+
+// ===== CDR RESPONSE =====
+
+export interface CdrResponse {
+  message: string;
+  url: string;
+  filename: string;
+  xml_content: string;
+  xml_base64: string;
+}
 
 // ===== MODEL COMPLETE =====
 

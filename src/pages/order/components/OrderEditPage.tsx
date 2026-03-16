@@ -59,6 +59,7 @@ export const OrderEditPage = () => {
     address: data.address || "",
     observations: data.observations || "",
     quotation_id: data.quotation_id?.toString() || "",
+    tipo_cambio: data.tipo_cambio?.toString() ?? "",
   });
 
   const handleSubmit = async (data: UpdateOrderRequest) => {

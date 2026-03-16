@@ -63,7 +63,7 @@ export default function DriverEditPage() {
         type_person: data.type_person,
         number_document: data.number_document,
         names: data.names || "",
-        gender: data.type_person === "NATURAL" ? data.gender || "M" : undefined,
+        gender: data.type_person === "NATURAL" ? data.gender || undefined : undefined,
         birth_date:
           data.type_person === "NATURAL" ? data.birth_date || "" : undefined,
         father_surname: data.father_surname || "",
@@ -73,6 +73,7 @@ export default function DriverEditPage() {
         address: data.address || "",
         phone: data.phone,
         email: data.email,
+        driver_license: data.driver_license || "",
       };
 
       await updatePerson(personData.id, updatePersonData);
@@ -119,7 +120,7 @@ export default function DriverEditPage() {
         isSubmitting={isSubmitting}
         onCancel={() => navigate("/conductores")}
         roleId={DRIVER_ROLE_ID}
-        isWorker={true}
+        isWorker={false}
         showDriverLicense={true}
       />
     </FormWrapper>

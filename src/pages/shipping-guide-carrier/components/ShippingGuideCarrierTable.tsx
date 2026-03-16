@@ -16,7 +16,14 @@ export default function ShippingGuideCarrierTable({
   children,
 }: ShippingGuideCarrierTableProps) {
   return (
-    <DataTable columns={columns} data={data} isLoading={isLoading}>
+    <DataTable
+      columns={columns}
+      data={data}
+      isLoading={isLoading}
+      initialColumnVisibility={{
+        carrier: false,
+      }}
+    >
       {children}
     </DataTable>
   );

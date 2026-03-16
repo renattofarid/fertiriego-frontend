@@ -117,6 +117,9 @@ export const useSaleStore = create<SaleStore>((set) => ({
         is_anticipado: data.is_anticipado || false,
         is_deduccion: data.is_deduccion || false,
         is_retencionigv: data.is_retencionigv || false,
+        is_detraccion: data.is_detraccion || false,
+        codigos_detraccion: data.codigos_detraccion || undefined,
+        tipo_cambio: data.tipo_cambio ? Number(data.tipo_cambio) : undefined,
         is_termine_condition: data.is_termine_condition || false,
         guides: data.guides && data.guides.length > 0 ? data.guides : undefined,
         details: data.details.map((detail) => ({
@@ -158,6 +161,19 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.order_purchase !== undefined && {
           order_purchase: data.order_purchase,
         }),
+        ...(data.amount_cash !== undefined && { amount_cash: data.amount_cash }),
+        ...(data.amount_card !== undefined && { amount_card: data.amount_card }),
+        ...(data.amount_yape !== undefined && { amount_yape: data.amount_yape }),
+        is_anticipado: data.is_anticipado ?? false,
+        is_deduccion: data.is_deduccion ?? false,
+        is_retencionigv: data.is_retencionigv ?? false,
+        ...(data.is_detraccion !== undefined && { is_detraccion: data.is_detraccion }),
+        ...(data.codigos_detraccion !== undefined && { codigos_detraccion: data.codigos_detraccion }),
+        ...(data.tipo_cambio !== undefined && { tipo_cambio: Number(data.tipo_cambio) }),
+        is_termine_condition: data.is_termine_condition ?? false,
+        ...(data.guides !== undefined && {
+          guides: data.guides.length > 0 ? data.guides : undefined,
+        }),
         ...(data.details &&
           data.details.length > 0 && {
             details: data.details.map((detail) => ({
@@ -180,7 +196,6 @@ export const useSaleStore = create<SaleStore>((set) => ({
       successToast(SUCCESS_MESSAGE(MODEL, "edit"));
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
-      errorToast(ERROR_MESSAGE(MODEL, "edit"));
       throw error;
     }
   },

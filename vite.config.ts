@@ -11,4 +11,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/api-proxy": {
+        target: "https://develop.garzasoft.com:82",
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api-proxy/, ""),
+      },
+    },
+  },
 });

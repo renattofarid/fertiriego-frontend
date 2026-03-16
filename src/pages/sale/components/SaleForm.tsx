@@ -24,6 +24,7 @@ import {
   CreditCard,
   ListCheck,
   ListChecks,
+  RefreshCw,
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
@@ -31,7 +32,7 @@ import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useAllGuides } from "@/pages/guide/lib/guide.hook";
@@ -57,6 +58,7 @@ import {
   CURRENCIES,
 } from "../lib/sale.interface";
 import { errorToast } from "@/lib/core.function";
+import { api } from "@/lib/config";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
   Empty,
@@ -119,6 +121,7 @@ export const SaleForm = ({
   warehouses,
   sourceData,
   sourceType,
+  sale,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -187,9 +190,6 @@ export const SaleForm = ({
     correlative: "",
   });
 
-  // Estado para controlar la sincronización bidireccional de precios
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
-
   // Ref para evitar auto-generación en el montaje inicial
   const isInitialMount = useRef(true);
 
@@ -231,7 +231,6 @@ export const SaleForm = ({
   );
   const selectedQuantity = detailTempForm.watch("temp_quantity");
   const selectedUnitPrice = detailTempForm.watch("temp_unit_price");
-  const selectedValuePrice = detailTempForm.watch("temp_value_price");
 
   // Cargar precios del producto seleccionado
   const { data: productPricesData } = useProductPrices({
@@ -303,40 +302,6 @@ export const SaleForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
-
-  // Sincronización bidireccional: temp_unit_price → temp_value_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const price = parseFloat(selectedUnitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_value_price",
-        formatNumberLocal(price / 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedUnitPrice === "") {
-      detailTempForm.setValue("temp_value_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedUnitPrice]);
-
-  // Sincronización bidireccional: temp_value_price → temp_unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-    const value = parseFloat(selectedValuePrice);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      detailTempForm.setValue(
-        "temp_unit_price",
-        formatNumberLocal(value * 1.18),
-      );
-      setIsUpdatingPrice(false);
-    } else if (selectedValuePrice === "") {
-      detailTempForm.setValue("temp_unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedValuePrice]);
 
   // Observers para cuotas
   useEffect(() => {
@@ -427,6 +392,9 @@ export const SaleForm = ({
       is_anticipado: defaultValues.is_anticipado || false,
       is_deduccion: defaultValues.is_deduccion || false,
       is_retencionigv: defaultValues.is_retencionigv || false,
+      is_detraccion: (defaultValues as any).is_detraccion || false,
+      codigos_detraccion: (defaultValues as any).codigos_detraccion || "",
+      tipo_cambio: (defaultValues as any).tipo_cambio?.toString() || "",
       is_termine_condition: defaultValues.is_termine_condition || false,
     },
     mode: "onChange",
@@ -439,10 +407,10 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPrice = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
-          const subtotal = roundTo6Decimals(quantity * unitPrice);
-          const igv = roundTo6Decimals(subtotal * 0.18);
-          const total = roundTo6Decimals(subtotal + igv);
+          const unitPriceSin = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
+          const total = roundTo6Decimals(quantity * unitPriceSin * 1.18);
+          const subtotal = roundTo6Decimals(total / 1.18);
+          const igv = roundTo6Decimals(total - subtotal);
 
           return {
             product_id: detail.product_id,
@@ -470,6 +438,16 @@ export const SaleForm = ({
         form.setValue("installments", initialInstallments);
       }
 
+      // Inicializar guías
+      if (defaultValues.guides && defaultValues.guides.length > 0) {
+        const initialGuides = defaultValues.guides.map((g: any) => ({
+          name: g.name,
+          correlative: g.correlative,
+        }));
+        setGuides(initialGuides);
+        form.setValue("guides", initialGuides);
+      }
+
       // Disparar validación después de setear valores en modo edición
       form.trigger();
     }
@@ -495,6 +473,70 @@ export const SaleForm = ({
   // Watch para retención IGV
   const isRetencionIGV = form.watch("is_retencionigv");
 
+  // Watch para detracción
+  const isDetraccion = form.watch("is_detraccion" as any);
+  const watchedIssueDate = form.watch("issue_date");
+  const [tipoCambioError, setTipoCambioError] = useState<string>("");
+  const tipoCambioCache = useRef<Record<string, string>>({});
+  const tipoCambioFetching = useRef<Set<string>>(new Set());
+
+  const fetchTipoCambio = useCallback(
+    async (issueDate: string, force = false) => {
+      if (!issueDate) return;
+
+      if (!force && tipoCambioCache.current[issueDate]) {
+        setTipoCambioError("");
+        form.setValue("tipo_cambio" as any, tipoCambioCache.current[issueDate]);
+        return;
+      }
+
+      if (tipoCambioFetching.current.has(issueDate)) return;
+
+      tipoCambioFetching.current.add(issueDate);
+      setTipoCambioError("");
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
+        const valorStr = (data?.venta || data?.compra || "").toString();
+        tipoCambioCache.current[issueDate] = valorStr;
+        form.setValue("tipo_cambio" as any, valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        form.setValue("tipo_cambio" as any, "");
+      } finally {
+        tipoCambioFetching.current.delete(issueDate);
+      }
+    },
+    [form],
+  );
+
+  // Fetch tipo de cambio siempre que cambie la fecha de emisión
+  useEffect(() => {
+    if (watchedIssueDate) {
+      // En edición, si ya existe el valor del recurso no llamamos a SUNAT
+      if (mode === "edit" && sale?.tipo_cambio) return;
+      fetchTipoCambio(watchedIssueDate);
+    } else {
+      setTipoCambioError("");
+      form.setValue("tipo_cambio" as any, "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedIssueDate]);
+
+  // Exclusión mutua: detracción y retención IGV no pueden coexistir
+  useEffect(() => {
+    if (isDetraccion && isRetencionIGV) {
+      form.setValue("is_retencionigv", false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetraccion]);
+
+  useEffect(() => {
+    if (isRetencionIGV && isDetraccion) {
+      form.setValue("is_detraccion" as any, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRetencionIGV]);
+
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
     if (selectedPriceCategoryId && productPricesData && selectedCurrency) {
@@ -511,13 +553,11 @@ export const SaleForm = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          setIsUpdatingPrice(true);
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
           detailTempForm.setValue(
             "temp_value_price",
             formatNumberLocal(priceValue / 1.18),
           );
-          setIsUpdatingPrice(false);
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -550,9 +590,9 @@ export const SaleForm = ({
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
               const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
-              const subtotal = roundTo6Decimals(quantity * valorUnitario);
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              const total = roundTo6Decimals(quantity * unitPrice);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -573,16 +613,14 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price);
-              // is_igv=true → unit_price viene CON IGV (precio unitario)
-              // is_igv=false → unit_price viene SIN IGV (valor unitario)
-              // is_igv=true → unit_price CON IGV → valor = unitPrice / 1.18
-              // is_igv=false → unit_price SIN IGV → valor = unitPrice
-              const valorUnitario = detail.is_igv
-                ? roundTo6Decimals(unitPrice / 1.18)
-                : unitPrice;
-              const subtotal = roundTo6Decimals(quantity * valorUnitario);
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
+              const unitPriceCon = detail.is_igv
+                ? unitPrice
+                : roundTo6Decimals(unitPrice * 1.18);
+              const valorUnitario = roundTo6Decimals(unitPriceCon / 1.18); // SIN IGV → backend
+              const total = roundTo6Decimals(quantity * unitPriceCon);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -645,9 +683,9 @@ export const SaleForm = ({
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
               const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
-              const subtotal = roundTo6Decimals(quantity * (unitPrice / 1.18));
-              const igv = roundTo6Decimals(subtotal * 0.18);
-              const total = roundTo6Decimals(subtotal + igv);
+              const total = roundTo6Decimals(quantity * unitPrice);
+              const subtotal = roundTo6Decimals(total / 1.18);
+              const igv = roundTo6Decimals(total - subtotal);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -710,15 +748,14 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = roundTo6Decimals(unitPriceWithIGV / 1.18); // SIN IGV → lo que va al backend
-
-    const subtotal = roundTo6Decimals(quantity * valorUnitario);
-    const igv = roundTo6Decimals(subtotal * 0.18);
-    const total = roundTo6Decimals(subtotal + igv);
+    const valorUnitario = unitPriceWithIGV / 1.18; // SIN IGV → lo que va al backend (precisión completa)
+    const total = roundTo6Decimals(quantity * unitPriceWithIGV);
+    const subtotal = roundTo6Decimals(total / 1.18);
+    const igv = roundTo6Decimals(total - subtotal);
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: productSelected?.product_name,
+      product_name: productSelected?.product_name ?? currentDetail.product_name,
       unit_price: valorUnitario.toString(), // guardar SIN IGV
       subtotal,
       igv,
@@ -760,7 +797,6 @@ export const SaleForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
-    setIsUpdatingPrice(true);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     // unit_price guardado es SIN IGV (valor unitario)
@@ -771,7 +807,6 @@ export const SaleForm = ({
         ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
         : "",
     );
-    setIsUpdatingPrice(false);
     setEditingDetailIndex(index);
   };
 
@@ -810,6 +845,7 @@ export const SaleForm = ({
 
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
   useEffect(() => {
+    if (mode === "edit") return;
     if (
       isRetencionIGV &&
       selectedPaymentType === "CREDITO" &&
@@ -832,6 +868,7 @@ export const SaleForm = ({
       isInitialMount.current = false;
       return;
     }
+    if (mode === "edit") return;
     if (selectedPaymentType === "CREDITO") {
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
@@ -914,6 +951,24 @@ export const SaleForm = ({
       0,
     );
     return roundTo6Decimals(sum);
+  };
+
+  const handleRecalculateInstallments = () => {
+    if (installments.length === 0) return;
+    const netTotal = calculateNetTotal();
+    const baseAmount = roundTo6Decimals(netTotal / installments.length);
+    // El último absorbe el residuo por redondeo
+    const updated = installments.map((inst, i) => ({
+      ...inst,
+      amount:
+        i === installments.length - 1
+          ? roundTo6Decimals(
+              netTotal - baseAmount * (installments.length - 1),
+            ).toFixed(6)
+          : baseAmount.toFixed(6),
+    }));
+    setInstallments(updated);
+    form.setValue("installments", updated);
   };
 
   const installmentsMatchTotal = () => {
@@ -1043,6 +1098,7 @@ export const SaleForm = ({
       order_id: data.order_id ? parseInt(data.order_id) : undefined,
       quotation_id: data.quotation_id ? parseInt(data.quotation_id) : undefined,
       guide_id: data.guide_id ? parseInt(data.guide_id) : undefined,
+      tipo_cambio: data.tipo_cambio ? parseFloat(data.tipo_cambio as any) : 0,
     });
   };
 
@@ -1116,6 +1172,7 @@ export const SaleForm = ({
                   value: dt.value,
                   label: dt.label,
                 }))}
+                disabled={mode === "edit"}
               />
 
               <div className="flex gap-2 items-end">
@@ -1166,6 +1223,7 @@ export const SaleForm = ({
                   value: pt.value,
                   label: pt.label,
                 }))}
+                disabled={mode === "edit"}
               />
 
               <FormSelect
@@ -1206,6 +1264,63 @@ export const SaleForm = ({
                 label="Retención IGV"
                 text="Marque si aplica retención de IGV"
               />
+
+              <FormSwitch
+                control={form.control}
+                name={"is_detraccion" as any}
+                label="Detracción"
+                text={
+                  isRetencionIGV
+                    ? "No disponible con Retención IGV activa"
+                    : "Marque si aplica detracción"
+                }
+                disabled={isRetencionIGV}
+              />
+
+              {isDetraccion && (
+                <>
+                  <FormSelect
+                    control={form.control}
+                    name={"codigos_detraccion" as any}
+                    label="Código de Detracción"
+                    placeholder="Seleccione código"
+                    options={[
+                      { value: "027", label: "027 - Demás bienes y servicios" },
+                      {
+                        value: "019",
+                        label: "019 - Arrendamiento de bienes muebles",
+                      },
+                    ]}
+                  />
+                </>
+              )}
+
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <FormInput
+                    control={form.control}
+                    name="tipo_cambio"
+                    label="Tipo de Cambio SUNAT"
+                    placeholder="Se obtiene automáticamente"
+                    error={tipoCambioError}
+                    description={
+                      !tipoCambioError && !form.watch("tipo_cambio" as any)
+                        ? "Se obtiene de SUNAT según la fecha de emisión."
+                        : undefined
+                    }
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  tooltip="Volver a consultar tipo de cambio SUNAT"
+                  onClick={() => watchedIssueDate && fetchTipoCambio(watchedIssueDate, true)}
+                  disabled={!watchedIssueDate}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
 
               <FormSwitch
                 control={form.control}
@@ -1260,6 +1375,14 @@ export const SaleForm = ({
                     additionalParams={{
                       warehouse_id: selectedWarehouseId,
                     }}
+                    defaultOption={
+                      currentDetail.product_id && currentDetail.product_name
+                        ? {
+                            value: currentDetail.product_id,
+                            label: currentDetail.product_name,
+                          }
+                        : undefined
+                    }
                     onValueChange={(_value, item) => {
                       setProductSelected(item ?? null);
                     }}
@@ -1304,6 +1427,17 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const v = parseFloat(String(val));
+                  if (!isNaN(v) && v > 0) {
+                    detailTempForm.setValue(
+                      "temp_unit_price",
+                      formatNumberLocal(v * 1.18),
+                    );
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_unit_price", "");
+                  }
+                }}
               />
 
               <FormInput
@@ -1314,6 +1448,17 @@ export const SaleForm = ({
                 type="number"
                 min={0}
                 step="0.0001"
+                onAfterChange={(val) => {
+                  const p = parseFloat(String(val));
+                  if (!isNaN(p) && p > 0) {
+                    detailTempForm.setValue(
+                      "temp_value_price",
+                      formatNumberLocal(p / 1.18),
+                    );
+                  } else if (val === "") {
+                    detailTempForm.setValue("temp_value_price", "");
+                  }
+                }}
               />
 
               <div className="md:col-span-4 flex items-center justify-end">
@@ -1546,7 +1691,7 @@ export const SaleForm = ({
           </GroupFormSection>
 
           {/* Métodos de Pago - Solo mostrar si es al contado */}
-          {mode === "create" && selectedPaymentType === "CONTADO" && (
+          {selectedPaymentType === "CONTADO" && (
             <GroupFormSection
               title="Métodos de Pago"
               icon={CreditCard}
@@ -1708,6 +1853,16 @@ export const SaleForm = ({
 
               {installments.length > 0 ? (
                 <>
+                  <div className="flex justify-end mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRecalculateInstallments}
+                    >
+                      Recalcular cuotas
+                    </Button>
+                  </div>
                   <div className="border rounded-lg overflow-hidden">
                     <Table>
                       <TableHeader>
@@ -1818,6 +1973,7 @@ export const SaleForm = ({
           paymentAmountsMatchTotal={paymentAmountsMatchTotal}
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
+          tipoCambio={form.watch("tipo_cambio" as any) || ""}
         />
       </form>
 

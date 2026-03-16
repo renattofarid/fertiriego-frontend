@@ -38,16 +38,17 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
     currency: "",
     document_series: "",
     document_number: "",
+    sunat_status: "",
     customer: {
       id: 0,
       full_name: "",
       business_name: "",
-      document_number: null,
+      document_number: "",
     },
     user: {
       id: 0,
       name: "",
-      email: null,
+      email: "",
     },
     warehouse: {
       id: 0,
@@ -71,11 +72,26 @@ export const CREDIT_NOTE: ModelComplete<CreditNoteResource> = {
       serie: "",
       numero: "",
       document_type: "",
+      sequential_number: "",
       customer: {
         id: 0,
-        full_name: "",
+        type_document: "",
+        type_person: "",
+        number_document: "",
+        names: "",
+        father_surname: "",
+        mother_surname: "",
+        address: "",
         business_name: "",
-        document_number: null,
+        commercial_name: "",
+        created_at: "",
+        roles: [],
+        birth_date: "",
+        driver_license: "",
+        email: "",
+        gender: "",
+        phone: "",
+        user_id: "",
       },
       issue_date: "",
       total_amount: "",
@@ -109,6 +125,70 @@ export interface CreditNoteDetailResource {
   created_at: string;
 }
 
+interface Detail {
+  id: number;
+  sale_detail_id: number;
+  product_id: number;
+  product_name: string;
+  product_code?: string;
+  quantity: string;
+  unit_price: string;
+  subtotal: string;
+  tax: string;
+  total: string;
+}
+
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface Customer2 {
+  id: number;
+  full_name: string;
+  business_name: string;
+  document_number?: string;
+}
+
+interface Warehouse {
+  id: number;
+  name: string;
+  address: string;
+}
+
+interface Sale {
+  id: number;
+  serie: string;
+  numero: string;
+  sequential_number: string;
+  document_type: string;
+  total_amount: string;
+  issue_date: string;
+  customer: Customer;
+}
+
+interface Customer {
+  id: number;
+  type_document: string;
+  type_person: string;
+  number_document: string;
+  names?: string;
+  father_surname?: string;
+  mother_surname?: string;
+  gender?: string;
+  birth_date?: string;
+  phone?: string;
+  email?: string;
+  address: string;
+  business_name: string;
+  commercial_name: string;
+  driver_license?: string;
+  user_id?: string;
+  created_at: string;
+  roles: any[];
+}
+
 export interface CreditNoteResource {
   id: number;
   document_series: string;
@@ -124,9 +204,10 @@ export interface CreditNoteResource {
   affects_stock: boolean;
   status: string;
   observations?: string;
+  sunat_status: string;
   sale: Sale;
   warehouse: Warehouse;
-  customer: Customer;
+  customer: Customer2;
   user: User;
   credit_note_motive_id: number;
   details: Detail[];
@@ -147,46 +228,4 @@ export interface CreditNoteReason {
   code: string;
   name: string;
   active: number;
-}
-
-interface Detail {
-  id: number;
-  sale_detail_id: number;
-  product_id: number;
-  product_name: string;
-  product_code: null;
-  quantity: string;
-  unit_price: string;
-  subtotal: string;
-  tax: string;
-  total: string;
-}
-
-interface User {
-  id: number;
-  name: string;
-  email: null;
-}
-
-interface Warehouse {
-  id: number;
-  name: string;
-  address: string;
-}
-
-interface Sale {
-  id: number;
-  serie: string;
-  numero: string;
-  document_type: string;
-  total_amount: string;
-  issue_date: string;
-  customer: Customer;
-}
-
-interface Customer {
-  id: number;
-  full_name: string;
-  business_name: string;
-  document_number: null;
 }

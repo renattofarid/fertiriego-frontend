@@ -6,7 +6,7 @@ import { FormSwitch } from "@/components/FormSwitch";
 import { useForm } from "react-hook-form";
 import { Pencil, Plus, History, Package } from "lucide-react";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
@@ -79,7 +79,8 @@ export const AddProductSheet = ({
   });
 
   const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
-  const [isUpdatingPrice, setIsUpdatingPrice] = useState(false);
+  // Precisión completa del valor unitario (sin IGV) para enviar al backend
+  const fullPrecisionUnitValue = useRef<number | null>(null);
 
   const productId = form.watch("product_id");
   const priceCategoryId = form.watch("price_category_id");
@@ -101,37 +102,6 @@ export const AddProductSheet = ({
     return parseFloat(num.toFixed(4)).toString();
   };
 
-  // Sincronizar unit_value y unit_price
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const value = parseFloat(unitValue);
-    if (!isNaN(value) && value > 0) {
-      setIsUpdatingPrice(true);
-      const price = value * 1.18;
-      form.setValue("unit_price", formatNumber(price));
-      setIsUpdatingPrice(false);
-    } else if (unitValue === "") {
-      form.setValue("unit_price", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitValue]);
-
-  useEffect(() => {
-    if (isUpdatingPrice) return;
-
-    const price = parseFloat(unitPrice);
-    if (!isNaN(price) && price > 0) {
-      setIsUpdatingPrice(true);
-      const value = price / 1.18;
-      form.setValue("unit_value", formatNumber(value));
-      setIsUpdatingPrice(false);
-    } else if (unitPrice === "") {
-      form.setValue("unit_value", "");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unitPrice]);
-
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
   useEffect(() => {
     if (priceCategoryId && productPricesData && currency) {
@@ -147,13 +117,10 @@ export const AddProductSheet = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          // El precio de la categoría es con IGV
-          setIsUpdatingPrice(true);
+          fullPrecisionUnitValue.current = priceValue / 1.18;
           form.setValue("unit_price", formatNumber(priceValue));
-          const value = priceValue / 1.18;
-          form.setValue("unit_value", formatNumber(value));
+          form.setValue("unit_value", formatNumber(priceValue / 1.18));
           setLastSetPrice(priceValue.toString());
-          setIsUpdatingPrice(false);
         }
       }
     }
@@ -176,12 +143,14 @@ export const AddProductSheet = ({
           unitValueField = formatNumber(
             parseFloat(editingDetail.unit_price) / 1.18,
           );
+          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price) / 1.18;
         } else {
           // unit_price guardado = valor sin IGV
           unitValueField = editingDetail.unit_price;
           unitPriceField = formatNumber(
             parseFloat(editingDetail.unit_price) * 1.18,
           );
+          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price);
         }
 
         form.reset({
@@ -195,6 +164,7 @@ export const AddProductSheet = ({
           description: editingDetail.description || "",
         });
       } else {
+        fullPrecisionUnitValue.current = null;
         form.reset({
           product_id: "",
           price_category_id: "",
@@ -215,20 +185,20 @@ export const AddProductSheet = ({
     setLastSetPrice(null);
   }, [productId]);
 
-  // Calcular valores (subtotal, tax, total) siempre usando el valor sin IGV
+  // Calcular valores: total = qty × precio_con_igv, subtotal = total/1.18, igv = total - subtotal
   useEffect(() => {
     const qty = parseFloat(quantity) || 0;
-    const value = parseFloat(unitValue) || 0;
+    const price = parseFloat(String(unitPrice)) || 0;
 
-    if (qty > 0 && value > 0) {
-      const subtotal = qty * value;
-      const tax = subtotal * 0.18;
-      const total = subtotal + tax;
+    if (qty > 0 && price > 0) {
+      const total = qty * price;
+      const subtotal = total / 1.18;
+      const tax = total - subtotal;
       setCalculatedValues({ subtotal, tax, total });
     } else {
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
     }
-  }, [quantity, unitValue]);
+  }, [quantity, unitPrice]);
 
   const [selectedProduct, setSelectedProduct] =
     useState<ProductResource | null>(null);
@@ -252,11 +222,11 @@ export const AddProductSheet = ({
     const productName = selectedProduct?.name ?? editingDetail?.product_name;
     if (!productName) return;
 
-    // is_igv=true → se manda el precio con IGV (unit_price)
-    // is_igv=false → se manda el valor sin IGV (unit_value)
+    // is_igv=true → se manda el precio con IGV (unit_price, digitado directo)
+    // is_igv=false → se manda el valor sin IGV con precisión completa
     const sentUnitPrice = formData.is_igv
       ? formData.unit_price
-      : formData.unit_value;
+      : (fullPrecisionUnitValue.current?.toString() ?? formData.unit_value);
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
@@ -410,6 +380,16 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const v = parseFloat(String(val));
+              if (!isNaN(v) && v > 0) {
+                fullPrecisionUnitValue.current = v;
+                form.setValue("unit_price", formatNumber(v * 1.18));
+              } else if (val === "") {
+                fullPrecisionUnitValue.current = null;
+                form.setValue("unit_price", "");
+              }
+            }}
           />
 
           <FormInput
@@ -420,6 +400,16 @@ export const AddProductSheet = ({
             step="0.0001"
             placeholder="0.00"
             className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+            onAfterChange={(val) => {
+              const p = parseFloat(String(val));
+              if (!isNaN(p) && p > 0) {
+                fullPrecisionUnitValue.current = p / 1.18;
+                form.setValue("unit_value", formatNumber(p / 1.18));
+              } else if (val === "") {
+                fullPrecisionUnitValue.current = null;
+                form.setValue("unit_value", "");
+              }
+            }}
           />
         </div>
 

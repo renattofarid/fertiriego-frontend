@@ -11,13 +11,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Package, Plus, Trash2, Pencil } from "lucide-react";
+import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { QuotationResource } from "@/pages/quotation/lib/quotation.interface";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { api } from "@/lib/config";
+import { FormInput } from "@/components/FormInput";
 import { Badge } from "@/components/ui/badge";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import {
@@ -85,9 +87,6 @@ export const OrderForm = ({
   const [editingIndex, setEditingIndex] = useState<number | undefined>(
     undefined,
   );
-  const { data: quotationsResponse } = useQuotations();
-  const quotations = quotationsResponse?.data;
-
   // Estados para modales
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
@@ -121,10 +120,54 @@ export const OrderForm = ({
       status: "Pendiente",
       quotation_id: "",
       customer_id: "",
+      tipo_cambio: "",
     },
   });
 
-  const quotationId = form.watch("quotation_id");
+  const watchedOrderDate = form.watch("order_date");
+  const [tipoCambioError, setTipoCambioError] = useState<string>("");
+  const tipoCambioCache = useRef<Record<string, string>>({});
+  const tipoCambioFetching = useRef<Set<string>>(new Set());
+
+  const fetchTipoCambio = useCallback(
+    async (fecha: string, force = false) => {
+      if (!fecha) return;
+
+      if (!force && tipoCambioCache.current[fecha]) {
+        setTipoCambioError("");
+        form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        return;
+      }
+
+      if (tipoCambioFetching.current.has(fecha)) return;
+
+      tipoCambioFetching.current.add(fecha);
+      setTipoCambioError("");
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${fecha}`);
+        const valorStr = (data?.venta || data?.compra || "").toString();
+        tipoCambioCache.current[fecha] = valorStr;
+        form.setValue("tipo_cambio", valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        form.setValue("tipo_cambio", "");
+      } finally {
+        tipoCambioFetching.current.delete(fecha);
+      }
+    },
+    [form],
+  );
+
+  useEffect(() => {
+    if (watchedOrderDate) {
+      if (mode === "edit" && order?.tipo_cambio) return;
+      fetchTipoCambio(watchedOrderDate);
+    } else {
+      setTipoCambioError("");
+      form.setValue("tipo_cambio", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedOrderDate]);
 
   // Actualizar listas cuando cambien las props
   useEffect(() => {
@@ -169,6 +212,10 @@ export const OrderForm = ({
         form.setValue("quotation_id", order.quotation_id.toString());
       }
 
+      if (order.tipo_cambio) {
+        form.setValue("tipo_cambio", order.tipo_cambio.toString());
+      }
+
       // Establecer defaultCustomerOption si existe el cliente en el pedido
       if (order.customer) {
         const customerLabel =
@@ -190,68 +237,53 @@ export const OrderForm = ({
     }
   }, [mode, order, form]);
 
-  useEffect(() => {
-    if (quotationId && quotations) {
-      const selectedQuotation = quotations.find(
-        (q) => q.id === parseInt(quotationId),
-      );
-
-      if (selectedQuotation) {
-        // Establecer el cliente con su información para que aparezca en el dropdown
-        const customerLabel =
-          selectedQuotation.customer?.business_name ||
-          selectedQuotation.customer?.names +
-            " " +
-            (selectedQuotation.customer?.father_surname || "") +
-            " " +
-            (selectedQuotation.customer?.mother_surname || "");
-
-        setDefaultCustomerOption({
-          value: selectedQuotation.customer_id.toString(),
-          label: customerLabel,
-        });
-
-        // Establecer el ID para precargar automáticamente
-        setPreloadCustomerId(selectedQuotation.customer_id.toString());
-
-        if (mode === "create") {
-          // Prellenar datos del formulario
-          form.setValue(
-            "customer_id",
-            selectedQuotation.customer_id.toString(),
-          );
-          form.setValue(
-            "warehouse_id",
-            selectedQuotation.warehouse_id.toString(),
-          );
-          form.setValue("currency", selectedQuotation.currency);
-          form.setValue("address", selectedQuotation.address || "");
-          form.setValue("observations", selectedQuotation.observations || "");
-
-          // Prellenar los detalles de productos
-          const quotationDetails: DetailRow[] =
-            selectedQuotation.quotation_details.map((detail) => ({
-              product_id: detail.product_id.toString(),
-              product_name: detail.product.name,
-              is_igv: detail.is_igv,
-              quantity: detail.quantity,
-              unit_price: detail.unit_price,
-              purchase_price: detail.purchase_price,
-              subtotal: parseFloat(detail.subtotal),
-              tax: parseFloat(detail.tax),
-              total: parseFloat(detail.total),
-            }));
-
-          setDetails(quotationDetails);
-        }
-      }
-    } else {
-      // Limpiar cuando se quita la cotización
+  const handleQuotationChange = (_value: string, quotation?: QuotationResource) => {
+    if (!quotation) {
       setDefaultCustomerOption(undefined);
       setPreloadCustomerId(undefined);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quotationId, quotations]);
+
+    const customerLabel =
+      quotation.customer?.business_name ||
+      quotation.customer?.names +
+        " " +
+        (quotation.customer?.father_surname || "") +
+        " " +
+        (quotation.customer?.mother_surname || "");
+
+    setDefaultCustomerOption({
+      value: quotation.customer_id.toString(),
+      label: customerLabel,
+    });
+    setPreloadCustomerId(quotation.customer_id.toString());
+
+    if (mode === "create") {
+      form.setValue("customer_id", quotation.customer_id.toString());
+      form.setValue("warehouse_id", quotation.warehouse_id.toString());
+      form.setValue("currency", quotation.currency);
+      form.setValue("address", quotation.address || "");
+      if (quotation.tipo_cambio) {
+        form.setValue("tipo_cambio", quotation.tipo_cambio.toString());
+      }
+      form.setValue("observations", quotation.observations || "");
+
+      const quotationDetails: DetailRow[] =
+        quotation.quotation_details.map((detail) => ({
+          product_id: detail.product_id.toString(),
+          product_name: detail.product.name,
+          is_igv: detail.is_igv,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          purchase_price: detail.purchase_price,
+          subtotal: parseFloat(detail.subtotal),
+          tax: parseFloat(detail.tax),
+          total: parseFloat(detail.total),
+        }));
+
+      setDetails(quotationDetails);
+    }
+  };
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -334,6 +366,7 @@ export const OrderForm = ({
       ...(formData.quotation_id && {
         quotation_id: parseInt(formData.quotation_id),
       }),
+      tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
       order_details: details.map((detail) => ({
         product_id: parseInt(detail.product_id),
         is_igv: detail.is_igv,
@@ -388,6 +421,7 @@ export const OrderForm = ({
                 label: `#${q.id} - ${q.quotation_number} - ${q.customer?.business_name || q.customer?.names || "Cliente"}`,
               })}
               placeholder="Seleccionar cotización"
+              onValueChange={handleQuotationChange}
             />
 
             <div className="flex gap-2 items-end max-w-full">
@@ -485,6 +519,33 @@ export const OrderForm = ({
               }))}
               placeholder="Seleccionar moneda"
             />
+
+            <div className="flex items-end gap-2">
+              <div className="flex-1 min-w-0">
+                <FormInput
+                  control={form.control}
+                  name="tipo_cambio"
+                  label="Tipo de Cambio SUNAT"
+                  placeholder="Se obtiene automáticamente"
+                  error={tipoCambioError}
+                  description={
+                    !tipoCambioError && !form.watch("tipo_cambio")
+                      ? "Se obtiene de SUNAT según la fecha de pedido."
+                      : undefined
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                tooltip="Volver a consultar tipo de cambio SUNAT"
+                onClick={() => watchedOrderDate && fetchTipoCambio(watchedOrderDate, true)}
+                disabled={!watchedOrderDate}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
 
             <FormField
               control={form.control}
@@ -656,6 +717,7 @@ export const OrderForm = ({
           calculateTaxTotal={calculateTaxTotal}
           calculateDetailsTotal={calculateDetailsTotal}
           onCancel={onCancel}
+          tipoCambio={form.watch("tipo_cambio") || ""}
         />
       </form>
 

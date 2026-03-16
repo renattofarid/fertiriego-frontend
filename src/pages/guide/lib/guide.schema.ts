@@ -79,10 +79,7 @@ export const guideSchema = z
     secondary_vehicle_id: optionalStringId(
       "Debe seleccionar un vehículo secundario",
     ),
-    vehicle_plate: z
-      .string()
-      .min(1, { message: "La placa del vehículo es requerida" })
-      .max(20),
+    vehicle_plate: z.string().max(20).optional(),
     vehicle_brand: z.string().max(50).optional(),
     vehicle_model: z.string().max(50).optional(),
     vehicle_mtc: z.string().max(30).optional(),
@@ -90,6 +87,8 @@ export const guideSchema = z
     // ===============================
     // DIRECCIONES
     // ===============================
+    origin_address_id: optionalStringId("Debe seleccionar una dirección de origen"),
+    destination_address_id: optionalStringId("Debe seleccionar una dirección de destino"),
     origin_address: z
       .string()
       .min(1, { message: "La dirección de origen es requerida" })
