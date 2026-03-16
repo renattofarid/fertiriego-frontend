@@ -660,6 +660,11 @@ export function ShippingGuideCarrierForm({
                   `${d.names} ${d.father_surname} ${d.mother_surname}`.trim(),
                 description: d.number_document,
               })}
+              onValueChange={(_value, driver: any) => {
+                if (driver) {
+                  form.setValue("driver_license", driver.driver_license ?? "");
+                }
+              }}
               withValue
               preloadItemId={initialValues?.driver_id}
             >
@@ -707,6 +712,8 @@ export function ShippingGuideCarrierForm({
                 <Plus className="h-4 w-4" />
               </Button>
             </FormSelectAsync>
+
+ 
 
             <FormSelectAsync
               control={form.control}
