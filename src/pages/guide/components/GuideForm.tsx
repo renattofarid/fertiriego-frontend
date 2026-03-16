@@ -20,7 +20,6 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { guideSchema, type GuideSchema } from "../lib/guide.schema";
-import type { UbigeoResource } from "../lib/ubigeo.interface";
 import { type GuideMotiveResource, MODALITIES } from "../lib/guide.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { SaleResource } from "@/pages/sale/lib/sale.interface";
@@ -40,7 +39,6 @@ import { useCarriers } from "@/pages/carrier/lib/carrier.hook";
 import { useDrivers } from "@/pages/driver/lib/driver.hook";
 import { useVehicles } from "@/pages/vehicle/lib/vehicle.hook";
 import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
-import { useUbigeosFrom, useUbigeosTo } from "../lib/ubigeo.hook";
 import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import { useSale } from "@/pages/sale/lib/sale.hook";
@@ -50,13 +48,13 @@ import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
 import { findWarehouseDocumentById } from "@/pages/warehouse-document/lib/warehouse-document.actions";
 import { findPersonById } from "@/pages/person/lib/person.actions";
 import { getVehicleById } from "@/pages/vehicle/lib/vehicle.actions";
+import { AddressPickerField } from "./AddressPickerField";
 import { FormInput } from "@/components/FormInput";
 import DriverCreateModal from "@/pages/driver/components/DriverCreateModal";
 import VehicleModal from "@/pages/vehicle/components/VehicleModal";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import CarrierCreateModal from "@/pages/carrier/components/CarrierCreateModal";
 import { Separator } from "@/components/ui/separator";
-import { FormTextArea } from "@/components/FormTextArea";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 
@@ -196,6 +194,7 @@ export const GuideForm = ({
   const warehouseDocumentId = form.watch("warehouse_document_id");
   const driverId = form.watch("driver_id");
   const vehicleId = form.watch("vehicle_id");
+  const recipientId = form.watch("recipient_id");
 
   // Cargar orden cuando se selecciona y llenar detalles automáticamente con los pendientes
   useEffect(() => {
@@ -948,51 +947,32 @@ export const GuideForm = ({
 
           <Separator className="col-span-full" />
 
-          <FormSelectAsync
-            control={form.control}
-            name="origin_ubigeo_id"
-            label="Ubigeo de Origen"
-            placeholder="Buscar ubigeo..."
-            useQueryHook={useUbigeosFrom}
-            additionalParams={{
-              per_page: 1300,
-            }}
-            mapOptionFn={(item: UbigeoResource) => ({
-              value: item.id.toString(),
-              label: item.name,
-              description: item.cadena,
-            })}
-            preloadItemId={defaultValues.origin_ubigeo_id}
-          />
-
-          <FormSelectAsync
-            control={form.control}
-            name="destination_ubigeo_id"
-            label="Ubigeo de Destino"
-            placeholder="Buscar ubigeo..."
-            useQueryHook={useUbigeosTo}
-            mapOptionFn={(item: UbigeoResource) => ({
-              value: item.id.toString(),
-              label: item.name,
-              description: item.cadena,
-            })}
-          />
 
           <div className="col-span-full">
-            <FormTextArea
-              control={form.control}
-              name="origin_address"
+            <AddressPickerField
+              personId={1860}
+              value={form.watch("origin_address_id") || ""}
+              onChange={(addressId, address) => {
+                form.setValue("origin_address_id", addressId);
+                form.setValue("origin_address", address.direccion);
+                form.setValue("origin_ubigeo_id", address.district.id.toString());
+              }}
               label="Dirección de Origen"
-              placeholder="Ingrese la dirección de origen"
+              personLabel="remitente"
             />
           </div>
 
           <div className="col-span-full">
-            <FormTextArea
-              control={form.control}
-              name="destination_address"
+            <AddressPickerField
+              personId={recipientId ? Number(recipientId) : null}
+              value={form.watch("destination_address_id") || ""}
+              onChange={(addressId, address) => {
+                form.setValue("destination_address_id", addressId);
+                form.setValue("destination_address", address.direccion);
+                form.setValue("destination_ubigeo_id", address.district.id.toString());
+              }}
               label="Dirección de Destino"
-              placeholder="Ingrese la dirección de destino"
+              personLabel="destinatario"
             />
           </div>
           <Separator className="col-span-full" />
