@@ -1,4 +1,4 @@
-import { requiredStringId } from "@/lib/core.schema";
+import { optionalStringId } from "@/lib/core.schema";
 import { z } from "zod";
 
 export const vehicleSchema = z.object({
@@ -23,18 +23,21 @@ export const vehicleSchema = z.object({
     ),
   color: z
     .string()
-    .min(1, "El color es requerido")
-    .max(50, "El color debe tener máximo 50 caracteres"),
+    .max(50, "El color debe tener máximo 50 caracteres")
+    .optional()
+    .default("-"),
   vehicle_type: z
     .string()
-    .min(1, "El tipo de vehículo es requerido")
-    .max(50, "El tipo debe tener máximo 50 caracteres"),
+    .max(50, "El tipo debe tener máximo 50 caracteres")
+    .optional()
+    .default("-"),
   max_weight: z.number().min(0, "El peso máximo debe ser mayor o igual a 0"),
   mtc: z
     .string()
-    .min(1, "El MTC es requerido")
-    .max(50, "El MTC debe tener máximo 50 caracteres"),
-  owner_id: requiredStringId("El propietario es requerido"),
+    .max(50, "El MTC debe tener máximo 50 caracteres")
+    .optional()
+    .default("-"),
+  owner_id: optionalStringId("El propietario es requerido"),
   observations: z
     .string()
     .max(500, "Las observaciones deben tener máximo 500 caracteres")

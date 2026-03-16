@@ -49,24 +49,31 @@ export default function VehicleModal({
     brand: data?.brand || "",
     model: data?.model || "",
     year: data?.year || new Date().getFullYear(),
-    color: data?.color || "",
-    vehicle_type: data?.vehicle_type || "",
+    color: data?.color || "-",
+    vehicle_type: data?.vehicle_type || "-",
     max_weight: data?.max_weight ? parseFloat(data.max_weight) : 0,
-    mtc: data?.mtc || "",
+    mtc: data?.mtc || "-",
     owner_id: data?.owner?.id.toString() || "",
-    observations: data?.observations || "",
+    observations: data?.observations || "-",
   });
 
   const { isSubmitting, updateVehicle, createVehicle } = useVehicleStore();
   const queryClient = useQueryClient();
 
-  const handleSubmit = async (data: VehicleSchema) => {
+  const handleSubmit = async (draft: VehicleSchema) => {
+    const data: VehicleSchema = {
+      ...draft,
+      owner_id: draft.owner_id ? draft.owner_id : undefined,
+    };
+
     if (mode === "create") {
       await createVehicle(data)
         .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
-          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
+          await queryClient.invalidateQueries({
+            queryKey: [VEHICLE.QUERY_KEY],
+          });
           refetch();
         })
         .catch((error: any) => {
@@ -81,7 +88,9 @@ export default function VehicleModal({
         .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
-          await queryClient.invalidateQueries({ queryKey: [VEHICLE.QUERY_KEY] });
+          await queryClient.invalidateQueries({
+            queryKey: [VEHICLE.QUERY_KEY],
+          });
           refetchVehicle();
           refetch();
         })

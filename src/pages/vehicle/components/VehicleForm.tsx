@@ -36,16 +36,16 @@ export const VehicleForm = ({
   mode = "create",
 }: VehicleFormProps) => {
   const form = useForm({
-    resolver: zodResolver(vehicleSchema),
+    resolver: zodResolver(vehicleSchema) as any,
     defaultValues: {
       plate: "",
       brand: "",
       model: "",
       year: new Date().getFullYear(),
-      color: "",
-      vehicle_type: "",
+      color: "-",
+      vehicle_type: "-",
       max_weight: 0,
-      mtc: "",
+      mtc: "-",
       owner_id: "",
       observations: "",
       ...defaultValues,
