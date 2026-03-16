@@ -33,6 +33,7 @@ interface QuotationSummaryProps {
   onCancel?: () => void;
   selectedPaymentType?: string;
   selectedCustomer?: PersonResource;
+  tipoCambio?: string;
 }
 
 export function QuotationSummary({
@@ -47,6 +48,7 @@ export function QuotationSummary({
   onCancel,
   selectedPaymentType,
   selectedCustomer,
+  tipoCambio,
 }: QuotationSummaryProps) {
   const warehouseWatch = form.watch("warehouse_id");
   const currencyWatch = form.watch("currency");
@@ -196,6 +198,14 @@ export function QuotationSummary({
           </div>
 
           <Separator className="bg-muted-foreground/20" />
+
+          {/* Tipo de cambio */}
+          {tipoCambio && (
+            <div className="flex justify-between items-center text-sm px-1">
+              <span className="text-muted-foreground">Tipo de Cambio</span>
+              <span className="font-medium">S/ {tipoCambio}</span>
+            </div>
+          )}
 
           {/* Totales */}
           <div className="space-y-3">

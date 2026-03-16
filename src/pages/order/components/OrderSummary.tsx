@@ -31,6 +31,7 @@ interface OrderSummaryProps {
   calculateTaxTotal: () => number;
   calculateDetailsTotal: () => number;
   onCancel?: () => void;
+  tipoCambio?: string;
 }
 
 export function OrderSummary({
@@ -44,6 +45,7 @@ export function OrderSummary({
   calculateTaxTotal,
   calculateDetailsTotal,
   onCancel,
+  tipoCambio,
 }: OrderSummaryProps) {
   const customerWatch = form.watch("customer_id");
   const warehouseWatch = form.watch("warehouse_id");
@@ -194,6 +196,14 @@ export function OrderSummary({
           </div>
 
           <Separator className="bg-muted-foreground/20" />
+
+          {/* Tipo de cambio */}
+          {tipoCambio && (
+            <div className="flex justify-between items-center text-sm px-1">
+              <span className="text-muted-foreground">Tipo de Cambio</span>
+              <span className="font-medium">S/ {tipoCambio}</span>
+            </div>
+          )}
 
           {/* Totales */}
           <div className="space-y-3">

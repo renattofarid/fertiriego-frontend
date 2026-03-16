@@ -120,6 +120,7 @@ export const SaleForm = ({
   warehouses,
   sourceData,
   sourceType,
+  sale,
 }: SaleFormProps) => {
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -510,6 +511,8 @@ export const SaleForm = ({
   // Fetch tipo de cambio siempre que cambie la fecha de emisión
   useEffect(() => {
     if (watchedIssueDate) {
+      // En edición, si ya existe el valor del recurso no llamamos a SUNAT
+      if (mode === "edit" && sale?.tipo_cambio) return;
       fetchTipoCambio(watchedIssueDate);
     } else {
       setTipoCambioError("");
@@ -1673,7 +1676,7 @@ export const SaleForm = ({
           </GroupFormSection>
 
           {/* Métodos de Pago - Solo mostrar si es al contado */}
-          {mode === "create" && selectedPaymentType === "CONTADO" && (
+          {selectedPaymentType === "CONTADO" && (
             <GroupFormSection
               title="Métodos de Pago"
               icon={CreditCard}

@@ -73,6 +73,7 @@ export const SaleEditPage = () => {
     is_deduccion: data.is_deduccion ?? false,
     is_retencionigv: data.is_retencionigv ?? false,
     is_termine_condition: data.is_termine_condition ?? false,
+    tipo_cambio: data.tipo_cambio?.toString() ?? "",
     guides:
       data.guides?.map((g) => ({
         name: g.name,

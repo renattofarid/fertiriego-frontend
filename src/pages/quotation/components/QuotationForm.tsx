@@ -19,7 +19,9 @@ import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { api } from "@/lib/config";
+import { FormInput } from "@/components/FormInput";
 import { AddProductSheet, type ProductDetail } from "./AddProductSheet";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/DataTable";
@@ -126,11 +128,57 @@ export const QuotationForm = ({
       order_service: initialData?.order_service || "",
       warehouse_id: initialData?.warehouse_id?.toString() || "",
       customer_id: initialData?.customer_id?.toString() || "",
+      tipo_cambio: initialData?.tipo_cambio?.toString() || "",
     },
   });
 
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
+  const watchedFechaEmision = form.watch("fecha_emision");
+
+  const [tipoCambioError, setTipoCambioError] = useState<string>("");
+  const tipoCambioCache = useRef<Record<string, string>>({});
+  const tipoCambioFetching = useRef<Set<string>>(new Set());
+
+  const fetchTipoCambio = useCallback(
+    async (fecha: string) => {
+      if (!fecha) return;
+
+      if (tipoCambioCache.current[fecha]) {
+        setTipoCambioError("");
+        form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        return;
+      }
+
+      if (tipoCambioFetching.current.has(fecha)) return;
+
+      tipoCambioFetching.current.add(fecha);
+      setTipoCambioError("");
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${fecha}`);
+        const valorStr = (data?.venta || data?.compra || "").toString();
+        tipoCambioCache.current[fecha] = valorStr;
+        form.setValue("tipo_cambio", valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        form.setValue("tipo_cambio", "");
+      } finally {
+        tipoCambioFetching.current.delete(fecha);
+      }
+    },
+    [form],
+  );
+
+  useEffect(() => {
+    if (watchedFechaEmision) {
+      if (mode === "edit" && initialData?.tipo_cambio) return;
+      fetchTipoCambio(watchedFechaEmision);
+    } else {
+      setTipoCambioError("");
+      form.setValue("tipo_cambio", "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedFechaEmision]);
 
   useEffect(() => {
     setWarehousesList(warehouses);
@@ -415,6 +463,7 @@ export const QuotationForm = ({
       warehouse_id: parseInt(formData.warehouse_id),
       customer_id: parseInt(formData.customer_id),
       user_id: user?.id || 1,
+      tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
       quotation_details: details.map((detail) => ({
         product_id: parseInt(detail.product_id),
         is_igv: detail.is_igv,
@@ -601,6 +650,19 @@ export const QuotationForm = ({
               placeholder="Seleccionar moneda"
             />
 
+            <FormInput
+              control={form.control}
+              name="tipo_cambio"
+              label="Tipo de Cambio SUNAT"
+              placeholder="Se obtiene automáticamente"
+              error={tipoCambioError}
+              description={
+                !tipoCambioError && !form.watch("tipo_cambio")
+                  ? "Se obtiene de SUNAT según la fecha de emisión."
+                  : undefined
+              }
+            />
+
             <FormField
               control={form.control}
               name="address"
@@ -754,6 +816,7 @@ export const QuotationForm = ({
           calculateDetailsTotal={calculateDetailsTotal}
           onCancel={onCancel}
           selectedPaymentType={paymentType}
+          tipoCambio={form.watch("tipo_cambio") || ""}
         />
       </form>
 

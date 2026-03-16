@@ -35,6 +35,7 @@ export interface OrderResource {
   id: number;
   order_number: string;
   order_date: string;
+  tipo_cambio?: number;
   order_expiry_date: string;
   order_delivery_date: string;
   currency: string;
@@ -178,6 +179,7 @@ export interface CreateOrderRequest {
   observations: string;
   quotation_id?: number;
   customer_id: number;
+  tipo_cambio?: number;
   order_details: CreateOrderDetailRequest[];
 }
 
@@ -191,6 +193,7 @@ export interface UpdateOrderRequest {
   observations?: string;
   quotation_id?: number;
   customer_id?: number;
+  tipo_cambio?: number;
   order_details?: CreateOrderDetailRequest[];
 }
 
