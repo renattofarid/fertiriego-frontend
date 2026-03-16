@@ -344,7 +344,11 @@ export const getSaleColumns = ({
       const isRechazado = row.original.status_facturado === "RECHAZADO";
 
       // Anular solo permitido dentro de los 3 días posteriores a la emisión
-      const issueDate = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
+      const issueDate = parse(
+        row.original.issue_date,
+        "yyyy-MM-dd",
+        new Date(),
+      );
       const daysSinceIssue = Math.floor(
         (new Date().setHours(0, 0, 0, 0) - issueDate.setHours(0, 0, 0, 0)) /
           (1000 * 60 * 60 * 24),
@@ -456,7 +460,7 @@ export const getSaleColumns = ({
             />
           )}
 
-          {/* Más opciones: Gestionar + Eliminar */}
+          {/* Más opciones: Gestionar + Eliminar  */}
           <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
