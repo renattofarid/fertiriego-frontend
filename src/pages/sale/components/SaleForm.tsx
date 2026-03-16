@@ -301,7 +301,6 @@ export const SaleForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedUnitPrice]);
 
-
   // Observers para cuotas
   useEffect(() => {
     if (selectedDueDays !== currentInstallment.due_days) {
@@ -475,43 +474,48 @@ export const SaleForm = ({
   // Watch para detracción
   const isDetraccion = form.watch("is_detraccion" as any);
   const watchedIssueDate = form.watch("issue_date");
-  const [tipoCambio, setTipoCambio] = useState<string>((defaultValues as any).tipo_cambio?.toString() || "");
+  const [tipoCambio, setTipoCambio] = useState<string>(
+    (defaultValues as any).tipo_cambio?.toString() || "",
+  );
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
   const tipoCambioCache = useRef<Record<string, string>>({});
   const tipoCambioFetching = useRef<Set<string>>(new Set());
 
-  const fetchTipoCambio = useCallback(async (issueDate: string) => {
-    if (!issueDate) return;
+  const fetchTipoCambio = useCallback(
+    async (issueDate: string) => {
+      if (!issueDate) return;
 
-    // Si ya tenemos el valor en cache, usarlo directamente
-    if (tipoCambioCache.current[issueDate]) {
-      const cached = tipoCambioCache.current[issueDate];
+      // Si ya tenemos el valor en cache, usarlo directamente
+      if (tipoCambioCache.current[issueDate]) {
+        const cached = tipoCambioCache.current[issueDate];
+        setTipoCambioError("");
+        setTipoCambio(cached);
+        form.setValue("tipo_cambio" as any, cached);
+        return;
+      }
+
+      // Si ya hay un fetch en curso para esta fecha, no lanzar otro
+      if (tipoCambioFetching.current.has(issueDate)) return;
+
+      tipoCambioFetching.current.add(issueDate);
       setTipoCambioError("");
-      setTipoCambio(cached);
-      form.setValue("tipo_cambio" as any, cached);
-      return;
-    }
-
-    // Si ya hay un fetch en curso para esta fecha, no lanzar otro
-    if (tipoCambioFetching.current.has(issueDate)) return;
-
-    tipoCambioFetching.current.add(issueDate);
-    setTipoCambioError("");
-    try {
-      const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
-      const valor = data?.venta || data?.compra || "";
-      const valorStr = valor.toString();
-      tipoCambioCache.current[issueDate] = valorStr;
-      setTipoCambio(valorStr);
-      form.setValue("tipo_cambio" as any, valorStr);
-    } catch {
-      setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
-      setTipoCambio("");
-      form.setValue("tipo_cambio" as any, "");
-    } finally {
-      tipoCambioFetching.current.delete(issueDate);
-    }
-  }, [form]);
+      try {
+        const { data } = await api.get(`tipo-cambio-sunat?fecha=${issueDate}`);
+        const valor = data?.venta || data?.compra || "";
+        const valorStr = valor.toString();
+        tipoCambioCache.current[issueDate] = valorStr;
+        setTipoCambio(valorStr);
+        form.setValue("tipo_cambio" as any, valorStr);
+      } catch {
+        setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        setTipoCambio("");
+        form.setValue("tipo_cambio" as any, "");
+      } finally {
+        tipoCambioFetching.current.delete(issueDate);
+      }
+    },
+    [form],
+  );
 
   // Fetch tipo de cambio siempre que cambie la fecha de emisión
   useEffect(() => {
@@ -1272,7 +1276,11 @@ export const SaleForm = ({
                 control={form.control}
                 name={"is_detraccion" as any}
                 label="Detracción"
-                text={isRetencionIGV ? "No disponible con Retención IGV activa" : "Marque si aplica detracción"}
+                text={
+                  isRetencionIGV
+                    ? "No disponible con Retención IGV activa"
+                    : "Marque si aplica detracción"
+                }
                 disabled={isRetencionIGV}
               />
 
@@ -1285,21 +1293,28 @@ export const SaleForm = ({
                     placeholder="Seleccione código"
                     options={[
                       { value: "027", label: "027 - Demás bienes y servicios" },
-                      { value: "019", label: "019 - Arrendamiento de bienes muebles" },
+                      {
+                        value: "019",
+                        label: "019 - Arrendamiento de bienes muebles",
+                      },
                     ]}
-                  />
-                  <FormInput
-                    name="tipoCambio"
-                    label="Tipo de Cambio SUNAT"
-                    value={tipoCambio}
-                    readOnly
-                    placeholder="Se obtiene automáticamente"
-                    className="bg-muted text-muted-foreground"
-                    error={tipoCambioError}
-                    description={!tipoCambioError && !tipoCambio ? "Se obtiene de SUNAT según la fecha de emisión." : undefined}
                   />
                 </>
               )}
+
+              <FormInput
+                control={form.control}
+                name="tipoCambio"
+                label="Tipo de Cambio SUNAT"
+                value={tipoCambio}
+                placeholder="Se obtiene automáticamente"
+                error={tipoCambioError}
+                description={
+                  !tipoCambioError && !tipoCambio
+                    ? "Se obtiene de SUNAT según la fecha de emisión."
+                    : undefined
+                }
+              />
 
               <FormSwitch
                 control={form.control}
@@ -1409,7 +1424,10 @@ export const SaleForm = ({
                 onAfterChange={(val) => {
                   const v = parseFloat(String(val));
                   if (!isNaN(v) && v > 0) {
-                    detailTempForm.setValue("temp_unit_price", formatNumberLocal(v * 1.18));
+                    detailTempForm.setValue(
+                      "temp_unit_price",
+                      formatNumberLocal(v * 1.18),
+                    );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_unit_price", "");
                   }
@@ -1427,7 +1445,10 @@ export const SaleForm = ({
                 onAfterChange={(val) => {
                   const p = parseFloat(String(val));
                   if (!isNaN(p) && p > 0) {
-                    detailTempForm.setValue("temp_value_price", formatNumberLocal(p / 1.18));
+                    detailTempForm.setValue(
+                      "temp_value_price",
+                      formatNumberLocal(p / 1.18),
+                    );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_value_price", "");
                   }

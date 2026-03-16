@@ -21,125 +21,91 @@ export interface ShippingGuideCarrierDetailResource {
   product_code?: string;
   description: string;
   quantity: string;
-  unit?: string;
+  unit: string;
   weight: string;
 }
 
-interface Remitent {
+interface PersonResource {
   id: number;
   type_document: string;
   type_person: string;
   number_document: string;
-  names?: string;
-  father_surname?: string;
-  mother_surname?: string;
-  gender?: string;
-  birth_date?: string;
-  phone: string;
-  email: string;
-  address: string;
-  business_name?: string;
-  commercial_name?: string;
-  user_id?: number;
+  names: string | null;
+  father_surname: string | null;
+  mother_surname: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  phone: string | null;
+  email: string | null;
+  address: string | null;
+  business_name: string | null;
+  commercial_name: string | null;
+  driver_license: string | null;
+  user_id: number | null;
   created_at: string;
-  roles: any[];
-}
-
-interface Recipient {
-  id: number;
-  type_document: string;
-  type_person: string;
-  number_document: string;
-  names: string;
-  father_surname: string;
-  mother_surname: string;
-  gender?: string;
-  birth_date?: string;
-  phone: string;
-  email: string;
-  address: string;
-  business_name: string;
-  commercial_name?: string;
-  user_id: number;
-  created_at?: string;
-  roles: any[];
-}
-
-interface Carrier {
-  id: number;
-  type_document: string;
-  type_person: string;
-  number_document: string;
-  names: string;
-  father_surname: string;
-  mother_surname: string;
-  gender?: string;
-  birth_date?: string;
-  phone: string;
-  email: string;
-  address: string;
-  business_name: string;
-  commercial_name?: string;
-  user_id: number;
-  created_at?: string;
   roles: any[];
 }
 
 export interface ShippingGuideCarrierResource {
   id: number;
   guide_series: string;
-  guide_number: string;
+  guide_number: number;
   full_guide_number: string;
   issue_date: string;
   transfer_start_date: string;
-  driver_license: string;
+  driver_license: string | null;
   origin_address: string;
   destination_address: string;
   total_weight: string;
   total_packages: number;
   transport_modality: string;
+  motive_id: number;
   status: ShippingGuideCarrierStatus;
-  observations?: string;
-  carrier: Carrier;
-  remittent?: Remitent;
-  recipient?: Recipient;
+  observations?: string | null;
+  sunat_status?: string | null;
+  carrier: PersonResource;
+  remittent?: PersonResource | null;
+  recipient?: PersonResource | null;
   driver: {
-    id: number;
-    full_name: string;
-    license_number?: string;
-    phone: string;
+    id: number | null;
+    full_name: string | null;
+    license_number: string | null;
+    phone: string | null;
   };
   vehicle: {
+    id: number | null;
+    plate: string | null;
+    brand: string | null;
+    model: string | null;
+  };
+  vehicle_plate: string | null;
+  vehicle_brand: string | null;
+  vehicle_model: string | null;
+  vehicle_mtc: string | null;
+  secondary_vehicle: {
     id: number;
     plate: string;
     brand: string;
     model: string;
-  };
-  secondary_vehicle?: {
-    id: number;
-    plate: string;
-    brand: string;
-    model: string;
-  };
+  } | null;
   origin_ubigeo?: {
     id: number;
-    department: any;
-    province: any;
-    district: any;
-    full_name?: string;
-  };
+    name: string;
+    cadena: string;
+    ubigeo_code: string;
+  } | null;
   destination_ubigeo?: {
     id: number;
-    department: any;
-    province: any;
-    district: any;
-    full_name?: string;
-  };
+    name: string;
+    cadena: string;
+    ubigeo_code: string;
+  } | null;
   user: {
     id: number;
     name: string;
-    email?: string;
+    email: string | null;
   };
+  payment_responsible: string;
   details: ShippingGuideCarrierDetailResource[];
   created_at: string;
   updated_at: string;
@@ -169,7 +135,6 @@ export interface CreateShippingGuideCarrierDetailRequest {
 
 export interface CreateShippingGuideCarrierRequest {
   transport_modality: string;
-  motive_id?: number | null;
   // Campos para TRANSPORTE PÚBLICO
   carrier_id?: number | null;
   // Campos para TRANSPORTE PRIVADO
@@ -190,10 +155,10 @@ export interface CreateShippingGuideCarrierRequest {
   shipping_guide_remittent_id?: number | null;
   third_party_id?: number | null;
   payment_responsible?: string;
-  // Direcciones
-  origin_address_id?: number | null;
-  destination_address_id?: number | null;
+  // Direcciones (pueden digitarse manualmente)
+  origin_address: string;
   origin_ubigeo_id: number;
+  destination_address: string;
   destination_ubigeo_id: number;
   observations?: string;
   // Totales
@@ -204,7 +169,6 @@ export interface CreateShippingGuideCarrierRequest {
 
 export interface UpdateShippingGuideCarrierRequest {
   transport_modality?: string;
-  motive_id?: number | null;
   // Campos para TRANSPORTE PÚBLICO
   carrier_id?: number | null;
   // Campos para TRANSPORTE PRIVADO
@@ -226,9 +190,9 @@ export interface UpdateShippingGuideCarrierRequest {
   third_party_id?: number | null;
   payment_responsible?: string;
   // Direcciones
-  origin_address_id?: number | null;
-  destination_address_id?: number | null;
+  origin_address?: string;
   origin_ubigeo_id?: number;
+  destination_address?: string;
   destination_ubigeo_id?: number;
   observations?: string;
   // Totales
