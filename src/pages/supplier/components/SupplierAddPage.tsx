@@ -6,6 +6,8 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { createPersonWithRole } from "@/pages/person/lib/person.actions";
+import { createAddress } from "@/pages/person/lib/person.address.actions";
+import type { PendingAddress } from "@/pages/person/lib/person.address.interface";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -21,7 +23,7 @@ export default function SupplierAddPage() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: PersonSchema) => {
+  const handleSubmit = async (data: PersonSchema, addresses: PendingAddress[]) => {
     setIsSubmitting(true);
     try {
       // Transform PersonSchema to CreatePersonRequest
@@ -46,7 +48,12 @@ export default function SupplierAddPage() {
         role_id: Number(data.role_id),
       };
 
-      await createPersonWithRole(createPersonData, Number(data.role_id));
+      const result = await createPersonWithRole(createPersonData, Number(data.role_id));
+      if (result.data?.id && addresses.length > 0) {
+        for (const addr of addresses) {
+          await createAddress(result.data.id, addr);
+        }
+      }
       successToast(
         SUCCESS_MESSAGE({ name: "Proveedor", gender: false }, "create"),
       );

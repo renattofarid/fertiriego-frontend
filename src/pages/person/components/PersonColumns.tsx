@@ -1,10 +1,36 @@
+import { useState } from "react";
 import type { PersonResource } from "../lib/person.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ColumnActions } from "@/components/SelectActions";
-import { Pencil } from "lucide-react";
+import { Pencil, MapPin } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { PersonAddressSheet } from "./PersonAddressSheet";
+
+function AddressButton({ person }: { person: PersonResource }) {
+  const [open, setOpen] = useState(false);
+  const displayName =
+    person.type_document === "RUC"
+      ? person.business_name
+      : `${person.names} ${person.father_surname} ${person.mother_surname}`.trim();
+
+  return (
+    <>
+      <ButtonAction
+        icon={MapPin}
+        tooltip="Direcciones"
+        onClick={() => setOpen(true)}
+      />
+      <PersonAddressSheet
+        personId={person.id}
+        personName={displayName}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
 
 export const PersonColumns = ({
   onEdit,
@@ -114,6 +140,7 @@ export const PersonColumns = ({
 
       return (
         <ColumnActions>
+          <AddressButton person={row.original} />
           <ButtonAction
             icon={Pencil}
             tooltip="Editar"

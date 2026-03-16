@@ -5,6 +5,8 @@ import { GeneralModal } from "@/components/GeneralModal";
 import { PersonForm } from "@/pages/person/components/PersonForm";
 import { type PersonSchema } from "@/pages/person/lib/person.schema";
 import { createPersonWithRole } from "@/pages/person/lib/person.actions";
+import { createAddress } from "@/pages/person/lib/person.address.actions";
+import type { PendingAddress } from "@/pages/person/lib/person.address.interface";
 import {
   ERROR_MESSAGE,
   errorToast,
@@ -27,7 +29,7 @@ export const ClientCreateModal = ({
 }: ClientCreateModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: PersonSchema) => {
+  const handleSubmit = async (data: PersonSchema, addresses: PendingAddress[]) => {
     setIsSubmitting(true);
     try {
       // Transform PersonSchema to CreatePersonRequest
@@ -56,6 +58,12 @@ export const ClientCreateModal = ({
         createPersonData,
         Number(data.role_id)
       );
+
+      if (response.data?.id && addresses.length > 0) {
+        for (const addr of addresses) {
+          await createAddress(response.data.id, addr);
+        }
+      }
 
       successToast(
         SUCCESS_MESSAGE({ name: "Cliente", gender: false }, "create")
