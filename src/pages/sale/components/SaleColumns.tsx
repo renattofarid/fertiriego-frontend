@@ -201,12 +201,14 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      let variant: "default" | "secondary" | "amber" | "gray" | "green" =
-        "default";
-
-      if (status === "ENVIADO") variant = "green";
-      if (status === "PENDIENTE") variant = "amber";
-
+      const variantMap: Record<string, "yellow" | "blue" | "green" | "gray" | "red"> = {
+        PENDIENTE: "yellow",
+        ENVIADO: "blue",
+        ACEPTADO: "green",
+        BAJA: "gray",
+        RECHAZADO: "red",
+      };
+      const variant = variantMap[status] ?? "gray";
       return <Badge variant={variant}>{status}</Badge>;
     },
   },

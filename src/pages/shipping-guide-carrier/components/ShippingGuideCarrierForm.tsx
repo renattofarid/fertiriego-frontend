@@ -8,7 +8,6 @@ import {
   SHIPPING_GUIDE_CARRIER,
   UNIT_MEASUREMENTS,
 } from "../lib/shipping-guide-carrier.interface";
-import { MODALITIES } from "@/pages/guide/lib/guide.interface";
 import { shippingGuideCarrierSchema } from "../lib/shipping-guide-carrier.schema";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -82,7 +81,7 @@ export type ShippingGuideCarrierFormValues = {
 };
 
 const defaultValues: ShippingGuideCarrierFormValues = {
-  transport_modality: "PUBLICO",
+  transport_modality: "PRIVADO",
   motive_id: "1",
   carrier_id: "",
   driver_id: "",
@@ -176,29 +175,10 @@ export function ShippingGuideCarrierForm({
     },
   });
 
-  const transportModality = form.watch("transport_modality");
   const selectedGuideId = form.watch("shipping_guide_remittent_id");
   const remittentId = form.watch("remittent_id");
   const recipientId = form.watch("recipient_id");
   const { data: motives = [] } = useGuideMotives();
-
-  // Auto-setear transportista a 1860 cuando es PÚBLICO y limpiar campos de conductor/vehículo
-  useEffect(() => {
-    if (transportModality === "PUBLICO") {
-      if (mode === "create") {
-        form.setValue("carrier_id", "1860");
-      }
-      // Limpiar campos de conductor y vehículo cuando es público
-      form.setValue("driver_id", "");
-      form.setValue("vehicle_id", "");
-      form.setValue("secondary_vehicle_id", "");
-      form.setValue("driver_license", "");
-      form.setValue("vehicle_plate", "");
-      form.setValue("vehicle_brand", "");
-      form.setValue("vehicle_model", "");
-      form.setValue("vehicle_mtc", "");
-    }
-  }, [transportModality, mode, form]);
 
   const [selectedProduct, setSelectedProduct] = useState<
     ProductResource | undefined
@@ -234,9 +214,6 @@ export function ShippingGuideCarrierForm({
       try {
         const response = await findGuideById(parseInt(selectedGuideId));
         const guide = response.data;
-
-        // Auto-llenar modalidad de transporte (siempre PUBLICO por defecto)
-        form.setValue("transport_modality", "PUBLICO");
 
         // Auto-llenar destinatario
         if (guide.recipient?.id) {
@@ -517,17 +494,6 @@ export function ShippingGuideCarrierForm({
 
             <FormSelect
               control={form.control}
-              name="transport_modality"
-              label="Modalidad de Transporte"
-              placeholder="Seleccione modalidad"
-              options={MODALITIES.map((mod) => ({
-                value: mod.value,
-                label: mod.label,
-              }))}
-            />
-
-            <FormSelect
-              control={form.control}
               name="motive_id"
               label="Motivo de Traslado"
               placeholder="Seleccione un motivo"
@@ -650,7 +616,7 @@ export function ShippingGuideCarrierForm({
             <FormSelect
               control={form.control}
               name="payment_responsible"
-              label="Responsable de Pago (Opcional)"
+              label="Responsable de Pago"
               placeholder="Seleccione responsable"
               options={[
                 { value: "remitente", label: "Remitente" },
@@ -727,8 +693,6 @@ export function ShippingGuideCarrierForm({
               </Button>
             </FormSelectAsync>
 
- 
-
             <FormSelectAsync
               control={form.control}
               name="secondary_vehicle_id"
@@ -794,7 +758,6 @@ export function ShippingGuideCarrierForm({
               placeholder="Ej: MTC123456"
               className="border-dashed"
             />
-
           </GroupFormSection>
 
           {/* Fechas y Direcciones */}

@@ -42,6 +42,7 @@ export interface GetSalesParams {
   warehouse_id?: number;
   from?: string;
   to?: string;
+  status_facturado?: string;
 }
 
 export const getSales = async (

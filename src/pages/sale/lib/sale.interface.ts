@@ -385,6 +385,14 @@ export const SALE_STATUSES = [
   { value: "CANCELADO", label: "Cancelado" },
 ] as const;
 
+export const SUNAT_STATUSES = [
+  { value: "PENDIENTE", label: "Pendiente" },
+  { value: "ENVIADO", label: "Enviado" },
+  { value: "ACEPTADO", label: "Aceptado" },
+  { value: "BAJA", label: "Baja" },
+  { value: "RECHAZADO", label: "Rechazado" },
+] as const;
+
 export const INSTALLMENT_STATUSES = [
   { value: "PENDIENTE", label: "Pendiente" },
   { value: "PAGADO", label: "Pagado" },
