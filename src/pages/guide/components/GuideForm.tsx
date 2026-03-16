@@ -947,15 +947,22 @@ export const GuideForm = ({
 
           <Separator className="col-span-full" />
 
+          {/* Inputs ocultos para registrar los campos de dirección en RHF */}
+          <input type="hidden" {...form.register("origin_address_id")} />
+          <input type="hidden" {...form.register("destination_address_id")} />
+          <input type="hidden" {...form.register("origin_address")} />
+          <input type="hidden" {...form.register("destination_address")} />
+          <input type="hidden" {...form.register("origin_ubigeo_id")} />
+          <input type="hidden" {...form.register("destination_ubigeo_id")} />
 
           <div className="col-span-full">
             <AddressPickerField
               personId={1860}
               value={form.watch("origin_address_id") || ""}
               onChange={(addressId, address) => {
-                form.setValue("origin_address_id", addressId);
-                form.setValue("origin_address", address.direccion);
-                form.setValue("origin_ubigeo_id", address.district.id.toString());
+                form.setValue("origin_address_id", addressId, { shouldValidate: true });
+                form.setValue("origin_address", address.direccion, { shouldValidate: true });
+                form.setValue("origin_ubigeo_id", address.district.id.toString(), { shouldValidate: true });
               }}
               label="Dirección de Origen"
               personLabel="remitente"
@@ -967,9 +974,9 @@ export const GuideForm = ({
               personId={recipientId ? Number(recipientId) : null}
               value={form.watch("destination_address_id") || ""}
               onChange={(addressId, address) => {
-                form.setValue("destination_address_id", addressId);
-                form.setValue("destination_address", address.direccion);
-                form.setValue("destination_ubigeo_id", address.district.id.toString());
+                form.setValue("destination_address_id", addressId, { shouldValidate: true });
+                form.setValue("destination_address", address.direccion, { shouldValidate: true });
+                form.setValue("destination_ubigeo_id", address.district.id.toString(), { shouldValidate: true });
               }}
               label="Dirección de Destino"
               personLabel="destinatario"
