@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Package, Plus, Trash2, Pencil } from "lucide-react";
+import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -130,10 +130,10 @@ export const OrderForm = ({
   const tipoCambioFetching = useRef<Set<string>>(new Set());
 
   const fetchTipoCambio = useCallback(
-    async (fecha: string) => {
+    async (fecha: string, force = false) => {
       if (!fecha) return;
 
-      if (tipoCambioCache.current[fecha]) {
+      if (!force && tipoCambioCache.current[fecha]) {
         setTipoCambioError("");
         form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
         return;
@@ -520,18 +520,32 @@ export const OrderForm = ({
               placeholder="Seleccionar moneda"
             />
 
-            <FormInput
-              control={form.control}
-              name="tipo_cambio"
-              label="Tipo de Cambio SUNAT"
-              placeholder="Se obtiene automáticamente"
-              error={tipoCambioError}
-              description={
-                !tipoCambioError && !form.watch("tipo_cambio")
-                  ? "Se obtiene de SUNAT según la fecha de pedido."
-                  : undefined
-              }
-            />
+            <div className="flex items-end gap-2">
+              <div className="flex-1 min-w-0">
+                <FormInput
+                  control={form.control}
+                  name="tipo_cambio"
+                  label="Tipo de Cambio SUNAT"
+                  placeholder="Se obtiene automáticamente"
+                  error={tipoCambioError}
+                  description={
+                    !tipoCambioError && !form.watch("tipo_cambio")
+                      ? "Se obtiene de SUNAT según la fecha de pedido."
+                      : undefined
+                  }
+                />
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                tooltip="Volver a consultar tipo de cambio SUNAT"
+                onClick={() => watchedOrderDate && fetchTipoCambio(watchedOrderDate, true)}
+                disabled={!watchedOrderDate}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
 
             <FormField
               control={form.control}

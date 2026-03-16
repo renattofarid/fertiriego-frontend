@@ -24,6 +24,7 @@ import {
   CreditCard,
   ListCheck,
   ListChecks,
+  RefreshCw,
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
@@ -480,10 +481,10 @@ export const SaleForm = ({
   const tipoCambioFetching = useRef<Set<string>>(new Set());
 
   const fetchTipoCambio = useCallback(
-    async (issueDate: string) => {
+    async (issueDate: string, force = false) => {
       if (!issueDate) return;
 
-      if (tipoCambioCache.current[issueDate]) {
+      if (!force && tipoCambioCache.current[issueDate]) {
         setTipoCambioError("");
         form.setValue("tipo_cambio" as any, tipoCambioCache.current[issueDate]);
         return;
@@ -1294,18 +1295,32 @@ export const SaleForm = ({
                 </>
               )}
 
-              <FormInput
-                control={form.control}
-                name="tipo_cambio"
-                label="Tipo de Cambio SUNAT"
-                placeholder="Se obtiene automáticamente"
-                error={tipoCambioError}
-                description={
-                  !tipoCambioError && !form.watch("tipo_cambio" as any)
-                    ? "Se obtiene de SUNAT según la fecha de emisión."
-                    : undefined
-                }
-              />
+              <div className="flex items-end gap-2">
+                <div className="flex-1 min-w-0">
+                  <FormInput
+                    control={form.control}
+                    name="tipo_cambio"
+                    label="Tipo de Cambio SUNAT"
+                    placeholder="Se obtiene automáticamente"
+                    error={tipoCambioError}
+                    description={
+                      !tipoCambioError && !form.watch("tipo_cambio" as any)
+                        ? "Se obtiene de SUNAT según la fecha de emisión."
+                        : undefined
+                    }
+                  />
+                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  tooltip="Volver a consultar tipo de cambio SUNAT"
+                  onClick={() => watchedIssueDate && fetchTipoCambio(watchedIssueDate, true)}
+                  disabled={!watchedIssueDate}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
 
               <FormSwitch
                 control={form.control}

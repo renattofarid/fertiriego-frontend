@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import type {
-  Carrier,
   GuideResource,
   GuideStatus,
 } from "../lib/guide.interface";
@@ -138,13 +137,31 @@ export const GuideColumns = ({
   {
     accessorKey: "carrier",
     header: "Transportista",
-    cell: ({ getValue }) => {
-      const carrier = getValue() as Carrier;
-      return (
-        <span className="text-sm text-wrap">
-          {carrier?.names ?? carrier?.business_name}
-        </span>
-      );
+    cell: ({ row }) => {
+      const modality = row.original.transport_modality;
+      if (modality === "PUBLICO") {
+        const carrier = row.original.carrier;
+        return (
+          <span className="text-sm text-wrap">
+            {carrier?.business_name ?? carrier?.names}
+          </span>
+        );
+      } else {
+        const driver = row.original.driver;
+        const fullName = [driver?.names, driver?.father_surname, driver?.mother_surname]
+          .filter(Boolean)
+          .join(" ");
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm text-wrap">{fullName || "-"}</span>
+            {driver?.number_document && (
+              <span className="text-xs text-muted-foreground font-mono">
+                {driver.number_document}
+              </span>
+            )}
+          </div>
+        );
+      }
     },
   },
   {

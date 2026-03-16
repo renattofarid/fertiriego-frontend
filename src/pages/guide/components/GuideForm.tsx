@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Form,
@@ -151,6 +151,7 @@ export const GuideForm = ({
   warehouses,
   motives,
 }: GuideFormProps) => {
+  const initialOrderId = useRef(mode === "edit" ? defaultValues.order_id : null);
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
@@ -200,6 +201,8 @@ export const GuideForm = ({
   useEffect(() => {
     const loadOrder = async () => {
       if (orderId && orderId !== "") {
+        // En modo edición, no consultar si el pedido no cambió respecto al original
+        if (orderId === initialOrderId.current) return;
         // Limpiar otros documentos seleccionados
         if (saleId) form.setValue("sale_id", "");
         if (purchaseId) form.setValue("purchase_id", "");
@@ -559,6 +562,10 @@ export const GuideForm = ({
     const payload: GuideSchema = {
       ...data,
       details: formattedDetails,
+      // Limpiar campos según modalidad de transporte
+      ...(data.transport_modality === "PRIVADO"
+        ? { carrier_id: undefined }
+        : { driver_id: undefined, vehicle_id: undefined, secondary_vehicle_id: undefined }),
     };
 
     console.log("✅ Payload siendo enviado:", payload);
