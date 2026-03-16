@@ -60,6 +60,8 @@ export const shippingGuideCarrierSchema = z
     third_party_id: optionalStringId("Debe seleccionar un tercero"),
     payment_responsible: z.string().optional(),
     // Direcciones
+    origin_address_id: optionalStringId("Dirección de origen"),
+    destination_address_id: optionalStringId("Dirección de destino"),
     origin_address: z
       .string()
       .min(1, { message: "La dirección de origen es requerida" })
