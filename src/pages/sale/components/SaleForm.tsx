@@ -729,6 +729,18 @@ export const SaleForm = ({
     if (!form.getValues("amount_yape")) {
       form.setValue("amount_yape", "0");
     }
+    if (!form.getValues("amount_plin")) {
+      form.setValue("amount_plin", "0");
+    }
+    if (!form.getValues("amount_deposit")) {
+      form.setValue("amount_deposit", "0");
+    }
+    if (!form.getValues("amount_transfer")) {
+      form.setValue("amount_transfer", "0");
+    }
+    if (!form.getValues("amount_other")) {
+      form.setValue("amount_other", "0");
+    }
   }, [form]);
 
   // Función de redondeo a 6 decimales
@@ -1028,7 +1040,11 @@ export const SaleForm = ({
     const cash = parseFloat(form.watch("amount_cash") || "0");
     const card = parseFloat(form.watch("amount_card") || "0");
     const yape = parseFloat(form.watch("amount_yape") || "0");
-    const sum = cash + card + yape;
+    const plin = parseFloat(form.watch("amount_plin") || "0");
+    const deposit = parseFloat(form.watch("amount_deposit") || "0");
+    const transfer = parseFloat(form.watch("amount_transfer") || "0");
+    const other = parseFloat(form.watch("amount_other") || "0");
+    const sum = cash + card + yape + plin + deposit + transfer + other;
     return roundTo6Decimals(sum);
   };
 
@@ -1699,7 +1715,7 @@ export const SaleForm = ({
                 sm: 1,
               }}
             >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="amount_cash"
@@ -1746,6 +1762,86 @@ export const SaleForm = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Monto Yape</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_plin"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto Plin</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_deposit"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto Depósito</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_transfer"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Monto Transferencia</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          placeholder="0.00"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="amount_other"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Otro Método</FormLabel>
                       <FormControl>
                         <Input
                           type="number"

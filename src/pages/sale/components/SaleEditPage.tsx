@@ -92,6 +92,13 @@ export const SaleEditPage = () => {
         due_days: inst.due_days.toString(),
         amount: inst.amount.toString(),
       })) ?? [],
+    amount_cash: data.amount_cash?.toString() ?? "0",
+    amount_card: data.amount_card?.toString() ?? "0",
+    amount_yape: data.amount_yape?.toString() ?? "0",
+    amount_plin: data.amount_plin?.toString() ?? "0",
+    amount_deposit: data.amount_deposit?.toString() ?? "0",
+    amount_transfer: data.amount_transfer?.toString() ?? "0",
+    amount_other: data.amount_other?.toString() ?? "0",
   });
 
   const handleSubmit = async (data: Partial<SaleUpdateSchema>) => {

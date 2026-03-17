@@ -1,4 +1,3 @@
-import { truncDecimal } from "./utils";
 import { APP_LOCALE } from "./config";
 
 export type FormatCurrencyOptions = {
@@ -10,7 +9,8 @@ export type FormatCurrencyOptions = {
 
 /**
  * Formatea un número con separador de miles respetando `decimals`.
- * Antes de formatear se trunca el número para evitar redondeos indeseados.
+ * Usa redondeo estándar para evitar que la imprecisión del punto flotante
+ * cause que valores como 2336.99 se muestren como 2336.98.
  */
 export function formatNumber(
   value: number,
@@ -18,14 +18,13 @@ export function formatNumber(
   locale: string = APP_LOCALE
 ): string {
   if (!isFinite(value) || isNaN(value)) return String(value);
-  const v = truncDecimal(value, decimals);
   try {
     return new Intl.NumberFormat(locale, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
-    }).format(v);
+    }).format(value);
   } catch (e) {
-    return v.toFixed(decimals);
+    return value.toFixed(decimals);
   }
 }
 
