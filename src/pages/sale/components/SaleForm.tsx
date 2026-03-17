@@ -8,7 +8,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -1716,144 +1715,74 @@ export const SaleForm = ({
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_cash"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto en Efectivo</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto en Efectivo"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_card"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto con Tarjeta</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto con Tarjeta"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_yape"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Yape</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Yape"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_plin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Plin</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Plin"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_deposit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Depósito</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Depósito"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_transfer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Transferencia</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Transferencia"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_other"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Otro Método</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Otro Método"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
               </div>
 
@@ -1892,41 +1821,23 @@ export const SaleForm = ({
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                <FormField
+                <FormInput
                   control={installmentTempForm.control}
                   name="temp_due_days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Vencimiento</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="30"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                  label="Días de Vencimiento"
+                  type="number"
+                  min={0}
+                  placeholder="30"
                 />
 
-                <FormField
+                <FormInput
                   control={installmentTempForm.control}
                   name="temp_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                  label="Monto"
+                  type="number"
+                  step="0.01"
+                  min={0}
+                  placeholder="0.00"
                 />
 
                 <div className="flex items-end">
