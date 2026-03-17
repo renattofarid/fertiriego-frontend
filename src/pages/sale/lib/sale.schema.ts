@@ -86,6 +86,30 @@ export const saleSchemaCreate = z.object({
       message: "El monto Yape debe ser un número válido",
     })
     .default("0"),
+  amount_plin: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto Plin debe ser un número válido",
+    })
+    .default("0"),
+  amount_deposit: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto de depósito debe ser un número válido",
+    })
+    .default("0"),
+  amount_transfer: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto de transferencia debe ser un número válido",
+    })
+    .default("0"),
+  amount_other: z
+    .string()
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "El monto de otro método debe ser un número válido",
+    })
+    .default("0"),
   quotation_id: z.string().optional(),
   order_id: z.string().optional(),
   guide_id: z.string().optional(),

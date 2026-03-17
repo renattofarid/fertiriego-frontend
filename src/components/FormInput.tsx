@@ -57,6 +57,9 @@ export function FormInput({
   ...inputProps
 }: FormInputProps) {
   const isNumberType = inputProps.type === "number";
+  const handleWheel = isNumberType
+    ? (e: React.WheelEvent<HTMLInputElement>) => e.currentTarget.blur()
+    : undefined;
 
   // Si no hay control, funcionar como input controlado estándar
   if (!control) {
@@ -126,6 +129,7 @@ export function FormInput({
               )}
               {...inputProps}
               onChange={handleStandaloneChange}
+              onWheel={handleWheel}
               value={value ?? ""}
             />
             {addonEnd && (
@@ -208,6 +212,7 @@ export function FormInput({
                     {...field}
                     {...inputProps}
                     onChange={handleChange}
+                    onWheel={handleWheel}
                     value={field.value ?? ""}
                   />
                 </FormControl>

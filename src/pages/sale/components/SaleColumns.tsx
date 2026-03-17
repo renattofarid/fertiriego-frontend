@@ -201,7 +201,10 @@ export const getSaleColumns = ({
     header: "Estado SUNAT",
     cell: ({ row }) => {
       const status = row.original.status_facturado;
-      const variantMap: Record<string, "yellow" | "blue" | "green" | "gray" | "red"> = {
+      const variantMap: Record<
+        string,
+        "yellow" | "blue" | "green" | "gray" | "red"
+      > = {
         PENDIENTE: "yellow",
         ENVIADO: "blue",
         ACEPTADO: "green",
@@ -337,7 +340,20 @@ export const getSaleColumns = ({
         row.original.installments?.some(
           (inst) => inst.pending_amount < inst.amount,
         ) ?? false;
-      const isEnviado = row.original.status_facturado === "ENVIADO";
+      const isEnviado = row.original.status_facturado === "ACEPTADO";
+      const isRechazado = row.original.status_facturado === "RECHAZADO";
+
+      // Anular solo permitido dentro de los 3 días posteriores a la emisión
+      const issueDate = parse(
+        row.original.issue_date,
+        "yyyy-MM-dd",
+        new Date(),
+      );
+      const daysSinceIssue = Math.floor(
+        (new Date().setHours(0, 0, 0, 0) - issueDate.setHours(0, 0, 0, 0)) /
+          (1000 * 60 * 60 * 24),
+      );
+      const canAnular = daysSinceIssue <= 3;
 
       return (
         <div className="flex items-center gap-1">
@@ -349,51 +365,55 @@ export const getSaleColumns = ({
           />
 
           {/* XML / CDR — al lado del PDF, solo si está enviado */}
-          {row.original.status_facturado === "ENVIADO" && (
-            <TooltipProvider>
-              <DropdownMenu>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
-                      >
-                        <FileCode2 className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Descargar XML / CDR</p>
-                  </TooltipContent>
-                </Tooltip>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
-                      downloadXml(
-                        `/getArchivosDocument/${row.original.id}/venta`,
-                        `xml-venta-${row.original.sequential_number}.xml`,
-                      )
-                    }
-                  >
-                    <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
-                    XML Venta
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      downloadXml(
-                        `/getArchivosDocumentCDR/${row.original.id}/venta`,
-                        `cdr-venta-${row.original.sequential_number}.zip`,
-                      )
-                    }
-                  >
-                    <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
-                    CDR Venta
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TooltipProvider>
-          )}
+          <TooltipProvider>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
+                    >
+                      <FileCode2 className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Descargar XML / CDR</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  disabled={
+                    !["ENVIADO", "ACEPTADO"].includes(
+                      row.original.status_facturado,
+                    )
+                  }
+                  onClick={() =>
+                    downloadXml(
+                      `/getArchivosDocument/${row.original.id}/venta`,
+                      `xml-venta-${row.original.sequential_number}.xml`,
+                    )
+                  }
+                >
+                  <FileCode2 className="h-4 w-4 mr-2 text-blue-500" />
+                  XML Venta
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={row.original.status_facturado !== "ACEPTADO"}
+                  onClick={() =>
+                    downloadXml(
+                      `/getArchivosDocumentCDR/${row.original.id}/venta`,
+                      `cdr-venta-${row.original.sequential_number}.zip`,
+                    )
+                  }
+                >
+                  <FileArchive className="h-4 w-4 mr-2 text-orange-500" />
+                  CDR Venta
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TooltipProvider>
 
           {/* Ver detalle */}
           <ButtonAction
@@ -422,7 +442,7 @@ export const getSaleColumns = ({
           )}
 
           {/* Anular */}
-          {row.original.status_facturado === "ENVIADO" && (
+          {row.original.status_facturado === "ACEPTADO" && canAnular && (
             <ConfirmationDialog
               trigger={
                 <ButtonAction
@@ -440,7 +460,7 @@ export const getSaleColumns = ({
             />
           )}
 
-          {/* Más opciones: Gestionar + Eliminar */}
+          {/* Más opciones: Gestionar + Eliminar  */}
           <DropdownMenu>
             <TooltipProvider>
               <Tooltip>
@@ -463,19 +483,21 @@ export const getSaleColumns = ({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onEdit(row.original)}
-                disabled={hasPayments || isEnviado}
+                disabled={hasPayments || isEnviado || isRechazado}
               >
                 <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
-                {hasPayments || isEnviado ? "No se puede editar" : "Editar"}
+                {hasPayments || isEnviado || isRechazado
+                  ? "No se puede editar"
+                  : "Editar"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
-                disabled={isPaid || hasPayments || isEnviado}
+                disabled={isPaid || hasPayments || isEnviado || isRechazado}
                 className="text-red-600 focus:text-red-600"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                {isPaid || hasPayments || isEnviado
+                {isPaid || hasPayments || isEnviado || isRechazado
                   ? "No se puede eliminar"
                   : "Eliminar"}
               </DropdownMenuItem>
