@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { roundTo4 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
@@ -259,7 +260,7 @@ export const QuotationForm = ({
         accessorKey: "quantity",
         header: "Cantidad",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.quantity}</div>
+          <div className="text-right">{parseFloat(row.original.quantity).toFixed(4)}</div>
         ),
       },
       {
@@ -299,14 +300,14 @@ export const QuotationForm = ({
         accessorKey: "subtotal",
         header: "Subtotal",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.subtotal.toFixed(2)}</div>
+          <div className="text-right">{row.original.subtotal.toFixed(4)}</div>
         ),
       },
       {
         accessorKey: "tax",
         header: "IGV",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.tax.toFixed(2)}</div>
+          <div className="text-right">{row.original.tax.toFixed(4)}</div>
         ),
       },
       {
@@ -314,7 +315,7 @@ export const QuotationForm = ({
         header: "Total",
         cell: ({ row }) => (
           <div className="text-right font-semibold">
-            {row.original.total.toFixed(2)}
+            {row.original.total.toFixed(4)}
           </div>
         ),
       },
@@ -485,15 +486,15 @@ export const QuotationForm = ({
   // };
 
   const calculateSubtotalTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.subtotal, 0));
   };
 
   const calculateTaxTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.tax, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
   };
 
   const calculateDetailsTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
   };
 
   return (

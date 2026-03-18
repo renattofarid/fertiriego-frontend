@@ -41,6 +41,7 @@ import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatNumber } from "@/lib/formatCurrency";
+import { roundTo4, truncTo2, calcItemAmounts, roundTo2 } from "@/lib/saleCalculations";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -406,9 +407,7 @@ export const SaleForm = ({
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
           const unitPriceSin = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
-          const total = roundTo6Decimals(quantity * unitPriceSin * 1.18);
-          const subtotal = roundTo6Decimals(total / 1.18);
-          const igv = roundTo6Decimals(total - subtotal);
+          const { total, subtotal, igv } = calcItemAmounts(quantity, unitPriceSin);
 
           return {
             product_id: String(detail.product_id),
@@ -587,10 +586,8 @@ export const SaleForm = ({
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
-              const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
-              const total = roundTo6Decimals(quantity * unitPrice);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+              const valorUnitario = roundTo4(unitPrice / 1.18); // SIN IGV → backend
+              const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -614,11 +611,9 @@ export const SaleForm = ({
               // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
               const unitPriceCon = detail.is_igv
                 ? unitPrice
-                : roundTo6Decimals(unitPrice * 1.18);
-              const valorUnitario = roundTo6Decimals(unitPriceCon / 1.18); // SIN IGV → backend
-              const total = roundTo6Decimals(quantity * unitPriceCon);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+                : roundTo4(unitPrice * 1.18);
+              const valorUnitario = roundTo4(unitPriceCon / 1.18); // SIN IGV → backend
+              const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -680,10 +675,8 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
-              const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
-              const total = roundTo6Decimals(quantity * unitPrice);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+              const unitPrice = priceMap.get(detail.product_id) || 0; // precio SIN IGV (del backend)
+              const { total, subtotal, igv } = calcItemAmounts(quantity, unitPrice);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -741,11 +734,6 @@ export const SaleForm = ({
     }
   }, [form]);
 
-  // Función de redondeo a 4 decimales
-  const roundTo6Decimals = (value: number): number => {
-    return Math.round(value * 10000) / 10000;
-  };
-
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
@@ -758,10 +746,8 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = unitPriceWithIGV / 1.18; // SIN IGV → lo que va al backend (precisión completa)
-    const total = roundTo6Decimals(quantity * unitPriceWithIGV);
-    const subtotal = roundTo6Decimals(total / 1.18);
-    const igv = roundTo6Decimals(total - subtotal);
+    const valorUnitario = roundTo4(unitPriceWithIGV / 1.18); // V.Unit SIN IGV → backend (redondeado a 4)
+    const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
     const newDetail: DetailRow = {
       product_id: String(currentDetail.product_id),
@@ -808,6 +794,7 @@ export const SaleForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
+    setProductSelected(null);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     // unit_price guardado es SIN IGV (valor unitario)
@@ -832,26 +819,26 @@ export const SaleForm = ({
       (sum, detail) => sum + (detail.subtotal || 0),
       0,
     );
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateDetailsIGV = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.igv || 0), 0);
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateRetencion = () => {
     if (!isRetencionIGV) return 0;
-    return Math.round(calculateDetailsTotal() * 0.03 * 100) / 100;
+    return truncTo2(calculateDetailsTotal() * 0.03);
   };
 
   const calculateNetTotal = () => {
-    return roundTo6Decimals(calculateDetailsTotal() - calculateRetencion());
+    return roundTo2(calculateDetailsTotal() - calculateRetencion());
   };
 
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
@@ -865,7 +852,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "0",
-        amount: netTotal.toFixed(2),
+        amount: truncTo2(netTotal).toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -884,7 +871,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "30",
-        amount: netTotal.toFixed(2),
+        amount: truncTo2(netTotal).toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -964,19 +951,19 @@ export const SaleForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0,
     );
-    return roundTo6Decimals(sum);
+    return roundTo4(sum);
   };
 
   const handleRecalculateInstallments = () => {
     if (installments.length === 0) return;
     const netTotal = calculateNetTotal();
-    const baseAmount = roundTo6Decimals(netTotal / installments.length);
-    // El último absorbe el residuo por redondeo
+    const baseAmount = truncTo2(netTotal / installments.length);
+    // El último absorbe el residuo por truncamiento
     const updated = installments.map((inst, i) => ({
       due_days: String(inst.due_days),
       amount:
         i === installments.length - 1
-          ? roundTo6Decimals(
+          ? truncTo2(
               netTotal - baseAmount * (installments.length - 1),
             ).toFixed(2)
           : baseAmount.toFixed(2),
@@ -1047,7 +1034,7 @@ export const SaleForm = ({
     const transfer = parseFloat(String(form.watch("amount_transfer")) || "0");
     const other = parseFloat(String(form.watch("amount_other")) || "0");
     const sum = cash + card + yape + plin + deposit + transfer + other;
-    return roundTo6Decimals(sum);
+    return roundTo4(sum);
   };
 
   const paymentAmountsMatchTotal = () => {
@@ -1603,13 +1590,13 @@ export const SaleForm = ({
                         TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsSubtotal(), 4)}
+                        {formatNumber(calculateDetailsSubtotal(), 2)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsIGV(), 4)}
+                        {formatNumber(calculateDetailsIGV(), 2)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg text-primary">
-                        {formatNumber(calculateDetailsTotal(), 4)}
+                        {formatNumber(calculateDetailsTotal(), 2)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>

@@ -1,4 +1,5 @@
 import GeneralSheet from "@/components/GeneralSheet";
+import { calcItemAmounts, roundTo4 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
@@ -194,9 +195,8 @@ export const AddProductSheet = ({
     const price = parseFloat(String(unitPrice)) || 0;
 
     if (qty > 0 && price > 0) {
-      const total = qty * price;
-      const subtotal = total / 1.18;
-      const tax = total - subtotal;
+      const vUnit = roundTo4(price / 1.18); // price = P.Unit CON IGV → convertir a V.Unit
+      const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit);
       setCalculatedValues({ subtotal, tax, total });
     } else {
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
