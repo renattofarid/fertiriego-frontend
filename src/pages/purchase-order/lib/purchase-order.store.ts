@@ -130,6 +130,18 @@ export const usePurchaseOrderStore = create<PurchaseOrderStore>((set) => ({
       if ((data as any).apply_igv !== undefined) {
         request.apply_igv = !!(data as any).apply_igv;
       }
+      if (data.details && data.details.length > 0) {
+        request.details = data.details.map((detail: any) => ({
+          product_id: Number(detail.product_id),
+          quantity_requested: Number(detail.quantity_requested),
+          unit_price_estimated: Number(detail.unit_price_estimated),
+          subtotal_estimated: Number(detail.subtotal_estimated ?? Number(detail.quantity_requested) * Number(detail.unit_price_estimated)),
+        }));
+        request.total_estimated = request.details.reduce(
+          (sum: number, d: any) => sum + d.subtotal_estimated,
+          0,
+        );
+      }
 
       await updatePurchaseOrder(id, request);
     } catch (err) {
