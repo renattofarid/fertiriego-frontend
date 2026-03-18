@@ -847,7 +847,7 @@ export const SaleForm = ({
 
   const calculateRetencion = () => {
     if (!isRetencionIGV) return 0;
-    return roundTo6Decimals(calculateDetailsTotal() * 0.03);
+    return Math.round(calculateDetailsTotal() * 0.03 * 100) / 100;
   };
 
   const calculateNetTotal = () => {

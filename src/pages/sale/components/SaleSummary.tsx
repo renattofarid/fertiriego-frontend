@@ -70,6 +70,7 @@ export function SaleSummary({
   totalExonerada = 0,
   totalInafecta = 0,
 }: SaleSummaryProps) {
+  const t2 = (n: number) => Math.round(n * 100) / 100;
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
@@ -207,7 +208,7 @@ export function SaleSummary({
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      {currencySymbol} {formatNumber(detail.total)}
+                      {currencySymbol} {formatNumber(t2(detail.total))}
                     </p>
                   </div>
                 ))
@@ -233,7 +234,7 @@ export function SaleSummary({
               </span>
               <span className="font-medium">
                 {currencySymbol}{" "}
-                {formatNumber(calculateDetailsSubtotal())}
+                {formatNumber(t2(calculateDetailsSubtotal()))}
               </span>
             </div>
 
@@ -243,7 +244,7 @@ export function SaleSummary({
                   Op. Exonerada
                 </span>
                 <span className="font-medium">
-                  {currencySymbol} {formatNumber(totalExonerada)}
+                  {currencySymbol} {formatNumber(t2(totalExonerada))}
                 </span>
               </div>
             )}
@@ -254,7 +255,7 @@ export function SaleSummary({
                   Op. Inafecta
                 </span>
                 <span className="font-medium">
-                  {currencySymbol} {formatNumber(totalInafecta)}
+                  {currencySymbol} {formatNumber(t2(totalInafecta))}
                 </span>
               </div>
             )}
@@ -264,7 +265,7 @@ export function SaleSummary({
                 IGV ({porcentajeIgv}%)
               </span>
               <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateDetailsIGV())}
+                {currencySymbol} {formatNumber(t2(calculateDetailsIGV()))}
               </span>
             </div>
 
@@ -274,7 +275,7 @@ export function SaleSummary({
                   Retención IGV (3%)
                 </span>
                 <span className="font-medium text-destructive">
-                  - {currencySymbol} {formatNumber(calculateRetencion())}
+                  - {currencySymbol} {formatNumber(t2(calculateRetencion()))}
                 </span>
               </div>
             )}
@@ -290,9 +291,9 @@ export function SaleSummary({
               <span className="text-2xl font-medium text-primary dark:text-primary">
                 {currencySymbol}{" "}
                 {formatNumber(
-                  calculateNetTotal
+                  t2(calculateNetTotal
                     ? calculateNetTotal()
-                    : calculateDetailsTotal(),
+                    : calculateDetailsTotal()),
                 )}
               </span>
             </div>
