@@ -202,7 +202,7 @@ export function SaleSummary({
                         {detail.product_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {detail.quantity} x {currencySymbol}{" "}
+                        {formatNumber(parseFloat(detail.quantity))} x {currencySymbol}{" "}
                         {formatNumber(parseFloat(detail.unit_price))}
                       </p>
                     </div>

@@ -111,6 +111,10 @@ export const useSaleStore = create<SaleStore>((set) => ({
         amount_cash: data.amount_cash || "0",
         amount_card: data.amount_card || "0",
         amount_yape: data.amount_yape || "0",
+        amount_plin: data.amount_plin || "0",
+        amount_deposit: data.amount_deposit || "0",
+        amount_transfer: data.amount_transfer || "0",
+        amount_other: data.amount_other || "0",
         quotation_id: data.quotation_id ? Number(data.quotation_id) : undefined,
         order_id: data.order_id ? Number(data.order_id) : undefined,
         order_purchase: data.order_purchase,
@@ -124,14 +128,14 @@ export const useSaleStore = create<SaleStore>((set) => ({
         guides: data.guides && data.guides.length > 0 ? data.guides : undefined,
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
-          quantity: Number(detail.quantity),
-          unit_price: Number(detail.unit_price),
+          quantity: parseFloat(Number(detail.quantity).toFixed(4)),
+          unit_price: parseFloat(Number(detail.unit_price).toFixed(4)),
         })),
         installments:
           data.installments.length > 0
             ? data.installments.map((installment) => ({
                 due_days: Number(installment.due_days),
-                amount: Number(installment.amount),
+                amount: parseFloat(Number(installment.amount).toFixed(4)),
               }))
             : undefined,
       };
@@ -164,6 +168,10 @@ export const useSaleStore = create<SaleStore>((set) => ({
         ...(data.amount_cash !== undefined && { amount_cash: data.amount_cash }),
         ...(data.amount_card !== undefined && { amount_card: data.amount_card }),
         ...(data.amount_yape !== undefined && { amount_yape: data.amount_yape }),
+        ...(data.amount_plin !== undefined && { amount_plin: data.amount_plin }),
+        ...(data.amount_deposit !== undefined && { amount_deposit: data.amount_deposit }),
+        ...(data.amount_transfer !== undefined && { amount_transfer: data.amount_transfer }),
+        ...(data.amount_other !== undefined && { amount_other: data.amount_other }),
         is_anticipado: data.is_anticipado ?? false,
         is_deduccion: data.is_deduccion ?? false,
         is_retencionigv: data.is_retencionigv ?? false,
@@ -178,15 +186,15 @@ export const useSaleStore = create<SaleStore>((set) => ({
           data.details.length > 0 && {
             details: data.details.map((detail) => ({
               product_id: Number(detail.product_id),
-              quantity: Number(detail.quantity),
-              unit_price: Number(detail.unit_price),
+              quantity: parseFloat(Number(detail.quantity).toFixed(4)),
+              unit_price: parseFloat(Number(detail.unit_price).toFixed(4)),
             })),
           }),
         ...(data.installments &&
           data.installments.length > 0 && {
             installments: data.installments.map((installment) => ({
               due_days: Number(installment.due_days),
-              amount: Number(installment.amount),
+              amount: parseFloat(Number(installment.amount).toFixed(4)),
             })),
           }),
       };

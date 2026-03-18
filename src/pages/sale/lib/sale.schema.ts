@@ -68,43 +68,43 @@ export const saleSchemaCreate = z.object({
     .min(1, { message: "Debe seleccionar un tipo de pago" }),
   currency: z.string().min(1, { message: "Debe seleccionar una moneda" }),
   observations: z.string().max(500).optional(),
-  amount_cash: z
+  amount_cash: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto en efectivo debe ser un número válido",
     })
     .default("0"),
-  amount_card: z
+  amount_card: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto con tarjeta debe ser un número válido",
     })
     .default("0"),
-  amount_yape: z
+  amount_yape: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto Yape debe ser un número válido",
     })
     .default("0"),
-  amount_plin: z
+  amount_plin: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto Plin debe ser un número válido",
     })
     .default("0"),
-  amount_deposit: z
+  amount_deposit: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto de depósito debe ser un número válido",
     })
     .default("0"),
-  amount_transfer: z
+  amount_transfer: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto de transferencia debe ser un número válido",
     })
     .default("0"),
-  amount_other: z
+  amount_other: z.coerce
     .string()
     .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
       message: "El monto de otro método debe ser un número válido",
