@@ -40,7 +40,6 @@ import { useAllProductPriceCategories } from "@/pages/product-price-category/lib
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
-import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -865,7 +864,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "0",
-        amount: netTotal.toFixed(4),
+        amount: netTotal.toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -884,7 +883,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "30",
-        amount: netTotal.toFixed(4),
+        amount: netTotal.toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -912,10 +911,7 @@ export const SaleForm = ({
     // Validar que no exceda el total de la venta
     if (currentInstallmentsTotal + newAmount > saleTotal) {
       errorToast(
-        `El total de cuotas no puede exceder el total de la venta (${formatDecimalTrunc(
-          saleTotal,
-          6,
-        )})`,
+        `El total de cuotas no puede exceder el total de la venta (${formatNumber(saleTotal, 2)})`,
       );
       return;
     }
@@ -975,8 +971,8 @@ export const SaleForm = ({
         i === installments.length - 1
           ? roundTo6Decimals(
               netTotal - baseAmount * (installments.length - 1),
-            ).toFixed(4)
-          : baseAmount.toFixed(4),
+            ).toFixed(2)
+          : baseAmount.toFixed(2),
     }));
     setInstallments(updated);
     form.setValue("installments", updated);
@@ -1078,9 +1074,9 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(), 4,
+          calculateInstallmentsTotal(), 2,
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(), 4,
+          calculateNetTotal(), 2,
         )})`,
       );
       return;
@@ -1840,7 +1836,7 @@ export const SaleForm = ({
                   name="temp_amount"
                   label="Monto"
                   type="number"
-                  step="0.0001"
+                  step="0.01"
                   min={0}
                   placeholder="0.00"
                 />
@@ -1895,7 +1891,7 @@ export const SaleForm = ({
                               {inst.due_days} días
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              {formatDecimalTrunc(parseFloat(inst.amount), 6)}
+                              {formatNumber(parseFloat(inst.amount), 2)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex justify-center gap-2">
@@ -1922,10 +1918,7 @@ export const SaleForm = ({
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(
-                              calculateInstallmentsTotal(),
-                              6,
-                            )}
+                            {formatNumber(calculateInstallmentsTotal(), 2)}
                           </TableCell>
                           <TableCell></TableCell>
                         </TableRow>
@@ -1936,9 +1929,9 @@ export const SaleForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal(), 4)}) debe ser
+                        {formatNumber(calculateInstallmentsTotal(), 2)}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateNetTotal(), 4)})
+                        {formatNumber(calculateNetTotal(), 2)})
                       </p>
                     </div>
                   )}
