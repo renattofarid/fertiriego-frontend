@@ -1074,9 +1074,9 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(), 4,
+          calculateInstallmentsTotal(), 2,
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(), 4,
+          calculateNetTotal(), 2,
         )})`,
       );
       return;
@@ -1931,7 +1931,7 @@ export const SaleForm = ({
                         ⚠️ El total de cuotas (
                         {formatNumber(calculateInstallmentsTotal(), 2)}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateNetTotal(), 4)})
+                        {formatNumber(calculateNetTotal(), 2)})
                       </p>
                     </div>
                   )}
