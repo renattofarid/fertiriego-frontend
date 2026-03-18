@@ -105,6 +105,9 @@ export interface UpdatePurchaseOrderRequest {
   issue_date?: string;
   expected_date?: string;
   observations?: string | null;
+  apply_igv?: boolean;
+  total_estimated?: number;
+  details?: CreatePurchaseOrderDetailRequest[];
 }
 
 export interface GetPurchaseOrdersProps {
