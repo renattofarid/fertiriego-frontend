@@ -887,6 +887,9 @@ export const SaleForm = ({
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
+    } else if (selectedPaymentType === "CONTADO") {
+      setInstallments([]);
+      form.setValue("installments", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPaymentType]);
@@ -1116,7 +1119,30 @@ export const SaleForm = ({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={form.handleSubmit(handleFormSubmit, (errors) => {
+          const fieldLabels: Record<string, string> = {
+            customer_id: "Cliente",
+            document_type: "Tipo de Documento",
+            warehouse_id: "Almacén",
+            issue_date: "Fecha de Emisión",
+            payment_type: "Tipo de Pago",
+            currency: "Moneda",
+            details: "Detalles de la Venta",
+            installments: "Cuotas",
+          };
+          const messages = Object.entries(errors)
+            .map(([field, error]) => {
+              const label = fieldLabels[field] ?? field;
+              const msg = (error as any)?.message ?? "Campo requerido";
+              return `• ${label}: ${msg}`;
+            })
+            .join("\n");
+          errorToast(
+            messages
+              ? `Por favor corrija los siguientes campos:\n${messages}`
+              : "Por favor complete todos los campos requeridos",
+          );
+        })}
         className="grid xl:grid-cols-3 gap-6 w-full"
       >
         <div className="xl:col-span-2 space-y-6">
