@@ -55,7 +55,11 @@ export default function PurchaseOrderEditPage() {
     issue_date: data.issue_date,
     expected_date: data.expected_date,
     observations: data.observations,
-    details: [],
+    details: data.details?.map((d) => ({
+      product_id: d.product_id.toString(),
+      quantity_requested: d.quantity_requested.toString(),
+      unit_price_estimated: d.unit_price_estimated.toString(),
+    })) ?? [],
     // Coerce apply_igv to boolean in case backend sends 0/1 or similar
     apply_igv: Boolean((data as any).apply_igv ?? false),
   });

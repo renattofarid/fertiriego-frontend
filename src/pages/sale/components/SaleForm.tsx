@@ -8,7 +8,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -743,9 +742,9 @@ export const SaleForm = ({
     }
   }, [form]);
 
-  // Función de redondeo a 6 decimales
+  // Función de redondeo a 4 decimales
   const roundTo6Decimals = (value: number): number => {
-    return Math.round(value * 1000000) / 1000000;
+    return Math.round(value * 10000) / 10000;
   };
 
   // Funciones para detalles
@@ -848,7 +847,7 @@ export const SaleForm = ({
 
   const calculateRetencion = () => {
     if (!isRetencionIGV) return 0;
-    return roundTo6Decimals(calculateDetailsTotal() * 0.03);
+    return Math.round(calculateDetailsTotal() * 0.03 * 100) / 100;
   };
 
   const calculateNetTotal = () => {
@@ -866,7 +865,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "0",
-        amount: netTotal.toFixed(6),
+        amount: netTotal.toFixed(4),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -885,7 +884,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "30",
-        amount: netTotal.toFixed(6),
+        amount: netTotal.toFixed(4),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -976,8 +975,8 @@ export const SaleForm = ({
         i === installments.length - 1
           ? roundTo6Decimals(
               netTotal - baseAmount * (installments.length - 1),
-            ).toFixed(6)
-          : baseAmount.toFixed(6),
+            ).toFixed(4)
+          : baseAmount.toFixed(4),
     }));
     setInstallments(updated);
     form.setValue("installments", updated);
@@ -1037,13 +1036,13 @@ export const SaleForm = ({
 
   // Funciones para montos de pago
   const calculatePaymentTotal = () => {
-    const cash = parseFloat(form.watch("amount_cash") || "0");
-    const card = parseFloat(form.watch("amount_card") || "0");
-    const yape = parseFloat(form.watch("amount_yape") || "0");
-    const plin = parseFloat(form.watch("amount_plin") || "0");
-    const deposit = parseFloat(form.watch("amount_deposit") || "0");
-    const transfer = parseFloat(form.watch("amount_transfer") || "0");
-    const other = parseFloat(form.watch("amount_other") || "0");
+    const cash = parseFloat(String(form.watch("amount_cash")) || "0");
+    const card = parseFloat(String(form.watch("amount_card")) || "0");
+    const yape = parseFloat(String(form.watch("amount_yape")) || "0");
+    const plin = parseFloat(String(form.watch("amount_plin")) || "0");
+    const deposit = parseFloat(String(form.watch("amount_deposit")) || "0");
+    const transfer = parseFloat(String(form.watch("amount_transfer")) || "0");
+    const other = parseFloat(String(form.watch("amount_other")) || "0");
     const sum = cash + card + yape + plin + deposit + transfer + other;
     return roundTo6Decimals(sum);
   };
@@ -1079,9 +1078,9 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(),
+          calculateInstallmentsTotal(), 4,
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(),
+          calculateNetTotal(), 4,
         )})`,
       );
       return;
@@ -1331,7 +1330,9 @@ export const SaleForm = ({
                   size="icon"
                   variant="outline"
                   tooltip="Volver a consultar tipo de cambio SUNAT"
-                  onClick={() => watchedIssueDate && fetchTipoCambio(watchedIssueDate, true)}
+                  onClick={() =>
+                    watchedIssueDate && fetchTipoCambio(watchedIssueDate, true)
+                  }
                   disabled={!watchedIssueDate}
                 >
                   <RefreshCw className="h-4 w-4" />
@@ -1514,22 +1515,25 @@ export const SaleForm = ({
                       <TableRow key={index}>
                         <TableCell>{detail.product_name}</TableCell>
                         <TableCell className="text-right">
-                          {detail.quantity}
+                          {formatNumber(parseFloat(detail.quantity), 4)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.unit_price))}
+                          {formatNumber(parseFloat(detail.unit_price), 4)}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.unit_price) * 1.18)}
+                          {formatNumber(
+                            parseFloat(detail.unit_price) * 1.18,
+                            4,
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(detail.subtotal)}
+                          {formatNumber(detail.subtotal, 4)}
                         </TableCell>
                         <TableCell className="text-right font-bold">
-                          {formatNumber(detail.igv)}
+                          {formatNumber(detail.igv, 4)}
                         </TableCell>
                         <TableCell className="text-right font-bold text-primary">
-                          {formatNumber(detail.total)}
+                          {formatNumber(detail.total, 4)}
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="flex justify-center gap-2">
@@ -1556,13 +1560,13 @@ export const SaleForm = ({
                         TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsSubtotal())}
+                        {formatNumber(calculateDetailsSubtotal(), 4)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsIGV())}
+                        {formatNumber(calculateDetailsIGV(), 4)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg text-primary">
-                        {formatNumber(calculateDetailsTotal())}
+                        {formatNumber(calculateDetailsTotal(), 4)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
@@ -1716,144 +1720,74 @@ export const SaleForm = ({
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_cash"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto en Efectivo</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto en Efectivo"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_card"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto con Tarjeta</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto con Tarjeta"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_yape"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Yape</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Yape"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_plin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Plin</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Plin"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_deposit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Depósito</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Depósito"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_transfer"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto Transferencia</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Monto Transferencia"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
-                <FormField
+                <FormInput
                   control={form.control}
                   name="amount_other"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Otro Método</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Otro Método"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
               </div>
 
@@ -1892,41 +1826,23 @@ export const SaleForm = ({
               }}
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                <FormField
+                <FormInput
                   control={installmentTempForm.control}
                   name="temp_due_days"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Vencimiento</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="30"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                  label="Días de Vencimiento"
+                  type="number"
+                  min={0}
+                  placeholder="30"
                 />
 
-                <FormField
+                <FormInput
                   control={installmentTempForm.control}
                   name="temp_amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Monto</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
+                  label="Monto"
+                  type="number"
+                  step="0.0001"
+                  min={0}
+                  placeholder="0.00"
                 />
 
                 <div className="flex items-end">
@@ -2020,9 +1936,9 @@ export const SaleForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal())}) debe ser
+                        {formatNumber(calculateInstallmentsTotal(), 4)}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateNetTotal())})
+                        {formatNumber(calculateNetTotal(), 4)})
                       </p>
                     </div>
                   )}

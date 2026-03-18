@@ -184,6 +184,10 @@ export interface CreateSaleRequest {
   amount_cash: string;
   amount_card: string;
   amount_yape: string;
+  amount_plin: string;
+  amount_deposit: string;
+  amount_transfer: string;
+  amount_other: string;
   quotation_id?: number;
   order_id?: number;
   guide_id?: number;
@@ -212,6 +216,10 @@ export interface UpdateSaleRequest {
   amount_cash?: string;
   amount_card?: string;
   amount_yape?: string;
+  amount_plin?: string;
+  amount_deposit?: string;
+  amount_transfer?: string;
+  amount_other?: string;
   is_anticipado?: boolean;
   is_deduccion?: boolean;
   is_retencionigv?: boolean;
