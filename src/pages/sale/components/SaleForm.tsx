@@ -764,8 +764,9 @@ export const SaleForm = ({
     const igv = roundTo6Decimals(total - subtotal);
 
     const newDetail: DetailRow = {
-      ...currentDetail,
+      product_id: String(currentDetail.product_id),
       product_name: productSelected?.product_name ?? currentDetail.product_name,
+      quantity: String(currentDetail.quantity),
       unit_price: valorUnitario.toString(), // guardar SIN IGV
       subtotal,
       igv,
@@ -919,7 +920,10 @@ export const SaleForm = ({
       return;
     }
 
-    const newInstallment: InstallmentRow = { ...currentInstallment };
+    const newInstallment: InstallmentRow = {
+      due_days: String(currentInstallment.due_days),
+      amount: String(currentInstallment.amount),
+    };
 
     if (editingInstallmentIndex !== null) {
       const updatedInstallments = [...installments];
@@ -969,7 +973,7 @@ export const SaleForm = ({
     const baseAmount = roundTo6Decimals(netTotal / installments.length);
     // El último absorbe el residuo por redondeo
     const updated = installments.map((inst, i) => ({
-      ...inst,
+      due_days: String(inst.due_days),
       amount:
         i === installments.length - 1
           ? roundTo6Decimals(
