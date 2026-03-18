@@ -411,10 +411,10 @@ export const SaleForm = ({
           const igv = roundTo6Decimals(total - subtotal);
 
           return {
-            product_id: detail.product_id,
+            product_id: String(detail.product_id),
             product_name: detail.product_name || detail.product?.name,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
+            quantity: String(detail.quantity),
+            unit_price: String(detail.unit_price),
             subtotal,
             igv,
             total,
@@ -428,8 +428,8 @@ export const SaleForm = ({
       if (defaultValues.installments && defaultValues.installments.length > 0) {
         const initialInstallments = defaultValues.installments.map(
           (inst: any) => ({
-            due_days: inst.due_days,
-            amount: inst.amount,
+            due_days: String(inst.due_days),
+            amount: String(inst.amount),
           }),
         );
         setInstallments(initialInstallments);
@@ -1130,10 +1130,27 @@ export const SaleForm = ({
             details: "Detalles de la Venta",
             installments: "Cuotas",
           };
+          const getErrorMessage = (error: any): string => {
+            if (error?.message) return error.message;
+            // Manejo de errores anidados en arrays (cuotas, detalles)
+            if (typeof error === "object") {
+              const nested = Object.values(error)
+                .flatMap((item: any) =>
+                  typeof item === "object" && item !== null
+                    ? Object.values(item)
+                        .map((f: any) => f?.message)
+                        .filter(Boolean)
+                    : [],
+                )
+                .filter(Boolean);
+              if (nested.length > 0) return nested[0] as string;
+            }
+            return "Campo requerido";
+          };
           const messages = Object.entries(errors)
             .map(([field, error]) => {
               const label = fieldLabels[field] ?? field;
-              const msg = (error as any)?.message ?? "Campo requerido";
+              const msg = getErrorMessage(error);
               return `• ${label}: ${msg}`;
             })
             .join("\n");
