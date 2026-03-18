@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { formatNumber } from "@/lib/formatCurrency";
+import { truncTo2 } from "@/lib/saleCalculations";
 import type { UseFormReturn } from "react-hook-form";
 
 interface DetailRow {
@@ -70,7 +71,6 @@ export function SaleSummary({
   totalExonerada = 0,
   totalInafecta = 0,
 }: SaleSummaryProps) {
-  const t2 = (n: number) => Math.round(n * 100) / 100;
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
@@ -208,7 +208,7 @@ export function SaleSummary({
                       </p>
                     </div>
                     <p className="text-xs font-semibold whitespace-nowrap text-primary">
-                      {currencySymbol} {formatNumber(t2(detail.total))}
+                      {currencySymbol} {formatNumber(truncTo2(detail.total))}
                     </p>
                   </div>
                 ))
@@ -234,7 +234,7 @@ export function SaleSummary({
               </span>
               <span className="font-medium">
                 {currencySymbol}{" "}
-                {formatNumber(t2(calculateDetailsSubtotal()))}
+                {formatNumber(truncTo2(calculateDetailsSubtotal()))}
               </span>
             </div>
 
@@ -244,7 +244,7 @@ export function SaleSummary({
                   Op. Exonerada
                 </span>
                 <span className="font-medium">
-                  {currencySymbol} {formatNumber(t2(totalExonerada))}
+                  {currencySymbol} {formatNumber(truncTo2(totalExonerada))}
                 </span>
               </div>
             )}
@@ -255,7 +255,7 @@ export function SaleSummary({
                   Op. Inafecta
                 </span>
                 <span className="font-medium">
-                  {currencySymbol} {formatNumber(t2(totalInafecta))}
+                  {currencySymbol} {formatNumber(truncTo2(totalInafecta))}
                 </span>
               </div>
             )}
@@ -265,7 +265,7 @@ export function SaleSummary({
                 IGV ({porcentajeIgv}%)
               </span>
               <span className="font-medium">
-                {currencySymbol} {formatNumber(t2(calculateDetailsIGV()))}
+                {currencySymbol} {formatNumber(truncTo2(calculateDetailsIGV()))}
               </span>
             </div>
 
@@ -275,7 +275,7 @@ export function SaleSummary({
                   Retención IGV (3%)
                 </span>
                 <span className="font-medium text-destructive">
-                  - {currencySymbol} {formatNumber(t2(calculateRetencion()))}
+                  - {currencySymbol} {formatNumber(truncTo2(calculateRetencion()))}
                 </span>
               </div>
             )}
@@ -291,7 +291,7 @@ export function SaleSummary({
               <span className="text-2xl font-medium text-primary dark:text-primary">
                 {currencySymbol}{" "}
                 {formatNumber(
-                  t2(calculateNetTotal
+                  truncTo2(calculateNetTotal
                     ? calculateNetTotal()
                     : calculateDetailsTotal()),
                 )}

@@ -9,6 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { roundTo4 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
@@ -380,19 +381,19 @@ export const OrderForm = ({
   };
 
   const getTotalAmount = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
   };
 
   const calculateSubtotalTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.subtotal, 0));
   };
 
   const calculateTaxTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.tax, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
   };
 
   const calculateDetailsTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
   };
 
   return (
@@ -630,7 +631,7 @@ export const OrderForm = ({
                     <TableRow key={index}>
                       <TableCell>{detail.product_name}</TableCell>
                       <TableCell className="text-right">
-                        {detail.quantity}
+                        {parseFloat(detail.quantity).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
                         {detail.is_igv
@@ -651,13 +652,13 @@ export const OrderForm = ({
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {detail.subtotal.toFixed(2)}
+                        {detail.subtotal.toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {detail.tax.toFixed(2)}
+                        {detail.tax.toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        {detail.total.toFixed(2)}
+                        {detail.total.toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-1 justify-center">
