@@ -85,6 +85,7 @@ export const SaleEditPage = () => {
         product_name: detail.product?.name,
         quantity: detail.quantity.toString(),
         unit_price: detail.unit_price.toString(),
+        unit_price_igv: detail.unit_price_igv.toString(),
       })) ?? []) as any,
     installments:
       data.installments?.map((inst) => ({

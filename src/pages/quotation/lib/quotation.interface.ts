@@ -89,6 +89,7 @@ export interface QuotationDetailResource {
   is_igv: boolean;
   quantity: string;
   unit_price: string;
+  unit_price_igv: string;
   purchase_price: string;
   description?: string;
   subtotal: string;
@@ -182,6 +183,7 @@ export interface CreateQuotationDetailRequest {
   is_igv: boolean;
   quantity: number;
   unit_price: number;
+  unit_price_igv: number;
   purchase_price: number;
   description?: string;
 }

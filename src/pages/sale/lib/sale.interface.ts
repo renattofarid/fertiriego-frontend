@@ -11,6 +11,7 @@ export interface SaleDetailResource {
   product: Product;
   quantity: number;
   unit_price: number;
+  unit_price_igv: number;
   purchase_price: number;
   subtotal: number;
   tax: number;
@@ -161,6 +162,7 @@ export interface CreateSaleDetailRequest {
   product_id: number;
   quantity: number;
   unit_price: number;
+  unit_price_igv: number;
 }
 
 export interface CreateSaleInstallmentRequest {
@@ -232,6 +234,7 @@ export interface UpdateSaleRequest {
     product_id: number;
     quantity: number;
     unit_price: number;
+    unit_price_igv: number;
   }[];
   installments?: {
     due_days: number;

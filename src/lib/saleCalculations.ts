@@ -1,3 +1,7 @@
+/** Redondear a 8 decimales (para cálculos internos de precios unitarios) */
+export const roundTo8 = (n: number): number =>
+  Math.round(n * 100000000) / 100000000;
+
 /** Redondear a 4 decimales (para cálculos internos de ítems) */
 export const roundTo4 = (n: number): number =>
   Math.round(n * 10000) / 10000;
@@ -16,8 +20,6 @@ export const truncTo2 = (n: number): number =>
  *   subtotal = qty × V.Unit  (coincide visualmente con lo que se muestra)
  *   total    = subtotal × 1.18
  *   igv      = total - subtotal  (garantiza subtotal + igv = total exactamente)
- *
- * IMPORTANTE: unitPriceSinIGV debe estar ya redondeado a 4 decimales antes de llamar.
  */
 export function calcItemAmounts(
   quantity: number,

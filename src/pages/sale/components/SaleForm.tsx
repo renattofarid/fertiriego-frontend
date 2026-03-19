@@ -41,7 +41,7 @@ import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatNumber } from "@/lib/formatCurrency";
-import { roundTo4, truncTo2, calcItemAmounts, roundTo2 } from "@/lib/saleCalculations";
+import { roundTo8, roundTo4, truncTo2, calcItemAmounts, roundTo2 } from "@/lib/saleCalculations";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -194,7 +194,7 @@ export const SaleForm = ({
 
   // Formatea un número a 4 decimales sin ceros innecesarios
   const formatNumberLocal = (num: number): string =>
-    parseFloat(num.toFixed(4)).toString();
+    parseFloat(num.toFixed(8)).toString();
 
   // Formularios temporales
   const detailTempForm = useForm({
@@ -406,14 +406,18 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPriceSin = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
+          // unit_price_igv siempre viene CON IGV; dividir para obtener V.Unit SIN IGV
+          // unit_price_igv siempre CON IGV → dividir para SIN IGV; fallback a unit_price si falta
+          const unitPriceSin = detail.unit_price_igv
+            ? parseFloat(detail.unit_price_igv) / 1.18
+            : parseFloat(detail.unit_price);
           const { total, subtotal, igv } = calcItemAmounts(quantity, unitPriceSin);
 
           return {
             product_id: String(detail.product_id),
             product_name: detail.product_name || detail.product?.name,
             quantity: String(detail.quantity),
-            unit_price: String(detail.unit_price),
+            unit_price: String(unitPriceSin),
             subtotal,
             igv,
             total,
@@ -581,12 +585,11 @@ export const SaleForm = ({
         if (sourceType === "quotation") {
           form.setValue("payment_type", sourceData.payment_type);
 
-          // Auto-completar detalles desde cotización
+          // Auto-completar detalles desde cotización — usar unit_price_igv (siempre CON IGV)
           const quotationDetails: DetailRow[] =
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
-              const valorUnitario = roundTo4(unitPrice / 1.18); // SIN IGV → backend
+              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
               const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
               return {
@@ -603,22 +606,17 @@ export const SaleForm = ({
           setDetails(quotationDetails);
           form.setValue("details", quotationDetails);
         } else if (sourceType === "order") {
-          // Auto-completar detalles desde orden
+          // Auto-completar detalles desde orden — usar unit_price_igv (siempre CON IGV)
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
-              const unitPrice = parseFloat(detail.unit_price);
-              // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
-              const unitPriceCon = detail.is_igv
-                ? unitPrice
-                : roundTo4(unitPrice * 1.18);
-              const valorUnitario = roundTo4(unitPriceCon / 1.18); // SIN IGV → backend
+              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
 
               return {
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: valorUnitario.toString(), // SIN IGV → backend
-                subtotal: parseFloat(detail.subtotal), // usar valores pre-calculados del backend
+                unit_price: valorUnitario.toString(),
+                subtotal: parseFloat(detail.subtotal),
                 igv: parseFloat(detail.tax),
                 total: parseFloat(detail.total),
               };
@@ -744,14 +742,14 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = roundTo4(unitPriceWithIGV / 1.18); // V.Unit SIN IGV → backend (redondeado a 4)
+    const valorUnitario = unitPriceWithIGV / 1.18; // V.Unit SIN IGV → backend (sin redondear para mantener precisión)
     const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
     const newDetail: DetailRow = {
       product_id: String(currentDetail.product_id),
       product_name: productSelected?.product_name ?? currentDetail.product_name,
       quantity: String(currentDetail.quantity),
-      unit_price: valorUnitario.toString(), // guardar SIN IGV
+      unit_price: roundTo8(valorUnitario).toString(), // guardar SIN IGV, 8 decimales
       subtotal,
       igv,
       total,
@@ -795,12 +793,14 @@ export const SaleForm = ({
     setProductSelected(null);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
-    // unit_price guardado es SIN IGV (valor unitario)
-    detailTempForm.setValue("temp_value_price", detail.unit_price);
+    // unit_price guardado es SIN IGV (valor unitario) — formatear a 4 dec para evitar
+    // que onAfterChange reciba un float largo y calcule mal el precio con IGV
+    const unitPriceSin = parseFloat(detail.unit_price);
+    detailTempForm.setValue("temp_value_price", formatNumberLocal(unitPriceSin));
     detailTempForm.setValue(
       "temp_unit_price",
       detail.unit_price
-        ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
+        ? formatNumberLocal(unitPriceSin * 1.18)
         : "",
     );
     setEditingDetailIndex(index);
