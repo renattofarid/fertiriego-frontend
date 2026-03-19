@@ -125,6 +125,8 @@ export const PurchaseOrderForm = ({
     defaultValues: {
       ...defaultValues,
       currency: (defaultValues as any)?.currency || "PEN",
+      payment_type: (defaultValues as any)?.payment_type || "CONTADO",
+      days: (defaultValues as any)?.days ?? "",
       observations: defaultValues.observations ?? "",
       details: details.length > 0 ? details : [],
       apply_igv: Boolean((defaultValues as any)?.apply_igv ?? false),
@@ -142,6 +144,8 @@ export const PurchaseOrderForm = ({
   const currencyWatch = form.watch("currency");
   const currencySymbol =
     CURRENCIES.find((c) => c.value === currencyWatch)?.symbol ?? "S/.";
+
+  const paymentTypeWatch = form.watch("payment_type" as any);
 
   // Obtener proveedor seleccionado
   const supplierWatch = form.watch("supplier_id");
@@ -319,6 +323,8 @@ export const PurchaseOrderForm = ({
       warehouse_id: Number(data.warehouse_id),
       currency: data.currency,
       order_number: data.order_number,
+      payment_type: (data as any).payment_type,
+      days: (data as any).payment_type === "CREDITO" ? ((data as any).days || null) : null,
       issue_date: data.issue_date,
       expected_date: data.expected_date,
       observations: data.observations,
@@ -426,6 +432,26 @@ export const PurchaseOrderForm = ({
                   label: c.label,
                 }))}
               />
+
+              <FormSelect
+                control={form.control}
+                name={"payment_type" as any}
+                label="Tipo de Pago"
+                placeholder="Seleccione tipo de pago"
+                options={[
+                  { value: "CONTADO", label: "Contado" },
+                  { value: "CREDITO", label: "Crédito" },
+                ]}
+              />
+
+              {paymentTypeWatch === "CREDITO" && (
+                <FormInput
+                  control={form.control}
+                  name={"days" as any}
+                  label="Días de crédito"
+                  placeholder="Ej: 30"
+                />
+              )}
 
               <FormSwitch
                 control={form.control}

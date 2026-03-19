@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { roundTo4 } from "@/lib/saleCalculations";
+import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
@@ -64,6 +64,7 @@ interface DetailRow {
   is_igv: boolean;
   quantity: string;
   unit_price: string;
+  unit_price_igv: string;
   purchase_price: string;
   subtotal: number;
   tax: number;
@@ -200,6 +201,7 @@ export const OrderForm = ({
           is_igv: detail.is_igv,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
+          unit_price_igv: detail.unit_price_igv,
           purchase_price: detail.purchase_price,
           subtotal: parseFloat(detail.subtotal),
           tax: parseFloat(detail.tax),
@@ -276,6 +278,7 @@ export const OrderForm = ({
           is_igv: detail.is_igv,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
+          unit_price_igv: detail.unit_price_igv,
           purchase_price: detail.purchase_price,
           subtotal: parseFloat(detail.subtotal),
           tax: parseFloat(detail.tax),
@@ -293,6 +296,7 @@ export const OrderForm = ({
       is_igv: detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
+      unit_price_igv: detail.unit_price_igv,
       purchase_price: detail.purchase_price,
       subtotal: detail.subtotal,
       tax: detail.tax,
@@ -314,6 +318,7 @@ export const OrderForm = ({
       is_igv: detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
+      unit_price_igv: detail.unit_price_igv,
       purchase_price: detail.purchase_price,
       subtotal: detail.subtotal,
       tax: detail.tax,
@@ -331,6 +336,7 @@ export const OrderForm = ({
       is_igv: detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
+      unit_price_igv: detail.unit_price_igv,
       purchase_price: detail.purchase_price,
       subtotal: detail.subtotal,
       tax: detail.tax,
@@ -353,6 +359,15 @@ export const OrderForm = ({
       return;
     }
 
+    const hasInvalidPrice = details.some((d) => {
+      const price = parseFloat(d.unit_price) || 0;
+      const priceIgv = parseFloat(d.unit_price_igv) || 0;
+      return price <= 0 && priceIgv <= 0;
+    });
+    if (hasInvalidPrice) {
+      return;
+    }
+
     const request: CreateOrderRequest = {
       order_date: formData.order_date,
       order_expiry_date: formData.order_expiry_date,
@@ -368,13 +383,24 @@ export const OrderForm = ({
         quotation_id: parseInt(formData.quotation_id),
       }),
       tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
-      order_details: details.map((detail) => ({
-        product_id: parseInt(detail.product_id),
-        is_igv: detail.is_igv,
-        quantity: parseFloat(detail.quantity),
-        unit_price: parseFloat(detail.unit_price),
-        purchase_price: parseFloat(detail.purchase_price),
-      })),
+      order_details: details.map((detail) => {
+        const rawUnitPrice = parseFloat(detail.unit_price) || 0;
+        const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+        const effectiveUnitPriceIgv =
+          rawUnitPriceIgv > 0
+            ? rawUnitPriceIgv
+            : detail.is_igv
+              ? rawUnitPrice
+              : roundTo8(rawUnitPrice * 1.18);
+        return {
+          product_id: parseInt(detail.product_id),
+          is_igv: detail.is_igv,
+          quantity: parseFloat(detail.quantity),
+          unit_price: roundTo8(rawUnitPrice),
+          unit_price_igv: roundTo8(effectiveUnitPriceIgv),
+          purchase_price: parseFloat(detail.purchase_price),
+        };
+      }),
     };
 
     onSubmit(request);
@@ -394,6 +420,14 @@ export const OrderForm = ({
 
   const calculateDetailsTotal = () => {
     return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+  };
+
+  // Obtener precio CON IGV efectivo para mostrar en tabla (fallback a unit_price cuando unit_price_igv=0)
+  const getDisplayPriceIgv = (detail: DetailRow): number => {
+    const priceIgv = parseFloat(detail.unit_price_igv) || 0;
+    if (priceIgv > 0) return priceIgv;
+    const basePrice = parseFloat(detail.unit_price) || 0;
+    return detail.is_igv ? basePrice : basePrice * 1.18;
   };
 
   return (
@@ -634,15 +668,10 @@ export const OrderForm = ({
                         {parseFloat(detail.quantity).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {detail.is_igv
-                          ? (parseFloat(detail.unit_price) / 1.18).toFixed(4)
-                          : parseFloat(detail.unit_price).toFixed(4)}
+                        {(getDisplayPriceIgv(detail) / 1.18).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {(
-                          parseFloat(detail.unit_price) *
-                          (detail.is_igv ? 1 : 1.18)
-                        ).toFixed(4)}
+                        {getDisplayPriceIgv(detail).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <Badge

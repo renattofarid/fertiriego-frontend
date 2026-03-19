@@ -1,5 +1,5 @@
 import GeneralSheet from "@/components/GeneralSheet";
-import { calcItemAmounts, roundTo4 } from "@/lib/saleCalculations";
+import { calcItemAmounts, roundTo8 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput";
@@ -35,7 +35,8 @@ export interface ProductDetail {
   product_name: string;
   is_igv: boolean;
   quantity: string;
-  unit_price: string; // Este será el valor unitario (sin IGV)
+  unit_price: string; // CON IGV si is_igv=true, SIN IGV si is_igv=false
+  unit_price_igv: string; // Siempre precio CON IGV
   purchase_price: string;
   description?: string;
   subtotal: number;
@@ -100,9 +101,9 @@ export const AddProductSheet = ({
     productId: parseInt(productId) || 0,
   });
 
-  // Función para formatear número sin ceros innecesarios
+  // Función para formatear número sin ceros innecesarios (8 decimales para precisión de precios)
   const formatNumber = (num: number): string => {
-    return parseFloat(num.toFixed(4)).toString();
+    return parseFloat(num.toFixed(8)).toString();
   };
 
   // Autocompletar precio cuando se selecciona categoría de precio o moneda
@@ -137,30 +138,21 @@ export const AddProductSheet = ({
       setLastSetPrice(null);
 
       if (editingDetail) {
-        const isIgvValue = editingDetail.is_igv;
-        let unitValueField: string;
-        let unitPriceField: string;
-
-        if (isIgvValue) {
-          // unit_price guardado = precio con IGV
-          unitPriceField = editingDetail.unit_price;
-          unitValueField = formatNumber(
-            parseFloat(editingDetail.unit_price) / 1.18,
-          );
-          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price) / 1.18;
-        } else {
-          // unit_price guardado = valor sin IGV
-          unitValueField = editingDetail.unit_price;
-          unitPriceField = formatNumber(
-            parseFloat(editingDetail.unit_price) * 1.18,
-          );
-          fullPrecisionUnitValue.current = parseFloat(editingDetail.unit_price);
+        // unit_price_igv siempre es el precio CON IGV
+        // Si unit_price_igv es 0, calcularlo desde unit_price (datos legados)
+        let igvPrice = parseFloat(editingDetail.unit_price_igv) || 0;
+        if (igvPrice === 0) {
+          const basePrice = parseFloat(editingDetail.unit_price) || 0;
+          igvPrice = editingDetail.is_igv ? basePrice : roundTo8(basePrice * 1.18);
         }
+        const unitPriceField = igvPrice > 0 ? String(igvPrice) : "";
+        const unitValueField = igvPrice > 0 ? formatNumber(igvPrice / 1.18) : "";
+        fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / 1.18 : null;
 
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
-          is_igv: isIgvValue,
+          is_igv: editingDetail.is_igv,
           quantity: editingDetail.quantity,
           unit_value: unitValueField,
           unit_price: unitPriceField,
@@ -195,7 +187,8 @@ export const AddProductSheet = ({
     const price = parseFloat(String(unitPrice)) || 0;
 
     if (qty > 0 && price > 0) {
-      const vUnit = roundTo4(price / 1.18); // price = P.Unit CON IGV → convertir a V.Unit
+      // Usar precisión completa (sin roundTo8) para evitar errores de redondeo en el total
+      const vUnit = price / 1.18;
       const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit);
       setCalculatedValues({ subtotal, tax, total });
     } else {
@@ -217,11 +210,12 @@ export const AddProductSheet = ({
     const productName = selectedProduct?.name ?? editingDetail?.product_name;
     if (!productName) return;
 
-    // is_igv=true → se manda el precio con IGV (unit_price, digitado directo)
-    // is_igv=false → se manda el valor sin IGV con precisión completa
+    // unit_price_igv: siempre el precio CON IGV (formData.unit_price = campo "con IGV")
+    // unit_price: valor SIN IGV con precisión completa (para backward compat)
     const sentUnitPrice = formData.is_igv
       ? formData.unit_price
       : (fullPrecisionUnitValue.current?.toString() ?? formData.unit_value);
+    const sentUnitPriceIgv = formData.unit_price; // siempre CON IGV
 
     const detail: ProductDetail = {
       product_id: formData.product_id,
@@ -229,6 +223,7 @@ export const AddProductSheet = ({
       is_igv: formData.is_igv,
       quantity: formData.quantity,
       unit_price: sentUnitPrice,
+      unit_price_igv: sentUnitPriceIgv,
       purchase_price: formData.purchase_price ?? "0",
       description: formData.description || "",
       subtotal: calculatedValues.subtotal,

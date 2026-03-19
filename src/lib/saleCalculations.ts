@@ -1,3 +1,7 @@
+/** Redondear a 8 decimales (para cálculos internos de precios unitarios) */
+export const roundTo8 = (n: number): number =>
+  Math.round(n * 100000000) / 100000000;
+
 /** Redondear a 4 decimales (para cálculos internos de ítems) */
 export const roundTo4 = (n: number): number =>
   Math.round(n * 10000) / 10000;
@@ -6,9 +10,15 @@ export const roundTo4 = (n: number): number =>
 export const roundTo2 = (n: number): number =>
   Math.round(n * 100) / 100;
 
-/** Truncar a 2 decimales sin redondeo hacia arriba (para montos finales y cuotas) */
-export const truncTo2 = (n: number): number =>
-  Math.trunc(n * 100) / 100;
+/** Truncar a 2 decimales sin redondeo hacia arriba (para montos finales y cuotas).
+ * Usa toFixed para evitar que errores de representación IEEE 754 causen
+ * truncamientos incorrectos (ej. 1144.5999... truncando a 1144.59 en vez de 1144.60).
+ */
+export const truncTo2 = (n: number): number => {
+  const s = n.toFixed(6);
+  const dot = s.indexOf(".");
+  return parseFloat(dot === -1 ? s : s.slice(0, dot + 3));
+};
 
 /**
  * Calcular montos de un ítem a partir del V.Unit (precio SIN IGV).
@@ -16,8 +26,6 @@ export const truncTo2 = (n: number): number =>
  *   subtotal = qty × V.Unit  (coincide visualmente con lo que se muestra)
  *   total    = subtotal × 1.18
  *   igv      = total - subtotal  (garantiza subtotal + igv = total exactamente)
- *
- * IMPORTANTE: unitPriceSinIGV debe estar ya redondeado a 4 decimales antes de llamar.
  */
 export function calcItemAmounts(
   quantity: number,

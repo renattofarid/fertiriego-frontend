@@ -291,9 +291,9 @@ export function SaleSummary({
               <span className="text-2xl font-medium text-primary dark:text-primary">
                 {currencySymbol}{" "}
                 {formatNumber(
-                  truncTo2(calculateNetTotal
+                  calculateNetTotal
                     ? calculateNetTotal()
-                    : calculateDetailsTotal()),
+                    : truncTo2(calculateDetailsTotal()),
                 )}
               </span>
             </div>
