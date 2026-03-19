@@ -22,7 +22,6 @@ import {
   CreditCard,
   FileText,
   User,
-  Warehouse,
   Calendar,
   Package,
   CheckCircle2,

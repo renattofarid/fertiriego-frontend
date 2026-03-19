@@ -19,7 +19,6 @@ import {
   User,
   Building2,
   Hash,
-  Calendar,
   MapPin,
   Clock,
   TrendingUp,
