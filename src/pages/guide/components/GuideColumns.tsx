@@ -15,6 +15,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ButtonAction } from "@/components/ButtonAction";
@@ -26,9 +27,10 @@ import {
   BanknoteArrowUp,
   FileCode2,
   FileArchive,
+  MoreHorizontal,
+  Trash2,
 } from "lucide-react";
 
-import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { ColumnActions } from "@/components/SelectActions";
 import ExportButtons from "@/components/ExportButtons";
 import { api } from "@/lib/config";
@@ -189,13 +191,34 @@ export const GuideColumns = ({
     },
   },
   {
+    accessorKey: "sunat_status",
+    header: "Estado SUNAT",
+    cell: ({ row }) => {
+      const status = row.original.sunat_status;
+      const variantMap: Record<
+        string,
+        "yellow" | "blue" | "green" | "gray" | "red"
+      > = {
+        PENDIENTE: "yellow",
+        ENVIADO: "blue",
+        ACEPTADO: "green",
+        BAJA: "gray",
+        RECHAZADO: "red",
+      };
+      const variant = variantMap[status] ?? "gray";
+      return <Badge variant={variant}>{status}</Badge>;
+    },
+  },
+  {
     accessorKey: "user.name",
     header: "Usuario",
   },
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => (
+    cell: ({ row }) => {
+      const isAceptado = row.original.sunat_status === "ACEPTADO";
+      return (
       <ColumnActions>
         <ExportButtons
           pdfEndpoint={`/shipping-guide-remit/${row.original.id}/pdf`}
@@ -253,28 +276,60 @@ export const GuideColumns = ({
           onClick={() => onView(row.original.id)}
         />
         <ButtonAction
-          icon={Copy}
-          tooltip="Duplicar"
-          onClick={() => onDuplicate(row.original)}
-        />
-        <ButtonAction
           icon={BanknoteArrowUp}
           tooltip="Generar Venta"
           onClick={() => onGenerateSale(row.original)}
           color="primary"
         />
-        <ButtonAction
-          icon={RefreshCcw}
-          tooltip="Cambiar Estado"
-          onClick={() => onChangeStatus(row.original.id, row.original.status)}
-        />
-        <ButtonAction
-          icon={Pencil}
-          tooltip="Editar"
-          onClick={() => onEdit(row.original.id)}
-        />
-        <DeleteButton onClick={() => onDelete(row.original.id)} />
+        <DropdownMenu>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs">Más opciones</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onDuplicate(row.original)}>
+              <Copy className="h-4 w-4 mr-2 text-muted-foreground" />
+              Duplicar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                onChangeStatus(row.original.id, row.original.status)
+              }
+              disabled={isAceptado}
+            >
+              <RefreshCcw className="h-4 w-4 mr-2 text-muted-foreground" />
+              Cambiar Estado
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onEdit(row.original.id)}
+              disabled={isAceptado}
+            >
+              <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
+              {isAceptado ? "No se puede editar" : "Editar"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => onDelete(row.original.id)}
+              disabled={isAceptado}
+              className="text-red-600 focus:text-red-600"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isAceptado ? "No se puede eliminar" : "Eliminar"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </ColumnActions>
-    ),
+    );
+    },
   },
 ];
