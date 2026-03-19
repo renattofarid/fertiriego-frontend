@@ -212,9 +212,7 @@ export const AddProductSheet = ({
 
     // unit_price_igv: siempre el precio CON IGV (formData.unit_price = campo "con IGV")
     // unit_price: valor SIN IGV con precisión completa (para backward compat)
-    const sentUnitPrice = formData.is_igv
-      ? formData.unit_price
-      : (fullPrecisionUnitValue.current?.toString() ?? formData.unit_value);
+    const sentUnitPrice = fullPrecisionUnitValue.current?.toString() ?? formData.unit_value;
     const sentUnitPriceIgv = formData.unit_price; // siempre CON IGV
 
     const detail: ProductDetail = {
