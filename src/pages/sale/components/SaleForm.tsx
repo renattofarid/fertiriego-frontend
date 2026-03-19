@@ -606,23 +606,21 @@ export const SaleForm = ({
           // Auto-completar detalles desde orden
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
-              const quantity = parseFloat(detail.quantity);
               const unitPrice = parseFloat(detail.unit_price);
               // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
               const unitPriceCon = detail.is_igv
                 ? unitPrice
                 : roundTo4(unitPrice * 1.18);
               const valorUnitario = roundTo4(unitPriceCon / 1.18); // SIN IGV → backend
-              const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
               return {
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
                 unit_price: valorUnitario.toString(), // SIN IGV → backend
-                subtotal,
-                igv,
-                total,
+                subtotal: parseFloat(detail.subtotal), // usar valores pre-calculados del backend
+                igv: parseFloat(detail.tax),
+                total: parseFloat(detail.total),
               };
             },
           );
