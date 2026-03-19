@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSale } from "../lib/sale.hook";
 import SaleTable from "./SaleTable";
-import SaleOptions, {
-  type SaleFilters,
-  EMPTY_SALE_FILTERS,
-} from "./SaleOptions";
+import SaleOptions from "./SaleOptions";
 import SaleActions from "./SaleActions";
 import { getSaleColumns } from "./SaleColumns";
 import { useSaleStore } from "../lib/sales.store";
@@ -19,7 +16,12 @@ import {
 } from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
-import { findSaleById, declararSunat, anularBoleta, anularFactura } from "../lib/sale.actions";
+import {
+  findSaleById,
+  declararSunat,
+  anularBoleta,
+  anularFactura,
+} from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -30,11 +32,10 @@ import { useSidebar } from "@/components/ui/sidebar";
 
 export default function SalePage() {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<SaleFilters>(EMPTY_SALE_FILTERS);
-
-  const handleFilterChange = (partial: Partial<SaleFilters>) => {
-    setFilters((prev) => ({ ...prev, ...partial }));
-  };
+  const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [statusSunat, setStatusSunat] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -47,32 +48,17 @@ export default function SalePage() {
   const { setOpen, setOpenMobile } = useSidebar();
 
   const { data, isLoading, refetch } = useSale({
-    search: filters.search,
+    search,
     page,
     per_page,
-    from: filters.startDate || undefined,
-    to: filters.endDate || undefined,
-    status_facturado: filters.statusSunat || undefined,
-    status: filters.status || undefined,
-    document_type: filters.documentType || undefined,
-    payment_type: filters.paymentType || undefined,
-    currency: filters.currency || undefined,
-    serie: filters.serie || undefined,
-    numero: filters.numero || undefined,
-    customer_id: filters.customerId ? Number(filters.customerId) : undefined,
-    warehouse_id: filters.warehouseId ? Number(filters.warehouseId) : undefined,
-    user_id: filters.userId ? Number(filters.userId) : undefined,
-    order_id: filters.orderId ? Number(filters.orderId) : undefined,
-    quotation_id: filters.quotationId ? Number(filters.quotationId) : undefined,
-    order_purchase: filters.orderPurchase || undefined,
-    order_service: filters.orderService || undefined,
-    date_expired: filters.dateExpired || undefined,
-    issue_date: filters.issueDate || undefined,
+    from: startDate,
+    to: endDate,
+    status_facturado: statusSunat || undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [per_page, filters]);
+  }, [per_page, search, startDate, endDate, statusSunat]);
 
   const { removeSale } = useSaleStore();
 
@@ -141,7 +127,10 @@ export default function SalePage() {
       return;
     }
     try {
-      const { blob, filename } = await declararSunat(sale.id, documentType.type);
+      const { blob, filename } = await declararSunat(
+        sale.id,
+        documentType.type,
+      );
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
@@ -171,7 +160,9 @@ export default function SalePage() {
       successToast("Documento anulado correctamente");
       refetch();
     } catch (error: any) {
-      errorToast(error?.response?.data?.message || "Error al anular el documento");
+      errorToast(
+        error?.response?.data?.message || "Error al anular el documento",
+      );
     }
   };
 
@@ -214,7 +205,7 @@ export default function SalePage() {
           subtitle="Administrar todas las ventas registradas en el sistema"
           icon={ICON}
         />
-        <SaleActions startDate={filters.startDate} endDate={filters.endDate} />
+        <SaleActions startDate={startDate} endDate={endDate} />
       </div>
 
       <SaleTable
@@ -222,7 +213,16 @@ export default function SalePage() {
         data={data?.data || []}
         isLoading={isLoading}
       >
-        <SaleOptions filters={filters} onChange={handleFilterChange} />
+        <SaleOptions
+          search={search}
+          setSearch={setSearch}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+          statusSunat={statusSunat}
+          setStatusSunat={setStatusSunat}
+        />
       </SaleTable>
 
       <DataTablePagination
