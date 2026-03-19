@@ -23,7 +23,7 @@ export const purchaseOrderSchemaCreate = z.object({
   currency: z.string().optional(),
   apply_igv: z.boolean().optional(),
   payment_type: z.enum(["CONTADO", "CREDITO"], {
-    required_error: "Debe seleccionar el tipo de pago",
+    error: "Debe seleccionar el tipo de pago",
   }),
   days: z.string().nullable().optional(),
   issue_date: z

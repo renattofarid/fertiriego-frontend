@@ -10,9 +10,15 @@ export const roundTo4 = (n: number): number =>
 export const roundTo2 = (n: number): number =>
   Math.round(n * 100) / 100;
 
-/** Truncar a 2 decimales sin redondeo hacia arriba (para montos finales y cuotas) */
-export const truncTo2 = (n: number): number =>
-  Math.trunc(n * 100) / 100;
+/** Truncar a 2 decimales sin redondeo hacia arriba (para montos finales y cuotas).
+ * Usa toFixed para evitar que errores de representación IEEE 754 causen
+ * truncamientos incorrectos (ej. 1144.5999... truncando a 1144.59 en vez de 1144.60).
+ */
+export const truncTo2 = (n: number): number => {
+  const s = n.toFixed(6);
+  const dot = s.indexOf(".");
+  return parseFloat(dot === -1 ? s : s.slice(0, dot + 3));
+};
 
 /**
  * Calcular montos de un ítem a partir del V.Unit (precio SIN IGV).
