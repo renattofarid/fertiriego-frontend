@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { roundTo8 } from "@/lib/saleCalculations";
 import type {
   SaleResource,
   CreateSaleRequest,
@@ -129,7 +130,8 @@ export const useSaleStore = create<SaleStore>((set) => ({
         details: data.details.map((detail) => ({
           product_id: Number(detail.product_id),
           quantity: parseFloat(Number(detail.quantity).toFixed(4)),
-          unit_price: parseFloat(Number(detail.unit_price).toFixed(4)),
+          unit_price: roundTo8(Number(detail.unit_price)),
+          unit_price_igv: roundTo8(Number(detail.unit_price) * 1.18),
         })),
         installments:
           data.installments.length > 0
@@ -187,7 +189,8 @@ export const useSaleStore = create<SaleStore>((set) => ({
             details: data.details.map((detail) => ({
               product_id: Number(detail.product_id),
               quantity: parseFloat(Number(detail.quantity).toFixed(4)),
-              unit_price: parseFloat(Number(detail.unit_price).toFixed(4)),
+              unit_price: roundTo8(Number(detail.unit_price)),
+              unit_price_igv: roundTo8(Number(detail.unit_price) * 1.18),
             })),
           }),
         ...(data.installments &&

@@ -30,6 +30,7 @@ export interface GuideResource {
   total_weight?: string | null;
   total_packages?: number | null;
   status: GuideStatus;
+  sunat_status: string;
   observations?: string | null;
   vehicle_plate?: string | null;
   vehicle_brand?: string | null;

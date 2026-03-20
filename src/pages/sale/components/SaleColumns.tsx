@@ -153,7 +153,7 @@ export const getSaleColumns = ({
               : row.original.currency;
       return (
         <span className="font-semibold">
-          {currency} {row.original.total_amount.toFixed(2)}
+          {currency} {Number(row.original.total_amount).toFixed(2)}
         </span>
       );
     },
@@ -177,7 +177,7 @@ export const getSaleColumns = ({
             isPaid ? "text-primary" : "text-orange-600"
           }`}
         >
-          {currency} {currentAmount.toFixed(2)}
+          {currency} {Number(currentAmount).toFixed(2)}
         </span>
       );
     },
@@ -255,10 +255,10 @@ export const getSaleColumns = ({
       const expectedTotal = totalAmount;
       const sumOfInstallments =
         row.original.installments?.reduce(
-          (sum, inst) => sum + inst.amount,
+          (sum, inst) => sum + Number(inst.amount),
           0,
         ) || 0;
-      const isValid = Math.abs(expectedTotal - sumOfInstallments) < 0.01;
+      const isValid = Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
 
       return (
         <TooltipProvider>
@@ -283,8 +283,8 @@ export const getSaleColumns = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    La suma de cuotas ({sumOfInstallments.toFixed(2)}) no
-                    coincide con el total ({expectedTotal.toFixed(2)}).
+                    La suma de cuotas ({Number(sumOfInstallments).toFixed(2)}) no
+                    coincide con el total ({Number(expectedTotal).toFixed(2)}).
                     <br />
                     Por favor, sincronice las cuotas.
                   </p>

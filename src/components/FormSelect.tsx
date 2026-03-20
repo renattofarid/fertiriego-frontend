@@ -47,6 +47,7 @@ interface FormSelectProps {
   strictFilter?: boolean;
   enableCodeSearch?: boolean; // Nueva prop para habilitar búsqueda por código
   autoSelectSingle?: boolean;
+  onChange?: (value: string) => void;
 }
 
 export function FormSelect({
@@ -63,6 +64,7 @@ export function FormSelect({
   strictFilter = false,
   enableCodeSearch = false,
   autoSelectSingle = false,
+  onChange,
 }: FormSelectProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -209,6 +211,7 @@ export function FormSelect({
                                     ? ""
                                     : option.value;
                                 field.onChange(newValue);
+                                onChange?.(newValue);
                                 setOpen(false);
                               }}
                             >
@@ -273,6 +276,7 @@ export function FormSelect({
                                       ? ""
                                       : option.value;
                                   field.onChange(newValue);
+                                  onChange?.(newValue);
                                   setOpen(false);
                                 }}
                               >
@@ -341,6 +345,7 @@ export function FormSelect({
                             const newValue =
                               option.value === field.value ? "" : option.value;
                             field.onChange(newValue);
+                            onChange?.(newValue);
                             setOpen(false);
                           }}
                         >

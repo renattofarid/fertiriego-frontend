@@ -40,8 +40,8 @@ import { useAllProductPriceCategories } from "@/pages/product-price-category/lib
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
-import { formatDecimalTrunc } from "@/lib/utils";
 import { formatNumber } from "@/lib/formatCurrency";
+import { roundTo8, roundTo4, truncTo2, calcItemAmounts, roundTo2 } from "@/lib/saleCalculations";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -194,7 +194,7 @@ export const SaleForm = ({
 
   // Formatea un número a 4 decimales sin ceros innecesarios
   const formatNumberLocal = (num: number): string =>
-    parseFloat(num.toFixed(4)).toString();
+    parseFloat(num.toFixed(8)).toString();
 
   // Formularios temporales
   const detailTempForm = useForm({
@@ -406,16 +406,18 @@ export const SaleForm = ({
       if (defaultValues.details && defaultValues.details.length > 0) {
         const initialDetails = defaultValues.details.map((detail: any) => {
           const quantity = parseFloat(detail.quantity);
-          const unitPriceSin = parseFloat(detail.unit_price); // valor SIN IGV (lo que devuelve el backend)
-          const total = roundTo6Decimals(quantity * unitPriceSin * 1.18);
-          const subtotal = roundTo6Decimals(total / 1.18);
-          const igv = roundTo6Decimals(total - subtotal);
+          // unit_price_igv siempre viene CON IGV; dividir para obtener V.Unit SIN IGV
+          // unit_price_igv siempre CON IGV → dividir para SIN IGV; fallback a unit_price si falta
+          const unitPriceSin = detail.unit_price_igv
+            ? parseFloat(detail.unit_price_igv) / 1.18
+            : parseFloat(detail.unit_price);
+          const { total, subtotal, igv } = calcItemAmounts(quantity, unitPriceSin);
 
           return {
-            product_id: detail.product_id,
+            product_id: String(detail.product_id),
             product_name: detail.product_name || detail.product?.name,
-            quantity: detail.quantity,
-            unit_price: detail.unit_price,
+            quantity: String(detail.quantity),
+            unit_price: String(unitPriceSin),
             subtotal,
             igv,
             total,
@@ -429,8 +431,8 @@ export const SaleForm = ({
       if (defaultValues.installments && defaultValues.installments.length > 0) {
         const initialInstallments = defaultValues.installments.map(
           (inst: any) => ({
-            due_days: inst.due_days,
-            amount: inst.amount,
+            due_days: String(inst.due_days),
+            amount: String(inst.amount),
           }),
         );
         setInstallments(initialInstallments);
@@ -583,15 +585,12 @@ export const SaleForm = ({
         if (sourceType === "quotation") {
           form.setValue("payment_type", sourceData.payment_type);
 
-          // Auto-completar detalles desde cotización
+          // Auto-completar detalles desde cotización — usar unit_price_igv (siempre CON IGV)
           const quotationDetails: DetailRow[] =
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price); // precio CON IGV desde cotización
-              const valorUnitario = roundTo6Decimals(unitPrice / 1.18); // SIN IGV → backend
-              const total = roundTo6Decimals(quantity * unitPrice);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
+              const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -607,28 +606,19 @@ export const SaleForm = ({
           setDetails(quotationDetails);
           form.setValue("details", quotationDetails);
         } else if (sourceType === "order") {
-          // Auto-completar detalles desde orden
+          // Auto-completar detalles desde orden — usar unit_price_igv (siempre CON IGV)
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
-              const quantity = parseFloat(detail.quantity);
-              const unitPrice = parseFloat(detail.unit_price);
-              // is_igv=true → unit_price viene CON IGV, is_igv=false → SIN IGV
-              const unitPriceCon = detail.is_igv
-                ? unitPrice
-                : roundTo6Decimals(unitPrice * 1.18);
-              const valorUnitario = roundTo6Decimals(unitPriceCon / 1.18); // SIN IGV → backend
-              const total = roundTo6Decimals(quantity * unitPriceCon);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
 
               return {
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
-                unit_price: valorUnitario.toString(), // SIN IGV → backend
-                subtotal,
-                igv,
-                total,
+                unit_price: valorUnitario.toString(),
+                subtotal: parseFloat(detail.subtotal),
+                igv: parseFloat(detail.tax),
+                total: parseFloat(detail.total),
               };
             },
           );
@@ -681,10 +671,8 @@ export const SaleForm = ({
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
-              const unitPrice = priceMap.get(detail.product_id) || 0; // precio con IGV
-              const total = roundTo6Decimals(quantity * unitPrice);
-              const subtotal = roundTo6Decimals(total / 1.18);
-              const igv = roundTo6Decimals(total - subtotal);
+              const unitPrice = priceMap.get(detail.product_id) || 0; // precio SIN IGV (del backend)
+              const { total, subtotal, igv } = calcItemAmounts(quantity, unitPrice);
 
               return {
                 product_id: detail.product_id.toString(),
@@ -742,11 +730,6 @@ export const SaleForm = ({
     }
   }, [form]);
 
-  // Función de redondeo a 4 decimales
-  const roundTo6Decimals = (value: number): number => {
-    return Math.round(value * 10000) / 10000;
-  };
-
   // Funciones para detalles
   const handleAddDetail = () => {
     if (
@@ -759,15 +742,14 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = unitPriceWithIGV / 1.18; // SIN IGV → lo que va al backend (precisión completa)
-    const total = roundTo6Decimals(quantity * unitPriceWithIGV);
-    const subtotal = roundTo6Decimals(total / 1.18);
-    const igv = roundTo6Decimals(total - subtotal);
+    const valorUnitario = unitPriceWithIGV / 1.18; // V.Unit SIN IGV → backend (sin redondear para mantener precisión)
+    const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
 
     const newDetail: DetailRow = {
-      ...currentDetail,
+      product_id: String(currentDetail.product_id),
       product_name: productSelected?.product_name ?? currentDetail.product_name,
-      unit_price: valorUnitario.toString(), // guardar SIN IGV
+      quantity: String(currentDetail.quantity),
+      unit_price: roundTo8(valorUnitario).toString(), // guardar SIN IGV, 8 decimales
       subtotal,
       igv,
       total,
@@ -808,14 +790,17 @@ export const SaleForm = ({
   const handleEditDetail = (index: number) => {
     const detail = details[index];
     setCurrentDetail(detail);
+    setProductSelected(null);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
-    // unit_price guardado es SIN IGV (valor unitario)
-    detailTempForm.setValue("temp_value_price", detail.unit_price);
+    // unit_price guardado es SIN IGV (valor unitario) — formatear a 4 dec para evitar
+    // que onAfterChange reciba un float largo y calcule mal el precio con IGV
+    const unitPriceSin = parseFloat(detail.unit_price);
+    detailTempForm.setValue("temp_value_price", formatNumberLocal(unitPriceSin));
     detailTempForm.setValue(
       "temp_unit_price",
       detail.unit_price
-        ? formatNumberLocal(parseFloat(detail.unit_price) * 1.18)
+        ? formatNumberLocal(unitPriceSin * 1.18)
         : "",
     );
     setEditingDetailIndex(index);
@@ -832,26 +817,26 @@ export const SaleForm = ({
       (sum, detail) => sum + (detail.subtotal || 0),
       0,
     );
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateDetailsIGV = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.igv || 0), 0);
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateDetailsTotal = () => {
     const sum = details.reduce((sum, detail) => sum + (detail.total || 0), 0);
-    return roundTo6Decimals(sum);
+    return roundTo2(sum);
   };
 
   const calculateRetencion = () => {
     if (!isRetencionIGV) return 0;
-    return Math.round(calculateDetailsTotal() * 0.03 * 100) / 100;
+    return truncTo2(calculateDetailsTotal() * 0.03);
   };
 
   const calculateNetTotal = () => {
-    return roundTo6Decimals(calculateDetailsTotal() - calculateRetencion());
+    return roundTo2(calculateDetailsTotal() - calculateRetencion());
   };
 
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
@@ -865,7 +850,7 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "0",
-        amount: netTotal.toFixed(4),
+        amount: truncTo2(netTotal).toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
@@ -884,10 +869,13 @@ export const SaleForm = ({
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "30",
-        amount: netTotal.toFixed(4),
+        amount: truncTo2(netTotal).toFixed(2),
       };
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
+    } else if (selectedPaymentType === "CONTADO") {
+      setInstallments([]);
+      form.setValue("installments", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPaymentType]);
@@ -912,15 +900,15 @@ export const SaleForm = ({
     // Validar que no exceda el total de la venta
     if (currentInstallmentsTotal + newAmount > saleTotal) {
       errorToast(
-        `El total de cuotas no puede exceder el total de la venta (${formatDecimalTrunc(
-          saleTotal,
-          6,
-        )})`,
+        `El total de cuotas no puede exceder el total de la venta (${formatNumber(saleTotal, 2)})`,
       );
       return;
     }
 
-    const newInstallment: InstallmentRow = { ...currentInstallment };
+    const newInstallment: InstallmentRow = {
+      due_days: String(currentInstallment.due_days),
+      amount: String(currentInstallment.amount),
+    };
 
     if (editingInstallmentIndex !== null) {
       const updatedInstallments = [...installments];
@@ -961,22 +949,22 @@ export const SaleForm = ({
       (sum, inst) => sum + parseFloat(inst.amount),
       0,
     );
-    return roundTo6Decimals(sum);
+    return roundTo4(sum);
   };
 
   const handleRecalculateInstallments = () => {
     if (installments.length === 0) return;
     const netTotal = calculateNetTotal();
-    const baseAmount = roundTo6Decimals(netTotal / installments.length);
-    // El último absorbe el residuo por redondeo
+    const baseAmount = truncTo2(netTotal / installments.length);
+    // El último absorbe el residuo por truncamiento
     const updated = installments.map((inst, i) => ({
-      ...inst,
+      due_days: String(inst.due_days),
       amount:
         i === installments.length - 1
-          ? roundTo6Decimals(
+          ? truncTo2(
               netTotal - baseAmount * (installments.length - 1),
-            ).toFixed(4)
-          : baseAmount.toFixed(4),
+            ).toFixed(2)
+          : baseAmount.toFixed(2),
     }));
     setInstallments(updated);
     form.setValue("installments", updated);
@@ -1044,7 +1032,7 @@ export const SaleForm = ({
     const transfer = parseFloat(String(form.watch("amount_transfer")) || "0");
     const other = parseFloat(String(form.watch("amount_other")) || "0");
     const sum = cash + card + yape + plin + deposit + transfer + other;
-    return roundTo6Decimals(sum);
+    return roundTo4(sum);
   };
 
   const paymentAmountsMatchTotal = () => {
@@ -1078,9 +1066,9 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(), 4,
+          calculateInstallmentsTotal(), 2,
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(), 4,
+          calculateNetTotal(), 2,
         )})`,
       );
       return;
@@ -1120,7 +1108,47 @@ export const SaleForm = ({
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
+        onSubmit={form.handleSubmit(handleFormSubmit, (errors) => {
+          const fieldLabels: Record<string, string> = {
+            customer_id: "Cliente",
+            document_type: "Tipo de Documento",
+            warehouse_id: "Almacén",
+            issue_date: "Fecha de Emisión",
+            payment_type: "Tipo de Pago",
+            currency: "Moneda",
+            details: "Detalles de la Venta",
+            installments: "Cuotas",
+          };
+          const getErrorMessage = (error: any): string => {
+            if (error?.message) return error.message;
+            // Manejo de errores anidados en arrays (cuotas, detalles)
+            if (typeof error === "object") {
+              const nested = Object.values(error)
+                .flatMap((item: any) =>
+                  typeof item === "object" && item !== null
+                    ? Object.values(item)
+                        .map((f: any) => f?.message)
+                        .filter(Boolean)
+                    : [],
+                )
+                .filter(Boolean);
+              if (nested.length > 0) return nested[0] as string;
+            }
+            return "Campo requerido";
+          };
+          const messages = Object.entries(errors)
+            .map(([field, error]) => {
+              const label = fieldLabels[field] ?? field;
+              const msg = getErrorMessage(error);
+              return `• ${label}: ${msg}`;
+            })
+            .join("\n");
+          errorToast(
+            messages
+              ? `Por favor corrija los siguientes campos:\n${messages}`
+              : "Por favor complete todos los campos requeridos",
+          );
+        })}
         className="grid xl:grid-cols-3 gap-6 w-full"
       >
         <div className="xl:col-span-2 space-y-6">
@@ -1560,13 +1588,13 @@ export const SaleForm = ({
                         TOTALES
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsSubtotal(), 4)}
+                        {formatNumber(calculateDetailsSubtotal(), 2)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg">
-                        {formatNumber(calculateDetailsIGV(), 4)}
+                        {formatNumber(calculateDetailsIGV(), 2)}
                       </TableCell>
                       <TableCell className="text-right font-bold text-lg text-primary">
-                        {formatNumber(calculateDetailsTotal(), 4)}
+                        {formatNumber(calculateDetailsTotal(), 2)}
                       </TableCell>
                       <TableCell></TableCell>
                     </TableRow>
@@ -1840,7 +1868,7 @@ export const SaleForm = ({
                   name="temp_amount"
                   label="Monto"
                   type="number"
-                  step="0.0001"
+                  step="0.01"
                   min={0}
                   placeholder="0.00"
                 />
@@ -1895,7 +1923,7 @@ export const SaleForm = ({
                               {inst.due_days} días
                             </TableCell>
                             <TableCell className="text-right font-semibold">
-                              {formatDecimalTrunc(parseFloat(inst.amount), 6)}
+                              {formatNumber(parseFloat(inst.amount), 2)}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex justify-center gap-2">
@@ -1922,10 +1950,7 @@ export const SaleForm = ({
                             TOTAL CUOTAS:
                           </TableCell>
                           <TableCell className="text-right font-bold text-lg text-blue-600">
-                            {formatDecimalTrunc(
-                              calculateInstallmentsTotal(),
-                              6,
-                            )}
+                            {formatNumber(calculateInstallmentsTotal(), 2)}
                           </TableCell>
                           <TableCell></TableCell>
                         </TableRow>
@@ -1936,9 +1961,9 @@ export const SaleForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal(), 4)}) debe ser
+                        {formatNumber(calculateInstallmentsTotal(), 2)}) debe ser
                         igual al total de la venta (
-                        {formatNumber(calculateNetTotal(), 4)})
+                        {formatNumber(calculateNetTotal(), 2)})
                       </p>
                     </div>
                   )}

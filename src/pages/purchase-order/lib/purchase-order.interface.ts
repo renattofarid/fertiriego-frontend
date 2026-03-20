@@ -45,6 +45,8 @@ export const PURCHASE_ORDER: ModelComplete<PurchaseOrderSchema> = {
     warehouse_id: "",
     currency: "PEN",
     apply_igv: false,
+    payment_type: "CONTADO" as const,
+    days: "",
     issue_date: "",
     expected_date: "",
     observations: "",
@@ -70,6 +72,8 @@ export interface PurchaseOrderResource {
   user_name: string;
   order_number?: string;
   currency?: string;
+  payment_type?: string;
+  days?: string;
   issue_date: string;
   expected_date: string;
   status: string;
@@ -89,6 +93,8 @@ export interface CreatePurchaseOrderRequest {
   supplier_id: number;
   warehouse_id: number;
   currency?: string;
+  payment_type: string;
+  days?: string | null;
   issue_date: string;
   expected_date: string;
   observations: string | null;
@@ -102,6 +108,8 @@ export interface UpdatePurchaseOrderRequest {
   warehouse_id?: number;
   order_number?: string;
   currency?: string;
+  payment_type?: string;
+  days?: string | null;
   issue_date?: string;
   expected_date?: string;
   observations?: string | null;
