@@ -25,7 +25,7 @@ export const purchaseOrderSchemaCreate = z.object({
   payment_type: z.enum(["CONTADO", "CREDITO"], {
     error: "Debe seleccionar el tipo de pago",
   }),
-  days: z.string().nullable().optional(),
+  days: z.coerce.string().nullable().optional(),
   issue_date: z
     .string()
     .min(1, { message: "La fecha de emisión es requerida" })

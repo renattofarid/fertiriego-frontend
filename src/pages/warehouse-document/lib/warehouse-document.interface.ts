@@ -37,6 +37,7 @@ export const WAREHOUSE_DOCUMENT: ModelComplete<WarehouseDocumentSchema> = {
   EMPTY: {
     warehouse_id: "",
     document_type: "",
+    destination_warehouse_id: "",
     document_number: "",
     person_id: "",
     document_date: "",
@@ -81,8 +82,8 @@ export interface WarehouseDocumentResource {
   warehouse_name: string;
   document_type: DocumentType;
   document_number: string;
-  destination_warehouse_id: null;
-  destination_warehouse_name: null;
+  destination_warehouse_id: number | null;
+  destination_warehouse_name: string | null;
   person_id: number;
   person_fullname: string;
   user_id: number;
@@ -117,6 +118,7 @@ export const CURRENCIES = [
 export interface CreateWarehouseDocumentRequest {
   warehouse_id: number;
   document_type: DocumentType;
+  destination_warehouse_id?: number;
   document_number: string;
   person_id: number;
   document_date: string;
@@ -133,6 +135,7 @@ export interface CreateWarehouseDocumentRequest {
 export interface UpdateWarehouseDocumentRequest {
   warehouse_id?: number;
   document_type?: DocumentType;
+  destination_warehouse_id?: number;
   document_number?: string;
   person_id?: number;
   document_date?: string;
@@ -140,6 +143,7 @@ export interface UpdateWarehouseDocumentRequest {
   observations?: string;
   details?: {
     id?: number;
+    warehouse_document_id?: number;
     product_id: number;
     quantity: number;
     unit_cost: number;

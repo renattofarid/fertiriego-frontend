@@ -52,6 +52,9 @@ export default function PurchaseOrderEditPage() {
   ): Partial<PurchaseOrderSchema> => ({
     supplier_id: data.supplier_id?.toString(),
     warehouse_id: data.warehouse_id?.toString(),
+    currency: data.currency,
+    payment_type: (data.payment_type as "CONTADO" | "CREDITO") ?? "CONTADO",
+    days: data.days ?? "",
     issue_date: data.issue_date,
     expected_date: data.expected_date,
     observations: data.observations,
