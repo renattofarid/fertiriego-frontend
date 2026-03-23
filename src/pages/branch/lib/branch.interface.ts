@@ -5,6 +5,16 @@ import { Building2 } from "lucide-react";
 const ROUTE = "/sucursal";
 const NAME = "Sucursal";
 
+export const BRANCH_IDS = {
+  PRINCIPAL: 10,
+  MODELO: 9,
+} as const;
+
+export const BRANCH_SERIES = {
+  [BRANCH_IDS.PRINCIPAL]: "100",
+  [BRANCH_IDS.MODELO]: "200",
+} as const;
+
 export const BRANCH: ModelComplete<BranchResource> = {
   MODEL: {
     name: NAME,

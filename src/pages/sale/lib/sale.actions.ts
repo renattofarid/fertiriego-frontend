@@ -40,9 +40,19 @@ export interface GetSalesParams {
   document_type?: string;
   customer_id?: number;
   warehouse_id?: number;
+  user_id?: number;
+  order_id?: number;
+  quotation_id?: number;
   from?: string;
   to?: string;
   status_facturado?: string;
+  serie?: string;
+  numero?: string;
+  currency?: string;
+  order_purchase?: string;
+  order_service?: string;
+  date_expired?: string;
+  issue_date?: string;
 }
 
 export const getSales = async (

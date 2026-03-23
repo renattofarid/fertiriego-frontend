@@ -16,7 +16,12 @@ import {
 } from "../lib/sale.interface";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import SaleDetailSheet from "./SaleDetailSheet";
-import { findSaleById, declararSunat, anularBoleta, anularFactura } from "../lib/sale.actions";
+import {
+  findSaleById,
+  declararSunat,
+  anularBoleta,
+  anularFactura,
+} from "../lib/sale.actions";
 import TitleComponent from "@/components/TitleComponent";
 import InstallmentPaymentManagementSheet from "@/pages/accounts-receivable/components/InstallmentPaymentManagementSheet";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -122,7 +127,10 @@ export default function SalePage() {
       return;
     }
     try {
-      const { blob, filename } = await declararSunat(sale.id, documentType.type);
+      const { blob, filename } = await declararSunat(
+        sale.id,
+        documentType.type,
+      );
       const blobUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = blobUrl;
@@ -152,7 +160,9 @@ export default function SalePage() {
       successToast("Documento anulado correctamente");
       refetch();
     } catch (error: any) {
-      errorToast(error?.response?.data?.message || "Error al anular el documento");
+      errorToast(
+        error?.response?.data?.message || "Error al anular el documento",
+      );
     }
   };
 

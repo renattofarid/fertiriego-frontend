@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText, Package, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
@@ -70,6 +71,7 @@ interface DetailRow {
   is_igv: boolean;
   quantity: string;
   unit_price: string;
+  unit_price_igv: string;
   purchase_price: string;
   description?: string;
   subtotal: number;
@@ -207,6 +209,7 @@ export const QuotationForm = ({
         is_igv: detail.is_igv,
         quantity: detail.quantity,
         unit_price: detail.unit_price,
+        unit_price_igv: detail.unit_price_igv,
         purchase_price: detail.purchase_price,
         description: detail.description || "",
         subtotal: detail.subtotal,
@@ -259,7 +262,7 @@ export const QuotationForm = ({
         accessorKey: "quantity",
         header: "Cantidad",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.quantity}</div>
+          <div className="text-right">{parseFloat(row.original.quantity).toFixed(4)}</div>
         ),
       },
       {
@@ -299,14 +302,14 @@ export const QuotationForm = ({
         accessorKey: "subtotal",
         header: "Subtotal",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.subtotal.toFixed(2)}</div>
+          <div className="text-right">{row.original.subtotal.toFixed(4)}</div>
         ),
       },
       {
         accessorKey: "tax",
         header: "IGV",
         cell: ({ row }) => (
-          <div className="text-right">{row.original.tax.toFixed(2)}</div>
+          <div className="text-right">{row.original.tax.toFixed(4)}</div>
         ),
       },
       {
@@ -314,7 +317,7 @@ export const QuotationForm = ({
         header: "Total",
         cell: ({ row }) => (
           <div className="text-right font-semibold">
-            {row.original.total.toFixed(2)}
+            {row.original.total.toFixed(4)}
           </div>
         ),
       },
@@ -383,6 +386,7 @@ export const QuotationForm = ({
           is_igv: detail.is_igv,
           quantity: detail.quantity.toString(),
           unit_price: detail.unit_price.toString(),
+          unit_price_igv: detail.unit_price_igv.toString(),
           purchase_price: detail.purchase_price.toString(),
           description: detail.description || "",
           subtotal: parseFloat(detail.subtotal),
@@ -404,6 +408,7 @@ export const QuotationForm = ({
       is_igv: detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
+      unit_price_igv: detail.unit_price_igv,
       purchase_price: detail.purchase_price,
       description: detail.description || "",
       subtotal: detail.subtotal,
@@ -421,6 +426,7 @@ export const QuotationForm = ({
       is_igv: detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
+      unit_price_igv: detail.unit_price_igv,
       purchase_price: detail.purchase_price,
       description: detail.description || "",
       subtotal: detail.subtotal,
@@ -446,6 +452,15 @@ export const QuotationForm = ({
       return;
     }
 
+    const hasInvalidPrice = details.some((d) => {
+      const price = parseFloat(d.unit_price) || 0;
+      const priceIgv = parseFloat(d.unit_price_igv) || 0;
+      return price <= 0 && priceIgv <= 0;
+    });
+    if (hasInvalidPrice) {
+      return;
+    }
+
     const request: CreateQuotationRequest = {
       fecha_emision: formData.fecha_emision,
       delivery_time: formData.delivery_time,
@@ -464,14 +479,25 @@ export const QuotationForm = ({
       customer_id: parseInt(formData.customer_id),
       user_id: user?.id || 1,
       tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
-      quotation_details: details.map((detail) => ({
-        product_id: parseInt(detail.product_id),
-        is_igv: detail.is_igv,
-        quantity: parseFloat(detail.quantity),
-        unit_price: parseFloat(detail.unit_price),
-        purchase_price: parseFloat(detail.purchase_price),
-        description: detail.description || "",
-      })),
+      quotation_details: details.map((detail) => {
+        const rawUnitPrice = parseFloat(detail.unit_price) || 0;
+        const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+        const effectiveUnitPriceIgv =
+          rawUnitPriceIgv > 0
+            ? rawUnitPriceIgv
+            : detail.is_igv
+              ? rawUnitPrice
+              : roundTo8(rawUnitPrice * 1.18);
+        return {
+          product_id: parseInt(detail.product_id),
+          is_igv: detail.is_igv,
+          quantity: parseFloat(detail.quantity),
+          unit_price: roundTo8(rawUnitPrice),
+          unit_price_igv: roundTo8(effectiveUnitPriceIgv),
+          purchase_price: parseFloat(detail.purchase_price),
+          description: detail.description || "",
+        };
+      }),
     };
 
     onSubmit(request);
@@ -485,15 +511,15 @@ export const QuotationForm = ({
   // };
 
   const calculateSubtotalTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.subtotal, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.subtotal, 0));
   };
 
   const calculateTaxTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.tax, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
   };
 
   const calculateDetailsTotal = () => {
-    return details.reduce((sum, detail) => sum + detail.total, 0);
+    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
   };
 
   return (

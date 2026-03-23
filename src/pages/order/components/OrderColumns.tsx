@@ -106,6 +106,21 @@ export const getOrderColumns = ({
     cell: ({ row }) => <Badge variant="outline">{row.original.currency}</Badge>,
   },
   {
+    id: "total",
+    header: "Total",
+    cell: ({ row }) => {
+      const total = row.original.order_details.reduce(
+        (sum, detail) => sum + parseFloat(detail.total || "0"),
+        0,
+      );
+      return (
+        <span className="font-semibold">
+          {total.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: "status",
     header: "Estado",
     cell: ({ row }) => {

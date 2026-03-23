@@ -11,6 +11,7 @@ import {
 } from "../lib/box.schema.ts";
 import { Loader } from "lucide-react";
 import { useAllBranches } from "@/pages/branch/lib/branch.hook";
+import { BRANCH_SERIES } from "@/pages/branch/lib/branch.interface";
 import { FormSelect } from "@/components/FormSelect";
 import { FormInput } from "@/components/FormInput.tsx";
 
@@ -51,6 +52,22 @@ export const BoxForm = ({
       label: branch.name,
     })) || [];
 
+  const handleBranchChange = (branchId: string) => {
+    const id = Number(branchId) as keyof typeof BRANCH_SERIES;
+    const serie = BRANCH_SERIES[id];
+    if (serie) form.setValue("serie", serie, { shouldValidate: true });
+  };
+
+  // Serie → Branch: si hay una sola sucursal que corresponde a esa serie, la selecciona
+  const SERIE_TO_BRANCH: Record<string, string> = Object.fromEntries(
+    (Object.entries(BRANCH_SERIES) as [string, string][]).map(([branchId, serie]) => [serie, branchId])
+  );
+
+  const handleSerieChange = (serie: string) => {
+    const branchId = SERIE_TO_BRANCH[serie];
+    if (branchId) form.setValue("branch_id", branchId, { shouldValidate: true });
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
@@ -62,14 +79,16 @@ export const BoxForm = ({
             placeholder="Ej: Caja Central"
           />
 
-          <FormInput
+          <FormSelect
             control={form.control}
             name="serie"
             label="Serie"
-            placeholder="Ej: 001"
-            className="font-mono"
-            maxLength={3}
-            uppercase
+            placeholder="Seleccione una serie"
+            options={[
+              { value: "100", label: "100" },
+              { value: "200", label: "200" },
+            ]}
+            onChange={handleSerieChange}
           />
 
           <div className="col-span-full">
@@ -80,6 +99,7 @@ export const BoxForm = ({
               options={branchOptions}
               control={form.control}
               disabled={loadingBranches}
+              onChange={handleBranchChange}
             />
           </div>
         </div>

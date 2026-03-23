@@ -1,5 +1,15 @@
 import { useEffect } from "react";
 import { useWarehouseStore } from "./warehouse.store";
+import { useQuery } from "@tanstack/react-query";
+import { getWarehouse } from "./warehouse.actions";
+import { WAREHOUSE } from "./warehouse.interface";
+
+export function useWarehouses(params?: Record<string, unknown>) {
+  return useQuery({
+    queryKey: [WAREHOUSE.QUERY_KEY, params],
+    queryFn: () => getWarehouse({ params }),
+  });
+}
 
 export function useWarehouse(params?: Record<string, unknown>) {
   const { warehouses, meta, isLoading, error, fetchWarehouses } =

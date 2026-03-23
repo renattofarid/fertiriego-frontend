@@ -39,6 +39,9 @@ export default function WarehouseDocumentAddPage() {
       const payload = {
         warehouse_id: parseInt(data.warehouse_id),
         document_type: data.document_type as any,
+        ...(data.destination_warehouse_id && {
+          destination_warehouse_id: parseInt(data.destination_warehouse_id),
+        }),
         document_number: data.document_number,
         person_id: parseInt(data.person_id),
         document_date: data.document_date,

@@ -24,6 +24,7 @@ export interface OrderDetailResource {
   is_igv: boolean;
   quantity: string;
   unit_price: string;
+  unit_price_igv: string;
   purchase_price: string;
   subtotal: string;
   tax: string;
@@ -165,6 +166,7 @@ export interface CreateOrderDetailRequest {
   is_igv: boolean;
   quantity: number;
   unit_price: number;
+  unit_price_igv: number;
   purchase_price: number;
 }
 

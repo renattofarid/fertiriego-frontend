@@ -66,8 +66,8 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
       minute: "2-digit",
     });
 
-  const totalSubtotal = sale.details?.reduce((s, d) => s + d.subtotal, 0) ?? 0;
-  const totalTax = sale.details?.reduce((s, d) => s + d.tax, 0) ?? 0;
+  const totalSubtotal = sale.details?.reduce((s, d) => s + Number(d.subtotal), 0) ?? 0;
+  const totalTax = sale.details?.reduce((s, d) => s + Number(d.tax), 0) ?? 0;
 
   const paymentMethods = [
     { label: "Efectivo", emoji: "💵", amount: sale.amount_cash },
@@ -91,7 +91,7 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
       <div className="px-5 py-4 space-y-6">
 
         {/* Banner Retención IGV */}
-        {sale.is_retencionigv && (
+        {!!sale.is_retencionigv && (
           <div className="flex items-center gap-3 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-lg">
             <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -106,7 +106,7 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
         )}
 
         {/* Banner Detracción */}
-        {sale.is_detraccion && (
+        {!!sale.is_detraccion && (
           <div className="flex items-center gap-3 p-3.5 bg-blue-500/10 border border-blue-500/30 rounded-lg">
             <Percent className="h-5 w-5 text-blue-500 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -133,7 +133,7 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
         <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden border">
           <div className="bg-background px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">Total</p>
-            <p className="text-xl font-bold tabular-nums">{currency} {sale.total_amount.toFixed(2)}</p>
+            <p className="text-xl font-bold tabular-nums">{currency} {Number(sale.total_amount).toFixed(2)}</p>
             {totalSubtotal > 0 && (
               <p className="text-xs text-muted-foreground/60 mt-0.5 tabular-nums">
                 {currency} {totalSubtotal.toFixed(2)} + {currency} {totalTax.toFixed(2)} IGV
@@ -142,14 +142,14 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
           </div>
           <div className="bg-background px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">Pagado</p>
-            <p className="text-xl font-bold text-primary tabular-nums">{currency} {sale.total_paid.toFixed(2)}</p>
+            <p className="text-xl font-bold text-primary tabular-nums">{currency} {Number(sale.total_paid).toFixed(2)}</p>
           </div>
           <div className="bg-background px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">
-              {sale.current_amount === 0 ? "Saldado" : "Pendiente"}
+              {Number(sale.current_amount) === 0 ? "Saldado" : "Pendiente"}
             </p>
-            <p className={`text-xl font-bold tabular-nums ${sale.current_amount === 0 ? "text-primary" : "text-destructive"}`}>
-              {currency} {sale.current_amount.toFixed(2)}
+            <p className={`text-xl font-bold tabular-nums ${Number(sale.current_amount) === 0 ? "text-primary" : "text-destructive"}`}>
+              {currency} {Number(sale.current_amount).toFixed(2)}
             </p>
           </div>
         </div>
@@ -194,29 +194,29 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
           )}
 
           {/* Condiciones especiales */}
-          {(sale.is_anticipado || sale.is_deduccion || sale.is_retencionigv || sale.is_detraccion || sale.is_termine_condition) && (
+          {(!!sale.is_anticipado || !!sale.is_deduccion || !!sale.is_retencionigv || !!sale.is_detraccion || !!sale.is_termine_condition) && (
             <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t">
-              {sale.is_anticipado && (
+              {!!sale.is_anticipado && (
                 <Badge variant="secondary" className="text-xs gap-1">
                   <AlertTriangle className="h-3 w-3 text-blue-500" />Anticipado
                 </Badge>
               )}
-              {sale.is_deduccion && (
+              {!!sale.is_deduccion && (
                 <Badge variant="secondary" className="text-xs gap-1">
                   <AlertTriangle className="h-3 w-3 text-purple-500" />Con Deducción
                 </Badge>
               )}
-              {sale.is_retencionigv && (
+              {!!sale.is_retencionigv && (
                 <Badge className="text-xs gap-1 bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-400/30 hover:bg-amber-500/15">
                   <ShieldAlert className="h-3 w-3" />Retención IGV
                 </Badge>
               )}
-              {sale.is_detraccion && (
+              {!!sale.is_detraccion && (
                 <Badge className="text-xs gap-1 bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-400/30 hover:bg-blue-500/15">
                   <Percent className="h-3 w-3" />Detracción {sale.codigos_detraccion && `· ${sale.codigos_detraccion}`}
                 </Badge>
               )}
-              {sale.is_termine_condition && (
+              {!!sale.is_termine_condition && (
                 <Badge variant="secondary" className="text-xs gap-1">
                   <AlertTriangle className="h-3 w-3 text-orange-500" />Condición Térmica
                 </Badge>
@@ -319,7 +319,7 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
                 {paymentMethods.map((m) => (
                   <div key={m.label} className="flex justify-between py-1.5">
                     <span className="text-sm text-muted-foreground">{m.emoji} {m.label}</span>
-                    <span className="text-sm font-medium tabular-nums">{currency} {m.amount.toFixed(2)}</span>
+                    <span className="text-sm font-medium tabular-nums">{currency} {Number(m.amount).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -342,12 +342,12 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
                         <p className="text-sm font-medium leading-snug">{detail.product.name}</p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 ml-4">
-                        {detail.quantity.toFixed(2)} × {currency} {detail.unit_price.toFixed(2)}
+                        {Number(detail.quantity).toFixed(2)} × {currency} {Number(detail.unit_price).toFixed(2)}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold tabular-nums">{currency} {detail.total.toFixed(2)}</p>
-                      <p className="text-xs text-muted-foreground tabular-nums">IGV {currency} {detail.tax.toFixed(2)}</p>
+                      <p className="text-sm font-semibold tabular-nums">{currency} {Number(detail.total).toFixed(2)}</p>
+                      <p className="text-xs text-muted-foreground tabular-nums">IGV {currency} {Number(detail.tax).toFixed(2)}</p>
                     </div>
                   </div>
                 ))}
@@ -385,11 +385,11 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-sm font-semibold tabular-nums">{currency} {inst.amount.toFixed(2)}</p>
-                      {inst.pending_amount > 0 && (
-                        <p className="text-xs text-orange-600 tabular-nums">Pend. {currency} {inst.pending_amount.toFixed(2)}</p>
+                      <p className="text-sm font-semibold tabular-nums">{currency} {Number(inst.amount).toFixed(2)}</p>
+                      {Number(inst.pending_amount) > 0 && (
+                        <p className="text-xs text-orange-600 tabular-nums">Pend. {currency} {Number(inst.pending_amount).toFixed(2)}</p>
                       )}
-                      {inst.pending_amount === 0 && (
+                      {Number(inst.pending_amount) === 0 && (
                         <p className="text-xs text-primary flex items-center justify-end gap-0.5">
                           <CheckCircle2 className="h-3 w-3" />Pagado
                         </p>
