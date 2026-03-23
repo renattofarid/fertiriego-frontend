@@ -324,7 +324,10 @@ export const PurchaseOrderForm = ({
       currency: data.currency,
       order_number: data.order_number,
       payment_type: (data as any).payment_type,
-      days: (data as any).payment_type === "CREDITO" ? ((data as any).days || null) : null,
+      days:
+        (data as any).payment_type === "CREDITO"
+          ? (data as any).days || null
+          : null,
       issue_date: data.issue_date,
       expected_date: data.expected_date,
       observations: data.observations,
@@ -447,8 +450,9 @@ export const PurchaseOrderForm = ({
               {paymentTypeWatch === "CREDITO" && (
                 <FormInput
                   control={form.control}
-                  name={"days" as any}
+                  name="days"
                   label="Días de crédito"
+                  type="number"
                   placeholder="Ej: 30"
                 />
               )}

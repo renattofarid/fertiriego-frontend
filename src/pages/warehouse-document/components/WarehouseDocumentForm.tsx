@@ -66,6 +66,7 @@ export default function WarehouseDocumentForm({
     defaultValues: defaultValues || {
       warehouse_id: "",
       document_type: "",
+      destination_warehouse_id: "",
       document_number: "",
       person_id: "",
       document_date: "",
@@ -76,6 +77,10 @@ export default function WarehouseDocumentForm({
   });
 
   const currencySymbol = matchCurrency(form.watch("currency") || "PEN");
+  const documentType = form.watch("document_type");
+  const isTransfer =
+    documentType === "ENTRADA_TRANSFERENCIA" ||
+    documentType === "SALIDA_TRANSFERENCIA";
 
   // Estado para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -308,6 +313,21 @@ export default function WarehouseDocumentForm({
               label: type.label,
             }))}
           />
+
+          {isTransfer && (
+            <FormSelect
+              control={form.control}
+              name="destination_warehouse_id"
+              label="Almacén Destino"
+              placeholder="Seleccione el almacén destino"
+              options={warehouses
+                .filter((w) => w.id.toString() !== form.watch("warehouse_id"))
+                .map((w) => ({
+                  value: w.id.toString(),
+                  label: w.name,
+                }))}
+            />
+          )}
 
           <FormInput
             control={form.control}

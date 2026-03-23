@@ -210,6 +210,12 @@ export default function WarehouseDocumentDetailPage() {
             <span className="text-sm text-muted-foreground">Almacén</span>
             <p className="font-semibold">{document.warehouse_name}</p>
           </div>
+          {document.destination_warehouse_name && (
+            <div>
+              <span className="text-sm text-muted-foreground">Almacén Destino</span>
+              <p className="font-semibold">{document.destination_warehouse_name}</p>
+            </div>
+          )}
           <div>
             <span className="text-sm text-muted-foreground">
               Tipo de Documento

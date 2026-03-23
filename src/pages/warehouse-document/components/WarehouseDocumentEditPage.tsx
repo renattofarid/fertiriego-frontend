@@ -31,6 +31,9 @@ export default function WarehouseDocumentEditPage() {
       const payload = {
         warehouse_id: parseInt(data.warehouse_id),
         document_type: data.document_type as any,
+        ...(data.destination_warehouse_id && {
+          destination_warehouse_id: parseInt(data.destination_warehouse_id),
+        }),
         document_number: data.document_number,
         person_id: parseInt(data.person_id),
         document_date: data.document_date,
@@ -76,6 +79,7 @@ export default function WarehouseDocumentEditPage() {
   const defaultValues: Partial<WarehouseDocumentSchema> = {
     warehouse_id: document.warehouse_id.toString(),
     document_type: document.document_type,
+    destination_warehouse_id: document.destination_warehouse_id?.toString() ?? "",
     document_number: document.document_number,
     person_id: document.person_id.toString(),
     document_date: document.document_date,
