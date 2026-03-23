@@ -43,6 +43,8 @@ interface WarehouseDocumentFormProps {
 
 // Tipo para las filas de detalle
 type DetailRow = {
+  id?: number;
+  warehouse_document_id?: number;
   product_id: string;
   product_name: string;
   quantity: number;
@@ -99,6 +101,8 @@ export default function WarehouseDocumentForm({
   useEffect(() => {
     if (defaultValues?.details && defaultValues.details.length > 0) {
       const mappedDetails: DetailRow[] = defaultValues.details.map((d) => ({
+        id: d.id,
+        warehouse_document_id: d.warehouse_document_id,
         product_id: d.product_id,
         product_name:
           products.find((p) => p.id.toString() === d.product_id)?.name ||
@@ -128,7 +132,10 @@ export default function WarehouseDocumentForm({
       return;
     }
 
+    const existingDetail = editingDetailIndex !== null ? details[editingDetailIndex] : undefined;
     const newDetail: DetailRow = {
+      id: existingDetail?.id,
+      warehouse_document_id: existingDetail?.warehouse_document_id,
       product_id: currentDetail.product_id,
       product_name: currentDetail.product_name,
       quantity: currentDetail.quantity,
@@ -273,6 +280,8 @@ export default function WarehouseDocumentForm({
     const payload = {
       ...values,
       details: details.map((d) => ({
+        id: d.id,
+        warehouse_document_id: d.warehouse_document_id,
         product_id: d.product_id,
         quantity: d.quantity,
         unit_cost: d.unit_cost,

@@ -41,6 +41,7 @@ export default function WarehouseDocumentEditPage() {
         observations: data.observations,
         details: data.details.map((detail) => ({
           id: detail.id,
+          warehouse_document_id: detail.warehouse_document_id,
           product_id: parseInt(detail.product_id),
           quantity: detail.quantity,
           unit_cost: detail.unit_cost,
@@ -87,6 +88,7 @@ export default function WarehouseDocumentEditPage() {
     observations: document.observations || "",
     details: document.details.map((detail) => ({
       id: detail.id,
+      warehouse_document_id: detail.warehouse_document_id,
       product_id: detail.product_id.toString(),
       quantity: detail.quantity,
       unit_cost: detail.unit_cost,

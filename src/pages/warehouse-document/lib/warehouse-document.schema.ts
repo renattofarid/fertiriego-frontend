@@ -4,6 +4,7 @@ import { requiredStringId } from "@/lib/core.schema";
 // Schema para los detalles del documento
 export const warehouseDocumentDetailSchema = z.object({
   id: z.number().optional(),
+  warehouse_document_id: z.number().optional(),
   product_id: requiredStringId("Debe seleccionar un producto"),
   quantity: z
     .number({ message: "La cantidad es requerida" })

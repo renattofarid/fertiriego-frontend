@@ -143,6 +143,7 @@ export interface UpdateWarehouseDocumentRequest {
   observations?: string;
   details?: {
     id?: number;
+    warehouse_document_id?: number;
     product_id: number;
     quantity: number;
     unit_cost: number;
