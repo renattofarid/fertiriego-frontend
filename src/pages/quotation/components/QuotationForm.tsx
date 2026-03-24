@@ -14,7 +14,14 @@ import { Input } from "@/components/ui/input";
 import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Package, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import {
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
@@ -252,6 +259,11 @@ export const QuotationForm = ({
   const columns = useMemo<ColumnDef<DetailRow>[]>(
     () => [
       {
+        id: "index",
+        header: "#",
+        cell: ({ row }) => <div className="text-right">{row.index + 1}</div>,
+      },
+      {
         accessorKey: "product_name",
         header: "Producto",
         cell: ({ row }) => (
@@ -262,7 +274,9 @@ export const QuotationForm = ({
         accessorKey: "quantity",
         header: "Cantidad",
         cell: ({ row }) => (
-          <div className="text-right">{parseFloat(row.original.quantity).toFixed(4)}</div>
+          <div className="text-right">
+            {parseFloat(row.original.quantity).toFixed(4)}
+          </div>
         ),
       },
       {
@@ -478,7 +492,9 @@ export const QuotationForm = ({
       warehouse_id: parseInt(formData.warehouse_id),
       customer_id: parseInt(formData.customer_id),
       user_id: user?.id || 1,
-      tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
+      tipo_cambio: formData.tipo_cambio
+        ? parseFloat(formData.tipo_cambio)
+        : undefined,
       quotation_details: details.map((detail) => {
         const rawUnitPrice = parseFloat(detail.unit_price) || 0;
         const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
@@ -696,7 +712,10 @@ export const QuotationForm = ({
                 size="icon"
                 variant="outline"
                 tooltip="Volver a consultar tipo de cambio SUNAT"
-                onClick={() => watchedFechaEmision && fetchTipoCambio(watchedFechaEmision, true)}
+                onClick={() =>
+                  watchedFechaEmision &&
+                  fetchTipoCambio(watchedFechaEmision, true)
+                }
                 disabled={!watchedFechaEmision}
               >
                 <RefreshCw className="h-4 w-4" />

@@ -41,7 +41,13 @@ import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatNumber } from "@/lib/formatCurrency";
-import { roundTo8, roundTo4, truncTo2, calcItemAmounts, roundTo2 } from "@/lib/saleCalculations";
+import {
+  roundTo8,
+  roundTo4,
+  truncTo2,
+  calcItemAmounts,
+  roundTo2,
+} from "@/lib/saleCalculations";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -411,7 +417,10 @@ export const SaleForm = ({
           const unitPriceSin = detail.unit_price_igv
             ? parseFloat(detail.unit_price_igv) / 1.18
             : parseFloat(detail.unit_price);
-          const { total, subtotal, igv } = calcItemAmounts(quantity, unitPriceSin);
+          const { total, subtotal, igv } = calcItemAmounts(
+            quantity,
+            unitPriceSin,
+          );
 
           return {
             product_id: String(detail.product_id),
@@ -589,8 +598,13 @@ export const SaleForm = ({
           const quotationDetails: DetailRow[] =
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
-              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
-              const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
+              const valorUnitario = roundTo8(
+                parseFloat(detail.unit_price_igv) / 1.18,
+              ); // SIN IGV → backend
+              const { total, subtotal, igv } = calcItemAmounts(
+                quantity,
+                valorUnitario,
+              );
 
               return {
                 product_id: detail.product_id.toString(),
@@ -609,7 +623,9 @@ export const SaleForm = ({
           // Auto-completar detalles desde orden — usar unit_price_igv (siempre CON IGV)
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
-              const valorUnitario = roundTo8(parseFloat(detail.unit_price_igv) / 1.18); // SIN IGV → backend
+              const valorUnitario = roundTo8(
+                parseFloat(detail.unit_price_igv) / 1.18,
+              ); // SIN IGV → backend
 
               return {
                 product_id: detail.product_id.toString(),
@@ -672,7 +688,10 @@ export const SaleForm = ({
               const quantity = parseFloat(detail.quantity);
               // Intentar obtener el precio del documento origen, sino se deja en 0
               const unitPrice = priceMap.get(detail.product_id) || 0; // precio SIN IGV (del backend)
-              const { total, subtotal, igv } = calcItemAmounts(quantity, unitPrice);
+              const { total, subtotal, igv } = calcItemAmounts(
+                quantity,
+                unitPrice,
+              );
 
               return {
                 product_id: detail.product_id.toString(),
@@ -796,12 +815,13 @@ export const SaleForm = ({
     // unit_price guardado es SIN IGV (valor unitario) — formatear a 4 dec para evitar
     // que onAfterChange reciba un float largo y calcule mal el precio con IGV
     const unitPriceSin = parseFloat(detail.unit_price);
-    detailTempForm.setValue("temp_value_price", formatNumberLocal(unitPriceSin));
+    detailTempForm.setValue(
+      "temp_value_price",
+      formatNumberLocal(unitPriceSin),
+    );
     detailTempForm.setValue(
       "temp_unit_price",
-      detail.unit_price
-        ? formatNumberLocal(unitPriceSin * 1.18)
-        : "",
+      detail.unit_price ? formatNumberLocal(unitPriceSin * 1.18) : "",
     );
     setEditingDetailIndex(index);
   };
@@ -961,9 +981,9 @@ export const SaleForm = ({
       due_days: String(inst.due_days),
       amount:
         i === installments.length - 1
-          ? truncTo2(
-              netTotal - baseAmount * (installments.length - 1),
-            ).toFixed(2)
+          ? truncTo2(netTotal - baseAmount * (installments.length - 1)).toFixed(
+              2,
+            )
           : baseAmount.toFixed(2),
     }));
     setInstallments(updated);
@@ -1066,9 +1086,11 @@ export const SaleForm = ({
     if (installments.length > 0 && !installmentsMatchTotal()) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(), 2,
+          calculateInstallmentsTotal(),
+          2,
         )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(), 2,
+          calculateNetTotal(),
+          2,
         )})`,
       );
       return;
@@ -1528,6 +1550,7 @@ export const SaleForm = ({
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>#</TableHead>
                       <TableHead>Producto</TableHead>
                       <TableHead className="text-right">Cantidad</TableHead>
                       <TableHead className="text-right">V. Unit.</TableHead>
@@ -1541,6 +1564,7 @@ export const SaleForm = ({
                   <TableBody>
                     {details.map((detail, index) => (
                       <TableRow key={index}>
+                        <TableCell>{index + 1}</TableCell>
                         <TableCell>{detail.product_name}</TableCell>
                         <TableCell className="text-right">
                           {formatNumber(parseFloat(detail.quantity), 4)}
@@ -1961,8 +1985,8 @@ export const SaleForm = ({
                     <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
                       <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
                         ⚠️ El total de cuotas (
-                        {formatNumber(calculateInstallmentsTotal(), 2)}) debe ser
-                        igual al total de la venta (
+                        {formatNumber(calculateInstallmentsTotal(), 2)}) debe
+                        ser igual al total de la venta (
                         {formatNumber(calculateNetTotal(), 2)})
                       </p>
                     </div>
