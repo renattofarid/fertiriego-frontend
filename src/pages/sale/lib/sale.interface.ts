@@ -555,3 +555,9 @@ export const SALE_PAYMENT: ModelComplete<any> = {
   },
   EMPTY: {} as any,
 };
+
+
+export const DETRACCION_OPTIONS = [
+  { value: "027", label: "027 - Demás bienes y servicios", porcentaje: 4 },
+  { value: "019", label: "019 - Arrendamiento de bienes muebles", porcentaje: 10 },
+];

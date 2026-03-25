@@ -61,6 +61,7 @@ import {
   DOCUMENT_TYPES,
   PAYMENT_TYPES,
   CURRENCIES,
+  DETRACCION_OPTIONS,
 } from "../lib/sale.interface";
 import { errorToast } from "@/lib/core.function";
 import { api } from "@/lib/config";
@@ -485,6 +486,7 @@ export const SaleForm = ({
 
   // Watch para detracción
   const isDetraccion = form.watch("is_detraccion" as any);
+  const codigosDetraccion = form.watch("codigos_detraccion" as any);
   const watchedIssueDate = form.watch("issue_date");
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
   const tipoCambioCache = useRef<Record<string, string>>({});
@@ -1349,13 +1351,7 @@ export const SaleForm = ({
                     name={"codigos_detraccion" as any}
                     label="Código de Detracción"
                     placeholder="Seleccione código"
-                    options={[
-                      { value: "027", label: "027 - Demás bienes y servicios" },
-                      {
-                        value: "019",
-                        label: "019 - Arrendamiento de bienes muebles",
-                      },
-                    ]}
+                    options={DETRACCION_OPTIONS}
                   />
                 </>
               )}
@@ -2035,6 +2031,8 @@ export const SaleForm = ({
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
           tipoCambio={form.watch("tipo_cambio" as any) || ""}
+          isDetraccion={isDetraccion}
+          codigosDetraccion={codigosDetraccion}
         />
       </form>
 

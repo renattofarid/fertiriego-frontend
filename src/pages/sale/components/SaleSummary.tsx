@@ -8,6 +8,7 @@ import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interfac
 import { formatNumber } from "@/lib/formatCurrency";
 import { truncTo2 } from "@/lib/saleCalculations";
 import type { UseFormReturn } from "react-hook-form";
+import { DETRACCION_OPTIONS } from "../lib/sale.interface";
 
 interface DetailRow {
   product_id: string;
@@ -46,6 +47,8 @@ interface SaleSummaryProps {
   porcentajeIgv?: number;
   totalExonerada?: number;
   totalInafecta?: number;
+  isDetraccion?: boolean;
+  codigosDetraccion?: string;
 }
 
 export function SaleSummary({
@@ -70,7 +73,17 @@ export function SaleSummary({
   porcentajeIgv = 18,
   totalExonerada = 0,
   totalInafecta = 0,
+  isDetraccion = false,
+  codigosDetraccion,
 }: SaleSummaryProps) {
+  const detraccionOption = DETRACCION_OPTIONS.find(
+    (o) => o.value === codigosDetraccion,
+  );
+  const detraccionPorcentaje = detraccionOption?.porcentaje ?? 0;
+  const totalBruto = calculateDetailsTotal ? calculateDetailsTotal() : 0;
+  const detraccionAmount = truncTo2((totalBruto * detraccionPorcentaje) / 100);
+  const totalConDetraccion = truncTo2(totalBruto - detraccionAmount);
+
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
@@ -277,6 +290,47 @@ export function SaleSummary({
                 <span className="font-medium text-destructive">
                   - {currencySymbol} {formatNumber(truncTo2(calculateRetencion()))}
                 </span>
+              </div>
+            )}
+
+            {isDetraccion && detraccionOption && (
+              <div className="space-y-2 border border-dashed border-muted-foreground/20 pt-2 rounded-lg mx-2">
+                <p className="text-xs font-mono uppercase text-muted-foreground px-3">
+                  Forma de pago con detracción
+                </p>
+                <div className="flex justify-between items-center text-xs px-3">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Detracción ({detraccionPorcentaje}%)
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {detraccionAmount.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs px-3">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Cliente paga
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {totalConDetraccion.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs px-3 pb-2">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Depósito BN
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {detraccionAmount.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
               </div>
             )}
 
