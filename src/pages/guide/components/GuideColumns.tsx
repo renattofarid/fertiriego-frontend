@@ -177,11 +177,23 @@ export const GuideColumns = ({
     },
   },
   {
+    accessorKey: "orden_pedido",
+    header: "Orden Pedido",
+    cell: ({ getValue }) => {
+      const value = getValue() as string | null | undefined;
+      return value ? (
+        <span className="text-xs font-mono">{value}</span>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      );
+    },
+  },
+  {
     accessorKey: "total_weight",
     header: "Peso Total",
     cell: ({ row }) => {
       const weight = row.original.total_weight;
-      return <span className="text-sm font-mono">{weight} KG</span>;
+      return <span className="text-xs font-mono">{weight} KG</span>;
     },
   },
   {
