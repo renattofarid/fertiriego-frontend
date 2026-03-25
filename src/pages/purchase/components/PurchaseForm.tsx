@@ -966,6 +966,7 @@ export const PurchaseForm = ({
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>#</TableHead>
                           <TableHead>Producto</TableHead>
                           <TableHead className="text-right">Cantidad</TableHead>
                           <TableHead className="text-right">P. Unit.</TableHead>
@@ -978,6 +979,7 @@ export const PurchaseForm = ({
                       <TableBody>
                         {details.map((detail, index) => (
                           <TableRow key={index}>
+                            <TableCell>{index + 1}</TableCell>
                             <TableCell>{detail.product_name}</TableCell>
                             <TableCell className="text-right">
                               {detail.quantity}

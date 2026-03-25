@@ -12,7 +12,14 @@ import { Input } from "@/components/ui/input";
 import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { FileText, Package, Plus, RefreshCw, Trash2, Pencil } from "lucide-react";
+import {
+  FileText,
+  Package,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Pencil,
+} from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
@@ -240,7 +247,10 @@ export const OrderForm = ({
     }
   }, [mode, order, form]);
 
-  const handleQuotationChange = (_value: string, quotation?: QuotationResource) => {
+  const handleQuotationChange = (
+    _value: string,
+    quotation?: QuotationResource,
+  ) => {
     if (!quotation) {
       setDefaultCustomerOption(undefined);
       setPreloadCustomerId(undefined);
@@ -271,8 +281,8 @@ export const OrderForm = ({
       }
       form.setValue("observations", quotation.observations || "");
 
-      const quotationDetails: DetailRow[] =
-        quotation.quotation_details.map((detail) => ({
+      const quotationDetails: DetailRow[] = quotation.quotation_details.map(
+        (detail) => ({
           product_id: detail.product_id.toString(),
           product_name: detail.product.name,
           is_igv: detail.is_igv,
@@ -283,7 +293,8 @@ export const OrderForm = ({
           subtotal: parseFloat(detail.subtotal),
           tax: parseFloat(detail.tax),
           total: parseFloat(detail.total),
-        }));
+        }),
+      );
 
       setDetails(quotationDetails);
     }
@@ -382,7 +393,9 @@ export const OrderForm = ({
       ...(formData.quotation_id && {
         quotation_id: parseInt(formData.quotation_id),
       }),
-      tipo_cambio: formData.tipo_cambio ? parseFloat(formData.tipo_cambio) : undefined,
+      tipo_cambio: formData.tipo_cambio
+        ? parseFloat(formData.tipo_cambio)
+        : undefined,
       order_details: details.map((detail) => {
         const rawUnitPrice = parseFloat(detail.unit_price) || 0;
         const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
@@ -575,7 +588,9 @@ export const OrderForm = ({
                 size="icon"
                 variant="outline"
                 tooltip="Volver a consultar tipo de cambio SUNAT"
-                onClick={() => watchedOrderDate && fetchTipoCambio(watchedOrderDate, true)}
+                onClick={() =>
+                  watchedOrderDate && fetchTipoCambio(watchedOrderDate, true)
+                }
                 disabled={!watchedOrderDate}
               >
                 <RefreshCw className="h-4 w-4" />
@@ -623,11 +638,7 @@ export const OrderForm = ({
             }}
           >
             <div className="flex justify-end">
-              <Button
-                type="button"
-                onClick={() => setSheetOpen(true)}
-                
-              >
+              <Button type="button" onClick={() => setSheetOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Agregar Producto
               </Button>
@@ -649,6 +660,7 @@ export const OrderForm = ({
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>#</TableHead>
                     <TableHead>Producto</TableHead>
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead className="text-right">V. Unitario</TableHead>
@@ -663,6 +675,7 @@ export const OrderForm = ({
                 <TableBody>
                   {details.map((detail, index) => (
                     <TableRow key={index}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{detail.product_name}</TableCell>
                       <TableCell className="text-right">
                         {parseFloat(detail.quantity).toFixed(4)}
@@ -694,7 +707,6 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            
                             onClick={() => handleEditDetail(index)}
                           >
                             <Pencil className="h-4 w-4 text-blue-500" />
@@ -702,7 +714,6 @@ export const OrderForm = ({
                           <Button
                             type="button"
                             variant="ghost"
-                            
                             onClick={() => handleRemoveDetail(index)}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
