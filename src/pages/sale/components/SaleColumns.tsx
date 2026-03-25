@@ -95,23 +95,6 @@ export const getSaleColumns = ({
     ),
   },
   {
-    accessorKey: "customer_fullname",
-    header: "Cliente",
-    cell: ({ row }) => (
-      <div
-        className="max-w-[200px] truncate"
-        title={row.original.customer_fullname}
-      >
-        {row.original.customer_fullname}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "warehouse_name",
-    header: "Almacén",
-    cell: ({ row }) => <span>{row.original.warehouse_name || "N/A"}</span>,
-  },
-  {
     accessorKey: "issue_date",
     header: "Fecha Emisión",
     cell: ({ row }) => {
@@ -129,6 +112,21 @@ export const getSaleColumns = ({
     },
   },
   {
+    accessorKey: "customer_fullname",
+    header: "Cliente",
+    cell: ({ row }) => (
+      <div className="flex flex-col text-sm">
+        <span>{row.original.customer_fullname}</span>
+        <span>{row.original.customer_document}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "warehouse_name",
+    header: "Almacén",
+    cell: ({ row }) => <span>{row.original.warehouse_name || "N/A"}</span>,
+  },
+  {
     accessorKey: "payment_type",
     header: "Tipo Pago",
     cell: ({ row }) => (
@@ -138,6 +136,34 @@ export const getSaleColumns = ({
         {row.original.payment_type}
       </Badge>
     ),
+  },
+  {
+    accessorKey: "guides",
+    header: "Guía",
+    cell: ({ row }) => {
+      const guides = row.original.guides;
+      if (guides && guides.length > 0) {
+        return (
+          <Badge variant="outline" className="cursor-not-allowed" size="sm">
+            {row.original.guides?.map((guide) => guide.correlative).join(", ")}
+          </Badge>
+        );
+      }
+    },
+  },
+  {
+    accessorKey: "order_purchase",
+    header: "Orden Compra",
+    cell: ({ row }) => {
+      const orderPurchase = row.original.order_purchase;
+      if (orderPurchase) {
+        return (
+          <Badge variant="outline" className="cursor-not-allowed" size="sm">
+            {orderPurchase}
+          </Badge>
+        );
+      }
+    },
   },
   {
     accessorKey: "total_amount",
@@ -258,7 +284,8 @@ export const getSaleColumns = ({
           (sum, inst) => sum + Number(inst.amount),
           0,
         ) || 0;
-      const isValid = Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
+      const isValid =
+        Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
 
       return (
         <TooltipProvider>
@@ -283,8 +310,9 @@ export const getSaleColumns = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    La suma de cuotas ({Number(sumOfInstallments).toFixed(2)}) no
-                    coincide con el total ({Number(expectedTotal).toFixed(2)}).
+                    La suma de cuotas ({Number(sumOfInstallments).toFixed(2)})
+                    no coincide con el total ({Number(expectedTotal).toFixed(2)}
+                    ).
                     <br />
                     Por favor, sincronice las cuotas.
                   </p>
