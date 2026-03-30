@@ -77,6 +77,8 @@ import { SaleSummary } from "./SaleSummary";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { usePersonById } from "@/pages/person/lib/person.hook";
+import { getAddresses } from "@/pages/person/lib/person.address.actions";
+import { useQuery } from "@tanstack/react-query";
 import { FormInput } from "@/components/FormInput";
 
 interface SaleFormProps {
@@ -467,6 +469,36 @@ export const SaleForm = ({
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+
+  // Watch para el cliente seleccionado
+  const watchedCustomerId = form.watch("customer_id");
+
+  // Precargar cliente en modo edición/sourceData (onValueChange no se dispara en preload)
+  const { data: preloadedCustomerData } = usePersonById(
+    watchedCustomerId ? Number(watchedCustomerId) : 0,
+  );
+
+  useEffect(() => {
+    if (
+      preloadedCustomerData &&
+      !selectedCustomer &&
+      watchedCustomerId &&
+      preloadedCustomerData.id.toString() === watchedCustomerId
+    ) {
+      setSelectedCustomer(preloadedCustomerData);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preloadedCustomerData, watchedCustomerId]);
+
+  // Obtener dirección principal del cliente seleccionado
+  const { data: addressesData } = useQuery({
+    queryKey: ["person-addresses", selectedCustomer?.id],
+    queryFn: () => getAddresses(selectedCustomer!.id),
+    enabled: !!selectedCustomer?.id,
+  });
+  const customerPrimaryAddress = addressesData?.data.find(
+    (a) => a.is_default,
+  )?.direccion;
 
   // Watch para el almacén seleccionado
   const watchedWarehouseId = form.watch("warehouse_id");
@@ -2017,6 +2049,7 @@ export const SaleForm = ({
           mode={mode}
           isSubmitting={isSubmitting}
           selectedCustomer={selectedCustomer}
+          customerPrimaryAddress={customerPrimaryAddress}
           warehouses={warehouses}
           details={details}
           installments={installments}
