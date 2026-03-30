@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileCheck, MapPin, Plus } from "lucide-react";
+import { FileCheck, MapPin, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { formatNumber } from "@/lib/formatCurrency";
 import { truncTo2 } from "@/lib/saleCalculations";
 import type { UseFormReturn } from "react-hook-form";
 import { DETRACCION_OPTIONS } from "../lib/sale.interface";
-import { PersonAddressSheet } from "@/pages/person/components/PersonAddressSheet";
+import { PersonAddressModal } from "@/pages/person/components/PersonAddressModal";
 
 interface DetailRow {
   product_id: string;
@@ -32,7 +32,7 @@ interface SaleSummaryProps {
   mode: "create" | "edit";
   isSubmitting: boolean;
   selectedCustomer?: PersonResource;
-  customerPrimaryAddress?: string;
+  onAddressUpdated?: (newAddress: string) => void;
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -59,7 +59,7 @@ export function SaleSummary({
   mode,
   isSubmitting,
   selectedCustomer,
-  customerPrimaryAddress,
+  onAddressUpdated,
   warehouses,
   details,
   installments = [],
@@ -80,7 +80,7 @@ export function SaleSummary({
   isDetraccion = false,
   codigosDetraccion,
 }: SaleSummaryProps) {
-  const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const detraccionOption = DETRACCION_OPTIONS.find(
     (o) => o.value === codigosDetraccion,
@@ -162,27 +162,27 @@ export function SaleSummary({
                     {selectedCustomer.number_document}
                   </div>
                 )}
-                {customerPrimaryAddress ? (
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-semibold">Dirección:</span>{" "}
-                    {customerPrimaryAddress}
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between gap-2 mt-1">
+                <div className="flex items-start justify-between gap-2 mt-1">
+                  {selectedCustomer.address ? (
+                    <div className="text-xs text-muted-foreground flex items-start gap-1 flex-1">
+                      <MapPin className="size-3 shrink-0 mt-0.5" />
+                      <span>{selectedCustomer.address}</span>
+                    </div>
+                  ) : (
                     <span className="text-xs text-muted-foreground italic flex items-center gap-1">
                       <MapPin className="size-3 shrink-0" />
-                      Dirección no configurada
+                      Sin dirección
                     </span>
-                    <Button
-                      type="button"
-                      size="xs"
-                      onClick={() => setIsAddressSheetOpen(true)}
-                    >
-                      <Plus className="size-3" />
-                      Agregar
-                    </Button>
-                  </div>
-                )}
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsAddressModalOpen(true)}
+                    className="text-xs text-primary underline underline-offset-2 flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+                  >
+                    <Pencil className="size-3" />
+                    Actualizar
+                  </button>
+                </div>
                 {selectedCustomer.phone && selectedCustomer.phone !== "0" && (
                   <div className="text-xs text-muted-foreground">
                     <span className="font-semibold">Teléfono:</span>{" "}
@@ -433,11 +433,11 @@ export function SaleSummary({
     </div>
 
     {selectedCustomer && (
-      <PersonAddressSheet
-        personId={selectedCustomer.id}
-        personName={customerName}
-        open={isAddressSheetOpen}
-        onClose={() => setIsAddressSheetOpen(false)}
+      <PersonAddressModal
+        person={selectedCustomer}
+        open={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSuccess={(newAddress) => onAddressUpdated?.(newAddress)}
       />
     )}
     </>
