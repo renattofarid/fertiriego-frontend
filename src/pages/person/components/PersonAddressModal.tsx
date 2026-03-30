@@ -14,6 +14,7 @@ interface PersonAddressModalProps {
   open: boolean;
   onClose: () => void;
   onSuccess: (newAddress: string) => void;
+}
 
 export function PersonAddressModal({
   person,
