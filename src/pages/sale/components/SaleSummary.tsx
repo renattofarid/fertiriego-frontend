@@ -1,4 +1,5 @@
-import { FileCheck } from "lucide-react";
+import { useState } from "react";
+import { FileCheck, MapPin, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { formatNumber } from "@/lib/formatCurrency";
 import { truncTo2 } from "@/lib/saleCalculations";
 import type { UseFormReturn } from "react-hook-form";
 import { DETRACCION_OPTIONS } from "../lib/sale.interface";
+import { PersonAddressSheet } from "@/pages/person/components/PersonAddressSheet";
 
 interface DetailRow {
   product_id: string;
@@ -30,6 +32,7 @@ interface SaleSummaryProps {
   mode: "create" | "edit";
   isSubmitting: boolean;
   selectedCustomer?: PersonResource;
+  customerPrimaryAddress?: string;
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -56,6 +59,7 @@ export function SaleSummary({
   mode,
   isSubmitting,
   selectedCustomer,
+  customerPrimaryAddress,
   warehouses,
   details,
   installments = [],
@@ -76,6 +80,8 @@ export function SaleSummary({
   isDetraccion = false,
   codigosDetraccion,
 }: SaleSummaryProps) {
+  const [isAddressSheetOpen, setIsAddressSheetOpen] = useState(false);
+
   const detraccionOption = DETRACCION_OPTIONS.find(
     (o) => o.value === codigosDetraccion,
   );
@@ -117,6 +123,7 @@ export function SaleSummary({
   const currencySymbol = getCurrencySymbol();
 
   return (
+    <>
     <div className="xl:col-span-1 xl:row-start-1 xl:col-start-3 h-full">
       <Card className="h-full sticky top-6 bg-linear-to-br from-primary/5 via-background to-muted/20 border-primary/20">
         <CardHeader className="space-y-1">
@@ -155,10 +162,25 @@ export function SaleSummary({
                     {selectedCustomer.number_document}
                   </div>
                 )}
-                {selectedCustomer.address && (
+                {customerPrimaryAddress ? (
                   <div className="text-xs text-muted-foreground">
                     <span className="font-semibold">Dirección:</span>{" "}
-                    {selectedCustomer.address}
+                    {customerPrimaryAddress}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-2 mt-1">
+                    <span className="text-xs text-muted-foreground italic flex items-center gap-1">
+                      <MapPin className="size-3 shrink-0" />
+                      Dirección no configurada
+                    </span>
+                    <Button
+                      type="button"
+                      size="xs"
+                      onClick={() => setIsAddressSheetOpen(true)}
+                    >
+                      <Plus className="size-3" />
+                      Agregar
+                    </Button>
                   </div>
                 )}
                 {selectedCustomer.phone && selectedCustomer.phone !== "0" && (
@@ -409,5 +431,15 @@ export function SaleSummary({
         </CardContent>
       </Card>
     </div>
+
+    {selectedCustomer && (
+      <PersonAddressSheet
+        personId={selectedCustomer.id}
+        personName={customerName}
+        open={isAddressSheetOpen}
+        onClose={() => setIsAddressSheetOpen(false)}
+      />
+    )}
+    </>
   );
 }
