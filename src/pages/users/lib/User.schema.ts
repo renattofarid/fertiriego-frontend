@@ -48,7 +48,7 @@ export const userCreateSchema = z
 
     phone: z.string().regex(/^[0-9]{9}$/, "El teléfono debe tener 9 dígitos"),
 
-    email: z.string().email("Debe ingresar un correo válido"),
+    email: z.email("Debe ingresar un correo válido"),
 
     rol_id: requiredStringId("Debe seleccionar un rol válido"),
 

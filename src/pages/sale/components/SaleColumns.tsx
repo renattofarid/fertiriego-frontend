@@ -96,13 +96,37 @@ export const getSaleColumns = ({
   },
   {
     accessorKey: "issue_date",
-    header: "Fecha Emisión",
+    header: "Emisión",
     cell: ({ row }) => {
-      // const date = new Date(row.original.issue_date);
       const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
       return (
-        <span>
+        <span className="text-sm">
           {date.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    id: "due_date",
+    header: "Vencimiento",
+    cell: ({ row }) => {
+      const issueDate = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
+      const lastInstallmentDate = row.original.installments.reduce(
+        (latest, inst) => {
+          const instDate = parse(inst.due_date, "yyyy-MM-dd", new Date());
+          return instDate > latest ? instDate : latest;
+        },
+        issueDate,
+      );
+      const dueDate =
+        lastInstallmentDate > issueDate ? lastInstallmentDate : issueDate;
+      return (
+        <span className="text-sm">
+          {dueDate.toLocaleDateString("es-ES", {
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -389,6 +413,8 @@ export const getSaleColumns = ({
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
             pdfFileName={`venta-${row.original.sequential_number}.pdf`}
+            ticketEndpoint={`/sale/${row.original.id}/ticket`}
+            ticketFileName={`ticket-venta-${row.original.sequential_number}.pdf`}
             variant="separate"
           />
 
