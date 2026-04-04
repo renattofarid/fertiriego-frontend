@@ -413,6 +413,8 @@ export const getSaleColumns = ({
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
             pdfFileName={`venta-${row.original.sequential_number}.pdf`}
+            ticketEndpoint={`/sale/${row.original.id}/ticket`}
+            ticketFileName={`ticket-venta-${row.original.sequential_number}.pdf`}
             variant="separate"
           />
 

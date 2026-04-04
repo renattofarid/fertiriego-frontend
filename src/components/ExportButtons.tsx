@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { api } from "@/lib/config";
 import { promiseToast } from "@/lib/core.function";
-import { Sheet, FileDown } from "lucide-react";
+import { Sheet, FileDown, ReceiptText } from "lucide-react";
 
 type ButtonVariant =
   | "default"
@@ -23,30 +23,52 @@ type ButtonVariant =
 interface ExportButtonsProps {
   excelEndpoint?: string;
   pdfEndpoint?: string;
+  ticketEndpoint?: string;
   excelFileName?: string;
   pdfFileName?: string;
+  ticketFileName?: string;
   onExcelDownload?: () => void | Promise<void>;
   onPdfDownload?: () => void | Promise<void>;
+  onTicketDownload?: () => void | Promise<void>;
   disableExcel?: boolean;
   disablePdf?: boolean;
+  disableTicket?: boolean;
   variant?: "grouped" | "separate";
   buttonVariant?: ButtonVariant;
   pdfLabel?: string;
+  ticketLabel?: string;
 }
 
 export default function ExportButtons({
   excelEndpoint,
   pdfEndpoint,
+  ticketEndpoint,
   excelFileName = "export.xlsx",
   pdfFileName = "export.pdf",
+  ticketFileName = "ticket.pdf",
   onExcelDownload,
   onPdfDownload,
+  onTicketDownload,
   disableExcel = false,
   disablePdf = false,
+  disableTicket = false,
   variant = "grouped",
   buttonVariant = "outline",
   pdfLabel = "PDF",
+  ticketLabel = "Ticket",
 }: ExportButtonsProps) {
+  const downloadFile = async (endpoint: string, fileName: string) => {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   const handleExcelDownload = () => {
     if (onExcelDownload) {
       promiseToast(Promise.resolve(onExcelDownload()), {
@@ -59,18 +81,7 @@ export default function ExportButtons({
 
     if (!excelEndpoint) return;
 
-    const download = api
-      .get(excelEndpoint, { responseType: "blob" })
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", excelFileName);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-      });
+    const download = downloadFile(excelEndpoint, excelFileName);
 
     promiseToast(download, {
       loading: "Descargando Excel...",
@@ -91,18 +102,7 @@ export default function ExportButtons({
 
     if (!pdfEndpoint) return;
 
-    const download = api
-      .get(pdfEndpoint, { responseType: "blob" })
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", pdfFileName);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
-      });
+    const download = downloadFile(pdfEndpoint, pdfFileName);
 
     promiseToast(download, {
       loading: "Descargando PDF...",
@@ -111,8 +111,30 @@ export default function ExportButtons({
     });
   };
 
+  const handleTicketDownload = () => {
+    if (onTicketDownload) {
+      promiseToast(Promise.resolve(onTicketDownload()), {
+        loading: "Descargando ticket...",
+        success: "Ticket descargado exitosamente",
+        error: "Error al descargar el ticket",
+      });
+      return;
+    }
+
+    if (!ticketEndpoint) return;
+
+    const download = downloadFile(ticketEndpoint, ticketFileName);
+
+    promiseToast(download, {
+      loading: "Descargando ticket...",
+      success: "Ticket descargado exitosamente",
+      error: "Error al descargar el ticket",
+    });
+  };
+
   const showExcelButton = excelEndpoint || onExcelDownload;
   const showPdfButton = pdfEndpoint || onPdfDownload;
+  const showTicketButton = ticketEndpoint || onTicketDownload;
 
   const canColored = ["ghost", "outline"].includes(buttonVariant);
 
@@ -158,6 +180,26 @@ export default function ExportButtons({
             </TooltipContent>
           </Tooltip>
         )}
+
+        {showTicketButton && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={buttonVariant}
+                color={canColored ? "orange" : undefined}
+                onClick={handleTicketDownload}
+                disabled={disableTicket}
+              >
+                <ReceiptText className="h-4 w-4" />
+                {ticketLabel}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Descargar ticket</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     );
   }
@@ -199,6 +241,25 @@ export default function ExportButtons({
           </TooltipTrigger>
           <TooltipContent>
             <p>Descargar PDF</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {showTicketButton && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon-sm"
+              variant={buttonVariant}
+              color={canColored ? "orange" : undefined}
+              onClick={handleTicketDownload}
+              disabled={disableTicket}
+            >
+              <ReceiptText className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Descargar ticket</p>
           </TooltipContent>
         </Tooltip>
       )}
