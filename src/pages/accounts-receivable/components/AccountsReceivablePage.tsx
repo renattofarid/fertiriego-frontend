@@ -22,6 +22,7 @@ export default function AccountsReceivablePage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currency, setCurrency] = useState("all");
 
   const [selectedInstallment, setSelectedInstallment] =
     useState<SaleInstallmentResource | null>(null);
@@ -38,7 +39,12 @@ export default function AccountsReceivablePage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const params = { page, per_page, search: debouncedSearch || undefined };
+  const params = {
+    page,
+    per_page,
+    search: debouncedSearch || undefined,
+    currency: currency !== "all" ? currency : undefined,
+  };
 
   const { data, isLoading } = useAccountsReceivable(params);
   const { data: allInstallments } = useAllAccountsReceivable();
@@ -90,7 +96,12 @@ export default function AccountsReceivablePage() {
         data={installments}
         isLoading={isLoading}
       >
-        <AccountsReceivableOptions search={search} setSearch={setSearch} />
+        <AccountsReceivableOptions
+          search={search}
+          setSearch={setSearch}
+          currency={currency}
+          setCurrency={setCurrency}
+        />
       </DataTable>
 
       <DataTablePagination
