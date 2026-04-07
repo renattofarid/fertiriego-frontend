@@ -44,8 +44,6 @@ export interface SaleInstallmentResource {
   created_at: string;
   updated_at: string;
   currency: string;
-  sale_total_amount?: number;
-  net_pending_amount?: number;
 }
 
 export interface SaleResource {

@@ -88,30 +88,26 @@ export const getAccountsReceivableColumns = (
   {
     accessorKey: "amount",
     header: "Monto",
-    cell: ({ row }) => {
-      const totalAmount = row.original.sale_total_amount ?? row.original.amount;
-      return (
-        <div className="text-right font-semibold">
-          {formatCurrency(totalAmount, {
-            currencySymbol: matchCurrency(row.original.currency),
-          })}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="text-right font-semibold">
+        {formatCurrency(row.original.amount, {
+          currencySymbol: matchCurrency(row.original.currency),
+        })}
+      </div>
+    ),
   },
   {
     accessorKey: "pending_amount",
     header: "Pendiente",
     cell: ({ row }) => {
-      const pendingAmount = row.original.net_pending_amount ?? row.original.pending_amount;
-      const isPending = pendingAmount > 0;
+      const isPending = row.original.pending_amount > 0;
       return (
         <div
           className={`text-right font-semibold ${
             isPending ? "text-destructive" : "text-primary"
           }`}
         >
-          {formatCurrency(pendingAmount, {
+          {formatCurrency(row.original.pending_amount, {
             currencySymbol: matchCurrency(row.original.currency),
           })}
         </div>
