@@ -10,9 +10,27 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 export default function SaleActions({
   startDate,
   endDate,
+  customerId,
+  documentType,
+  paymentType,
+  status,
+  currency,
+  serie,
+  numero,
+  warehouseId,
+  userId,
 }: {
   startDate?: string;
   endDate?: string;
+  customerId?: string;
+  documentType?: string;
+  paymentType?: string;
+  status?: string;
+  currency?: string;
+  serie?: string;
+  numero?: string;
+  warehouseId?: string;
+  userId?: string;
 }) {
   const navigate = useNavigate();
   const { MODEL } = SALE;
@@ -24,10 +42,18 @@ export default function SaleActions({
       perm.permissions.some((p) => p.routes.some((r) => r === "agregar-venta"))
     );
 
-  // Construir query params para el Excel
   const excelParams = new URLSearchParams();
   if (startDate) excelParams.append("from", startDate);
   if (endDate) excelParams.append("to", endDate);
+  if (customerId) excelParams.append("customer_id", customerId);
+  if (documentType) excelParams.append("document_type", documentType);
+  if (paymentType) excelParams.append("payment_type", paymentType);
+  if (status) excelParams.append("status", status);
+  if (currency) excelParams.append("currency", currency);
+  if (serie) excelParams.append("serie", serie);
+  if (numero) excelParams.append("numero", numero);
+  if (warehouseId) excelParams.append("warehouse_id", warehouseId);
+  if (userId) excelParams.append("user_id", userId);
   const excelQuery = excelParams.toString();
   const excelEndpoint = `/sale/excel${excelQuery ? `?${excelQuery}` : ""}`;
 
@@ -41,7 +67,6 @@ export default function SaleActions({
 
       {canAddSale && (
         <Button
-          
           className="ml-auto"
           onClick={() => navigate("/ventas/agregar")}
         >

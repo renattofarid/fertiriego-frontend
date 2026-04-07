@@ -35,7 +35,15 @@ export default function SalePage() {
   const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [statusSunat, setStatusSunat] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [documentType, setDocumentType] = useState("");
+  const [paymentType, setPaymentType] = useState("");
+  const [status, setStatus] = useState("");
+  const [currency, setCurrency] = useState("");
+  const [serie, setSerie] = useState("");
+  const [numero, setNumero] = useState("");
+  const [warehouseId, setWarehouseId] = useState("");
+  const [userId, setUserId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -53,12 +61,24 @@ export default function SalePage() {
     per_page,
     from: startDate,
     to: endDate,
-    status_facturado: statusSunat || undefined,
+    customer_id: customerId ? Number(customerId) : undefined,
+    document_type: documentType || undefined,
+    payment_type: paymentType || undefined,
+    status: status || undefined,
+    currency: currency || undefined,
+    serie: serie || undefined,
+    numero: numero || undefined,
+    warehouse_id: warehouseId ? Number(warehouseId) : undefined,
+    user_id: userId ? Number(userId) : undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [per_page, search, startDate, endDate, statusSunat]);
+  }, [
+    per_page, search, startDate, endDate, customerId,
+    documentType, paymentType, status, currency, serie, numero,
+    warehouseId, userId,
+  ]);
 
   const { removeSale } = useSaleStore();
 
@@ -205,7 +225,19 @@ export default function SalePage() {
           subtitle="Administrar todas las ventas registradas en el sistema"
           icon={ICON}
         />
-        <SaleActions startDate={startDate} endDate={endDate} />
+        <SaleActions
+          startDate={startDate}
+          endDate={endDate}
+          customerId={customerId}
+          documentType={documentType}
+          paymentType={paymentType}
+          status={status}
+          currency={currency}
+          serie={serie}
+          numero={numero}
+          warehouseId={warehouseId}
+          userId={userId}
+        />
       </div>
 
       <SaleTable
@@ -220,8 +252,24 @@ export default function SalePage() {
           setStartDate={setStartDate}
           endDate={endDate}
           setEndDate={setEndDate}
-          statusSunat={statusSunat}
-          setStatusSunat={setStatusSunat}
+          customerId={customerId}
+          setCustomerId={setCustomerId}
+          documentType={documentType}
+          setDocumentType={setDocumentType}
+          paymentType={paymentType}
+          setPaymentType={setPaymentType}
+          status={status}
+          setStatus={setStatus}
+          currency={currency}
+          setCurrency={setCurrency}
+          serie={serie}
+          setSerie={setSerie}
+          numero={numero}
+          setNumero={setNumero}
+          warehouseId={warehouseId}
+          setWarehouseId={setWarehouseId}
+          userId={userId}
+          setUserId={setUserId}
         />
       </SaleTable>
 
