@@ -1,65 +1,49 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import TitleComponent from "@/components/TitleComponent";
 import { DataTable } from "@/components/DataTable";
 import AccountsPayableOptions from "./AccountsPayableOptions";
 import { getAccountsPayableColumns } from "./AccountsPayableColumns";
 import PageWrapper from "@/components/PageWrapper";
+import ExportButtons from "@/components/ExportButtons";
 import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 import DataTablePagination from "@/components/DataTablePagination";
-import { useAccountsPayableStore } from "../lib/accounts-payable.store";
 import AccountsPayableSummary from "./AccountsPayableSummary";
 import { InstallmentPaymentsSheet } from "@/pages/purchase/components/sheets/InstallmentPaymentsSheet";
+import { useAccountsPayable, useAllAccountsPayable } from "../lib/accounts-payable.hook";
+import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useQueryClient } from "@tanstack/react-query";
+import { ACCOUNTS_PAYABLE_QUERY_KEY } from "../lib/accounts-payable.interface";
 
 export default function AccountsPayablePage() {
-  const {
-    installments,
-    allInstallments,
-    meta,
-    isLoading,
-    page,
-    per_page,
-    search,
-    setPage,
-    setPerPage,
-    setSearch,
-    fetchInstallments,
-    fetchAllInstallments,
-  } = useAccountsPayableStore();
+  const [page, setPage] = useState(1);
+  const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const [filteredInstallments, setFilteredInstallments] = useState<
-    PurchaseInstallmentResource[]
-  >([]);
   const [selectedInstallment, setSelectedInstallment] =
     useState<PurchaseInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
   const [openQuickViewSheet, setOpenQuickViewSheet] = useState(false);
 
-  useEffect(() => {
-    fetchInstallments();
-    fetchAllInstallments();
-  }, []);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
-    filterInstallments();
-  }, [search, installments]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const filterInstallments = () => {
-    if (!search.trim()) {
-      setFilteredInstallments(installments);
-      return;
-    }
+  const params = { page, per_page, search: debouncedSearch || undefined };
 
-    const searchLower = search.toLowerCase();
-    const filtered = installments.filter(
-      (inst) =>
-        inst.correlativo.toLowerCase().includes(searchLower) ||
-        inst.purchase_correlativo.toLowerCase().includes(searchLower) ||
-        inst.installment_number.toString().includes(searchLower)
-    );
-    setFilteredInstallments(filtered);
-  };
+  const { data, isLoading } = useAccountsPayable(params);
+  const { data: allInstallments } = useAllAccountsPayable();
+
+  const installments = data?.data ?? [];
+  const meta = data?.meta;
 
   const handleOpenPayment = (installment: PurchaseInstallmentResource) => {
     setSelectedInstallment(installment);
@@ -72,15 +56,13 @@ export default function AccountsPayablePage() {
   };
 
   const handlePaymentSuccess = () => {
-    fetchInstallments();
-    fetchAllInstallments();
+    queryClient.invalidateQueries({ queryKey: [ACCOUNTS_PAYABLE_QUERY_KEY] });
     setOpenPaymentSheet(false);
     setSelectedInstallment(null);
   };
 
   const handleClosePaymentSheet = () => {
-    fetchInstallments();
-    fetchAllInstallments();
+    queryClient.invalidateQueries({ queryKey: [ACCOUNTS_PAYABLE_QUERY_KEY] });
     setOpenPaymentSheet(false);
     setSelectedInstallment(null);
   };
@@ -97,15 +79,20 @@ export default function AccountsPayablePage() {
         title="Cuentas por Pagar"
         subtitle="Gestión y seguimiento de cuotas pendientes a proveedores"
         icon="DollarSign"
-      />
+      >
+        <ExportButtons
+          excelEndpoint="purchase-installments/export"
+          excelFileName="cuentas_por_pagar.xlsx"
+        />
+      </TitleComponent>
 
-      {/* Summary - Minimalista */}
-      <AccountsPayableSummary installments={allInstallments} />
+      {/* Summary */}
+      <AccountsPayableSummary installments={allInstallments ?? []} />
 
       {/* Table */}
       <DataTable
         columns={columns}
-        data={filteredInstallments}
+        data={installments}
         isLoading={isLoading}
       >
         <AccountsPayableOptions search={search} setSearch={setSearch} />
