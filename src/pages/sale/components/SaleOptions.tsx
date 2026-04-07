@@ -7,20 +7,51 @@ import FilterWrapper from "@/components/FilterWrapper";
 import type { Option } from "@/lib/core.interface";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import { useWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
+import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import { useUsers } from "@/pages/users/lib/User.hook";
+import type { UserResource } from "@/pages/users/lib/User.interface";
+import {
+  DOCUMENT_TYPES,
+  PAYMENT_TYPES,
+  CURRENCIES,
+  SALE_STATUSES,
+} from "../lib/sale.interface";
 
-const sunatStatusOptions: Option[] = [
-  { value: "", label: "Todos los estados SUNAT" },
-  { value: "PENDIENTE", label: "Pendiente" },
-  { value: "ENVIADO", label: "Enviado" },
-  { value: "ACEPTADO", label: "Aceptado" },
-  { value: "BAJA", label: "Baja" },
-  { value: "RECHAZADO", label: "Rechazado" },
+const documentTypeOptions: Option[] = [
+  { value: "", label: "Todos los tipos" },
+  ...DOCUMENT_TYPES.map((dt) => ({ value: dt.value, label: dt.label })),
+];
+
+const paymentTypeOptions: Option[] = [
+  { value: "", label: "Todos los tipos de pago" },
+  ...PAYMENT_TYPES.map((pt) => ({ value: pt.value, label: pt.label })),
+];
+
+const currencyOptions: Option[] = [
+  { value: "", label: "Todas las monedas" },
+  ...CURRENCIES.map((c) => ({ value: c.value, label: c.label })),
+];
+
+const statusOptions: Option[] = [
+  { value: "", label: "Todos los estados" },
+  ...SALE_STATUSES.map((s) => ({ value: s.value, label: s.label })),
 ];
 
 const mapClientOption = (person: PersonResource): Option => ({
   value: String(person.id),
   label: person.names,
   description: person.number_document,
+});
+
+const mapWarehouseOption = (warehouse: WarehouseResource): Option => ({
+  value: String(warehouse.id),
+  label: warehouse.name,
+});
+
+const mapUserOption = (user: UserResource): Option => ({
+  value: String(user.id),
+  label: user.name,
 });
 
 export default function SaleOptions({
@@ -30,10 +61,24 @@ export default function SaleOptions({
   setStartDate,
   endDate,
   setEndDate,
-  statusSunat,
-  setStatusSunat,
   customerId,
   setCustomerId,
+  documentType,
+  setDocumentType,
+  paymentType,
+  setPaymentType,
+  status,
+  setStatus,
+  currency,
+  setCurrency,
+  serie,
+  setSerie,
+  numero,
+  setNumero,
+  warehouseId,
+  setWarehouseId,
+  userId,
+  setUserId,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -41,10 +86,24 @@ export default function SaleOptions({
   setStartDate?: (value: string) => void;
   endDate?: string;
   setEndDate?: (value: string) => void;
-  statusSunat?: string;
-  setStatusSunat?: (value: string) => void;
   customerId?: string;
   setCustomerId?: (value: string) => void;
+  documentType?: string;
+  setDocumentType?: (value: string) => void;
+  paymentType?: string;
+  setPaymentType?: (value: string) => void;
+  status?: string;
+  setStatus?: (value: string) => void;
+  currency?: string;
+  setCurrency?: (value: string) => void;
+  serie?: string;
+  setSerie?: (value: string) => void;
+  numero?: string;
+  setNumero?: (value: string) => void;
+  warehouseId?: string;
+  setWarehouseId?: (value: string) => void;
+  userId?: string;
+  setUserId?: (value: string) => void;
 }) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (setStartDate) {
@@ -58,11 +117,19 @@ export default function SaleOptions({
     }
   };
 
-  // Count active extra filters for badge
-  const activeExtraCount = [statusSunat].filter(Boolean).length;
+  const activeExtraCount = [
+    documentType,
+    paymentType,
+    status,
+    currency,
+    serie,
+    numero,
+    warehouseId,
+    userId,
+  ].filter(Boolean).length;
 
   return (
-    <FilterWrapper activeExtraCount={activeExtraCount}>
+    <FilterWrapper activeExtraCount={activeExtraCount} maxVisible={5}>
       <SearchInput
         value={search}
         onChange={setSearch}
@@ -73,7 +140,7 @@ export default function SaleOptions({
         <DatePicker
           value={startDate}
           onChange={handleStartDateChange}
-          placeholder="Fecha Inicio (from)"
+          placeholder="Fecha Inicio"
           className="w-52"
         />
       )}
@@ -82,7 +149,7 @@ export default function SaleOptions({
         <DatePicker
           value={endDate}
           onChange={handleEndDateChange}
-          placeholder="Fecha Fin (to)"
+          placeholder="Fecha Fin"
           className="w-52"
         />
       )}
@@ -98,13 +165,81 @@ export default function SaleOptions({
         />
       )}
 
-      {setStatusSunat && (
+      {setWarehouseId && (
+        <SearchableSelectAsync
+          value={warehouseId ?? ""}
+          onChange={setWarehouseId}
+          placeholder="Almacén"
+          className="w-full"
+          useQueryHook={useWarehouses}
+          mapOptionFn={mapWarehouseOption}
+        />
+      )}
+
+
+      {setDocumentType && (
         <SearchableSelect
-          options={sunatStatusOptions}
-          value={statusSunat ?? ""}
-          onChange={setStatusSunat}
-          placeholder="Estado SUNAT"
-          className="w-full md:w-[200px]"
+          options={documentTypeOptions}
+          value={documentType ?? ""}
+          onChange={setDocumentType}
+          placeholder="Tipo de documento"
+          className="w-full"
+        />
+      )}
+
+      {setPaymentType && (
+        <SearchableSelect
+          options={paymentTypeOptions}
+          value={paymentType ?? ""}
+          onChange={setPaymentType}
+          placeholder="Tipo de pago"
+          className="w-full"
+        />
+      )}
+
+      {setStatus && (
+        <SearchableSelect
+          options={statusOptions}
+          value={status ?? ""}
+          onChange={setStatus}
+          placeholder="Estado de venta"
+          className="w-full"
+        />
+      )}
+
+      {setCurrency && (
+        <SearchableSelect
+          options={currencyOptions}
+          value={currency ?? ""}
+          onChange={setCurrency}
+          placeholder="Moneda"
+          className="w-full"
+        />
+      )}
+
+      {setSerie && (
+        <SearchInput
+          value={serie ?? ""}
+          onChange={setSerie}
+          placeholder="Serie"
+        />
+      )}
+
+      {setNumero && (
+        <SearchInput
+          value={numero ?? ""}
+          onChange={setNumero}
+          placeholder="Número"
+        />
+      )}
+      {setUserId && (
+        <SearchableSelectAsync
+          value={userId ?? ""}
+          onChange={setUserId}
+          placeholder="Usuario"
+          className="w-full"
+          useQueryHook={useUsers}
+          mapOptionFn={mapUserOption}
         />
       )}
     </FilterWrapper>
