@@ -10,9 +10,11 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 export default function SaleActions({
   startDate,
   endDate,
+  customerId,
 }: {
   startDate?: string;
   endDate?: string;
+  customerId?: string;
 }) {
   const navigate = useNavigate();
   const { MODEL } = SALE;
@@ -28,6 +30,7 @@ export default function SaleActions({
   const excelParams = new URLSearchParams();
   if (startDate) excelParams.append("from", startDate);
   if (endDate) excelParams.append("to", endDate);
+  if (customerId) excelParams.append("customer_id", customerId);
   const excelQuery = excelParams.toString();
   const excelEndpoint = `/sale/excel${excelQuery ? `?${excelQuery}` : ""}`;
 

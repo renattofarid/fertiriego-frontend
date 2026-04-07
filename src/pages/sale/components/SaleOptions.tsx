@@ -1,8 +1,12 @@
 "use client";
 import DatePicker from "@/components/DatePicker";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import SearchInput from "@/components/SearchInput";
+import FilterWrapper from "@/components/FilterWrapper";
 import type { Option } from "@/lib/core.interface";
+import { useClients } from "@/pages/client/lib/client.hook";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
 
 const sunatStatusOptions: Option[] = [
   { value: "", label: "Todos los estados SUNAT" },
@@ -13,6 +17,12 @@ const sunatStatusOptions: Option[] = [
   { value: "RECHAZADO", label: "Rechazado" },
 ];
 
+const mapClientOption = (person: PersonResource): Option => ({
+  value: String(person.id),
+  label: person.names,
+  description: person.number_document,
+});
+
 export default function SaleOptions({
   search,
   setSearch,
@@ -22,6 +32,8 @@ export default function SaleOptions({
   setEndDate,
   statusSunat,
   setStatusSunat,
+  customerId,
+  setCustomerId,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -31,6 +43,8 @@ export default function SaleOptions({
   setEndDate?: (value: string) => void;
   statusSunat?: string;
   setStatusSunat?: (value: string) => void;
+  customerId?: string;
+  setCustomerId?: (value: string) => void;
 }) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (setStartDate) {
@@ -44,8 +58,11 @@ export default function SaleOptions({
     }
   };
 
+  // Count active extra filters for badge
+  const activeExtraCount = [statusSunat].filter(Boolean).length;
+
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <FilterWrapper activeExtraCount={activeExtraCount}>
       <SearchInput
         value={search}
         onChange={setSearch}
@@ -70,6 +87,17 @@ export default function SaleOptions({
         />
       )}
 
+      {setCustomerId && (
+        <SearchableSelectAsync
+          value={customerId ?? ""}
+          onChange={setCustomerId}
+          placeholder="Cliente"
+          className="w-full md:w-[220px]"
+          useQueryHook={useClients}
+          mapOptionFn={mapClientOption}
+        />
+      )}
+
       {setStatusSunat && (
         <SearchableSelect
           options={sunatStatusOptions}
@@ -79,6 +107,6 @@ export default function SaleOptions({
           className="w-full md:w-[200px]"
         />
       )}
-    </div>
+    </FilterWrapper>
   );
 }

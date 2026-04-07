@@ -36,6 +36,7 @@ export default function SalePage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [statusSunat, setStatusSunat] = useState("");
+  const [customerId, setCustomerId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -54,11 +55,12 @@ export default function SalePage() {
     from: startDate,
     to: endDate,
     status_facturado: statusSunat || undefined,
+    customer_id: customerId ? Number(customerId) : undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [per_page, search, startDate, endDate, statusSunat]);
+  }, [per_page, search, startDate, endDate, statusSunat, customerId]);
 
   const { removeSale } = useSaleStore();
 
@@ -205,7 +207,7 @@ export default function SalePage() {
           subtitle="Administrar todas las ventas registradas en el sistema"
           icon={ICON}
         />
-        <SaleActions startDate={startDate} endDate={endDate} />
+        <SaleActions startDate={startDate} endDate={endDate} customerId={customerId} />
       </div>
 
       <SaleTable
@@ -222,6 +224,8 @@ export default function SalePage() {
           setEndDate={setEndDate}
           statusSunat={statusSunat}
           setStatusSunat={setStatusSunat}
+          customerId={customerId}
+          setCustomerId={setCustomerId}
         />
       </SaleTable>
 
