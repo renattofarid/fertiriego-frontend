@@ -11,6 +11,8 @@ import { useWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { useUsers } from "@/pages/users/lib/User.hook";
 import type { UserResource } from "@/pages/users/lib/User.interface";
+import { useProduct } from "@/pages/product/lib/product.hook";
+import type { ProductResource } from "@/pages/product/lib/product.interface";
 import {
   DOCUMENT_TYPES,
   PAYMENT_TYPES,
@@ -54,6 +56,11 @@ const mapUserOption = (user: UserResource): Option => ({
   label: user.name,
 });
 
+const mapProductOption = (product: ProductResource): Option => ({
+  value: String(product.id),
+  label: product.name,
+});
+
 export default function SaleOptions({
   search,
   setSearch,
@@ -79,6 +86,8 @@ export default function SaleOptions({
   setWarehouseId,
   userId,
   setUserId,
+  productId,
+  setProductId,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -104,6 +113,8 @@ export default function SaleOptions({
   setWarehouseId?: (value: string) => void;
   userId?: string;
   setUserId?: (value: string) => void;
+  productId?: string;
+  setProductId?: (value: string) => void;
 }) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (setStartDate) {
@@ -126,10 +137,11 @@ export default function SaleOptions({
     numero,
     warehouseId,
     userId,
+    productId,
   ].filter(Boolean).length;
 
   return (
-    <FilterWrapper activeExtraCount={activeExtraCount} maxVisible={5}>
+    <FilterWrapper activeExtraCount={activeExtraCount} maxVisible={6}>
       <SearchInput
         value={search}
         onChange={setSearch}
@@ -141,7 +153,6 @@ export default function SaleOptions({
           value={startDate}
           onChange={handleStartDateChange}
           placeholder="Fecha Inicio"
-          className="w-52"
         />
       )}
 
@@ -150,7 +161,6 @@ export default function SaleOptions({
           value={endDate}
           onChange={handleEndDateChange}
           placeholder="Fecha Fin"
-          className="w-52"
         />
       )}
 
@@ -159,7 +169,6 @@ export default function SaleOptions({
           value={customerId ?? ""}
           onChange={setCustomerId}
           placeholder="Cliente"
-          className="w-full md:w-[220px]"
           useQueryHook={useClients}
           mapOptionFn={mapClientOption}
         />
@@ -173,6 +182,17 @@ export default function SaleOptions({
           className="w-full"
           useQueryHook={useWarehouses}
           mapOptionFn={mapWarehouseOption}
+        />
+      )}
+
+      {setProductId && (
+        <SearchableSelectAsync
+          value={productId ?? ""}
+          onChange={setProductId}
+          placeholder="Producto"
+          className="w-full"
+          useQueryHook={useProduct}
+          mapOptionFn={mapProductOption}
         />
       )}
 

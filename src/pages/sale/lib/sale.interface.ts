@@ -88,6 +88,7 @@ export interface SaleResource {
   quotation?: Quotation;
   total_amount: number;
   current_amount: number;
+  total_bruto: string;
   currency: string;
   status: string;
   observations?: string;

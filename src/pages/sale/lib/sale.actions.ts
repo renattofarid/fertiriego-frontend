@@ -53,6 +53,7 @@ export interface GetSalesParams {
   order_service?: string;
   date_expired?: string;
   issue_date?: string;
+  details$product_id?: number;
 }
 
 export const getSales = async (
