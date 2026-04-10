@@ -19,6 +19,7 @@ export default function SaleActions({
   numero,
   warehouseId,
   userId,
+  productId,
 }: {
   startDate?: string;
   endDate?: string;
@@ -31,6 +32,7 @@ export default function SaleActions({
   numero?: string;
   warehouseId?: string;
   userId?: string;
+  productId?: string;
 }) {
   const navigate = useNavigate();
   const { MODEL } = SALE;
@@ -54,6 +56,7 @@ export default function SaleActions({
   if (numero) excelParams.append("numero", numero);
   if (warehouseId) excelParams.append("warehouse_id", warehouseId);
   if (userId) excelParams.append("user_id", userId);
+  if (productId) excelParams.append("product_id", productId);
   const excelQuery = excelParams.toString();
   const excelEndpoint = `/sale/excel${excelQuery ? `?${excelQuery}` : ""}`;
 

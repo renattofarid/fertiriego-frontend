@@ -190,7 +190,7 @@ export const getSaleColumns = ({
     },
   },
   {
-    accessorKey: "total_amount",
+    accessorKey: "total_bruto",
     header: "Total",
     cell: ({ row }) => {
       const currency =
@@ -203,7 +203,7 @@ export const getSaleColumns = ({
               : row.original.currency;
       return (
         <span className="font-semibold">
-          {currency} {Number(row.original.total_amount).toFixed(2)}
+          {currency} {Number(row.original.total_bruto).toFixed(2)}
         </span>
       );
     },

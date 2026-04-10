@@ -44,6 +44,7 @@ export default function SalePage() {
   const [numero, setNumero] = useState("");
   const [warehouseId, setWarehouseId] = useState("");
   const [userId, setUserId] = useState("");
+  const [productId, setProductId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -70,6 +71,7 @@ export default function SalePage() {
     numero: numero || undefined,
     warehouse_id: warehouseId ? Number(warehouseId) : undefined,
     user_id: userId ? Number(userId) : undefined,
+    details$product_id: productId ? Number(productId) : undefined,
   });
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function SalePage() {
   }, [
     per_page, search, startDate, endDate, customerId,
     documentType, paymentType, status, currency, serie, numero,
-    warehouseId, userId,
+    warehouseId, userId, productId,
   ]);
 
   const { removeSale } = useSaleStore();
@@ -237,6 +239,7 @@ export default function SalePage() {
           numero={numero}
           warehouseId={warehouseId}
           userId={userId}
+          productId={productId}
         />
       </div>
 
@@ -270,6 +273,8 @@ export default function SalePage() {
           setWarehouseId={setWarehouseId}
           userId={userId}
           setUserId={setUserId}
+          productId={productId}
+          setProductId={setProductId}
         />
       </SaleTable>
 
