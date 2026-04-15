@@ -151,7 +151,10 @@ export const GuideForm = ({
   warehouses,
   motives,
 }: GuideFormProps) => {
-  const initialOrderId = useRef(mode === "edit" ? defaultValues.order_id : null);
+  const initialOrderId = useRef(defaultValues.order_id || null);
+  const initialSaleId = useRef(defaultValues.sale_id || null);
+  const initialPurchaseId = useRef(defaultValues.purchase_id || null);
+  const initialWarehouseDocumentId = useRef(defaultValues.warehouse_document_id || null);
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [editingDetailIndex, setEditingDetailIndex] = useState<number | null>(
     null,
@@ -270,6 +273,8 @@ export const GuideForm = ({
   useEffect(() => {
     const loadSale = async () => {
       if (saleId && saleId !== "") {
+        // No recargar si el ID no cambió respecto al inicial (edición o duplicación)
+        if (saleId === initialSaleId.current) return;
         // Limpiar otros documentos seleccionados
         if (orderId) form.setValue("order_id", "");
         if (purchaseId) form.setValue("purchase_id", "");
@@ -316,6 +321,8 @@ export const GuideForm = ({
   useEffect(() => {
     const loadPurchase = async () => {
       if (purchaseId && purchaseId !== "") {
+        // No recargar si el ID no cambió respecto al inicial (edición o duplicación)
+        if (purchaseId === initialPurchaseId.current) return;
         // Limpiar otros documentos seleccionados
         if (orderId) form.setValue("order_id", "");
         if (saleId) form.setValue("sale_id", "");
@@ -357,6 +364,8 @@ export const GuideForm = ({
   useEffect(() => {
     const loadWarehouseDocument = async () => {
       if (warehouseDocumentId && warehouseDocumentId !== "") {
+        // No recargar si el ID no cambió respecto al inicial (edición o duplicación)
+        if (warehouseDocumentId === initialWarehouseDocumentId.current) return;
         // Limpiar otros documentos seleccionados
         if (orderId) form.setValue("order_id", "");
         if (saleId) form.setValue("sale_id", "");

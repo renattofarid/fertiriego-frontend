@@ -27,6 +27,8 @@ interface ExportButtonsProps {
   excelFileName?: string;
   pdfFileName?: string;
   ticketFileName?: string;
+  downloadPdf?: boolean;
+  downloadTicket?: boolean;
   onExcelDownload?: () => void | Promise<void>;
   onPdfDownload?: () => void | Promise<void>;
   onTicketDownload?: () => void | Promise<void>;
@@ -46,6 +48,8 @@ export default function ExportButtons({
   excelFileName = "export.xlsx",
   pdfFileName = "export.pdf",
   ticketFileName = "ticket.pdf",
+  downloadPdf = false,
+  downloadTicket = false,
   onExcelDownload,
   onPdfDownload,
   onTicketDownload,
@@ -67,6 +71,14 @@ export default function ExportButtons({
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
+  };
+
+  const openPdfInNewTab = async (endpoint: string) => {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(
+      new Blob([response.data], { type: "application/pdf" })
+    );
+    window.open(url, "_blank");
   };
 
   const handleExcelDownload = () => {
@@ -102,12 +114,14 @@ export default function ExportButtons({
 
     if (!pdfEndpoint) return;
 
-    const download = downloadFile(pdfEndpoint, pdfFileName);
+    const download = downloadPdf
+      ? downloadFile(pdfEndpoint, pdfFileName)
+      : openPdfInNewTab(pdfEndpoint);
 
     promiseToast(download, {
-      loading: "Descargando PDF...",
-      success: "PDF descargado exitosamente",
-      error: "Error al descargar el archivo PDF",
+      loading: downloadPdf ? "Descargando PDF..." : "Abriendo PDF...",
+      success: downloadPdf ? "PDF descargado exitosamente" : "PDF abierto exitosamente",
+      error: downloadPdf ? "Error al descargar el archivo PDF" : "Error al abrir el archivo PDF",
     });
   };
 
@@ -123,12 +137,14 @@ export default function ExportButtons({
 
     if (!ticketEndpoint) return;
 
-    const download = downloadFile(ticketEndpoint, ticketFileName);
+    const download = downloadTicket
+      ? downloadFile(ticketEndpoint, ticketFileName)
+      : openPdfInNewTab(ticketEndpoint);
 
     promiseToast(download, {
-      loading: "Descargando ticket...",
-      success: "Ticket descargado exitosamente",
-      error: "Error al descargar el ticket",
+      loading: downloadTicket ? "Descargando ticket..." : "Abriendo ticket...",
+      success: downloadTicket ? "Ticket descargado exitosamente" : "Ticket abierto exitosamente",
+      error: downloadTicket ? "Error al descargar el ticket" : "Error al abrir el ticket",
     });
   };
 
