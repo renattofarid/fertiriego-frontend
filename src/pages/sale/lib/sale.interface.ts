@@ -44,6 +44,14 @@ export interface SaleInstallmentResource {
   created_at: string;
   updated_at: string;
   currency: string;
+  // Optional fields from sale relationship
+  sale_issue_date?: string;
+  customer_name?: string;
+  customer_document?: string;
+  order_purchase?: string;
+  guides?: string;
+  retention?: number;
+  credit_note?: number;
 }
 
 export interface SaleResource {
