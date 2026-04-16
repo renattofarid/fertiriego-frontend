@@ -262,6 +262,7 @@ export const GuideColumns = ({
             pdfEndpoint={`/shipping-guide-remit/${row.original.id}/pdf`}
             pdfFileName={`guia-${row.original.full_guide_number}.pdf`}
             variant="separate"
+            openDirect
           />
           {["ENVIADA", "ACEPTADA", "DECLARADA"].includes(
             row.original.status,

@@ -180,6 +180,7 @@ export const getOrderColumns = ({
           pdfEndpoint={`/order/pdf/${row.original.id}`}
           pdfFileName={`pedido-${row.original.order_number}.pdf`}
           variant="separate"
+          openDirect
         />
         <ButtonAction
           icon={Eye}

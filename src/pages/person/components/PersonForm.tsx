@@ -160,6 +160,10 @@ export const PersonForm = ({
           updates.business_name = result.data.business_name || "";
           fieldsSet.business_name = true;
 
+          if (result.data.address) {
+            updates.address = result.data.address;
+          }
+
           Object.keys(updates).forEach((key) => {
             form.setValue(key as keyof PersonSchema, updates[key], {
               shouldValidate: true,
