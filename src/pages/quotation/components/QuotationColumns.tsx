@@ -159,6 +159,7 @@ export const getQuotationColumns = ({
           pdfEndpoint={`/quotation/pdf/${row.original.id}`}
           pdfFileName={`cotizacion-${row.original.quotation_number}.pdf`}
           variant="separate"
+          openDirect
         />
         <ButtonAction
           icon={Eye}

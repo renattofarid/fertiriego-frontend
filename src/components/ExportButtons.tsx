@@ -29,6 +29,7 @@ interface ExportButtonsProps {
   ticketFileName?: string;
   downloadPdf?: boolean;
   downloadTicket?: boolean;
+  openDirect?: boolean;
   onExcelDownload?: () => void | Promise<void>;
   onPdfDownload?: () => void | Promise<void>;
   onTicketDownload?: () => void | Promise<void>;
@@ -50,6 +51,7 @@ export default function ExportButtons({
   ticketFileName = "ticket.pdf",
   downloadPdf = false,
   downloadTicket = false,
+  openDirect = false,
   onExcelDownload,
   onPdfDownload,
   onTicketDownload,
@@ -79,6 +81,12 @@ export default function ExportButtons({
       new Blob([response.data], { type: "application/pdf" })
     );
     window.open(url, "_blank");
+  };
+
+  const openPdfDirect = (endpoint: string) => {
+    const base = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, "");
+    const path = endpoint.replace(/^\//, "");
+    window.open(`${base}/${path}`, "_blank");
   };
 
   const handleExcelDownload = () => {
@@ -114,15 +122,21 @@ export default function ExportButtons({
 
     if (!pdfEndpoint) return;
 
-    const download = downloadPdf
-      ? downloadFile(pdfEndpoint, pdfFileName)
-      : openPdfInNewTab(pdfEndpoint);
-
-    promiseToast(download, {
-      loading: downloadPdf ? "Descargando PDF..." : "Abriendo PDF...",
-      success: downloadPdf ? "PDF descargado exitosamente" : "PDF abierto exitosamente",
-      error: downloadPdf ? "Error al descargar el archivo PDF" : "Error al abrir el archivo PDF",
-    });
+    if (openDirect) {
+      openPdfDirect(pdfEndpoint);
+    } else if (downloadPdf) {
+      promiseToast(downloadFile(pdfEndpoint, pdfFileName), {
+        loading: "Descargando PDF...",
+        success: "PDF descargado exitosamente",
+        error: "Error al descargar el archivo PDF",
+      });
+    } else {
+      promiseToast(openPdfInNewTab(pdfEndpoint), {
+        loading: "Abriendo PDF...",
+        success: "PDF abierto exitosamente",
+        error: "Error al abrir el archivo PDF",
+      });
+    }
   };
 
   const handleTicketDownload = () => {
@@ -137,15 +151,21 @@ export default function ExportButtons({
 
     if (!ticketEndpoint) return;
 
-    const download = downloadTicket
-      ? downloadFile(ticketEndpoint, ticketFileName)
-      : openPdfInNewTab(ticketEndpoint);
-
-    promiseToast(download, {
-      loading: downloadTicket ? "Descargando ticket..." : "Abriendo ticket...",
-      success: downloadTicket ? "Ticket descargado exitosamente" : "Ticket abierto exitosamente",
-      error: downloadTicket ? "Error al descargar el ticket" : "Error al abrir el ticket",
-    });
+    if (openDirect) {
+      openPdfDirect(ticketEndpoint);
+    } else if (downloadTicket) {
+      promiseToast(downloadFile(ticketEndpoint, ticketFileName), {
+        loading: "Descargando ticket...",
+        success: "Ticket descargado exitosamente",
+        error: "Error al descargar el ticket",
+      });
+    } else {
+      promiseToast(openPdfInNewTab(ticketEndpoint), {
+        loading: "Abriendo ticket...",
+        success: "Ticket abierto exitosamente",
+        error: "Error al abrir el ticket",
+      });
+    }
   };
 
   const showExcelButton = excelEndpoint || onExcelDownload;

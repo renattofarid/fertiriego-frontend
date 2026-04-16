@@ -416,6 +416,7 @@ export const getSaleColumns = ({
             ticketEndpoint={`/sale/${row.original.id}/ticket`}
             ticketFileName={`ticket-venta-${row.original.sequential_number}.pdf`}
             variant="separate"
+            openDirect
           />
 
           {/* XML / CDR — al lado del PDF, solo si está enviado */}
