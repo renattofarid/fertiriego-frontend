@@ -362,6 +362,49 @@ export interface UpdateSalePaymentRequest {
   observation?: string;
 }
 
+// ===== STATISTICS =====
+
+export interface SaleStatisticsPaymentMethod {
+  tipo: string;
+  payment_type: string;
+  cantidad: number;
+  monto_total: string;
+}
+
+export interface SaleStatisticsTopProductVenta {
+  id: number;
+  name: string;
+  total_cantidad: string;
+  total_vendido: string;
+}
+
+export interface SaleStatisticsTopProductCompra {
+  id: number;
+  name: string;
+  total_cantidad: string;
+  total_comprado: string;
+}
+
+export interface SaleStatisticsData {
+  ventas: {
+    total: number;
+    top_5_productos: SaleStatisticsTopProductVenta[];
+  };
+  compras: {
+    total: number;
+    top_5_productos: SaleStatisticsTopProductCompra[];
+  };
+  metodos_pago: {
+    ventas: SaleStatisticsPaymentMethod[];
+    compras: SaleStatisticsPaymentMethod[];
+  };
+}
+
+export interface SaleStatisticsResponse {
+  success: boolean;
+  data: SaleStatisticsData;
+}
+
 // ===== CONSTANTS =====
 
 export const SALE_ENDPOINT = "/sale";
