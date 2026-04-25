@@ -1,13 +1,8 @@
-"use client";
-
-import { TrendingUp } from "lucide-react";
+import { useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
-
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -17,139 +12,144 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Button } from "@/components/ui/button";
+import { formatNumber } from "@/lib/formatCurrency";
+import type {
+  SaleStatisticsTopProductVenta,
+  SaleStatisticsTopProductCompra,
+} from "@/pages/sale/lib/sale.interface";
 
-interface TopProduct {
-  name: string;
-  quantity: number;
-  revenue: number;
+export interface TopProductsChartProps {
+  ventasData: SaleStatisticsTopProductVenta[];
+  comprasData: SaleStatisticsTopProductCompra[];
 }
 
-interface TopProductsChartProps {
-  data: TopProduct[];
-}
+const COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
-export function TopProductsChart({ data }: TopProductsChartProps) {
-  // Transform data to include fill color for each product
-  const chartData = data.map((product, index) => ({
-    ...product,
-    fill: `var(--color-product-${index + 1})`,
+const CustomYAxisTick = (props: any) => {
+  const { x, y, payload } = props;
+  const label: string = payload.value;
+  const truncated = label.length > 16 ? `${label.substring(0, 16)}…` : label;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <title>{label}</title>
+      <text
+        x={0}
+        y={0}
+        dy={4}
+        textAnchor="end"
+        fill="currentColor"
+        fontSize={10}
+      >
+        {truncated}
+      </text>
+    </g>
+  );
+};
+
+export function TopProductsChart({
+  ventasData,
+  comprasData,
+}: TopProductsChartProps) {
+  const [tab, setTab] = useState<"ventas" | "compras">("ventas");
+
+  const isVentas = tab === "ventas";
+  const raw = isVentas ? ventasData : comprasData;
+
+  const chartData = raw.map((p, i) => ({
+    name: p.name,
+    cantidad: parseFloat(p.total_cantidad),
+    monto: parseFloat(
+      isVentas
+        ? (p as SaleStatisticsTopProductVenta).total_vendido
+        : (p as SaleStatisticsTopProductCompra).total_comprado,
+    ),
+    fill: COLORS[i % COLORS.length],
   }));
 
-  // Create dynamic chart config based on products
   const chartConfig = {
-    quantity: {
-      label: "Cantidad",
-    },
+    cantidad: { label: "Cantidad" },
     ...Object.fromEntries(
-      data.map((product, index) => [
-        `product-${index + 1}`,
-        {
-          label: product.name,
-          color: `var(--chart-${(index % 5) + 1})`,
-        },
-      ])
+      raw.map((p, i) => [
+        `product-${i + 1}`,
+        { label: p.name, color: COLORS[i % COLORS.length] },
+      ]),
     ),
   } satisfies ChartConfig;
 
-  const totalQuantity = data.reduce(
-    (sum, product) => sum + product.quantity,
-    0
-  );
-  const totalRevenue = data.reduce((sum, product) => sum + product.revenue, 0);
-
-  // Custom tick component for truncating long text
-  const CustomYAxisTick = (props: any) => {
-    const { x, y, payload } = props;
-    return (
-      <g transform={`translate(${x},${y})`}>
-        <text
-          x={0}
-          y={0}
-          dy={4}
-          textAnchor="end"
-          fill="currentColor"
-          fontSize={10}
-          className="line-clamp-1"
-          style={{
-            maxWidth: "100px",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <title>{payload.value}</title>
-          {payload.value.length > 15
-            ? `${payload.value.substring(0, 15)}...`
-            : payload.value}
-        </text>
-      </g>
-    );
-  };
-
   return (
     <Card className="border-none shadow-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base md:text-lg">
-          Top 5 Productos Más Vendidos
-        </CardTitle>
-        <CardDescription className="text-xs md:text-sm">
-          Por cantidad vendida
-        </CardDescription>
+      <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
+        <div>
+          <CardTitle className="text-base">Top 5 Productos</CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Por cantidad {isVentas ? "vendida" : "comprada"}
+          </p>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            variant={isVentas ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 text-xs px-2"
+            onClick={() => setTab("ventas")}
+          >
+            Ventas
+          </Button>
+          <Button
+            variant={!isVentas ? "secondary" : "ghost"}
+            size="sm"
+            className="h-7 text-xs px-2"
+            onClick={() => setTab("compras")}
+          >
+            Compras
+          </Button>
+        </div>
       </CardHeader>
-      <CardContent>
-        {data.length > 0 ? (
-          <ChartContainer config={chartConfig}>
+      <CardContent className="pt-1">
+        {chartData.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[200px] w-full">
             <BarChart
               accessibilityLayer
               data={chartData}
               layout="vertical"
-              margin={{
-                left: 0,
-              }}
+              margin={{ left: 0, right: 8 }}
             >
               <YAxis
                 dataKey="name"
                 type="category"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={8}
                 axisLine={false}
                 tick={<CustomYAxisTick />}
-                width={120}
+                width={110}
               />
-              <XAxis dataKey="quantity" type="number" hide />
+              <XAxis dataKey="cantidad" type="number" hide />
               <ChartTooltip
                 cursor={false}
                 content={
                   <ChartTooltipContent
                     hideLabel
                     formatter={(value, _name, props) => [
-                      `${
-                        props.payload.name
-                      } (${value} unidades) - S/. ${props.payload.revenue.toFixed(
-                        2
-                      )}`,
+                      `${props.payload.name}: ${formatNumber(Number(value), 0)} uds · S/ ${formatNumber(props.payload.monto)}`,
                     ]}
                   />
                 }
               />
-              <Bar dataKey="quantity" layout="vertical" radius={5} />
+              <Bar dataKey="cantidad" layout="vertical" radius={4} />
             </BarChart>
           </ChartContainer>
         ) : (
-          <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
-            No hay datos de productos vendidos
+          <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+            Sin datos para el período
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Total: {totalQuantity} unidades vendidas{" "}
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Ingresos totales: S/. {totalRevenue.toFixed(2)}
-        </div>
-      </CardFooter>
     </Card>
   );
 }

@@ -52,6 +52,16 @@ export const getAllPurchases = async (): Promise<PurchaseResource[]> => {
   return response.data;
 };
 
+export const getPurchasesInRange = async (
+  from: string,
+  to: string,
+): Promise<PurchaseResource[]> => {
+  const response = await api.get<PurchaseResource[]>(PURCHASE_ENDPOINT, {
+    params: { all: true, from, to },
+  });
+  return response.data;
+};
+
 export const findPurchaseById = async (
   id: number,
 ): Promise<PurchaseResourceById> => {
