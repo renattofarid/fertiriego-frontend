@@ -1,4 +1,5 @@
-import { FileCheck } from "lucide-react";
+import { useState } from "react";
+import { FileCheck, MapPin, Pencil } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,8 @@ import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interfac
 import { formatNumber } from "@/lib/formatCurrency";
 import { truncTo2 } from "@/lib/saleCalculations";
 import type { UseFormReturn } from "react-hook-form";
+import { DETRACCION_OPTIONS } from "../lib/sale.interface";
+import { PersonAddressModal } from "@/pages/person/components/PersonAddressModal";
 
 interface DetailRow {
   product_id: string;
@@ -29,6 +32,7 @@ interface SaleSummaryProps {
   mode: "create" | "edit";
   isSubmitting: boolean;
   selectedCustomer?: PersonResource;
+  onAddressUpdated?: (newAddress: string) => void;
   warehouses: WarehouseResource[];
   details: DetailRow[];
   installments?: InstallmentRow[];
@@ -46,6 +50,8 @@ interface SaleSummaryProps {
   porcentajeIgv?: number;
   totalExonerada?: number;
   totalInafecta?: number;
+  isDetraccion?: boolean;
+  codigosDetraccion?: string;
 }
 
 export function SaleSummary({
@@ -53,6 +59,7 @@ export function SaleSummary({
   mode,
   isSubmitting,
   selectedCustomer,
+  onAddressUpdated,
   warehouses,
   details,
   installments = [],
@@ -70,7 +77,19 @@ export function SaleSummary({
   porcentajeIgv = 18,
   totalExonerada = 0,
   totalInafecta = 0,
+  isDetraccion = false,
+  codigosDetraccion,
 }: SaleSummaryProps) {
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+
+  const detraccionOption = DETRACCION_OPTIONS.find(
+    (o) => o.value === codigosDetraccion,
+  );
+  const detraccionPorcentaje = detraccionOption?.porcentaje ?? 0;
+  const totalBruto = calculateDetailsTotal ? calculateDetailsTotal() : 0;
+  const detraccionAmount = truncTo2((totalBruto * detraccionPorcentaje) / 100);
+  const totalConDetraccion = truncTo2(totalBruto - detraccionAmount);
+
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
   const currencyWatch = form.watch("currency");
@@ -104,6 +123,7 @@ export function SaleSummary({
   const currencySymbol = getCurrencySymbol();
 
   return (
+    <>
     <div className="xl:col-span-1 xl:row-start-1 xl:col-start-3 h-full">
       <Card className="h-full sticky top-6 bg-linear-to-br from-primary/5 via-background to-muted/20 border-primary/20">
         <CardHeader className="space-y-1">
@@ -142,12 +162,27 @@ export function SaleSummary({
                     {selectedCustomer.number_document}
                   </div>
                 )}
-                {selectedCustomer.address && (
-                  <div className="text-xs text-muted-foreground">
-                    <span className="font-semibold">Dirección:</span>{" "}
-                    {selectedCustomer.address}
-                  </div>
-                )}
+                <div className="flex items-start justify-between gap-2 mt-1">
+                  {selectedCustomer.address ? (
+                    <div className="text-xs text-muted-foreground flex items-start gap-1 flex-1">
+                      <MapPin className="size-3 shrink-0 mt-0.5" />
+                      <span>{selectedCustomer.address}</span>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic flex items-center gap-1">
+                      <MapPin className="size-3 shrink-0" />
+                      Sin dirección
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsAddressModalOpen(true)}
+                    className="text-xs text-primary underline underline-offset-2 flex items-center gap-1 hover:opacity-80 transition-opacity shrink-0"
+                  >
+                    <Pencil className="size-3" />
+                    Actualizar
+                  </button>
+                </div>
                 {selectedCustomer.phone && selectedCustomer.phone !== "0" && (
                   <div className="text-xs text-muted-foreground">
                     <span className="font-semibold">Teléfono:</span>{" "}
@@ -280,6 +315,47 @@ export function SaleSummary({
               </div>
             )}
 
+            {isDetraccion && detraccionOption && (
+              <div className="space-y-2 border border-dashed border-muted-foreground/20 pt-2 rounded-lg mx-2">
+                <p className="text-xs font-mono uppercase text-muted-foreground px-3">
+                  Forma de pago con detracción
+                </p>
+                <div className="flex justify-between items-center text-xs px-3">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Detracción ({detraccionPorcentaje}%)
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {detraccionAmount.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs px-3">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Cliente paga
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {totalConDetraccion.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs px-3 pb-2">
+                  <span className="text-muted-foreground/80 font-mono uppercase">
+                    Depósito BN
+                  </span>
+                  <span className="text-muted-foreground">
+                    {currencySymbol}{" "}
+                    {detraccionAmount.toLocaleString("es-PE", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+
             <div className="border border-dashed border-primary/20 m-0" />
 
             <div className="flex justify-between items-center p-3 bg-muted rounded-b-lg">
@@ -355,5 +431,15 @@ export function SaleSummary({
         </CardContent>
       </Card>
     </div>
+
+    {selectedCustomer && (
+      <PersonAddressModal
+        person={selectedCustomer}
+        open={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSuccess={(newAddress) => onAddressUpdated?.(newAddress)}
+      />
+    )}
+    </>
   );
 }

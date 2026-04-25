@@ -175,6 +175,13 @@ export function ProductHistoryDialog({
   const purchaseColumns = useMemo<ColumnDef<ProductPurchaseHistoryItem>[]>(
     () => [
       {
+        accessorKey: "numero_factura",
+        header: "Factura",
+        cell: ({ row }) => (
+          <div className="font-medium">{row.original.numero_factura ?? "-"}</div>
+        ),
+      },
+      {
         accessorKey: "documento",
         header: "Documento",
         cell: ({ row }) => (
@@ -267,7 +274,7 @@ export function ProductHistoryDialog({
       title={`Historial - ${productName}`}
       subtitle="Consulta el historial de ventas y compras de este producto"
       icon="History"
-      size="4xl"
+      size="5xl"
       className="max-h-[90vh] overflow-y-auto"
     >
       <div className="space-y-4">

@@ -66,6 +66,7 @@ const mapGuideToDefaultValues = (guide: GuideResource): Partial<GuideSchema> => 
       unit_measure: detail.unit_measure || "UND",
       weight: Number(detail.weight) || 0,
     })),
+    total_weight: Number(guide.total_weight) || 0,
     total_packages: guide.total_packages || 0,
   };
 };

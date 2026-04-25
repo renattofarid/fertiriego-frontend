@@ -5,6 +5,7 @@ import type { OrderResource } from "../lib/order.interface";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { parse } from "date-fns";
 
 interface OrderColumnsProps {
   onEdit: (order: OrderResource) => void;
@@ -56,7 +57,7 @@ export const getOrderColumns = ({
     accessorKey: "order_date",
     header: "Fecha Pedido",
     cell: ({ row }) => {
-      const date = new Date(row.original.order_date);
+      const date = parse(row.original.order_date, "yyyy-MM-dd", new Date());
       return (
         <Badge variant="outline">
           {date.toLocaleDateString("es-ES", {
@@ -72,7 +73,11 @@ export const getOrderColumns = ({
     accessorKey: "order_delivery_date",
     header: "Fecha Entrega",
     cell: ({ row }) => {
-      const date = new Date(row.original.order_delivery_date);
+      const date = parse(
+        row.original.order_delivery_date,
+        "yyyy-MM-dd",
+        new Date(),
+      );
       return (
         <Badge variant="secondary">
           {date.toLocaleDateString("es-ES", {
@@ -88,7 +93,11 @@ export const getOrderColumns = ({
     accessorKey: "order_expiry_date",
     header: "Fecha Vencimiento",
     cell: ({ row }) => {
-      const date = new Date(row.original.order_expiry_date);
+      const date = parse(
+        row.original.order_expiry_date,
+        "yyyy-MM-dd",
+        new Date(),
+      );
       return (
         <Badge variant="outline">
           {date.toLocaleDateString("es-ES", {
@@ -115,7 +124,10 @@ export const getOrderColumns = ({
       );
       return (
         <span className="font-semibold">
-          {total.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {total.toLocaleString("es-PE", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
         </span>
       );
     },
@@ -168,6 +180,7 @@ export const getOrderColumns = ({
           pdfEndpoint={`/order/pdf/${row.original.id}`}
           pdfFileName={`pedido-${row.original.order_number}.pdf`}
           variant="separate"
+          openDirect
         />
         <ButtonAction
           icon={Eye}

@@ -160,6 +160,10 @@ export const PersonForm = ({
           updates.business_name = result.data.business_name || "";
           fieldsSet.business_name = true;
 
+          if (result.data.address) {
+            updates.address = result.data.address;
+          }
+
           Object.keys(updates).forEach((key) => {
             form.setValue(key as keyof PersonSchema, updates[key], {
               shouldValidate: true,
@@ -777,6 +781,37 @@ export const PersonForm = ({
             )}
           />
 
+
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel className={errors.address ? "text-destructive" : ""}>
+                  Dirección{" "}
+                  <span className="text-muted-foreground font-normal">
+                    (opcional)
+                  </span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Ingrese la dirección"
+                    {...field}
+                    className={`
+                      ${errors.address ? "border-destructive focus-visible:ring-destructive" : ""}
+                      ${dirtyFields.address && !errors.address ? "border-primary" : ""}
+                    `}
+                  />
+                </FormControl>
+                <FormMessage />
+                <div className="h-4 text-xs">
+                  {!errors.address && dirtyFields.address && (
+                    <p className="text-primary">✓ Dirección válida</p>
+                  )}
+                </div>
+              </FormItem>
+            )}
+          />
         </GroupFormSection>
 
         {/* Addresses mini CRUD - only shown when creating */}
