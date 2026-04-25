@@ -385,22 +385,30 @@ export interface SaleStatisticsTopProductCompra {
   total_comprado: string;
 }
 
-export interface SaleStatisticsListItem {
-  numero: string;
-  monto: string;
+export interface ComparativoPorFecha {
+  fecha: string;
+  ventas: number;
+  compras: number;
+}
+
+export interface ComprasVsVentas {
+  ventas: number;
+  compras: number;
+  diferencia: number;
+  margen: number;
 }
 
 export interface SaleStatisticsData {
   ventas: {
     total: number;
     top_5_productos: SaleStatisticsTopProductVenta[];
-    listado: SaleStatisticsListItem[];
   };
   compras: {
     total: number;
     top_5_productos: SaleStatisticsTopProductCompra[];
-    listado?: SaleStatisticsListItem[];
   };
+  compras_vs_ventas: ComprasVsVentas;
+  comparativo_por_fecha: ComparativoPorFecha[];
   metodos_pago: {
     ventas: SaleStatisticsPaymentMethod[];
     compras: SaleStatisticsPaymentMethod[];

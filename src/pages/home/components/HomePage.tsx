@@ -131,14 +131,10 @@ export default function HomePage() {
     totalVentasCount > 0 ? totalVentas / totalVentasCount : 0;
 
   const transactionsByDate = useMemo(() => {
-    const ventasListado = stats?.ventas.listado ?? [];
-    const comprasListado = stats?.compras.listado ?? [];
-    const len = Math.max(ventasListado.length, comprasListado.length);
-
-    return Array.from({ length: len }, (_, i) => ({
-      label: ventasListado[i]?.numero ?? comprasListado[i]?.numero ?? `#${i + 1}`,
-      ventas: i < ventasListado.length ? Number(parseFloat(ventasListado[i].monto).toFixed(2)) : 0,
-      compras: i < comprasListado.length ? Number(parseFloat(comprasListado[i].monto).toFixed(2)) : 0,
+    return (stats?.comparativo_por_fecha ?? []).map((item) => ({
+      label: item.fecha,
+      ventas: item.ventas,
+      compras: item.compras,
     }));
   }, [stats]);
 
