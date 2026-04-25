@@ -44,6 +44,7 @@ export interface SaleInstallmentResource {
   created_at: string;
   updated_at: string;
   currency: string;
+  total_amount: number;
 }
 
 export interface SaleResource {
