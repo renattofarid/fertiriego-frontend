@@ -16,7 +16,7 @@ import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { formatCurrency, formatNumber } from "@/lib/formatCurrency";
 
 export interface TransactionData {
-  date: string;
+  label: string;
   compras: number;
   ventas: number;
 }
@@ -43,7 +43,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
         <div className="grid flex-1 gap-0.5">
           <CardTitle className="text-base">Compras vs Ventas</CardTitle>
           <CardDescription className="text-xs">
-            Montos diarios en el período seleccionado
+            Montos por transacción en el período seleccionado
           </CardDescription>
         </div>
       </CardHeader>
@@ -69,17 +69,14 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
               </defs>
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
-                dataKey="date"
+                dataKey="label"
                 tickLine={false}
                 axisLine={false}
                 tickMargin={8}
                 minTickGap={32}
                 className="text-xs"
-                tickFormatter={(value) =>
-                  new Date(value).toLocaleDateString("es-ES", {
-                    month: "short",
-                    day: "numeric",
-                  })
+                tickFormatter={(value: string) =>
+                  value.length > 8 ? value.slice(-6) : value
                 }
               />
               <YAxis
@@ -93,14 +90,7 @@ export function SalesVsPurchasesChart({ data }: SalesVsPurchasesChartProps) {
                 cursor={false}
                 content={
                   <ChartTooltipContent
-                    labelFormatter={(value) =>
-                      new Date(value).toLocaleDateString("es-ES", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })
-                    }
+                    labelFormatter={(value) => value}
                     indicator="dot"
                     formatter={(val) => (
                       <span className="text-foreground font-mono font-medium tabular-nums">

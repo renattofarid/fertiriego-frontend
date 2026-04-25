@@ -14,8 +14,7 @@ import { TopProductsChart } from "./TopProductsChart";
 import { PaymentMethodsChart } from "./PaymentMethodsChart";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
-import { useSaleStatistics, useSalesInRange } from "@/pages/sale/lib/sale.hook";
-import { usePurchasesInRange } from "@/pages/purchase/lib/purchase.hook";
+import { useSaleStatistics } from "@/pages/sale/lib/sale.hook";
 import {
   Select,
   SelectContent,
@@ -108,13 +107,6 @@ export default function HomePage() {
     dateRange.from,
     dateRange.to,
   );
-  const { data: salesData = [], isLoading: salesLoading } = useSalesInRange(
-    dateRange.from,
-    dateRange.to,
-  );
-  const { data: purchasesData = [], isLoading: purchasesLoading } =
-    usePurchasesInRange(dateRange.from, dateRange.to);
-
   const stats = statsResponse?.data;
 
   const totalVentas = stats?.ventas.total ?? 0;
@@ -138,37 +130,24 @@ export default function HomePage() {
   const averageTicket =
     totalVentasCount > 0 ? totalVentas / totalVentasCount : 0;
 
-  // Series de tiempo para el área chart
   const transactionsByDate = useMemo(() => {
-    const groups: Record<string, { compras: number; ventas: number }> = {};
+    const ventasListado = stats?.ventas.listado ?? [];
+    const comprasListado = stats?.compras.listado ?? [];
+    const len = Math.max(ventasListado.length, comprasListado.length);
 
-    purchasesData.forEach((p) => {
-      const d = p.issue_date;
-      if (!groups[d]) groups[d] = { compras: 0, ventas: 0 };
-      groups[d].compras += parseFloat(p.total_amount);
-    });
-
-    salesData.forEach((s) => {
-      const d = s.issue_date;
-      if (!groups[d]) groups[d] = { compras: 0, ventas: 0 };
-      groups[d].ventas += parseFloat(s.total_amount.toString());
-    });
-
-    return Object.entries(groups)
-      .map(([date, data]) => ({
-        date,
-        compras: Number(data.compras.toFixed(2)),
-        ventas: Number(data.ventas.toFixed(2)),
-      }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [salesData, purchasesData]);
+    return Array.from({ length: len }, (_, i) => ({
+      label: ventasListado[i]?.numero ?? comprasListado[i]?.numero ?? `#${i + 1}`,
+      ventas: i < ventasListado.length ? Number(parseFloat(ventasListado[i].monto).toFixed(2)) : 0,
+      compras: i < comprasListado.length ? Number(parseFloat(comprasListado[i].monto).toFixed(2)) : 0,
+    }));
+  }, [stats]);
 
   const currentYearRange = useMemo(() => {
     const base = now.getFullYear();
     return [base - 2, base - 1, base, base + 1];
   }, []);
 
-  const isLoading = statsLoading || salesLoading || purchasesLoading;
+  const isLoading = statsLoading;
 
   if (isLoading) {
     return (

@@ -385,14 +385,21 @@ export interface SaleStatisticsTopProductCompra {
   total_comprado: string;
 }
 
+export interface SaleStatisticsListItem {
+  numero: string;
+  monto: string;
+}
+
 export interface SaleStatisticsData {
   ventas: {
     total: number;
     top_5_productos: SaleStatisticsTopProductVenta[];
+    listado: SaleStatisticsListItem[];
   };
   compras: {
     total: number;
     top_5_productos: SaleStatisticsTopProductCompra[];
+    listado?: SaleStatisticsListItem[];
   };
   metodos_pago: {
     ventas: SaleStatisticsPaymentMethod[];
