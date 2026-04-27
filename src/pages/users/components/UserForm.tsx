@@ -28,6 +28,7 @@ import {
 import { Search } from "lucide-react";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useTypeUsers } from "@/pages/type-users/lib/typeUser.hook";
+import { FormInput } from "@/components/FormInput";
 
 interface MetricFormProps {
   defaultValues: Partial<UserSchema>;
@@ -97,7 +98,12 @@ export const UserForm = ({
         form.setValue("names", "");
         form.setValue("father_surname", "");
         form.setValue("mother_surname", "");
-        setFieldsFromSearch((prev) => ({ ...prev, names: false, father_surname: false, mother_surname: false }));
+        setFieldsFromSearch((prev) => ({
+          ...prev,
+          names: false,
+          father_surname: false,
+          mother_surname: false,
+        }));
       } else if (type_person === "NATURAL") {
         form.setValue("business_name", "");
         setFieldsFromSearch((prev) => ({ ...prev, business_name: false }));
@@ -421,19 +427,13 @@ export const UserForm = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
+            <FormInput
               control={form.control}
               name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-sm font-normal">Usuario</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Usuario" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Usuario"
+              placeholder="Usuario"
             />
+
             <FormField
               control={form.control}
               name="password"

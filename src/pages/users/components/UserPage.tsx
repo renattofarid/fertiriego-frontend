@@ -30,7 +30,11 @@ export default function UserPage() {
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
-  const { data, isLoading, refetch } = useUsers();
+  const { data, isLoading, refetch } = useUsers({
+    page,
+    per_page,
+    search,
+  });
 
   useEffect(() => {
     setPage(1);

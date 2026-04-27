@@ -24,6 +24,8 @@ export default function SaleTable({
         initialColumnVisibility={{
           id: false,
           details: false,
+          warehouse_name: false,
+          payment_type: false,
         }}
       >
         {children}

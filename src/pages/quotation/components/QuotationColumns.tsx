@@ -5,6 +5,7 @@ import type { QuotationResource } from "../lib/quotation.interface";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { parse } from "date-fns";
 
 interface QuotationColumnsProps {
   onEdit: (quotation: QuotationResource) => void;
@@ -56,7 +57,7 @@ export const getQuotationColumns = ({
     accessorKey: "fecha_emision",
     header: "Fecha Emisión",
     cell: ({ row }) => {
-      const date = new Date(row.original.fecha_emision);
+      const date = parse(row.original.fecha_emision, "yyyy-MM-dd", new Date());
       return (
         <Badge variant="outline">
           {date.toLocaleDateString("es-ES", {
@@ -158,6 +159,7 @@ export const getQuotationColumns = ({
           pdfEndpoint={`/quotation/pdf/${row.original.id}`}
           pdfFileName={`cotizacion-${row.original.quotation_number}.pdf`}
           variant="separate"
+          openDirect
         />
         <ButtonAction
           icon={Eye}

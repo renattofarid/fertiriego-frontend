@@ -10,7 +10,6 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +26,7 @@ import { GroupFormSection } from "@/components/GroupFormSection";
 import type { Option } from "@/lib/core.interface";
 import type { CreditNoteReason } from "../lib/credit-note.interface";
 import { CreditNoteSummary } from "./CreditNoteSummary";
+import { FormInput } from "@/components/FormInput";
 
 interface CreditNoteFormProps {
   defaultValues: Partial<CreditNoteSchema>;
@@ -47,7 +47,7 @@ export const CreditNoteForm = ({
 }: CreditNoteFormProps) => {
   const { data: sales } = useAllSales();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
-    defaultValues.sale_id || null
+    defaultValues.sale_id || null,
   );
   const { data: selectedSale } = useSaleById(Number(selectedSaleId));
 
@@ -129,9 +129,9 @@ export const CreditNoteForm = ({
 
   const calculateSubtotal = () => {
     return fields.reduce((sum, _field, index) => {
-      const quantity = form.watch(`details.${index}.quantity`) || 0;
-      const unitPrice = form.watch(`details.${index}.unit_price`) || 0;
-      return sum + (quantity * unitPrice);
+      const quantity = Number(form.watch(`details.${index}.quantity`) || 0);
+      const unitPrice = Number(form.watch(`details.${index}.unit_price`) || 0);
+      return sum + quantity * unitPrice;
     }, 0);
   };
 
@@ -145,169 +145,147 @@ export const CreditNoteForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid xl:grid-cols-3 gap-6 w-full">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid xl:grid-cols-3 gap-6 w-full"
+      >
         <div className="xl:col-span-2 space-y-4">
-        <GroupFormSection
-          title="Información de la Nota de Crédito"
-          icon={Info}
-          cols={{ sm: 1 }}
-        >
-          <FormSelect
-            name="sale_id"
-            label="Venta"
-            placeholder="Seleccione la venta"
-            options={saleOptions}
-            control={form.control}
-            disabled={mode === "edit"}
-            withValue
-          />
-          <DatePickerFormField
-            control={form.control}
-            name="issue_date"
-            label="Fecha de Emisión"
-            placeholder="Seleccione la fecha"
-            disabledRange={{
-              after: new Date(),
-            }}
-          />
-
-          <FormSelect
-            name="credit_note_motive_id"
-            label="Tipo de Nota de Crédito"
-            placeholder="Seleccione el tipo"
-            options={creditNoteReasons.map(
-              (reason): Option => ({
-                value: reason.id.toString(),
-                label: reason.name,
-              })
-            )}
-            control={form.control}
-          />
-
-          <FormSwitch
-            name="affects_stock"
-            label="Afecta Stock"
-            text="Marque si la nota de crédito debe afectar el inventario"
-            control={form.control}
-          />
-
-          <div className="md:col-span-2">
-            <FormField
+          <GroupFormSection
+            title="Información de la Nota de Crédito"
+            icon={Info}
+            cols={{ sm: 1 }}
+          >
+            <FormSelect
+              name="sale_id"
+              label="Venta"
+              placeholder="Seleccione la venta"
+              options={saleOptions}
               control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Motivo</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Ingrese el motivo de la nota de crédito"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              disabled={mode === "edit"}
+              withValue
             />
-          </div>
-        </GroupFormSection>
+            <DatePickerFormField
+              control={form.control}
+              name="issue_date"
+              label="Fecha de Emisión"
+              placeholder="Seleccione la fecha"
+              disabledRange={{
+                after: new Date(),
+              }}
+            />
 
-        {/* Detalles */}
-        <GroupFormSection
-          title="Detalles de la Nota de Crédito"
-          icon={Info}
-          cols={{ sm: 1 }}
-          headerExtra={
-            <Button
-              type="button"
-              onClick={handleAddDetail}
-              
-              disabled={!selectedSaleId}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Detalle
-            </Button>
-          }
-        >
-          {fields.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No hay detalles agregados. Seleccione una venta y agregue
-              detalles.
-            </p>
-          )}
+            <FormSelect
+              name="credit_note_motive_id"
+              label="Tipo de Nota de Crédito"
+              placeholder="Seleccione el tipo"
+              options={creditNoteReasons.map(
+                (reason): Option => ({
+                  value: reason.id.toString(),
+                  label: reason.name,
+                }),
+              )}
+              control={form.control}
+            />
 
-          <div className="space-y-4">
-            {fields.map((field, index) => (
-              <div
-                className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
-                key={field.id}
+            <FormSwitch
+              name="affects_stock"
+              label="Afecta Stock"
+              text="Marque si la nota de crédito debe afectar el inventario"
+              control={form.control}
+            />
+
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="reason"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Motivo</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Ingrese el motivo de la nota de crédito"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </GroupFormSection>
+
+          {/* Detalles */}
+          <GroupFormSection
+            title="Detalles de la Nota de Crédito"
+            icon={Info}
+            cols={{ sm: 1 }}
+            headerExtra={
+              <Button
+                type="button"
+                onClick={handleAddDetail}
+                disabled={!selectedSaleId}
               >
-                <div className="md:col-span-2">
-                  <FormSelect
-                    name={`details.${index}.sale_detail_id`}
-                    label="Producto de la Venta"
-                    placeholder="Seleccione el producto"
-                    options={saleDetailOptions}
-                    control={form.control}
-                  />
-                </div>
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar Detalle
+              </Button>
+            }
+          >
+            {fields.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No hay detalles agregados. Seleccione una venta y agregue
+                detalles.
+              </p>
+            )}
 
-                <FormField
-                  control={form.control}
-                  name={`details.${index}.quantity`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Cantidad</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.001"
-                          placeholder="0"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name={`details.${index}.unit_price`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Precio Unitario</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(Number(e.target.value))
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  onClick={() => remove(index)}
+            <div className="space-y-4">
+              {fields.map((field, index) => (
+                <div
+                  className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end"
+                  key={field.id}
                 >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </GroupFormSection>
+                  <div className="md:col-span-2">
+                    <FormSelect
+                      name={`details.${index}.sale_detail_id`}
+                      label="Producto de la Venta"
+                      placeholder="Seleccione el producto"
+                      options={saleDetailOptions}
+                      control={form.control}
+                    />
+                  </div>
+
+                  <FormInput
+                    label="Cantidad"
+                    type="number"
+                    step="0.001"
+                    placeholder="0"
+                    name={`details.${index}.quantity`}
+                    control={form.control}
+                    {...field}
+                  />
+
+                  <FormInput
+                    label="Precio Unitario"
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    name={`details.${index}.unit_price`}
+                    control={form.control}
+                    {...field}
+                  />
+
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </GroupFormSection>
         </div>
 
         <CreditNoteSummary

@@ -46,6 +46,14 @@ export interface SaleInstallmentResource {
   currency: string;
   total_amount: number|string;
   total_bruto: number|string;
+  // Optional fields from sale relationship
+  sale_issue_date?: string;
+  customer_name?: string;
+  customer_document?: string;
+  order_purchase?: string;
+  guides?: string;
+  retention?: number;
+  credit_note?: number;
 }
 
 export interface SaleResource {
@@ -90,6 +98,7 @@ export interface SaleResource {
   quotation?: Quotation;
   total_amount: number;
   current_amount: number;
+  total_bruto: string;
   currency: string;
   status: string;
   observations?: string;
@@ -557,3 +566,9 @@ export const SALE_PAYMENT: ModelComplete<any> = {
   },
   EMPTY: {} as any,
 };
+
+
+export const DETRACCION_OPTIONS = [
+  { value: "027", label: "027 - Demás bienes y servicios", porcentaje: 4 },
+  { value: "019", label: "019 - Arrendamiento de bienes muebles", porcentaje: 10 },
+];

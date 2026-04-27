@@ -210,6 +210,7 @@ export const CreditNoteColumns = ({
               pdfEndpoint={`/credit-notes/${row.original.id}/pdf`}
               pdfFileName={`nota-credito-${row.original.document_number}.pdf`}
               variant="separate"
+              openDirect
             />
             {["ENVIADO", "ACEPTADO"].includes(
               row.original.sunat_status?.toUpperCase(),

@@ -7,86 +7,187 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { api } from "@/lib/config";
-import { Sheet, FileDown } from "lucide-react";
-import { toast } from "sonner";
+import { promiseToast } from "@/lib/core.function";
+import { Sheet, FileDown, ReceiptText } from "lucide-react";
+
+type ButtonVariant =
+  | "default"
+  | "destructive"
+  | "outline"
+  | "secondary"
+  | "ghost"
+  | "link"
+  | "neutral"
+  | "tertiary";
 
 interface ExportButtonsProps {
   excelEndpoint?: string;
   pdfEndpoint?: string;
+  ticketEndpoint?: string;
   excelFileName?: string;
   pdfFileName?: string;
+  ticketFileName?: string;
+  downloadPdf?: boolean;
+  downloadTicket?: boolean;
+  openDirect?: boolean;
+  onExcelDownload?: () => void | Promise<void>;
+  onPdfDownload?: () => void | Promise<void>;
+  onTicketDownload?: () => void | Promise<void>;
+  disableExcel?: boolean;
+  disablePdf?: boolean;
+  disableTicket?: boolean;
   variant?: "grouped" | "separate";
+  buttonVariant?: ButtonVariant;
+  pdfLabel?: string;
+  ticketLabel?: string;
 }
 
 export default function ExportButtons({
   excelEndpoint,
   pdfEndpoint,
+  ticketEndpoint,
   excelFileName = "export.xlsx",
   pdfFileName = "export.pdf",
+  ticketFileName = "ticket.pdf",
+  downloadPdf = false,
+  downloadTicket = false,
+  openDirect = false,
+  onExcelDownload,
+  onPdfDownload,
+  onTicketDownload,
+  disableExcel = false,
+  disablePdf = false,
+  disableTicket = false,
   variant = "grouped",
+  buttonVariant = "outline",
+  pdfLabel = "PDF",
+  ticketLabel = "Ticket",
 }: ExportButtonsProps) {
-  const handleExcelDownload = async () => {
+  const downloadFile = async (endpoint: string, fileName: string) => {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const openPdfInNewTab = async (endpoint: string) => {
+    const response = await api.get(endpoint, { responseType: "blob" });
+    const url = window.URL.createObjectURL(
+      new Blob([response.data], { type: "application/pdf" })
+    );
+    window.open(url, "_blank");
+  };
+
+  const openPdfDirect = (endpoint: string) => {
+    const base = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, "");
+    const path = endpoint.replace(/^\//, "");
+    window.open(`${base}/${path}`, "_blank");
+  };
+
+  const handleExcelDownload = () => {
+    if (onExcelDownload) {
+      promiseToast(Promise.resolve(onExcelDownload()), {
+        loading: "Descargando Excel...",
+        success: "Excel descargado exitosamente",
+        error: "Error al descargar el archivo Excel",
+      });
+      return;
+    }
+
     if (!excelEndpoint) return;
 
-    try {
-      const response = await api.get(excelEndpoint, {
-        responseType: "blob",
-      });
+    const download = downloadFile(excelEndpoint, excelFileName);
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", excelFileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success("Excel descargado exitosamente");
-    } catch (error: any) {
-      console.error("Error al descargar Excel:", error);
-      toast.error(
-        error.response?.data?.message || "Error al descargar el archivo Excel",
-      );
-    }
+    promiseToast(download, {
+      loading: "Descargando Excel...",
+      success: "Excel descargado exitosamente",
+      error: "Error al descargar el archivo Excel",
+    });
   };
 
-  const handlePDFDownload = async () => {
+  const handlePDFDownload = () => {
+    if (onPdfDownload) {
+      promiseToast(Promise.resolve(onPdfDownload()), {
+        loading: "Descargando PDF...",
+        success: "PDF descargado exitosamente",
+        error: "Error al descargar el archivo PDF",
+      });
+      return;
+    }
+
     if (!pdfEndpoint) return;
 
-    try {
-      const response = await api.get(pdfEndpoint, {
-        responseType: "blob",
+    if (openDirect) {
+      openPdfDirect(pdfEndpoint);
+    } else if (downloadPdf) {
+      promiseToast(downloadFile(pdfEndpoint, pdfFileName), {
+        loading: "Descargando PDF...",
+        success: "PDF descargado exitosamente",
+        error: "Error al descargar el archivo PDF",
       });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", pdfFileName);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success("PDF descargado exitosamente");
-    } catch (error) {
-      console.error("Error al descargar PDF:", error);
-      toast.error("Error al descargar el archivo PDF");
+    } else {
+      promiseToast(openPdfInNewTab(pdfEndpoint), {
+        loading: "Abriendo PDF...",
+        success: "PDF abierto exitosamente",
+        error: "Error al abrir el archivo PDF",
+      });
     }
   };
+
+  const handleTicketDownload = () => {
+    if (onTicketDownload) {
+      promiseToast(Promise.resolve(onTicketDownload()), {
+        loading: "Descargando ticket...",
+        success: "Ticket descargado exitosamente",
+        error: "Error al descargar el ticket",
+      });
+      return;
+    }
+
+    if (!ticketEndpoint) return;
+
+    if (openDirect) {
+      openPdfDirect(ticketEndpoint);
+    } else if (downloadTicket) {
+      promiseToast(downloadFile(ticketEndpoint, ticketFileName), {
+        loading: "Descargando ticket...",
+        success: "Ticket descargado exitosamente",
+        error: "Error al descargar el ticket",
+      });
+    } else {
+      promiseToast(openPdfInNewTab(ticketEndpoint), {
+        loading: "Abriendo ticket...",
+        success: "Ticket abierto exitosamente",
+        error: "Error al abrir el ticket",
+      });
+    }
+  };
+
+  const showExcelButton = excelEndpoint || onExcelDownload;
+  const showPdfButton = pdfEndpoint || onPdfDownload;
+  const showTicketButton = ticketEndpoint || onTicketDownload;
+
+  const canColored = ["ghost", "outline"].includes(buttonVariant);
 
   if (variant === "grouped") {
     return (
-      <div className="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 rounded-lg border dark:border-gray-800">
-        {excelEndpoint && (
+      <div className="flex items-center gap-1 bg-muted rounded-lg h-fit">
+        {showExcelButton && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                className="hover:bg-green-700/5 hover:text-green-700 dark:hover:bg-primary dark:hover:text-white transition-colors"
+                size="sm"
+                variant={buttonVariant}
+                color={canColored ? "emerald" : undefined}
                 onClick={handleExcelDownload}
+                disabled={disableExcel}
               >
-                <Sheet className="size-4" />
+                <Sheet className="h-4 w-4" />
                 Excel
               </Button>
             </TooltipTrigger>
@@ -96,20 +197,42 @@ export default function ExportButtons({
           </Tooltip>
         )}
 
-        {pdfEndpoint && (
+        {showPdfButton && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
-                className="hover:bg-red-700/5 hover:text-red-700 transition-colors"
+                size="sm"
+                variant={buttonVariant}
+                color={canColored ? "primary" : undefined}
                 onClick={handlePDFDownload}
+                disabled={disablePdf}
               >
-                <FileDown className="size-4" />
-                PDF
+                <FileDown className="h-4 w-4" />
+                {pdfLabel}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Descargar PDF</p>
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {showTicketButton && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant={buttonVariant}
+                color={canColored ? "orange" : undefined}
+                onClick={handleTicketDownload}
+                disabled={disableTicket}
+              >
+                <ReceiptText className="h-4 w-4" />
+                {ticketLabel}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Descargar ticket</p>
             </TooltipContent>
           </Tooltip>
         )}
@@ -120,15 +243,17 @@ export default function ExportButtons({
   // Variant "separate" - botones individuales sin agrupar
   return (
     <>
-      {excelEndpoint && (
+      {showExcelButton && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-green-700/5 hover:text-green-700 transition-colors"
+              size="icon-sm"
+              variant={buttonVariant}
+              color={canColored ? "emerald" : undefined}
               onClick={handleExcelDownload}
+              disabled={disableExcel}
             >
-              <Sheet className="size-4" />
+              <Sheet className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -137,19 +262,40 @@ export default function ExportButtons({
         </Tooltip>
       )}
 
-      {pdfEndpoint && (
+      {showPdfButton && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-red-700/5 hover:text-red-700 transition-colors"
+              size="icon-sm"
+              variant={buttonVariant}
+              color={canColored ? "primary" : undefined}
               onClick={handlePDFDownload}
+              disabled={disablePdf}
             >
-              <FileDown className="size-4" />
+              <FileDown className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>Descargar PDF</p>
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {showTicketButton && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon-sm"
+              variant={buttonVariant}
+              color={canColored ? "orange" : undefined}
+              onClick={handleTicketDownload}
+              disabled={disableTicket}
+            >
+              <ReceiptText className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Descargar ticket</p>
           </TooltipContent>
         </Tooltip>
       )}

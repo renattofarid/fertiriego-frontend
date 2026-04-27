@@ -11,8 +11,8 @@ import type { CreditNoteReason } from "../lib/credit-note.interface";
 interface DetailRow {
   sale_detail_id: string;
   product_id: number;
-  quantity: number;
-  unit_price: number;
+  quantity: number | unknown;
+  unit_price: number | unknown;
 }
 
 interface CreditNoteSummaryProps {
@@ -141,7 +141,8 @@ export function CreditNoteSummary({
                     (d) => d.id.toString() === detail.sale_detail_id,
                   );
                   const productName = saleDetail?.product?.name ?? "Producto";
-                  const total = detail.quantity * detail.unit_price * 1.18;
+                  const total =
+                    Number(detail.quantity) * Number(detail.unit_price) * 1.18;
 
                   return (
                     <div
@@ -153,8 +154,11 @@ export function CreditNoteSummary({
                           {productName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {detail.quantity} x {currencySymbol}{" "}
-                          {detail.unit_price.toLocaleString("es-PE", {
+                          {Number(detail.quantity).toLocaleString("es-PE", {
+                            minimumFractionDigits: 2,
+                          })}{" "}
+                          x {currencySymbol}{" "}
+                          {Number(detail.unit_price).toLocaleString("es-PE", {
                             minimumFractionDigits: 2,
                           })}
                         </p>

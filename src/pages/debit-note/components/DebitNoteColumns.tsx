@@ -149,6 +149,7 @@ export const DebitNoteColumns = ({
               pdfEndpoint={`/debit-notes/${row.original.id}/pdf`}
               pdfFileName={`nota-debito-${row.original.document_number}.pdf`}
               variant="separate"
+              openDirect
             />
             {["ENVIADO", "ACEPTADO"].includes(row.original.sunat_status?.toUpperCase()) && (
               <TooltipProvider>

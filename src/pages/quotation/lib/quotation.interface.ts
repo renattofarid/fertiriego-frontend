@@ -52,6 +52,7 @@ export interface ProductPurchaseHistoryItem {
   subtotal: string;
   total: string;
   proveedor: string;
+  numero_factura?: string;
   usuario: string;
   estado: string;
   moneda: string;

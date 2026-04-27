@@ -1,54 +1,73 @@
 "use client";
 
-import { Filter } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import * as React from "react";
+import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import GeneralSheet from "./GeneralSheet";
+import GeneralSheet from "@/components/GeneralSheet";
 
 interface FilterWrapperProps {
-  children: ReactNode;
-  title?: string;
-  description?: string;
+  children: React.ReactNode;
+  maxVisible?: number;
+  activeExtraCount?: number;
   className?: string;
 }
 
 export default function FilterWrapper({
   children,
-  title = "Filtros",
-  description = "Selecciona los filtros para refinar tu búsqueda",
+  maxVisible = 4,
+  activeExtraCount = 0,
   className,
 }: FilterWrapperProps) {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [openSheet, setOpenSheet] = React.useState(false);
 
-  // Si hay más de 3 filtros: Sheet en mobile
+  const allFilters = React.Children.toArray(children).filter(Boolean);
+  const primaryFilters = allFilters.slice(0, maxVisible);
+  const extraFilters = allFilters.slice(maxVisible);
+  const hasExtra = extraFilters.length > 0;
+
   return (
-    <div className={cn("w-fit", className)}>
-      {/* Desktop: mostrar filtros inline */}
-      <div className="hidden md:flex items-center gap-2 flex-wrap">
-        {children}
+    <>
+      <div className={cn("flex items-center gap-2 flex-wrap", className)}>
+        {primaryFilters}
+
+        {hasExtra && (
+          <div className="relative">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              onClick={() => setOpenSheet(true)}
+            >
+              <SlidersHorizontal className="size-4" />
+              Más filtros
+            </Button>
+            {activeExtraCount > 0 && (
+              <Badge
+                variant="default"
+                className="absolute -top-2 -right-2 size-5 flex items-center justify-center p-0 text-[10px] pointer-events-none"
+              >
+                {activeExtraCount}
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Mobile: abrir Sheet */}
-      <div className="md:hidden">
-        <Button
-          variant="outline"
-          size="icon-sm"
-          onClick={() => setIsSheetOpen(true)}
-        >
-          <Filter className="h-3.5 w-3.5" />
-        </Button>
-
+      {hasExtra && (
         <GeneralSheet
-          title={title}
-          subtitle={description}
-          icon="Filter"
-          open={isSheetOpen}
-          onClose={() => setIsSheetOpen(false)}
+          open={openSheet}
+          onClose={() => setOpenSheet(false)}
+          title="Más filtros"
+          subtitle="Aplica filtros adicionales a la búsqueda"
+          icon="SlidersHorizontal"
+          size="md"
         >
-          <div className="flex flex-col gap-2">{children}</div>
+          <div className="flex flex-col gap-4 py-4">{extraFilters}</div>
         </GeneralSheet>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

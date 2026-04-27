@@ -95,30 +95,12 @@ export const getSaleColumns = ({
     ),
   },
   {
-    accessorKey: "customer_fullname",
-    header: "Cliente",
-    cell: ({ row }) => (
-      <div
-        className="max-w-[200px] truncate"
-        title={row.original.customer_fullname}
-      >
-        {row.original.customer_fullname}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "warehouse_name",
-    header: "Almacén",
-    cell: ({ row }) => <span>{row.original.warehouse_name || "N/A"}</span>,
-  },
-  {
     accessorKey: "issue_date",
-    header: "Fecha Emisión",
+    header: "Emisión",
     cell: ({ row }) => {
-      // const date = new Date(row.original.issue_date);
       const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
       return (
-        <span>
+        <span className="text-sm">
           {date.toLocaleDateString("es-ES", {
             day: "2-digit",
             month: "2-digit",
@@ -127,6 +109,46 @@ export const getSaleColumns = ({
         </span>
       );
     },
+  },
+  {
+    id: "due_date",
+    header: "Vencimiento",
+    cell: ({ row }) => {
+      const issueDate = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
+      const lastInstallmentDate = row.original.installments.reduce(
+        (latest, inst) => {
+          const instDate = parse(inst.due_date, "yyyy-MM-dd", new Date());
+          return instDate > latest ? instDate : latest;
+        },
+        issueDate,
+      );
+      const dueDate =
+        lastInstallmentDate > issueDate ? lastInstallmentDate : issueDate;
+      return (
+        <span className="text-sm">
+          {dueDate.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          })}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "customer_fullname",
+    header: "Cliente",
+    cell: ({ row }) => (
+      <div className="flex flex-col text-sm">
+        <span>{row.original.customer_fullname}</span>
+        <span>{row.original.customer_document}</span>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "warehouse_name",
+    header: "Almacén",
+    cell: ({ row }) => <span>{row.original.warehouse_name || "N/A"}</span>,
   },
   {
     accessorKey: "payment_type",
@@ -140,7 +162,35 @@ export const getSaleColumns = ({
     ),
   },
   {
-    accessorKey: "total_amount",
+    accessorKey: "guides",
+    header: "Guía",
+    cell: ({ row }) => {
+      const guides = row.original.guides;
+      if (guides && guides.length > 0) {
+        return (
+          <Badge variant="outline" className="cursor-not-allowed" size="sm">
+            {row.original.guides?.map((guide) => guide.correlative).join(", ")}
+          </Badge>
+        );
+      }
+    },
+  },
+  {
+    accessorKey: "order_purchase",
+    header: "Orden Compra",
+    cell: ({ row }) => {
+      const orderPurchase = row.original.order_purchase;
+      if (orderPurchase) {
+        return (
+          <Badge variant="outline" className="cursor-not-allowed" size="sm">
+            {orderPurchase}
+          </Badge>
+        );
+      }
+    },
+  },
+  {
+    accessorKey: "total_bruto",
     header: "Total",
     cell: ({ row }) => {
       const currency =
@@ -153,7 +203,7 @@ export const getSaleColumns = ({
               : row.original.currency;
       return (
         <span className="font-semibold">
-          {currency} {Number(row.original.total_amount).toFixed(2)}
+          {currency} {Number(row.original.total_bruto).toFixed(2)}
         </span>
       );
     },
@@ -258,7 +308,8 @@ export const getSaleColumns = ({
           (sum, inst) => sum + Number(inst.amount),
           0,
         ) || 0;
-      const isValid = Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
+      const isValid =
+        Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
 
       return (
         <TooltipProvider>
@@ -283,8 +334,9 @@ export const getSaleColumns = ({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="text-xs">
-                    La suma de cuotas ({Number(sumOfInstallments).toFixed(2)}) no
-                    coincide con el total ({Number(expectedTotal).toFixed(2)}).
+                    La suma de cuotas ({Number(sumOfInstallments).toFixed(2)})
+                    no coincide con el total ({Number(expectedTotal).toFixed(2)}
+                    ).
                     <br />
                     Por favor, sincronice las cuotas.
                   </p>
@@ -361,7 +413,10 @@ export const getSaleColumns = ({
           <ExportButtons
             pdfEndpoint={`/sale/${row.original.id}/pdf`}
             pdfFileName={`venta-${row.original.sequential_number}.pdf`}
+            ticketEndpoint={`/sale/${row.original.id}/ticket`}
+            ticketFileName={`ticket-venta-${row.original.sequential_number}.pdf`}
             variant="separate"
+            openDirect
           />
 
           {/* XML / CDR — al lado del PDF, solo si está enviado */}

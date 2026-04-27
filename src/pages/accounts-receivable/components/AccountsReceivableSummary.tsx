@@ -62,62 +62,33 @@ export default function AccountsReceivableSummary({
 
   if (Object.keys(summaryByCurrency).length === 0) {
     return (
-      <div className="p-4 text-center text-sm text-muted-foreground">
+      <div className="py-1 text-xs text-muted-foreground">
         No hay cuotas pendientes registradas
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-wrap gap-2">
       {Object.entries(summaryByCurrency).map(([currency, summary]) => (
-        <div
-          key={currency}
-          className="grid grid-cols-2 md:grid-cols-5 gap-2"
-        >
-          {/* Moneda */}
-          <div className="p-2 bg-muted/30 rounded-lg flex items-center justify-center">
-            <p className="font-bold text-lg">{currency}</p>
-          </div>
+        <div key={currency} className="flex items-center gap-1.5 text-xs flex-wrap border border-border/60 rounded-lg px-2 py-1.5">
+          <span className="font-bold text-sm px-2 py-1 rounded-md bg-muted/50">{currency}</span>
 
-          {/* Total Pendiente */}
-          <div className="p-2 bg-muted-foreground/5 hover:bg-muted-foreground/10 transition-colors rounded-lg">
-            <p className="text-xs text-muted-foreground mb-0.5">
-              Pendiente
-            </p>
-            <p className="text-sm font-bold text-muted-foreground truncate">
-              {formatCurrency(summary.totalPending, currency)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {summary.totalInstallments} cuota(s)
-            </p>
-          </div>
+          <span className="flex items-center gap-1 rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-1">
+            <span className="text-muted-foreground">Pendiente:</span>
+            <span className="font-semibold">{formatCurrency(summary.totalPending, currency)}</span>
+            <span className="text-muted-foreground">· {summary.totalInstallments} cuotas</span>
+          </span>
 
-          {/* Vencidas */}
-          <div className="p-2 bg-destructive/5 hover:bg-destructive/10 transition-colors rounded-lg">
-            <p className="text-xs text-muted-foreground mb-0.5">Vencidas</p>
-            <p className="text-sm font-bold text-destructive truncate">
-              {formatCurrency(summary.totalOverdue, currency)}
-            </p>
-          </div>
+          <span className="flex items-center gap-1 rounded-md bg-red-50 dark:bg-red-950/40 px-2 py-1">
+            <span className="text-muted-foreground">Vencidas:</span>
+            <span className="font-semibold text-destructive">{formatCurrency(summary.totalOverdue, currency)}</span>
+          </span>
 
-          {/* Por Vencer */}
-          <div className="p-2 bg-orange-500/5 hover:bg-orange-500/10 transition-colors rounded-lg">
-            <p className="text-xs text-muted-foreground mb-0.5">
-              Por Vencer
-            </p>
-            <p className="text-sm font-bold text-orange-600 dark:text-orange-500 truncate">
-              {formatCurrency(summary.totalToExpireSoon, currency)}
-            </p>
-          </div>
-
-          {/* Total Cuotas */}
-          <div className="p-2 bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg">
-            <p className="text-xs text-muted-foreground mb-0.5">Cuotas</p>
-            <p className="text-sm font-bold text-primary truncate">
-              {summary.totalInstallments}
-            </p>
-          </div>
+          <span className="flex items-center gap-1 rounded-md bg-orange-50 dark:bg-orange-950/40 px-2 py-1">
+            <span className="text-muted-foreground">Por Vencer:</span>
+            <span className="font-semibold text-orange-600 dark:text-orange-500">{formatCurrency(summary.totalToExpireSoon, currency)}</span>
+          </span>
         </div>
       ))}
     </div>

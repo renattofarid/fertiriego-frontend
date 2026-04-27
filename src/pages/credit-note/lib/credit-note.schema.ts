@@ -4,8 +4,8 @@ import { z } from "zod";
 export const creditNoteDetailSchema = z.object({
   sale_detail_id: requiredStringId("El detalle de venta es requerido"),
   product_id: z.number().min(1, "El producto es requerido"),
-  quantity: z.number().min(0.001, "La cantidad debe ser mayor a 0"),
-  unit_price: z
+  quantity: z.coerce.number().min(0.001, "La cantidad debe ser mayor a 0"),
+  unit_price: z.coerce
     .number()
     .min(0, "El precio unitario debe ser mayor o igual a 0"),
 });
