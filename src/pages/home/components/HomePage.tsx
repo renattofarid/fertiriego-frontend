@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { ShoppingCart, Package, TrendingUp, ShoppingBag, DollarSign, TrendingDown } from "lucide-react";
-import { useAllProducts } from "@/pages/product/lib/product.hook";
+import { ShoppingCart, TrendingUp, ShoppingBag, DollarSign, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
 import { TopProductsChart } from "./TopProductsChart";
@@ -30,61 +29,70 @@ function MetricCard({ title, value, description, icon: Icon, variant }: { title:
   );
 }
 
-export default function HomePage() {
-  // Mantenemos los productos SOLO para la tarjeta de "Productos en catálogo"
-  const { data: products = [], isLoading: productsLoading } = useAllProducts();
+const safeArray = (data: any) => {
+  if (!data) return [];
+  return Array.isArray(data) ? data : Object.values(data);
+};
 
+export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
 
-// Obtenemos la fecha de hoy
+  // Fechas iniciales
   const today = new Date();
   const currentMonth = today.toISOString().slice(0, 7);
   const currentDate = today.toISOString().slice(0, 10);
 
-  // Filtros visuales con fechas por defecto
+  // Filtros visuales
   const [selectedStore, setSelectedStore] = useState("Tienda Modelo");
   const [filterType, setFilterType] = useState("Por mes");
   const [filterDate, setFilterDate] = useState(currentMonth);
   const [startDate, setStartDate] = useState(currentDate);
   const [endDate, setEndDate] = useState(currentDate);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [startMonth, setStartMonth] = useState(currentMonth);
+  const [endMonth, setEndMonth] = useState(currentMonth);
 
   const fetchStatistics = async () => {
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
-
-      let url = "https://develop.garzasoft.com:82/comercialferriego-backend-dev/public/api/sale/statistics";
+      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL;
+      let url = `${baseUrl}sale/statistics`;
       
       const params = new URLSearchParams();
+
+      // branch_id (1 = Tienda Modelo, 2 = Sede Principal)
+      const branchId = selectedStore === "Tienda Modelo" ? "1" : "2";
+      params.append("branch_id", branchId);
       
-      if (filterType === "Entre fechas" && startDate && endDate) {
-        params.append("from", startDate);
-        params.append("to", endDate);
+      // Lógica de Fechas
+      if (filterType === "Última semana") {
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+        params.append("from", lastWeek.toISOString().slice(0, 10));
+        params.append("to", currentDate);
       } else if (filterType === "Por mes" && filterDate) {
         const [year, month] = filterDate.split("-");
         const lastDay = new Date(Number(year), Number(month), 0).getDate();
         params.append("from", `${filterDate}-01`);
         params.append("to", `${filterDate}-${lastDay}`);
-      }
-       else if (filterType === "Entre meses" && startDate && endDate) {
-        const startYYYYMM = startDate.substring(0, 7); 
-        const endYYYYMM = endDate.substring(0, 7);
-        
-        const [endYear, endMonth] = endYYYYMM.split("-");
-        const lastDayOfEndMonth = new Date(Number(endYear), Number(endMonth), 0).getDate();
-        
-        params.append("from", `${startYYYYMM}-01`);
-        params.append("to", `${endYYYYMM}-${lastDayOfEndMonth}`);
-      }    
-      else if (filterType === "Por fecha" && startDate) {
+      } else if (filterType === "Entre meses" && startMonth && endMonth) {
+        const [endYear, endMonthNum] = endMonth.split("-");
+        const lastDayOfEndMonth = new Date(Number(endYear), Number(endMonthNum), 0).getDate();
+        params.append("from", `${startMonth}-01`);
+        params.append("to", `${endMonth}-${lastDayOfEndMonth}`);
+      } else if (filterType === "Por fecha" && startDate) {
         params.append("from", startDate);
         params.append("to", startDate);
+      } else if (filterType === "Entre fechas" && startDate && endDate) {
+        params.append("from", startDate);
+        params.append("to", endDate);
       }
       
       if (params.toString()) {
-        url += `?${params.toString()}`;
+        url += (url.includes('?') ? '&' : '?') + params.toString();
       }
 
       const response = await fetch(url, {
@@ -105,11 +113,11 @@ export default function HomePage() {
       if (json.success && json.data) {
         setDashboardData(json.data);
       } else {
-        console.error("La API respondió, pero success es false");
+        setDashboardData(null); 
       }
 
     } catch (error) {
-      console.error("Error conectando al backend de Alvaro:", error);
+      console.error("Error conectando al backend:", error);
     } finally {
       setIsLoading(false);
       setIsFirstLoad(false);
@@ -118,37 +126,36 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchStatistics();
-  }, [filterType, filterDate, startDate, endDate, selectedStore]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterType, filterDate, startDate, endDate, selectedStore, startMonth, endMonth]);
 
-  if (isFirstLoad || productsLoading) {
+  if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
   }
 
+  // Extracción segura de datos
   const totalVentas = Number(dashboardData?.ventas?.total || 0);
   const totalCompras = Number(dashboardData?.compras?.total || 0);
   const balanceNeto = Number(dashboardData?.compras_vs_ventas?.diferencia || 0);
   
-  // Data de los gráficos nuevos 
   const totalGeneral = Number(dashboardData?.totales?.monto_total || 0);
   const totalCobrado = Number(dashboardData?.totales?.monto_cobrado || 0);
   const totalPendiente = Number(dashboardData?.totales?.monto_pendiente || 0);
 
-  // Formateo para Gráfico de Líneas
-  const chartLines = (dashboardData?.comparativo_por_fecha || []).map((dia: any) => ({
+  // Formateos súper blindados
+  const chartLines = safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
     date: dia.fecha || "Sin fecha",
     compras: Number(dia.compras || 0),
     ventas: Number(dia.ventas || 0)
   }));
 
-  // Formateo para Top 5
-  const chartTop5 = (dashboardData?.ventas?.top_5_productos || []).map((p: any) => ({
+  const chartTop5 = safeArray(dashboardData?.ventas?.top_5_productos).map((p: any) => ({
     name: String(p.producto || p.name || "Producto"),
     quantity: Number(p.cantidad || p.quantity || 0),
     revenue: Number(p.monto_total || p.revenue || p.total || 0)
   }));
 
-  // Formateo para Métodos de Pago
-  const chartPayment = (dashboardData?.metodos_pago?.ventas || []).map((m: any) => ({
+  const chartPayment = safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
     name: String(m.payment_type || m.metodo || "Otros"),
     value: Number(m.monto_total || m.cantidad || 0),
     fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
@@ -162,7 +169,6 @@ export default function HomePage() {
       </div>
 
       <div className="bg-card border rounded-xl p-4 shadow-sm space-y-6 relative z-20">
-        
         <div className="flex flex-col sm:flex-row gap-4 items-center relative z-30">
           <select value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)} className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
             <option value="Tienda Modelo">Tienda Modelo</option>
@@ -181,19 +187,9 @@ export default function HomePage() {
           {filterType === "Por mes" && <input type="month" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm" />}
           {filterType === "Entre meses" && (
             <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input 
-                type="month" 
-                value={startDate.substring(0, 7)} 
-                onChange={(e) => setStartDate(`${e.target.value}-01`)} 
-                className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" 
-              />
+              <input type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
               <span className="text-muted-foreground font-medium">-</span>
-              <input 
-                type="month" 
-                value={endDate.substring(0, 7)} 
-                onChange={(e) => setEndDate(`${e.target.value}-01`)} 
-                className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" 
-              />
+              <input type="month" value={endMonth} onChange={(e) => setEndMonth(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
             </div>
           )}
           {filterType === "Por fecha" && <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm" />}
@@ -206,7 +202,7 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className={cn("transition-opacity duration-200", isLoading ? "opacity-40 pointer-events-none" : "opacity-100")}>
+        <div className={cn("transition-opacity duration-200", isLoading && !isFirstLoad ? "opacity-40 pointer-events-none" : "opacity-100")}>
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 relative z-10">
             <div className="rounded-lg border bg-background p-5">
               <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4">Estado de Cobranza</h3>
@@ -220,16 +216,15 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className={cn("transition-opacity duration-200", isLoading ? "opacity-40 pointer-events-none" : "opacity-100")}>
+      <div className={cn("transition-opacity duration-200", isLoading && !isFirstLoad ? "opacity-40 pointer-events-none" : "opacity-100")}>
         <div className="space-y-3 pt-4 border-t">
           <h2 className="text-base font-semibold">Métricas Principales</h2>
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             <MetricCard title="Total Ventas" value={`S/ ${formatCurrency(totalVentas)}`} description="Ingresos totales" icon={ShoppingBag} variant="blue" />
             <MetricCard title="Total Compras" value={`S/ ${formatCurrency(totalCompras)}`} description="Gastos totales" icon={ShoppingCart} variant="orange" />
             <MetricCard title="Balance Neto" value={`S/ ${formatCurrency(balanceNeto)}`} description="Margen de diferencia" icon={DollarSign} variant={balanceNeto >= 0 ? "green" : "orange"} />
-            <MetricCard title="Cuentas por Cobrar" value={`S/ ${formatCurrency(totalPendiente)}`} description="Dinero por ingresar" icon={TrendingUp} variant="blue" />
+            <MetricCard title="Pendiente de Cobro" value={`S/ ${formatCurrency(totalPendiente)}`} description="Dinero por ingresar" icon={TrendingUp} variant="blue" />
             <MetricCard title="Cuentas por Pagar" value={`S/ 0.00`} description="Pendiente de API" icon={TrendingDown} variant="orange" />
-            <MetricCard title="Productos en Catálogo" value={products?.length?.toString() || "0"} description="Registrados" icon={Package} variant="gray" />
           </div>
         </div>
 
