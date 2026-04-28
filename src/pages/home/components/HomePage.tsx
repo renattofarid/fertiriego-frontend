@@ -8,7 +8,6 @@ import { NotasVentaPie } from "./NotasVentaPie";
 import { TotalesChart } from "./TotalesChart";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
-import { symbol } from "zod";
 
 // Componente de métrica simple
 function MetricCard({ title, value, description, icon: Icon, variant }: { title: string; value: string; description: string; icon: React.ElementType; variant: "blue" | "orange" | "gray" | "green"; }) {

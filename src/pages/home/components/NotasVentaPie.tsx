@@ -1,4 +1,3 @@
-import { Currency } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 interface NotasVentaPieProps {
