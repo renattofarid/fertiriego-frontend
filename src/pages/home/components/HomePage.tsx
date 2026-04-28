@@ -38,13 +38,18 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
 
-  // Fechas iniciales
+  const [branches, setBranches] = useState<any[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+
   const today = new Date();
-  const currentMonth = today.toISOString().slice(0, 7);
-  const currentDate = today.toISOString().slice(0, 10);
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+
+  const currentMonth = `${year}-${month}`;
+  const currentDate = `${year}-${month}-${day}`;
 
   // Filtros visuales
-  const [selectedStore, setSelectedStore] = useState("Tienda Modelo");
   const [filterType, setFilterType] = useState("Por mes");
   const [filterDate, setFilterDate] = useState(currentMonth);
   const [startDate, setStartDate] = useState(currentDate);
@@ -53,7 +58,38 @@ export default function HomePage() {
   const [startMonth, setStartMonth] = useState(currentMonth);
   const [endMonth, setEndMonth] = useState(currentMonth);
 
+  const fetchBranches = async () => {
+    try {
+      const token = localStorage.getItem("token") || localStorage.getItem("access_token");
+      const baseUrl = import.meta.env.VITE_API_BASE_URL;
+      
+      const response = await fetch(`${baseUrl}branch`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "Authorization": `Bearer ${token}` 
+        }
+      });
+
+      const json = await response.json();
+      if (json.data && json.data.length > 0) {
+        setBranches(json.data);
+        setSelectedBranchId(json.data[0].id.toString());
+      } else {
+        setIsLoading(false);
+        setIsFirstLoad(false);
+      }
+    } catch (error) {
+      console.error("Error conectando a la API de branches:", error);
+      setIsLoading(false);
+      setIsFirstLoad(false);
+    }
+  };
+
   const fetchStatistics = async () => {
+    if (!selectedBranchId) return; 
+
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
@@ -63,11 +99,8 @@ export default function HomePage() {
       
       const params = new URLSearchParams();
 
-      // branch_id (1 = Tienda Modelo, 2 = Sede Principal)
-      const branchId = selectedStore === "Tienda Modelo" ? "1" : "2";
-      params.append("branch_id", branchId);
+      params.append("branch_id", selectedBranchId);
       
-      // Lógica de Fechas
       if (filterType === "Última semana") {
         const lastWeek = new Date(today);
         lastWeek.setDate(today.getDate() - 7);
@@ -125,15 +158,17 @@ export default function HomePage() {
   };
 
   useEffect(() => {
+    fetchBranches();
+  }, []);
+
+  useEffect(() => {
     fetchStatistics();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterType, filterDate, startDate, endDate, selectedStore, startMonth, endMonth]);
+  }, [filterType, filterDate, startDate, endDate, selectedBranchId, startMonth, endMonth]);
 
   if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
   }
 
-  // Extracción segura de datos
   const totalVentas = Number(dashboardData?.ventas?.total || 0);
   const totalCompras = Number(dashboardData?.compras?.total || 0);
   const balanceNeto = Number(dashboardData?.compras_vs_ventas?.diferencia || 0);
@@ -142,7 +177,6 @@ export default function HomePage() {
   const totalCobrado = Number(dashboardData?.totales?.monto_cobrado || 0);
   const totalPendiente = Number(dashboardData?.totales?.monto_pendiente || 0);
 
-  // Formateos súper blindados
   const chartLines = safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
     date: dia.fecha || "Sin fecha",
     compras: Number(dia.compras || 0),
@@ -170,9 +204,18 @@ export default function HomePage() {
 
       <div className="bg-card border rounded-xl p-4 shadow-sm space-y-6 relative z-20">
         <div className="flex flex-col sm:flex-row gap-4 items-center relative z-30">
-          <select value={selectedStore} onChange={(e) => setSelectedStore(e.target.value)} className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
-            <option value="Tienda Modelo">Tienda Modelo</option>
-            <option value="Sede Principal">Sede Principal</option>
+          
+          <select 
+            value={selectedBranchId} 
+            onChange={(e) => setSelectedBranchId(e.target.value)} 
+            className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
+          >
+            {branches.length === 0 && <option value="">Cargando sucursales...</option>}
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
           </select>
 
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
