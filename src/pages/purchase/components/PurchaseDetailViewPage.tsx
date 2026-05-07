@@ -283,7 +283,7 @@ export const PurchaseDetailViewPage = () => {
               cols={{ sm: 1 }}
             >
               <PurchaseDetailTable
-                details={details || []}
+                purchaseId={Number(id)}
                 onEdit={() => {}}
                 onRefresh={() => {
                   fetchDetails(Number(id));

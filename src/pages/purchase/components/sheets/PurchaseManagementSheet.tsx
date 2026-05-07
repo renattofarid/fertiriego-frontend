@@ -334,7 +334,7 @@ export function PurchaseManagementSheet({
                     </p>
                   )}
                   <PurchaseDetailTable
-                    details={details || []}
+                    purchaseId={purchase?.id}
                     onEdit={handleEditDetail}
                     onRefresh={async () => {
                       if (purchase) {

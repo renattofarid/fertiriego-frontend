@@ -1214,7 +1214,7 @@ export const PurchaseForm = ({
                     </Button>
                   </div>
                   <PurchaseDetailTable
-                    details={detailsFromStore}
+                    purchaseId={purchaseId}
                     onEdit={handleEditDetailEdit}
                     onRefresh={onRefreshDetails || (() => {})}
                   />
