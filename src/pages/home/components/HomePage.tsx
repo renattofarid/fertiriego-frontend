@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { ShoppingCart, TrendingUp, ShoppingBag, DollarSign, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
@@ -41,13 +41,16 @@ export default function HomePage() {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-
-  const currentMonth = `${year}-${month}`;
-  const currentDate = `${year}-${month}-${day}`;
+ const { currentMonth, currentDate } = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return {
+      currentMonth: `${year}-${month}`,
+      currentDate: `${year}-${month}-${day}`
+    };
+  }, []);
 
   // Filtros visuales
   const [filterType, setFilterType] = useState("Por mes");
@@ -59,14 +62,12 @@ export default function HomePage() {
   const [endMonth, setEndMonth] = useState(currentMonth);
 
   const [currency , setCurrency] = useState("PEN");
-  const currencySymbols: Record<string, string> ={
-    PEN:"S/",
-    USD:"$",
-    EUR:"€"
-  }
-  const symbol = currencySymbols[currency]|| "S/";
+  const symbol = useMemo(() => {
+    const currencySymbols: Record<string, string> = { PEN: "S/", USD: "$", EUR: "€" };
+    return currencySymbols[currency] || "S/";
+  }, [currency]);
 
-  const fetchBranches = async () => {
+    const fetchBranches = useCallback(async () => {
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -93,20 +94,19 @@ export default function HomePage() {
       setIsLoading(false);
       setIsFirstLoad(false);
     }
-  };
+  }, []);
 
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     if (!selectedBranchId) return; 
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
-      
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
       let url = `${baseUrl}sale/statistics`;
       
       const params = new URLSearchParams();
       params.append("branch_id", selectedBranchId);
-      params.append("currency",currency);
+      params.append("currency", currency);
       
       if (filterType === "Última semana") {
         const lastWeek = new Date();
@@ -147,64 +147,65 @@ export default function HomePage() {
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
       const json = await response.json();
       
-      if (json.success && json.data) {
-        setDashboardData(json.data);
-      } else {
-        setDashboardData(null); 
-      }
-
+      setDashboardData(json.success && json.data ? json.data : null);
     } catch (error) {
       console.error("Error conectando al backend:", error);
     } finally {
       setIsLoading(false);
       setIsFirstLoad(false);
     }
-  };
+  }, [filterType, filterDate, startDate, endDate, selectedBranchId, startMonth, endMonth, currency, currentDate]); 
 
   useEffect(() => {
     fetchBranches();
-  }, []);
+  }, [fetchBranches]);
 
   useEffect(() => {
     fetchStatistics();
-  }, [filterType, filterDate, startDate, endDate, selectedBranchId, startMonth, endMonth,currency]);
+  }, [fetchStatistics]);
 
-  if (isFirstLoad) {
+
+  const { totalVentas, totalCompras, balanceNeto, totalGeneral, totalCobrado, totalPendiente } = useMemo(() => {
+    return {
+      totalVentas: Number(dashboardData?.ventas?.total || 0),
+      totalCompras: Number(dashboardData?.compras?.total || 0),
+      balanceNeto: Number(dashboardData?.compras_vs_ventas?.diferencia || 0),
+      totalGeneral: Number(dashboardData?.totales?.monto_total || 0),
+      totalCobrado: Number(dashboardData?.totales?.monto_cobrado || 0),
+      totalPendiente: Number(dashboardData?.totales?.monto_pendiente || 0)
+    };
+  }, [dashboardData]);
+
+  const chartLines = useMemo(() => {
+    return safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
+      date: dia.fecha || "Sin fecha",
+      compras: Number(dia.compras || 0),
+      ventas: Number(dia.ventas || 0)
+    }));
+  }, [dashboardData]);
+
+  const chartTop5 = useMemo(() => {
+    return safeArray(dashboardData?.ventas?.top_5_productos).map((p: any) => ({
+      name: String(p.name || "Desconocido"),
+      quantity: Number(p.total_cantidad || 0),
+      revenue: Number(p.total_vendido || 0)
+    }));
+  }, [dashboardData]);
+
+  const chartPayment = useMemo(() => {
+    return safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
+      name: String(m.payment_type || m.metodo || "Otros"),
+      value: Number(m.monto_total || m.cantidad || 0),
+      fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
+    }));
+  }, [dashboardData]);
+
+   if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
   }
-
-  const totalVentas = Number(dashboardData?.ventas?.total || 0);
-  const totalCompras = Number(dashboardData?.compras?.total || 0);
-  const balanceNeto = Number(dashboardData?.compras_vs_ventas?.diferencia || 0);
-  
-  const totalGeneral = Number(dashboardData?.totales?.monto_total || 0);
-  const totalCobrado = Number(dashboardData?.totales?.monto_cobrado || 0);
-  const totalPendiente = Number(dashboardData?.totales?.monto_pendiente || 0);
-
-  const chartLines = safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
-    date: dia.fecha || "Sin fecha",
-    compras: Number(dia.compras || 0),
-    ventas: Number(dia.ventas || 0)
-  }));
-
-  const chartTop5 = safeArray(dashboardData?.ventas?.top_5_productos).map((p: any) => ({
-  name: String(p.name || "Desconocido"),
-  quantity: Number(p.total_cantidad || 0),
-  revenue: Number(p.total_vendido || 0)
-}));
-
-  const chartPayment = safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
-    name: String(m.payment_type || m.metodo || "Otros"),
-    value: Number(m.monto_total || m.cantidad || 0),
-    fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
-  }));
-
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div>
