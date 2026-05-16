@@ -155,7 +155,9 @@ export const QuotationForm = ({
 
       if (!force && tipoCambioCache.current[fecha]) {
         setTipoCambioError("");
-        form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        if (tipoCambioCache.current[fecha] !== "error") {
+          form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        }
         return;
       }
 
@@ -170,6 +172,7 @@ export const QuotationForm = ({
         form.setValue("tipo_cambio", valorStr);
       } catch {
         setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        tipoCambioCache.current[fecha]= "error";
         form.setValue("tipo_cambio", "");
       } finally {
         tipoCambioFetching.current.delete(fecha);

@@ -44,6 +44,7 @@ export default function WarehouseDocumentPage() {
   const [selectedWarehouse, setSelectedWarehouse] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedProduct, setSelectedProduct]= useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [cancelId, setCancelId] = useState<number | null>(null);
@@ -55,18 +56,19 @@ export default function WarehouseDocumentPage() {
     warehouse_id: selectedWarehouse,
     type: selectedType,
     status: selectedStatus,
+    details$product_id: selectedProduct,
   });
   const { data: warehouses } = useAllWarehouses();
 
   useEffect(() => {
     setPage(1);
   }, [
-    page,
     search,
     per_page,
     selectedWarehouse,
     selectedType,
     selectedStatus,
+    selectedProduct,
     refetch,
   ]);
 
@@ -165,6 +167,8 @@ export default function WarehouseDocumentPage() {
             setSelectedType={setSelectedType}
             selectedStatus={selectedStatus}
             setSelectedStatus={setSelectedStatus}
+            selectedProduct ={selectedProduct}
+            setSelectedProduct= {setSelectedProduct}
             warehouses={warehouses}
           />
         )}
