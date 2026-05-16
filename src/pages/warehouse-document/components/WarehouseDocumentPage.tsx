@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo} from "react";
 import { useNavigate } from "react-router-dom";
 import { useWarehouseDocuments } from "../lib/warehouse-document.hook";
 import TitleComponent from "@/components/TitleComponent";
@@ -49,7 +49,7 @@ export default function WarehouseDocumentPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null);
   const [cancelId, setCancelId] = useState<number | null>(null);
 
-  const { data, isLoading, refetch } = useWarehouseDocuments({
+  const queryParams = useMemo(() => ({
     page,
     per_page,
     search,
@@ -57,7 +57,9 @@ export default function WarehouseDocumentPage() {
     type: selectedType,
     status: selectedStatus,
     details$product_id: selectedProduct,
-  });
+  }), [page, per_page, search, selectedWarehouse, selectedType, selectedStatus, selectedProduct]);
+
+  const { data, isLoading, refetch } = useWarehouseDocuments(queryParams);
   const { data: warehouses } = useAllWarehouses();
 
   useEffect(() => {
@@ -69,7 +71,7 @@ export default function WarehouseDocumentPage() {
     selectedType,
     selectedStatus,
     selectedProduct,
-    refetch,
+    // 
   ]);
 
   const handleDelete = async () => {
