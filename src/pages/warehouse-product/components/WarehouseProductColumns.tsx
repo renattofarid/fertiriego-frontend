@@ -4,6 +4,49 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { ColumnActions } from "@/components/SelectActions";
+import {EditStockModal} from "./WarehouseProductEditStockModal"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import type { Row } from "@tanstack/react-table";
+
+const RowActions = ({ 
+  row, 
+  onDelete 
+}: { 
+  row: Row<WarehouseProductResource>; 
+  onDelete: (id: number) => void 
+}) => {
+  const [showEditStock, setShowEditStock] = useState(false);
+  const item = row.original;
+
+  return (
+    <>
+      <ColumnActions>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+          onClick={() => setShowEditStock(true)}
+          title="Editar Stock"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+        <DeleteButton onClick={() => onDelete(item.id)} />
+      </ColumnActions>
+
+      {showEditStock && (
+        <EditStockModal
+          open={showEditStock}
+          onClose={() => setShowEditStock(false)}
+          productId={item.id}
+          productName={item.product_name} 
+          currentStock={item.stock}
+        />
+      )}
+    </>
+  );
+};
 
 export const WarehouseProductColumns = ({
   onDelete,
@@ -70,14 +113,8 @@ export const WarehouseProductColumns = ({
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => {
-      const id = row.original.id;
-
-      return (
-        <ColumnActions>
-          <DeleteButton onClick={() => onDelete(id)} />
-        </ColumnActions>
-      );
-    },
+    cell: ({ row }) => (
+      <RowActions row= {row} onDelete={onDelete}></RowActions>
+    )
   },
 ];

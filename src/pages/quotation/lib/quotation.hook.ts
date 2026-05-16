@@ -8,6 +8,7 @@ import {
   type GetProductSalesHistoryParams,
 } from "./quotation.actions";
 import { QUOTATION } from "./quotation.interface";
+import {api} from "@/lib/config";
 
 export function useQuotations(params?: Record<string, unknown>) {
   return useQuery({
@@ -52,5 +53,17 @@ export function useProductPurchaseHistory(
     queryFn: () => getProductPurchaseHistory(params),
     enabled: enabled && params.productId > 0,
     refetchOnWindowFocus: false,
+  });
+}
+
+export function useSunatExchangeRate(date: string) {
+  return useQuery({
+    queryKey: ["sunat-exchange-rate", date],
+    queryFn: async () => {
+      const { data } = await api.get(`/tipo-cambio-sunat?fecha=${date}`);
+      return data;
+    },
+    enabled: !!date, 
+    staleTime: 1000 * 60 * 60 * 24,
   });
 }

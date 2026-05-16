@@ -4,6 +4,7 @@ import SearchInput from "@/components/SearchInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { DOCUMENT_TYPES, DOCUMENT_STATUS } from "../lib/warehouse-document.constants";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
+import { useAllProducts } from "@/pages/product/lib/product.hook";
 
 interface WarehouseDocumentOptionsProps {
   search: string;
@@ -15,6 +16,8 @@ interface WarehouseDocumentOptionsProps {
   selectedStatus: string;
   setSelectedStatus: (value: string) => void;
   warehouses: WarehouseResource[];
+  selectedProduct: string;
+  setSelectedProduct: (value:string) => void;
 }
 
 export default function WarehouseDocumentOptions({
@@ -27,7 +30,10 @@ export default function WarehouseDocumentOptions({
   selectedStatus,
   setSelectedStatus,
   warehouses,
+  selectedProduct,
+  setSelectedProduct,
 }: WarehouseDocumentOptionsProps) {
+  const {data: products, isLoading: isLoadingProducts} = useAllProducts();
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <SearchInput
@@ -65,6 +71,26 @@ export default function WarehouseDocumentOptions({
         onChange={setSelectedStatus}
         placeholder="Todos los estados"
       />
+      <div className="w-full sm:w-[250px]">
+        <SearchableSelect
+          options={
+            products?.map((product: any) => {
+              const shortName = product.name.length > 40 
+                ? `${product.name.substring(0, 40)}...` 
+                : product.name;
+
+              return {
+                value: product.id.toString(),
+                label: shortName,
+              };
+            }) || []
+          }
+          value={selectedProduct}
+          onChange={setSelectedProduct}
+          placeholder={isLoadingProducts ? "Cargando..." : "Todos los productos"}
+          disabled={isLoadingProducts}
+        />
+      </div>
     </div>
   );
 }
