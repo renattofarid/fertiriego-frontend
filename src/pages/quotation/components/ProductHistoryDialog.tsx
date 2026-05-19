@@ -28,6 +28,7 @@ import type {
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
+
 interface ProductHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -37,6 +38,11 @@ interface ProductHistoryDialogProps {
 }
 
 type HistoryType = "ventas" | "compras";
+
+ const parseAmount = (val: string | number ): number => {
+  if(!val) return 0;
+  return parseFloat(String(val).replace(/,/g,""))
+}
 
 export function ProductHistoryDialog({
   open,
@@ -112,7 +118,7 @@ export function ProductHistoryDialog({
               : row.original.moneda === "USD"
                 ? "$"
                 : "€"}{" "}
-            {parseFloat(row.original.precio_unitario).toFixed(2)}
+            {parseAmount(row.original.precio_unitario).toFixed(2)}
           </div>
         ),
       },
@@ -126,7 +132,7 @@ export function ProductHistoryDialog({
               : row.original.moneda === "USD"
                 ? "$"
                 : "€"}{" "}
-            {parseFloat(row.original.total).toFixed(2)}
+            {parseAmount(row.original.total).toFixed(2)}
           </div>
         ),
       },
@@ -214,7 +220,7 @@ export function ProductHistoryDialog({
               : row.original.moneda === "USD"
                 ? "$"
                 : "€"}{" "}
-            {parseFloat(row.original.precio_unitario).toFixed(2)}
+            {parseAmount(row.original.precio_unitario).toFixed(2)}
           </div>
         ),
       },
@@ -228,7 +234,7 @@ export function ProductHistoryDialog({
               : row.original.moneda === "USD"
                 ? "$"
                 : "€"}{" "}
-            {parseFloat(row.original.total).toFixed(2)}
+            {parseAmount(row.original.total).toFixed(2)}
           </div>
         ),
       },
@@ -373,7 +379,7 @@ export function ProductHistoryDialog({
                 <p className="text-sm text-muted-foreground">Cantidad Total</p>
                 <p className="text-2xl font-bold">
                   {data.data
-                    .reduce((sum, item) => sum + parseFloat(item.cantidad), 0)
+                    .reduce((sum, item) => sum + parseAmount(item.cantidad), 0)
                     .toFixed(2)}
                 </p>
               </div>
@@ -383,7 +389,7 @@ export function ProductHistoryDialog({
                   {data.data.length > 0
                     ? (
                         data.data.reduce(
-                          (sum, item) => sum + parseFloat(item.precio_unitario),
+                          (sum, item) => sum + parseAmount(item.precio_unitario),
                           0,
                         ) / data.data.length
                       ).toFixed(2)
@@ -394,7 +400,7 @@ export function ProductHistoryDialog({
                 <p className="text-sm text-muted-foreground">Último Precio</p>
                 <p className="text-2xl font-bold">
                   {data.data.length > 0
-                    ? parseFloat(data.data[0].precio_unitario).toFixed(2)
+                    ? parseAmount(data.data[0].precio_unitario).toFixed(2)
                     : "0.00"}
                 </p>
               </div>
