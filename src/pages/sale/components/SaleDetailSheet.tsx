@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { SaleResource } from "../lib/sale.interface";
 import TraceabilityTimeline from "@/components/TraceabilityTimeline";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 
 interface SaleDetailSheetProps {
   sale: SaleResource | null;
@@ -342,7 +343,11 @@ export default function SaleDetailSheet({ sale, open, onClose }: SaleDetailSheet
                         <p className="text-sm font-medium leading-snug">{detail.product.name}</p>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 ml-4">
-                        {Number(detail.quantity).toFixed(2)} × {currency} {Number(detail.unit_price).toFixed(2)}
+                        {formatQuantityWithUnit(
+                          Number(detail.quantity),
+                          getDetailQuantityUnit(detail),
+                        )}{" "}
+                        × {currency} {Number(detail.unit_price).toFixed(2)}
                       </p>
                     </div>
                     <div className="text-right shrink-0">

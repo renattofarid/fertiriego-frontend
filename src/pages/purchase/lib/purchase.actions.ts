@@ -96,6 +96,7 @@ export interface GetPurchaseDetailsParams {
   page?: number;
   per_page?: number;
   purchase_id?: number;
+  all?: boolean;
 }
 
 export const getPurchaseDetails = async (

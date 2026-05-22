@@ -20,12 +20,12 @@ import {
   Copy,
   Eye,
   Pencil,
-  RefreshCcw,
   BanknoteArrowUp,
   FileCode2,
   FileArchive,
   MoreHorizontal,
   Trash2,
+  Ban,
 } from "lucide-react";
 
 import { ColumnActions } from "@/components/SelectActions";
@@ -33,6 +33,7 @@ import ExportButtons from "@/components/ExportButtons";
 import { api } from "@/lib/config";
 import { toast } from "sonner";
 import { parse } from "date-fns";
+import { formatQuantityWithUnit } from "@/lib/utils";
 
 const downloadXml = async (endpoint: string, fileName: string) => {
   try {
@@ -192,8 +193,17 @@ export const GuideColumns = ({
     accessorKey: "total_weight",
     header: "Peso Total",
     cell: ({ row }) => {
-      const weight = row.original.total_weight;
-      return <span className="text-xs font-mono">{weight} KG</span>;
+      const weight =
+        row.original.total_weight === null ||
+        row.original.total_weight === undefined
+          ? undefined
+          : Number(row.original.total_weight);
+
+      return (
+        <span className="text-xs font-mono">
+          {formatQuantityWithUnit(weight, "KG")}
+        </span>
+      );
     },
   },
   {
@@ -205,6 +215,7 @@ export const GuideColumns = ({
         REGISTRADA: "secondary",
         ENVIADA: "default",
         ACEPTADA: "default",
+        DECLARADA: "default",
         RECHAZADA: "destructive",
         ANULADA: "destructive",
       }[status] as "secondary" | "default" | "destructive";
@@ -342,15 +353,17 @@ export const GuideColumns = ({
                 <Copy className="h-4 w-4 mr-2 text-muted-foreground" />
                 Duplicar
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  onChangeStatus(row.original.id, row.original.status)
-                }
-                disabled={isAceptado}
-              >
-                <RefreshCcw className="h-4 w-4 mr-2 text-muted-foreground" />
-                Cambiar Estado
-              </DropdownMenuItem>
+              {["DECLARADA", "EMITIDA"].includes(row.original.status) && (
+                <DropdownMenuItem
+                  onClick={() =>
+                    onChangeStatus(row.original.id, row.original.status)
+                  }
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <Ban className="h-4 w-4 mr-2" />
+                  Anular guía
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => onEdit(row.original.id)}
                 disabled={isAceptado}

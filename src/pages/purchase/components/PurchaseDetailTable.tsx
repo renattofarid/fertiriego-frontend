@@ -13,27 +13,33 @@ import { usePurchaseDetailStore } from "../lib/purchase-detail.store";
 import { useState } from "react";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { DataTable } from "@/components/DataTable";
+import { usePurchaseDetails } from "../lib/purchase.hook";
 
 interface PurchaseDetailTableProps {
-  details: PurchaseDetailResource[];
+  purchaseId?: number;
   onEdit: (detailId: number) => void;
   onRefresh: () => void;
   isPurchasePaid?: boolean;
 }
 
 export function PurchaseDetailTable({
-  details,
+  purchaseId,
   onEdit,
   onRefresh,
   isPurchasePaid = false,
 }: PurchaseDetailTableProps) {
   const { deleteDetail } = usePurchaseDetailStore();
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const {data: rawData, isLoading, refetch} = usePurchaseDetails(purchaseId||0);
+  const details: PurchaseDetailResource[] = Array.isArray(rawData)
+  ?rawData
+  :(rawData?.data || []);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deleteDetail(deleteId);
+      refetch();
       onRefresh();
     } catch {
       // El error ya se maneja en el store
@@ -155,6 +161,13 @@ export function PurchaseDetailTable({
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        Cargando detalles completos...
+      </div>
+    );
+  }
   if (!details || details.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">

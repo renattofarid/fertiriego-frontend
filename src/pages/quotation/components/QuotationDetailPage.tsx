@@ -34,6 +34,7 @@ import FormWrapper from "@/components/FormWrapper";
 import { QUOTATION } from "../lib/quotation.interface";
 import FormSkeleton from "@/components/FormSkeleton";
 import TitleFormComponent from "@/components/TitleFormComponent";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 
 const statusVariant: Record<string, "yellow" | "green" | "red" | "gray" | "default" | "secondary"> = {
   Pendiente: "yellow",
@@ -227,17 +228,20 @@ export default function QuotationDetailPage() {
                           )}
                         </TableCell>
                         <TableCell className="text-right tabular-nums text-sm">
-                          {Number(detail.quantity).toFixed(2)}
+                          {formatQuantityWithUnit(
+                            Number(detail.quantity),
+                            getDetailQuantityUnit(detail),
+                          )}
                         </TableCell>
                         <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
                           {currency} {Number(detail.unit_price).toFixed(2)}
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge
-                            variant={!!detail.is_igv ? "default" : "secondary"}
+                            variant={detail.is_igv ? "default" : "secondary"}
                             className="text-xs"
                           >
-                            {!!detail.is_igv ? "Incluido" : "No"}
+                            {detail.is_igv ? "Incluido" : "No"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right tabular-nums text-sm text-muted-foreground">

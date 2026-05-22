@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { ShoppingCart, TrendingUp, ShoppingBag, DollarSign, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
@@ -41,13 +41,16 @@ export default function HomePage() {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
 
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
-
-  const currentMonth = `${year}-${month}`;
-  const currentDate = `${year}-${month}-${day}`;
+ const { currentMonth, currentDate } = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return {
+      currentMonth: `${year}-${month}`,
+      currentDate: `${year}-${month}-${day}`
+    };
+  }, []);
 
   // Filtros visuales
   const [filterType, setFilterType] = useState("Por mes");
@@ -58,7 +61,13 @@ export default function HomePage() {
   const [startMonth, setStartMonth] = useState(currentMonth);
   const [endMonth, setEndMonth] = useState(currentMonth);
 
-  const fetchBranches = async () => {
+  const [currency , setCurrency] = useState("PEN");
+  const symbol = useMemo(() => {
+    const currencySymbols: Record<string, string> = { PEN: "S/", USD: "$", EUR: "€" };
+    return currencySymbols[currency] || "S/";
+  }, [currency]);
+
+    const fetchBranches = useCallback(async () => {
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -85,26 +94,27 @@ export default function HomePage() {
       setIsLoading(false);
       setIsFirstLoad(false);
     }
-  };
+  }, []);
 
-  const fetchStatistics = async () => {
+  const fetchStatistics = useCallback(async () => {
     if (!selectedBranchId) return; 
-
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("access_token");
-      
       const baseUrl = import.meta.env.VITE_API_BASE_URL;
       let url = `${baseUrl}sale/statistics`;
       
       const params = new URLSearchParams();
-
       params.append("branch_id", selectedBranchId);
+      params.append("currency", currency);
       
       if (filterType === "Última semana") {
-        const lastWeek = new Date(today);
-        lastWeek.setDate(today.getDate() - 7);
-        params.append("from", lastWeek.toISOString().slice(0, 10));
+        const lastWeek = new Date();
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        const lwYear = lastWeek.getFullYear();
+        const lwMonth = String(lastWeek.getMonth() + 1).padStart(2, '0');
+        const lwDay = String(lastWeek.getDate()).padStart(2, '0');
+        params.append("from", `${lwYear}-${lwMonth}-${lwDay}`);
         params.append("to", currentDate);
       } else if (filterType === "Por mes" && filterDate) {
         const [year, month] = filterDate.split("-");
@@ -137,64 +147,65 @@ export default function HomePage() {
         }
       });
 
-      if (!response.ok) {
-        throw new Error(`Error en la API: ${response.status} ${response.statusText}`);
-      }
-
+      if (!response.ok) throw new Error(`Error: ${response.status}`);
       const json = await response.json();
       
-      if (json.success && json.data) {
-        setDashboardData(json.data);
-      } else {
-        setDashboardData(null); 
-      }
-
+      setDashboardData(json.success && json.data ? json.data : null);
     } catch (error) {
       console.error("Error conectando al backend:", error);
     } finally {
       setIsLoading(false);
       setIsFirstLoad(false);
     }
-  };
+  }, [filterType, filterDate, startDate, endDate, selectedBranchId, startMonth, endMonth, currency, currentDate]); 
 
   useEffect(() => {
     fetchBranches();
-  }, []);
+  }, [fetchBranches]);
 
   useEffect(() => {
     fetchStatistics();
-  }, [filterType, filterDate, startDate, endDate, selectedBranchId, startMonth, endMonth]);
+  }, [fetchStatistics]);
 
-  if (isFirstLoad) {
+
+  const { totalVentas, totalCompras, balanceNeto, totalGeneral, totalCobrado, totalPendiente } = useMemo(() => {
+    return {
+      totalVentas: Number(dashboardData?.ventas?.total || 0),
+      totalCompras: Number(dashboardData?.compras?.total || 0),
+      balanceNeto: Number(dashboardData?.compras_vs_ventas?.diferencia || 0),
+      totalGeneral: Number(dashboardData?.totales?.monto_total || 0),
+      totalCobrado: Number(dashboardData?.totales?.monto_cobrado || 0),
+      totalPendiente: Number(dashboardData?.totales?.monto_pendiente || 0)
+    };
+  }, [dashboardData]);
+
+  const chartLines = useMemo(() => {
+    return safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
+      date: dia.fecha || "Sin fecha",
+      compras: Number(dia.compras || 0),
+      ventas: Number(dia.ventas || 0)
+    }));
+  }, [dashboardData]);
+
+  const chartTop5 = useMemo(() => {
+    return safeArray(dashboardData?.ventas?.top_5_productos).map((p: any) => ({
+      name: String(p.name || "Desconocido"),
+      quantity: Number(p.total_cantidad || 0),
+      revenue: Number(p.total_vendido || 0)
+    }));
+  }, [dashboardData]);
+
+  const chartPayment = useMemo(() => {
+    return safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
+      name: String(m.payment_type || m.metodo || "Otros"),
+      value: Number(m.monto_total || m.cantidad || 0),
+      fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
+    }));
+  }, [dashboardData]);
+
+   if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
   }
-
-  const totalVentas = Number(dashboardData?.ventas?.total || 0);
-  const totalCompras = Number(dashboardData?.compras?.total || 0);
-  const balanceNeto = Number(dashboardData?.compras_vs_ventas?.diferencia || 0);
-  
-  const totalGeneral = Number(dashboardData?.totales?.monto_total || 0);
-  const totalCobrado = Number(dashboardData?.totales?.monto_cobrado || 0);
-  const totalPendiente = Number(dashboardData?.totales?.monto_pendiente || 0);
-
-  const chartLines = safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
-    date: dia.fecha || "Sin fecha",
-    compras: Number(dia.compras || 0),
-    ventas: Number(dia.ventas || 0)
-  }));
-
-  const chartTop5 = safeArray(dashboardData?.ventas?.top_5_productos).map((p: any) => ({
-    name: String(p.producto || p.name || "Producto"),
-    quantity: Number(p.cantidad || p.quantity || 0),
-    revenue: Number(p.monto_total || p.revenue || p.total || 0)
-  }));
-
-  const chartPayment = safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
-    name: String(m.payment_type || m.metodo || "Otros"),
-    value: Number(m.monto_total || m.cantidad || 0),
-    fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
-  }));
-
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div>
@@ -216,6 +227,15 @@ export default function HomePage() {
                 {branch.name}
               </option>
             ))}
+          </select>
+          <select
+           value ={currency}
+           onChange={(e) => setCurrency(e.target.value)}
+           className="flex h-10 w-full sm:w-[140px] items-center rounded-md border border-blue-500/50 bg-background px3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="PEN">Soles (S/)</option>
+            <option value="USD">Dolares ($)</option>
+            <option value="EUR">Euros (€)</option>
           </select>
 
           <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
@@ -249,11 +269,11 @@ export default function HomePage() {
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 relative z-10">
             <div className="rounded-lg border bg-background p-5">
               <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4">Estado de Cobranza</h3>
-              <NotasVentaPie collected={totalCobrado} pending={totalPendiente} />
+              <NotasVentaPie collected={totalCobrado} pending={totalPendiente} currencySymbol={symbol} />
             </div>
             <div className="rounded-lg border bg-background p-5">
               <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4">Resumen General</h3>
-              <TotalesChart totalSales={totalGeneral} collected={totalCobrado} />
+              <TotalesChart totalSales={totalGeneral} collected={totalCobrado} currencySymbol={symbol}/>
             </div>
           </div>
         </div>
@@ -263,11 +283,11 @@ export default function HomePage() {
         <div className="space-y-3 pt-4 border-t">
           <h2 className="text-base font-semibold">Métricas Principales</h2>
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <MetricCard title="Total Ventas" value={`S/ ${formatCurrency(totalVentas)}`} description="Ingresos totales" icon={ShoppingBag} variant="blue" />
-            <MetricCard title="Total Compras" value={`S/ ${formatCurrency(totalCompras)}`} description="Gastos totales" icon={ShoppingCart} variant="orange" />
-            <MetricCard title="Balance Neto" value={`S/ ${formatCurrency(balanceNeto)}`} description="Margen de diferencia" icon={DollarSign} variant={balanceNeto >= 0 ? "green" : "orange"} />
-            <MetricCard title="Pendiente de Cobro" value={`S/ ${formatCurrency(totalPendiente)}`} description="Dinero por ingresar" icon={TrendingUp} variant="blue" />
-            <MetricCard title="Cuentas por Pagar" value={`S/ 0.00`} description="Pendiente de API" icon={TrendingDown} variant="orange" />
+            <MetricCard title="Total Ventas" value={`${symbol} ${formatCurrency(totalVentas)}`} description="Ingresos totales" icon={ShoppingBag} variant="blue" />
+            <MetricCard title="Total Compras" value={`${symbol} ${formatCurrency(totalCompras)}`} description="Gastos totales" icon={ShoppingCart} variant="orange" />
+            <MetricCard title="Balance Neto" value={`${symbol} ${formatCurrency(balanceNeto)}`} description="Margen de diferencia" icon={DollarSign} variant={balanceNeto >= 0 ? "green" : "orange"} />
+            <MetricCard title="Pendiente de Cobro" value={`${symbol} ${formatCurrency(totalPendiente)}`} description="Dinero por ingresar" icon={TrendingUp} variant="blue" />
+            <MetricCard title="Cuentas por Pagar" value={`${symbol} 0.00`} description="Pendiente de API" icon={TrendingDown} variant="orange" />
           </div>
         </div>
 
@@ -275,7 +295,7 @@ export default function HomePage() {
           <h2 className="text-base font-semibold">Análisis Visual</h2>
           <SalesVsPurchasesChart data={chartLines} />
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <TopProductsChart data={chartTop5} />
+            <TopProductsChart data={chartTop5} currencySymbol={symbol} />
             <PaymentMethodsChart data={chartPayment} />
           </div>
         </div>

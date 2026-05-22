@@ -40,11 +40,20 @@ const createFormData = (data: ProductSchema): FormData => {
   const formData = new FormData();
 
   formData.append("name", data.name);
-  formData.append("category_id", data.category_id?.toString());
-  formData.append("brand_id", data.brand_id?.toString());
-  formData.append("unit_id", data.unit_id?.toString());
-  formData.append("product_type_id", data.product_type_id?.toString());
   formData.append("is_igv", data.is_igv ? "1" : "0");
+
+  if(data.category_id){
+      formData.append("category_id", data.category_id.toString());
+  }
+  if(data.brand_id){
+      formData.append("brand_id", data.brand_id?.toString());
+  }
+  if(data.unit_id){
+      formData.append("unit_id", data.unit_id?.toString());
+  }
+  if(data.product_type_id){
+      formData.append("product_type_id", data.product_type_id?.toString());
+  }
 
   if (data.observations) {
     formData.append("observations", data.observations);

@@ -30,6 +30,7 @@ import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { GroupFormSection } from "@/components/GroupFormSection";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 
 function getPersonName(person: Carrier): string {
   if (person.type_person === "JURIDICA" || !person.names) {
@@ -541,7 +542,11 @@ export default function GuideDetailPage() {
         >
           {guide.details && guide.details.length > 0 && (
             <div className="space-y-3 col-span-full">
-              {guide.details.map((detail: GuideDetailResource, index) => (
+              {guide.details.map((detail: GuideDetailResource, index) => {
+                const unit = getDetailQuantityUnit(detail, "UND");
+                const weight = Number(detail.weight);
+
+                return (
                 <div
                   key={detail.id}
                   className="p-3 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors"
@@ -571,23 +576,19 @@ export default function GuideDetailPage() {
                         )}
                     </div>
                     <div className="text-right shrink-0 space-y-1">
-                      <div>
-                        <p className="font-bold text-2xl text-primary">
-                          {detail.quantity}
-                        </p>
-                        <Badge variant="secondary" className="mt-0.5">
-                          {detail.unit || detail.unit_measure || "UND"}
-                        </Badge>
-                      </div>
-                      {detail.weight && (
+                      <p className="font-bold text-2xl text-primary">
+                        {formatQuantityWithUnit(Number(detail.quantity), unit)}
+                      </p>
+                      {Number.isFinite(weight) && weight > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          {detail.weight} kg
+                          {formatQuantityWithUnit(weight, "KG")}
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

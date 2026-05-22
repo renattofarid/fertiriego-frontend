@@ -1,163 +1,278 @@
-import GeneralSheet from "@/components/GeneralSheet";
-import { calcItemAmounts, roundTo8 } from "@/lib/saleCalculations";
-import { Button } from "@/components/ui/button";
-import { FormSelect } from "@/components/FormSelect";
-import { FormInput } from "@/components/FormInput";
-import { FormSwitch } from "@/components/FormSwitch";
-import { useForm } from "react-hook-form";
-import { Pencil, Plus, History, Package } from "lucide-react";
-import type { ProductResource } from "@/pages/product/lib/product.interface";
-import { useEffect, useRef, useState } from "react";
-import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
-import { useProductPrices } from "@/pages/product/lib/product-price.hook";
-import { FormSelectAsync } from "@/components/FormSelectAsync";
-import { useProduct } from "@/pages/product/lib/product.hook";
-import { ProductHistoryDialog } from "./ProductHistoryDialog";
-import { ProductStockDialog } from "./ProductStockDialog";
-import { GeneralModal } from "@/components/GeneralModal";
-import { ProductForm } from "@/pages/product/components/ProductForm";
-import { useProductStore } from "@/pages/product/lib/product.store";
-import { useAllUnits } from "@/pages/unit/lib/unit.hook";
-import { successToast, errorToast } from "@/lib/core.function";
-import { useQueryClient } from "@tanstack/react-query";
-import { PRODUCT } from "@/pages/product/lib/product.interface";
+  import GeneralSheet from "@/components/GeneralSheet";
+  import { calcItemAmounts, roundTo8 } from "@/lib/saleCalculations";
+  import { Button } from "@/components/ui/button";
+  import { FormSelect } from "@/components/FormSelect";
+  import { FormInput } from "@/components/FormInput";
+  import { FormSwitch } from "@/components/FormSwitch";
+  import { useForm } from "react-hook-form";
+  import { Pencil, Plus, History, Package } from "lucide-react";
+  import type { ProductResource } from "@/pages/product/lib/product.interface";
+  import { useEffect, useRef, useState } from "react";
+  import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
+  import { useProductPrices } from "@/pages/product/lib/product-price.hook";
+  import { FormSelectAsync } from "@/components/FormSelectAsync";
+  import { useProduct } from "@/pages/product/lib/product.hook";
+  import { ProductHistoryDialog } from "./ProductHistoryDialog";
+  import { ProductStockDialog } from "./ProductStockDialog";
+  import { GeneralModal } from "@/components/GeneralModal";
+  import { ProductForm } from "@/pages/product/components/ProductForm";
+  import { useProductStore } from "@/pages/product/lib/product.store";
+  import { useAllUnits } from "@/pages/unit/lib/unit.hook";
+  import { successToast, errorToast } from "@/lib/core.function";
+  import { useQueryClient } from "@tanstack/react-query";
+  import { PRODUCT } from "@/pages/product/lib/product.interface";
+  import { useSunatExchangeRate } from "../lib/quotation.hook";
 
-interface AddProductSheetProps {
-  open: boolean;
-  onClose: () => void;
-  onAdd: (detail: ProductDetail) => void;
-  editingDetail?: ProductDetail | null;
-  editIndex?: number | null;
-  onEdit?: (detail: ProductDetail, index: number) => void;
-  currency: string;
-  customerId?: number;
-}
+  interface AddProductSheetProps {
+    open: boolean;
+    onClose: () => void;
+    onAdd: (detail: ProductDetail) => void;
+    editingDetail?: ProductDetail | null;
+    editIndex?: number | null;
+    onEdit?: (detail: ProductDetail, index: number) => void;
+    currency: string;
+    customerId?: number;
+  }
 
-export interface ProductDetail {
-  product_id: string;
-  product_name: string;
-  is_igv: boolean;
-  quantity: string;
-  // Cuando is_igv=true: precio con IGV. Cuando is_igv=false: valor sin IGV.
-  unit_price: string;
-  unit_price_igv: string; // Siempre precio CON IGV
-  purchase_price: string;
-  description?: string;
-  subtotal: number;
-  tax: number;
-  total: number;
-  currency?: string;
-}
+  export interface ProductDetail {
+    product_id: string;
+    product_name: string;
+    is_igv: boolean;
+    quantity: string;
+    // Cuando is_igv=true: precio con IGV. Cuando is_igv=false: valor sin IGV.
+    unit_price: string;
+    unit_price_igv: string; // Siempre precio CON IGV
+    purchase_price: string;
+    description?: string;
+    subtotal: number;
+    tax: number;
+    total: number;
+    currency?: string;
+  }
 
-export const AddProductSheet = ({
-  open,
-  onClose,
-  onAdd,
-  editingDetail = null,
-  editIndex = null,
-  onEdit,
-  currency,
-  customerId,
-}: AddProductSheetProps) => {
-  const isEditMode = editingDetail !== null && editIndex !== null;
+  export const AddProductSheet = ({
+    open,
+    onClose,
+    onAdd,
+    editingDetail = null,
+    editIndex = null,
+    onEdit,
+    currency,
+    customerId,
+  }: AddProductSheetProps) => {
+    const isEditMode = editingDetail !== null && editIndex !== null;
 
-  const form = useForm({
-    defaultValues: {
-      product_id: "",
-      price_category_id: "",
-      is_igv: false,
-      quantity: "",
-      unit_value: "", // Valor unitario (sin IGV)
-      unit_price: "", // Precio unitario (con IGV)
-      purchase_price: "0",
-      description: "",
-    },
-  });
+    const form = useForm({
+      defaultValues: {
+        product_id: "",
+        price_category_id: "",
+        is_igv: false,
+        convert_currency: false,
+        quantity: "",
+        unit_value: "", // Valor unitario (sin IGV)
+        unit_price: "", // Precio unitario (con IGV)
+        purchase_price: "0",
+        description: "",
+      },
+    });
 
-  const [calculatedValues, setCalculatedValues] = useState({
-    subtotal: 0,
-    tax: 0,
-    total: 0,
-  });
+    const [calculatedValues, setCalculatedValues] = useState({
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+    });
 
-  const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
-  // Precisión completa del valor unitario (sin IGV) para enviar al backend
-  const fullPrecisionUnitValue = useRef<number | null>(null);
+    const [lastSetPrice, setLastSetPrice] = useState<string | null>(null);
+    // Precisión completa del valor unitario (sin IGV) para enviar al backend
+    const fullPrecisionUnitValue = useRef<number | null>(null);
 
-  const productId = form.watch("product_id");
-  const priceCategoryId = form.watch("price_category_id");
-  const isIgv = form.watch("is_igv");
-  const quantity = form.watch("quantity");
-  const unitValue = form.watch("unit_value");
-  const unitPrice = form.watch("unit_price");
+    const today = new Date().toISOString().split("T")[0];
+    const { data: exchangeRateData } = useSunatExchangeRate(today);
+    const EXCHANGE_RATE = exchangeRateData?.venta || 3.80;
 
-  // Cargar categorías de precio
-  const { data: priceCategories } = useAllProductPriceCategories();
+    const productId = form.watch("product_id");
+    const priceCategoryId = form.watch("price_category_id");
+    const isIgv = form.watch("is_igv");
+    const quantity = form.watch("quantity");
+    const unitValue = form.watch("unit_value");
+    const unitPrice = form.watch("unit_price");
+    const convertCurrency = form.watch("convert_currency");
+    const isCotizationSoles = currency === "PEN" || currency === "S/" || String(currency).toLowerCase().includes("soles");
 
-  // Cargar precios del producto seleccionado
-  const { data: productPricesData } = useProductPrices({
-    productId: parseInt(productId) || 0,
-  });
+    // Cargar categorías de precio
+    const { data: priceCategories } = useAllProductPriceCategories();
 
-  // Función para formatear número sin ceros innecesarios (8 decimales para precisión de precios)
-  const formatNumber = (num: number): string => {
-    return parseFloat(num.toFixed(8)).toString();
-  };
+    // Cargar precios del producto seleccionado
+    const { data: productPricesData } = useProductPrices({
+      productId: parseInt(productId) || 0,
+    });
 
-  // Autocompletar precio cuando se selecciona categoría de precio o moneda
-  useEffect(() => {
-    if (priceCategoryId && productPricesData && currency) {
-      const selectedPrice = productPricesData.find(
-        (price) => price.category_id === parseInt(priceCategoryId),
-      );
+    // Función para formatear número sin ceros innecesarios (8 decimales para precisión de precios)
+    const formatNumber = (num: number): string => {
+      return parseFloat(num.toFixed(8)).toString();
+    };
 
-      if (selectedPrice) {
-        let priceValue: number = 0;
 
-        if (selectedPrice.prices) {
-          priceValue = selectedPrice.prices[currency] ?? 0;
-        }
+    // Autocompletar precio cuando se selecciona categoría de precio o moneda
+    useEffect(() => {
+      if (priceCategoryId && productPricesData && currency) {
+        const selectedPrice = productPricesData.find(
+          (price) => price.category_id === parseInt(priceCategoryId),
+        );
 
-        if (priceValue.toString() !== lastSetPrice) {
-          fullPrecisionUnitValue.current = priceValue / 1.18;
-          form.setValue("unit_price", formatNumber(priceValue));
-          form.setValue("unit_value", formatNumber(priceValue / 1.18));
-          setLastSetPrice(priceValue.toString());
+        if (selectedPrice) {
+          let priceValue: number = 0;
+
+          if (selectedPrice.prices) {
+            priceValue = selectedPrice.prices[currency] ?? 0;
+          }
+
+          if (priceValue.toString() !== lastSetPrice) {
+            fullPrecisionUnitValue.current = priceValue / 1.18;
+            form.setValue("unit_price", formatNumber(priceValue));
+            form.setValue("unit_value", formatNumber(priceValue / 1.18));
+            setLastSetPrice(priceValue.toString());
+          }
         }
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [priceCategoryId, currency, productPricesData]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [priceCategoryId, currency, productPricesData]);
 
-  // Cargar datos cuando se abre el sheet
-  useEffect(() => {
-    if (open) {
-      setLastSetPrice(null);
+    // Cargar datos cuando se abre el sheet
+    useEffect(() => {
+      if (open) {
+        setLastSetPrice(null);
+        setSelectedProduct(null);
+        setShowHistory(false);
+        setShowStock(false);
 
-      if (editingDetail) {
-        // unit_price_igv siempre es el precio CON IGV
-        // Si unit_price_igv es 0, calcularlo desde unit_price (datos legados)
-        let igvPrice = parseFloat(editingDetail.unit_price_igv) || 0;
-        if (igvPrice === 0) {
-          const basePrice = parseFloat(editingDetail.unit_price) || 0;
-          igvPrice = editingDetail.is_igv ? basePrice : roundTo8(basePrice * 1.18);
+        if (editingDetail) {
+          // unit_price_igv siempre es el precio CON IGV
+          // Si unit_price_igv es 0, calcularlo desde unit_price (datos legados)
+          let igvPrice = parseFloat(editingDetail.unit_price_igv) || 0;
+          if (igvPrice === 0) {
+            const basePrice = parseFloat(editingDetail.unit_price) || 0;
+            igvPrice = editingDetail.is_igv ? basePrice : roundTo8(basePrice * 1.18);
+          }
+          const unitPriceField = igvPrice > 0 ? String(igvPrice) : "";
+          const unitValueField = igvPrice > 0 ? formatNumber(igvPrice / 1.18) : "";
+          fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / 1.18 : null;
+
+          form.reset({
+            product_id: editingDetail.product_id,
+            price_category_id: "",
+            is_igv: editingDetail.is_igv,
+            convert_currency: false,
+            quantity: Number(editingDetail.quantity).toString(),
+            unit_value: unitValueField,
+            unit_price: unitPriceField,
+            purchase_price: editingDetail.purchase_price ?? "0",
+            description: editingDetail.description || "",
+          });
+        } else {
+          fullPrecisionUnitValue.current = null;
+          form.reset({
+            product_id: "",
+            price_category_id: "",
+            is_igv: false,
+            quantity: "",
+            unit_value: "",
+            unit_price: "",
+            purchase_price: "0",
+            description: "",
+          });
         }
-        const unitPriceField = igvPrice > 0 ? String(igvPrice) : "";
-        const unitValueField = igvPrice > 0 ? formatNumber(igvPrice / 1.18) : "";
-        fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / 1.18 : null;
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [open]);
 
-        form.reset({
-          product_id: editingDetail.product_id,
-          price_category_id: "",
-          is_igv: editingDetail.is_igv,
-          quantity: editingDetail.quantity,
-          unit_value: unitValueField,
-          unit_price: unitPriceField,
-          purchase_price: editingDetail.purchase_price ?? "0",
-          description: editingDetail.description || "",
-        });
+    // Reset lastSetPrice cuando cambia el producto
+    useEffect(() => {
+      setLastSetPrice(null);
+    }, [productId]);
+
+    // Calcular valores: total = qty × precio_con_igv, subtotal = total/1.18, igv = total - subtotal
+  useEffect(() => {
+    const qty = parseFloat(quantity) || 0;
+    const typedUnitPrice = parseFloat(String(unitPrice)) || 0;
+
+    if (qty > 0 && typedUnitPrice > 0) {
+      // Convertimos el precio tipeado a la moneda base de la cotización
+      let finalPriceIgv = typedUnitPrice;
+      if (convertCurrency) {
+        finalPriceIgv = isCotizationSoles
+          ? typedUnitPrice * EXCHANGE_RATE // Ingresó $, lo pasamos a S/ (Multiplica)
+          : typedUnitPrice / EXCHANGE_RATE; // Ingresó S/, lo pasamos a $ (Divide)
+      }
+
+      const vUnit = finalPriceIgv / 1.18;
+      const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit);
+      setCalculatedValues({ subtotal, tax, total });
+    } else {
+      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+    }
+  }, [quantity, unitPrice, convertCurrency, EXCHANGE_RATE, isCotizationSoles]);
+
+    const [selectedProduct, setSelectedProduct] =
+      useState<ProductResource | null>(null);
+
+    const [showHistory, setShowHistory] = useState(false);
+    const [showStock, setShowStock] = useState(false);
+    const [showCreateProductModal, setShowCreateProductModal] = useState(false);
+
+    // Hooks para crear producto
+    const { createProduct, isSubmitting: isCreatingProduct } = useProductStore();
+    const { data: units } = useAllUnits();
+    const queryClient = useQueryClient();
+
+    const handleSave = () => {
+      const formData = form.getValues();
+
+      if (!formData.product_id || !formData.quantity || !formData.unit_value) {
+        return;
+      }
+
+      const selectedProductMatches =
+        selectedProduct?.id?.toString() === formData.product_id;
+      const productName = selectedProductMatches
+        ? selectedProduct.name
+        : editingDetail?.product_name;
+      if (!productName) return;
+      const typedUnitPrice = parseFloat(String(formData.unit_price)) || 0;
+      let finalPriceIgv = typedUnitPrice;
+      if (formData.convert_currency) {
+      finalPriceIgv = isCotizationSoles
+        ? typedUnitPrice * EXCHANGE_RATE
+        : typedUnitPrice / EXCHANGE_RATE;
+    } 
+    const sentUnitPriceIgv = formatNumber(finalPriceIgv);
+    const sentUnitPrice = formData.is_igv
+      ? formatNumber(finalPriceIgv)
+      : formatNumber(finalPriceIgv / 1.18);
+
+      const finalCurrency = formData.convert_currency ? "USD" : currency;
+
+      const detail: ProductDetail = {
+        product_id: formData.product_id,
+        product_name: productName,
+        is_igv: formData.is_igv,
+        quantity: Number(formData.quantity).toString(),
+        unit_price: sentUnitPrice,
+        unit_price_igv: sentUnitPriceIgv,
+        purchase_price: formData.purchase_price ?? "0",
+        description: formData.description || "",
+        subtotal: calculatedValues.subtotal,
+        tax: calculatedValues.tax,
+        total: calculatedValues.total,
+        currency: finalCurrency,
+      };
+
+      if (isEditMode && onEdit && editIndex !== null) {
+        onEdit(detail, editIndex);
+        setSelectedProduct(null);
+        onClose();
       } else {
-        fullPrecisionUnitValue.current = null;
+        onAdd(detail);
         form.reset({
           product_id: "",
           price_category_id: "",
@@ -168,235 +283,161 @@ export const AddProductSheet = ({
           purchase_price: "0",
           description: "",
         });
+        setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
+        setSelectedProduct(null);
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  // Reset lastSetPrice cuando cambia el producto
-  useEffect(() => {
-    setLastSetPrice(null);
-  }, [productId]);
-
-  // Calcular valores: total = qty × precio_con_igv, subtotal = total/1.18, igv = total - subtotal
-  useEffect(() => {
-    const qty = parseFloat(quantity) || 0;
-    const price = parseFloat(String(unitPrice)) || 0;
-
-    if (qty > 0 && price > 0) {
-      // Usar precisión completa (sin roundTo8) para evitar errores de redondeo en el total
-      const vUnit = price / 1.18;
-      const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit);
-      setCalculatedValues({ subtotal, tax, total });
-    } else {
-      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
-    }
-  }, [quantity, unitPrice]);
-
-  const [selectedProduct, setSelectedProduct] =
-    useState<ProductResource | null>(null);
-
-  const [showHistory, setShowHistory] = useState(false);
-  const [showStock, setShowStock] = useState(false);
-  const [showCreateProductModal, setShowCreateProductModal] = useState(false);
-
-  // Hooks para crear producto
-  const { createProduct, isSubmitting: isCreatingProduct } = useProductStore();
-  const { data: units } = useAllUnits();
-  const queryClient = useQueryClient();
-
-  const handleSave = () => {
-    const formData = form.getValues();
-
-    if (!formData.product_id || !formData.quantity || !formData.unit_value) {
-      return;
-    }
-
-    const productName = selectedProduct?.name ?? editingDetail?.product_name;
-    if (!productName) return;
-
-    // unit_price_igv: siempre el precio CON IGV (formData.unit_price = campo "con IGV")
-    // unit_price: valor SIN IGV con precisión completa (para backward compat)
-    const sentUnitPrice = formData.is_igv
-      ? formData.unit_price
-      : (fullPrecisionUnitValue.current?.toString() ?? formData.unit_value);
-    const sentUnitPriceIgv = formData.unit_price; // siempre CON IGV
-
-    const detail: ProductDetail = {
-      product_id: formData.product_id,
-      product_name: productName,
-      is_igv: formData.is_igv,
-      quantity: formData.quantity,
-      unit_price: sentUnitPrice,
-      unit_price_igv: sentUnitPriceIgv,
-      purchase_price: formData.purchase_price ?? "0",
-      description: formData.description || "",
-      subtotal: calculatedValues.subtotal,
-      tax: calculatedValues.tax,
-      total: calculatedValues.total,
-      currency: currency,
     };
 
-    if (isEditMode && onEdit && editIndex !== null) {
-      onEdit(detail, editIndex);
-      onClose();
-    } else {
-      onAdd(detail);
-      form.reset({
-        product_id: "",
-        price_category_id: "",
-        is_igv: false,
-        quantity: "",
-        unit_value: "",
-        unit_price: "",
-        purchase_price: "0",
-        description: "",
-      });
-      setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
-      setSelectedProduct(null);
-    }
-  };
+    const handleCreateProduct = async (data: any) => {
+      try {
+        await createProduct(data);
+        successToast("Producto creado exitosamente");
+        await queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
+        setShowCreateProductModal(false);
+      } catch (error) {
+        errorToast("Error al crear el producto");
+      }
+    };
 
-  const handleCreateProduct = async (data: any) => {
-    try {
-      await createProduct(data);
-      successToast("Producto creado exitosamente");
-      await queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
-      setShowCreateProductModal(false);
-    } catch (error) {
-      errorToast("Error al crear el producto");
-    }
-  };
-
-  return (
-    <GeneralSheet
-      open={open}
-      onClose={onClose}
-      title={isEditMode ? "Editar Producto" : "Agregar Producto"}
-      subtitle="Complete los datos del producto"
-      icon="Package"
-      size="xl"
-      modal={false}
-      preventAutoClose={!isEditMode}
-    >
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <FormSelectAsync
-              control={form.control}
-              name="product_id"
-              label="Producto"
-              useQueryHook={useProduct}
-              mapOptionFn={(product: ProductResource) => ({
-                value: product.id.toString(),
-                label: product.name,
-                description: product.category_name,
-              })}
-              placeholder="Seleccionar producto"
-              onValueChange={(_value, item) => {
-                setSelectedProduct(item ?? null);
-              }}
-            />
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-10 w-10 shrink-0"
-            onClick={() => setShowCreateProductModal(true)}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {productId && (
-          <>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowHistory(true)}
-                className="gap-2"
-              >
-                <History className="h-4 w-4" />
-                Historial
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowStock(true)}
-                className="gap-2"
-              >
-                <Package className="h-4 w-4" />
-                Ver Stock
-              </Button>
+    return (
+      <GeneralSheet
+        open={open}
+        onClose={onClose}
+        title={isEditMode ? "Editar Producto" : "Agregar Producto"}
+        subtitle="Complete los datos del producto"
+        icon="Package"
+        size="xl"
+        modal={false}
+        preventAutoClose={!isEditMode}
+      >
+        <div className="flex flex-col gap-4">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <FormSelectAsync
+                control={form.control}
+                name="product_id"
+                label="Producto"
+                useQueryHook={useProduct}
+                mapOptionFn={(product: ProductResource) => ({
+                  value: product.id.toString(),
+                  label: product.name,
+                  description: product.category_name,
+                })}
+                placeholder="Seleccionar producto"
+                onValueChange={(_value, item) => {
+                  setSelectedProduct(item ?? null);
+                }}
+              />
             </div>
-          </>
-        )}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setShowCreateProductModal(true)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          {priceCategories && priceCategories.length > 0 && (
-            <FormSelect
-              control={form.control}
-              name="price_category_id"
-              label="Categoría de Precio (opcional)"
-              options={priceCategories.map((cat) => ({
-                value: cat.id.toString(),
-                label: cat.name,
-              }))}
-              placeholder="Seleccionar categoría"
-            />
+          {productId && (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowHistory(true)}
+                  className="gap-2"
+                >
+                  <History className="h-4 w-4" />
+                  Historial
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowStock(true)}
+                  className="gap-2"
+                >
+                  <Package className="h-4 w-4" />
+                  Ver Stock
+                </Button>
+              </div>
+            </>
           )}
 
-          <FormInput
-            control={form.control}
-            name="quantity"
-            label="Cantidad"
-            type="number"
-            step="0.0001"
-            placeholder="0.00"
-          />
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            {priceCategories && priceCategories.length > 0 && (
+              <FormSelect
+                control={form.control}
+                name="price_category_id"
+                label="Categoría de Precio (opcional)"
+                options={priceCategories.map((cat) => ({
+                  value: cat.id.toString(),
+                  label: cat.name,
+                }))}
+                placeholder="Seleccionar categoría"
+              />
+            )}
 
-        <FormSwitch
-          control={form.control}
-          name="is_igv"
-          text="Precio incluye IGV"
-          textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
-          autoHeight
-        />
+            <FormInput
+              control={form.control}
+              name="quantity"
+              label="Cantidad"
+              type="number"
+              step="0.0001"
+              placeholder="0.00"
+            />
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormInput
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-3 rounded-lg border">
+            <FormSwitch
+              control={form.control}
+              name="is_igv"
+              text="Precio incluye IGV"
+              textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
+              autoHeight
+            />
+            <FormSwitch
             control={form.control}
-            name="unit_value"
-            label="Valor Unitario (sin IGV)"
-            type="number"
-            step="0.0001"
-            placeholder="0.00"
-            className={isIgv ? "border-dashed opacity-60" : "border-primary"}
-            onAfterChange={(val) => {
-              const v = parseFloat(String(val));
-              if (!isNaN(v) && v > 0) {
-                fullPrecisionUnitValue.current = v;
-                form.setValue("unit_price", formatNumber(v * 1.18));
-              } else if (val === "") {
-                fullPrecisionUnitValue.current = null;
-                form.setValue("unit_price", "");
-              }
-            }}
-          />
+            name="convert_currency"
+            text={isCotizationSoles ? "Convertir Dólares a Soles" : "Convertir Soles a Dólares"}
+            textDescription={`TC actual: ${EXCHANGE_RATE}`}
+            autoHeight
+            />
+          </div>
 
-          <FormInput
-            control={form.control}
-            name="unit_price"
-            label="Precio Unitario (con IGV)"
-            type="number"
-            step="0.0001"
-            placeholder="0.00"
-            className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
-            onAfterChange={(val) => {
-              const p = parseFloat(String(val));
+          <div className="grid grid-cols-2 gap-4">
+            <FormInput
+              control={form.control}
+              name="unit_value"
+              label="Valor Unitario (sin IGV)"
+              type="number"
+              step="0.0001"
+              placeholder="0.00"
+              className={isIgv ? "border-dashed opacity-60" : "border-primary"}
+              onAfterChange={(val) => {
+                const v = parseFloat(String(val));
+                if(!isNaN(v) && v>0){
+                  fullPrecisionUnitValue.current = v;
+                  form.setValue("unit_price", formatNumber(v*1.18))
+                }
+                 else if (val === "") {
+                  fullPrecisionUnitValue.current = null;
+                  form.setValue("unit_price", "");
+                }
+              }}
+            />
+
+            <FormInput
+              control={form.control}
+              name="unit_price"
+              label="Precio Unitario (con IGV)"
+              type="number"
+              step="0.0001"
+              placeholder="0.00"
+              className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+              onAfterChange={(val) => {
+                const p = parseFloat(String(val));
               if (!isNaN(p) && p > 0) {
                 fullPrecisionUnitValue.current = p / 1.18;
                 form.setValue("unit_value", formatNumber(p / 1.18));
@@ -404,116 +445,112 @@ export const AddProductSheet = ({
                 fullPrecisionUnitValue.current = null;
                 form.setValue("unit_value", "");
               }
-            }}
+              }}
+            />
+          </div>
+
+          <FormInput
+            control={form.control}
+            name="description"
+            label="Descripción"
+            placeholder="Descripción del producto (opcional)"
           />
-        </div>
 
-        <FormInput
-          control={form.control}
-          name="description"
-          label="Descripción"
-          placeholder="Descripción del producto (opcional)"
-        />
-
-        {calculatedValues.total > 0 && (
+          {calculatedValues.total > 0 && (
           <div className="p-4 bg-muted rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
               <span className="font-medium">
-                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.subtotal.toFixed(4)}
+                {isCotizationSoles ? "S/" : "$"} {calculatedValues.subtotal.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span>IGV (18%):</span>
               <span className="font-medium">
-                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.tax.toFixed(4)}
+                {isCotizationSoles ? "S/" : "$"} {calculatedValues.tax.toFixed(4)}
               </span>
             </div>
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
               <span>
-                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.total.toFixed(4)}
+                {isCotizationSoles ? "S/" : "$"} {calculatedValues.total.toFixed(4)}
               </span>
             </div>
           </div>
         )}
-
-        <div className="flex gap-4 justify-end pt-4">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={!productId || !quantity || !unitValue}
-          >
-            {isEditMode ? (
-              <Pencil className="mr-2 h-4 w-4" />
-            ) : (
-              <Plus className="mr-2 h-4 w-4" />
-            )}
-            {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Dialog de historial de ventas */}
-      {productId && selectedProduct && (
-        <>
-          <ProductHistoryDialog
-            open={showHistory}
-            onOpenChange={setShowHistory}
-            productId={parseInt(productId)}
-            productName={selectedProduct.name}
-            customerId={customerId}
-          />
-          <ProductStockDialog
-            open={showStock}
-            onOpenChange={setShowStock}
-            productId={parseInt(productId)}
-            productName={selectedProduct.name}
-          />
-        </>
-      )}
-
-      {/* Modal para crear producto */}
-      {showCreateProductModal && units && (
-        <GeneralModal
-          open={showCreateProductModal}
-          onClose={() => setShowCreateProductModal(false)}
-          title="Crear Nuevo Producto"
-          subtitle="Complete los datos del nuevo producto"
-          icon="Package"
-          size="5xl"
-        >
-          <div
-            onSubmit={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <ProductForm
-              defaultValues={{
-                name: "",
-                category_id: "",
-                brand_id: "",
-                unit_id: "",
-                product_type_id: "",
-                is_igv: false,
-                observations: "",
-                technical_sheet: [],
-              }}
-              onSubmit={handleCreateProduct}
-              onCancel={() => setShowCreateProductModal(false)}
-              isSubmitting={isCreatingProduct}
-              mode="create"
-              units={units}
-            />
+          <div className="flex gap-4 justify-end pt-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSave}
+              disabled={!productId || !quantity || !unitValue}
+            >
+              {isEditMode ? (
+                <Pencil className="mr-2 h-4 w-4" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {isEditMode ? "Actualizar Producto" : "Agregar Producto"}
+            </Button>
           </div>
-        </GeneralModal>
-      )}
-    </GeneralSheet>
-  );
-};
+        </div>
+
+        {/* Dialog de historial de ventas */}
+        {productId && selectedProduct && (
+          <>
+            <ProductHistoryDialog
+              open={showHistory}
+              onOpenChange={setShowHistory}
+              productId={parseInt(productId)}
+              productName={selectedProduct.name}
+              customerId={customerId}
+            />
+            <ProductStockDialog
+              open={showStock}
+              onOpenChange={setShowStock}
+              productId={parseInt(productId)}
+              productName={selectedProduct.name}
+            />
+          </>
+        )}
+
+        {/* Modal para crear producto */}
+        {showCreateProductModal && units && (
+          <GeneralModal
+            open={showCreateProductModal}
+            onClose={() => setShowCreateProductModal(false)}
+            title="Crear Nuevo Producto"
+            subtitle="Complete los datos del nuevo producto"
+            icon="Package"
+            size="5xl"
+          >
+            <div
+              onSubmit={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              <ProductForm
+                defaultValues={{
+                  name: "",
+                  category_id: "",
+                  brand_id: "",
+                  unit_id: "",
+                  product_type_id: "",
+                  is_igv: false,
+                  observations: "",
+                  technical_sheet: [],
+                }}
+                onSubmit={handleCreateProduct}
+                onCancel={() => setShowCreateProductModal(false)}
+                isSubmitting={isCreatingProduct}
+                mode="create"
+                units={units}
+              />
+            </div>
+          </GeneralModal>
+        )}
+      </GeneralSheet>
+    );
+  };

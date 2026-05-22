@@ -3,14 +3,15 @@ import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, Legend } from "recha
 interface NotasVentaPieProps {
   collected: number;
   pending: number;
+  currencySymbol?: string;
 }
 
-const CustomPieTooltip = ({ active, payload }: any) => {
+const CustomPieTooltip = ({ active, payload, currencySymbol }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0f172a] border border-[#1e293b] shadow-xl rounded-lg p-3 text-sm">
+      <div className="bg-white dark:bg-[#0f172a] border border-gray-200 dark:border-[#1e293b] shadow-xl rounded-lg p-3 text-sm">
         <p style={{ color: payload[0].payload.color }} className="font-semibold">
-          {payload[0].name}: S/ {payload[0].value.toLocaleString()}
+          {payload[0].name}: {currencySymbol} {payload[0].value.toLocaleString()}
         </p>
       </div>
     );
@@ -18,7 +19,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export function NotasVentaPie({ collected, pending }: NotasVentaPieProps) {
+export function NotasVentaPie({ collected, pending, currencySymbol= "S/"}: NotasVentaPieProps) {
   const data = [
     { name: "Total Cobrado", value: collected, color: "#3b82f6" },
     { name: "Pendiente de Cobro", value: pending, color: "#ef4444" },
@@ -28,25 +29,34 @@ export function NotasVentaPie({ collected, pending }: NotasVentaPieProps) {
 
   return (
     <div className="h-[240px] w-full mt-4 relative">
-      <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
-          <Legend iconType="circle" verticalAlign="top" align="center" wrapperStyle={{ paddingBottom: "20px", fontSize: "13px", color: "#d1d5db" }} />
-          <Pie data={data} cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={3} dataKey="value" stroke="none">
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomPieTooltip />} />
-        </PieChart>
-      </ResponsiveContainer>
       
-      <div className="absolute top-[58%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-        <p className="text-lg font-bold text-white">
-          {total > 0 ? `S/ ${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "S/ 0.00"}
+      <div className="absolute top-[58%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none z-0">
+        <p className="text-lg font-bold text-slate-900 dark:text-white">
+          {total > 0 ? `${currencySymbol} ${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `${currencySymbol} 0.00`}
         </p>
-        {/* <-- AQUI LE CAMBIAMOS A "TOTAL VENTAS" PARA QUE ALVARO Y EL CLIENTE ESTÉN FELICES --> */}
-        <p className="text-[11px] text-gray-400 uppercase tracking-wider mt-1">Total Ventas</p>
+        <p className="text-[11px] text-slate-500 dark:text-gray-400 uppercase tracking-wider mt-1">Total Crédito</p>
       </div>
+
+      <div className="relative w-full h-full z-10">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Legend 
+              iconType="circle" 
+              verticalAlign="top" 
+              align="center" 
+              wrapperStyle={{ paddingBottom: "20px", fontSize: "13px" }} 
+              formatter={(value) => <span className="text-slate-700 dark:text-slate-300">{value}</span>}
+            />
+            <Pie data={data} cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={3} dataKey="value" stroke="none">
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomPieTooltip currencySymbol={currencySymbol}/>} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      
     </div>
   );
 }

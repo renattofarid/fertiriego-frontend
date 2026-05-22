@@ -26,9 +26,10 @@ interface TopProduct {
 
 interface TopProductsChartProps {
   data: TopProduct[];
+  currencySymbol?: string;
 }
 
-export function TopProductsChart({ data }: TopProductsChartProps) {
+export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChartProps) {
   // Transform data to include fill color for each product
   const chartData = data.map((product, index) => ({
     ...product,
@@ -63,13 +64,13 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
     return (
       <g transform={`translate(${x},${y})`}>
         <text
-          x={0}
+          x={-95}
           y={0}
           dy={4}
-          textAnchor="end"
+          textAnchor="start"
           fill="currentColor"
           fontSize={10}
-          className="line-clamp-1"
+          className="line-clamp-1 fill-slate-600 dark:fill-slate-400"
           style={{
             maxWidth: "100px",
             overflow: "hidden",
@@ -125,7 +126,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
                     formatter={(value, _name, props) => [
                       `${
                         props.payload.name
-                      } (${value} unidades) - S/. ${props.payload.revenue.toFixed(
+                      } (${value} unidades) - ${currencySymbol} ${props.payload.revenue.toFixed(
                         2
                       )}`,
                     ]}
@@ -147,7 +148,7 @@ export function TopProductsChart({ data }: TopProductsChartProps) {
           <TrendingUp className="h-4 w-4" />
         </div>
         <div className="text-muted-foreground leading-none">
-          Ingresos totales: S/. {totalRevenue.toFixed(2)}
+          Ingresos totales: {currencySymbol} {totalRevenue.toFixed(2)}
         </div>
       </CardFooter>
     </Card>

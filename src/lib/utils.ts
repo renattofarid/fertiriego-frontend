@@ -1,12 +1,12 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
- * Trunca (sin redondear) un número a `decimals` decimales.
+ * Trunca (sin redondear) un numero a `decimals` decimales.
  * Ej: truncDecimal(1.23456789, 6) => 1.234567
  */
 export function truncDecimal(value: number, decimals = 6): number {
@@ -16,11 +16,78 @@ export function truncDecimal(value: number, decimals = 6): number {
 }
 
 /**
- * Formatea un número truncado a `decimals` decimales y devuelve string con esos decimales.
+ * Formatea un numero truncado a `decimals` decimales y devuelve string con esos decimales.
  * Usa truncDecimal internamente para evitar cualquier redondeo.
  */
 export function formatDecimalTrunc(value: number, decimals = 6): string {
   const v = truncDecimal(value, decimals);
-  // toFixed aquí no redondeará porque ya truncamos
   return v.toFixed(decimals);
+}
+
+const DECIMAL_QUANTITY_UNITS = new Set([
+  "KG",
+  "KGM",
+  "L",
+  "LT",
+  "LTR",
+  "GR",
+  "GRM",
+  "G",
+  "ML",
+]);
+
+const INTEGER_QUANTITY_UNITS = new Set(["NIU", "UND", "PZ", "PZA", "UN"]);
+
+const QUANTITY_UNIT_ALIASES: Record<string, string> = {
+  KILO: "KG",
+  KILOS: "KG",
+  KILOGRAMO: "KG",
+  KILOGRAMOS: "KG",
+  LITRO: "L",
+  LITROS: "L",
+  GRAMO: "GR",
+  GRAMOS: "GR",
+  UNIDAD: "UND",
+  UNIDADES: "UND",
+  PIEZA: "PZ",
+  PIEZAS: "PZ",
+};
+
+export function formatQuantityWithUnit(
+  quantity: number | null | undefined,
+  unit: string,
+): string {
+  const rawUnit = unit?.trim().toUpperCase() || "";
+  const normalizedUnit = QUANTITY_UNIT_ALIASES[rawUnit] ?? rawUnit;
+
+  if (quantity === null || quantity === undefined || !Number.isFinite(quantity)) {
+    return normalizedUnit ? `- ${normalizedUnit}` : "-";
+  }
+
+  if (DECIMAL_QUANTITY_UNITS.has(normalizedUnit)) {
+    return `${quantity.toFixed(2)} ${normalizedUnit}`.trim();
+  }
+
+  if (INTEGER_QUANTITY_UNITS.has(normalizedUnit)) {
+    return `${Math.round(quantity)} ${normalizedUnit}`.trim();
+  }
+
+  return `${quantity} ${normalizedUnit}`.trim();
+}
+
+export function getDetailQuantityUnit(
+  detail: unknown,
+  fallbackUnit = "NIU",
+): string {
+  const row = detail as Record<string, any>;
+  const product = row?.product as Record<string, any> | undefined;
+
+  return (
+    row?.unit ||
+    row?.unit_measure ||
+    product?.unit ||
+    product?.unit_measure ||
+    product?.unit_code ||
+    fallbackUnit
+  );
 }

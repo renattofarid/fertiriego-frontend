@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -155,7 +156,9 @@ export const QuotationForm = ({
 
       if (!force && tipoCambioCache.current[fecha]) {
         setTipoCambioError("");
-        form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        if (tipoCambioCache.current[fecha] !== "error") {
+          form.setValue("tipo_cambio", tipoCambioCache.current[fecha]);
+        }
         return;
       }
 
@@ -170,6 +173,7 @@ export const QuotationForm = ({
         form.setValue("tipo_cambio", valorStr);
       } catch {
         setTipoCambioError("No se pudo obtener el tipo de cambio SUNAT.");
+        tipoCambioCache.current[fecha]= "error";
         form.setValue("tipo_cambio", "");
       } finally {
         tipoCambioFetching.current.delete(fecha);
@@ -275,7 +279,10 @@ export const QuotationForm = ({
         header: "Cantidad",
         cell: ({ row }) => (
           <div className="text-right">
-            {parseFloat(row.original.quantity).toFixed(4)}
+            {formatQuantityWithUnit(
+              Number(row.original.quantity),
+              getDetailQuantityUnit(row.original),
+            )}
           </div>
         ),
       },
@@ -434,23 +441,26 @@ export const QuotationForm = ({
   };
 
   const handleUpdateDetail = (detail: ProductDetail, index: number) => {
-    const updatedDetail: DetailRow = {
-      product_id: detail.product_id,
-      product_name: detail.product_name,
-      is_igv: detail.is_igv,
-      quantity: detail.quantity,
-      unit_price: detail.unit_price,
-      unit_price_igv: detail.unit_price_igv,
-      purchase_price: detail.purchase_price,
-      description: detail.description || "",
-      subtotal: detail.subtotal,
-      tax: detail.tax,
-      total: detail.total,
-    };
+    setDetails((prevDetails) =>
+      prevDetails.map((item, currentIndex) => {
+        if (currentIndex !== index) return item;
 
-    const updatedDetails = [...details];
-    updatedDetails[index] = updatedDetail;
-    setDetails(updatedDetails);
+        return {
+          ...item,
+          product_id: detail.product_id || item.product_id,
+          product_name: detail.product_name || item.product_name,
+          is_igv: detail.is_igv,
+          quantity: detail.quantity,
+          unit_price: detail.unit_price,
+          unit_price_igv: detail.unit_price_igv,
+          purchase_price: detail.purchase_price,
+          description: detail.description || "",
+          subtotal: detail.subtotal,
+          tax: detail.tax,
+          total: detail.total,
+        };
+      }),
+    );
     setEditingDetail(null);
     setEditingIndex(null);
   };
