@@ -41,6 +41,7 @@ import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatNumber } from "@/lib/formatCurrency";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 import {
   roundTo8,
   roundTo4,
@@ -1583,7 +1584,10 @@ export const SaleForm = ({
                         <TableCell>{index + 1}</TableCell>
                         <TableCell>{detail.product_name}</TableCell>
                         <TableCell className="text-right">
-                          {formatNumber(parseFloat(detail.quantity), 4)}
+                          {formatQuantityWithUnit(
+                            Number(detail.quantity),
+                            getDetailQuantityUnit(detail),
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatNumber(parseFloat(detail.unit_price), 4)}

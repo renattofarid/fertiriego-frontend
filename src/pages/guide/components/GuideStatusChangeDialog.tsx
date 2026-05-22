@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import {
   Dialog,
@@ -9,14 +7,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { GUIDE_STATUSES, type GuideStatus } from "../lib/guide.interface";
+import { GUIDE_STATUS_LABELS, type GuideStatus } from "../lib/guide.interface";
 
 interface GuideStatusChangeDialogProps {
   onConfirm: (newStatus: GuideStatus) => Promise<void>;
@@ -32,56 +23,35 @@ export function GuideStatusChangeDialog({
   currentStatus,
 }: GuideStatusChangeDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] =
-    useState<GuideStatus>(currentStatus);
+  const currentStatusLabel = GUIDE_STATUS_LABELS[currentStatus] ?? currentStatus;
+  const canAnnul = ["DECLARADA", "EMITIDA"].includes(currentStatus);
 
   const handleConfirm = async () => {
-    if (selectedStatus === currentStatus) {
-      onOpenChange(false);
-      return;
-    }
+    if (!canAnnul) return;
 
     setLoading(true);
     try {
-      await onConfirm(selectedStatus);
+      await onConfirm("ANULADA");
       onOpenChange(false);
     } finally {
       setLoading(false);
     }
   };
 
-  const currentStatusLabel = GUIDE_STATUSES.find(
-    (s) => s.value === currentStatus
-  )?.label;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Cambiar estado de guía de remisión</DialogTitle>
+          <DialogTitle>Anular guía de remisión</DialogTitle>
           <DialogDescription>
             Estado actual: <strong>{currentStatusLabel}</strong>
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <div className="space-y-2 w-full">
-            <label className="text-sm font-medium">Nuevo estado</label>
-            <Select
-              value={selectedStatus}
-              onValueChange={(value) => setSelectedStatus(value as GuideStatus)}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {GUIDE_STATUSES.map((status) => (
-                  <SelectItem key={status.value} value={status.value}>
-                    {status.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Esta acción cambiará el estado de la guía a <strong>ANULADA</strong>.
+            Solo aplica para guías declaradas o emitidas.
+          </p>
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
@@ -91,11 +61,11 @@ export function GuideStatusChangeDialog({
               Cancelar
             </Button>
             <Button
-              variant="default"
+              variant="destructive"
               onClick={handleConfirm}
-              disabled={loading || selectedStatus === currentStatus}
+              disabled={loading || !canAnnul}
             >
-              {loading ? "Actualizando..." : "Confirmar"}
+              {loading ? "Anulando..." : "Anular"}
             </Button>
           </div>
         </div>

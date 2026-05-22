@@ -73,14 +73,14 @@ export const deleteGuide = async (id: number): Promise<{ message: string }> => {
 };
 
 export interface ChangeGuideStatusRequest {
-  status: string; // "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA"
+  status: "ANULADA";
 }
 
 export const changeGuideStatus = async (
   id: number,
   data: ChangeGuideStatusRequest,
 ): Promise<{ message: string }> => {
-  const response = await api.patch<{ message: string }>(
+  const response = await api.put<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}/status`,
     data,
   );

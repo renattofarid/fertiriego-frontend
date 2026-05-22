@@ -32,6 +32,7 @@ import FormWrapper from "@/components/FormWrapper";
 import { ORDER } from "../lib/order.interface";
 import FormSkeleton from "@/components/FormSkeleton";
 import TitleFormComponent from "@/components/TitleFormComponent";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 
 const statusVariant: Record<string, "yellow" | "blue" | "green" | "red" | "gray" | "default" | "secondary"> = {
   Pendiente: "yellow",
@@ -218,7 +219,10 @@ export default function OrderDetailPage() {
                           <p className="font-medium text-sm">{detail.product.name}</p>
                         </TableCell>
                         <TableCell className="text-right tabular-nums text-sm">
-                          {Number(detail.quantity).toFixed(2)}
+                          {formatQuantityWithUnit(
+                            Number(detail.quantity),
+                            getDetailQuantityUnit(detail),
+                          )}
                         </TableCell>
                         <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
                           {currency} {Number(detail.unit_price).toFixed(2)}
