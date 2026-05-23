@@ -48,10 +48,6 @@ export default function GuidePage() {
     setOpenMobile(true);
   }, []);
 
-  const handleEdit = (id: number) => {
-    navigate(`${GUIDE.ROUTE}/actualizar/${id}`);
-  };
-
   const handleView = (id: number) => {
     navigate(`${GUIDE.ROUTE}/${id}`);
   };
@@ -128,7 +124,6 @@ export default function GuidePage() {
       <GuideTable
         isLoading={isLoading}
         columns={GuideColumns({
-          onEdit: handleEdit,
           onDelete: setDeleteId,
           onView: handleView,
           onChangeStatus: handleChangeStatus,
