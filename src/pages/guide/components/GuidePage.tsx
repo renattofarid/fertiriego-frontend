@@ -23,7 +23,6 @@ import {
 } from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useSidebar } from "@/components/ui/sidebar";
-
 const { MODEL, ICON } = GUIDE;
 
 export default function GuidePage() {
@@ -49,10 +48,6 @@ export default function GuidePage() {
     setOpenMobile(true);
   }, []);
 
-  const handleEdit = (id: number) => {
-    navigate(`${GUIDE.ROUTE}/actualizar/${id}`);
-  };
-
   const handleView = (id: number) => {
     navigate(`${GUIDE.ROUTE}/${id}`);
   };
@@ -71,6 +66,13 @@ export default function GuidePage() {
   };
 
   const handleChangeStatus = (id: number, currentStatus: GuideStatus) => {
+    if (!["DECLARADA", "EMITIDA"].includes(currentStatus)) {
+      errorToast(
+        "Solo se puede anular una guía con estado DECLARADA o EMITIDA",
+        "Acción no disponible",
+      );
+      return;
+    }
     setStatusChangeData({ id, currentStatus });
   };
 
@@ -87,7 +89,7 @@ export default function GuidePage() {
     try {
       await changeStatus(statusChangeData.id, newStatus);
       await refetch();
-      successToast(`Estado actualizado a ${newStatus}`);
+      successToast("Guía anulada correctamente");
     } catch (error: any) {
       errorToast(
         error.response?.data?.message || "Error al actualizar el estado",
@@ -122,7 +124,6 @@ export default function GuidePage() {
       <GuideTable
         isLoading={isLoading}
         columns={GuideColumns({
-          onEdit: handleEdit,
           onDelete: setDeleteId,
           onView: handleView,
           onChangeStatus: handleChangeStatus,

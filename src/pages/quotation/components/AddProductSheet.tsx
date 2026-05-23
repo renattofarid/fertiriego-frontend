@@ -142,6 +142,9 @@
     useEffect(() => {
       if (open) {
         setLastSetPrice(null);
+        setSelectedProduct(null);
+        setShowHistory(false);
+        setShowStock(false);
 
         if (editingDetail) {
           // unit_price_igv siempre es el precio CON IGV
@@ -160,7 +163,7 @@
             price_category_id: "",
             is_igv: editingDetail.is_igv,
             convert_currency: false,
-            quantity: editingDetail.quantity,
+            quantity: Number(editingDetail.quantity).toString(),
             unit_value: unitValueField,
             unit_price: unitPriceField,
             purchase_price: editingDetail.purchase_price ?? "0",
@@ -229,7 +232,11 @@
         return;
       }
 
-      const productName = selectedProduct?.name ?? editingDetail?.product_name;
+      const selectedProductMatches =
+        selectedProduct?.id?.toString() === formData.product_id;
+      const productName = selectedProductMatches
+        ? selectedProduct.name
+        : editingDetail?.product_name;
       if (!productName) return;
       const typedUnitPrice = parseFloat(String(formData.unit_price)) || 0;
       let finalPriceIgv = typedUnitPrice;
@@ -249,7 +256,7 @@
         product_id: formData.product_id,
         product_name: productName,
         is_igv: formData.is_igv,
-        quantity: formData.quantity,
+        quantity: Number(formData.quantity).toString(),
         unit_price: sentUnitPrice,
         unit_price_igv: sentUnitPriceIgv,
         purchase_price: formData.purchase_price ?? "0",
@@ -262,6 +269,7 @@
 
       if (isEditMode && onEdit && editIndex !== null) {
         onEdit(detail, editIndex);
+        setSelectedProduct(null);
         onClose();
       } else {
         onAdd(detail);
