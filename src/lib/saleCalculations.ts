@@ -24,7 +24,7 @@ export const truncTo2 = (n: number): number => {
  * Calcular montos de un ítem a partir del V.Unit (precio SIN IGV).
  * Orden canónico: subtotal → total → igv
  *   subtotal = qty × V.Unit  (coincide visualmente con lo que se muestra)
- *   total    = subtotal × 1.18
+ *   total    = subtotal × (1 + tasa IGV)
  *   igv      = total - subtotal  (garantiza subtotal + igv = total exactamente)
  */
 export function calcItemAmounts(

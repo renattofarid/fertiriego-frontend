@@ -79,6 +79,7 @@ import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
 import { usePersonById } from "@/pages/person/lib/person.hook";
 import { FormInput } from "@/components/FormInput";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 interface SaleFormProps {
   defaultValues: Partial<SaleSchema>;
@@ -130,6 +131,12 @@ export const SaleForm = ({
   sourceType,
   sale,
 }: SaleFormProps) => {
+  const { user } = useAuthStore();
+  const hasIgv =
+    user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
+  const igvPercentage = hasIgv ? 18 : 0;
+
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
 
@@ -417,11 +424,12 @@ export const SaleForm = ({
           // unit_price_igv siempre viene CON IGV; dividir para obtener V.Unit SIN IGV
           // unit_price_igv siempre CON IGV → dividir para SIN IGV; fallback a unit_price si falta
           const unitPriceSin = detail.unit_price_igv
-            ? parseFloat(detail.unit_price_igv) / 1.18
+            ? parseFloat(detail.unit_price_igv) / taxMultiplier
             : parseFloat(detail.unit_price);
           const { total, subtotal, igv } = calcItemAmounts(
             quantity,
             unitPriceSin,
+            hasIgv,
           );
 
           return {
@@ -589,7 +597,7 @@ export const SaleForm = ({
           detailTempForm.setValue("temp_unit_price", priceValue.toString());
           detailTempForm.setValue(
             "temp_value_price",
-            formatNumberLocal(priceValue / 1.18),
+            formatNumberLocal(priceValue / taxMultiplier),
           );
           setLastSetPrice(priceValue.toString());
         }
@@ -622,11 +630,12 @@ export const SaleForm = ({
             sourceData.quotation_details.map((detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const valorUnitario = roundTo8(
-                parseFloat(detail.unit_price_igv) / 1.18,
+                parseFloat(detail.unit_price_igv) / taxMultiplier,
               ); // SIN IGV → backend
               const { total, subtotal, igv } = calcItemAmounts(
                 quantity,
                 valorUnitario,
+                hasIgv,
               );
 
               return {
@@ -646,18 +655,24 @@ export const SaleForm = ({
           // Auto-completar detalles desde orden — usar unit_price_igv (siempre CON IGV)
           const orderDetails: DetailRow[] = sourceData.order_details.map(
             (detail: any) => {
+              const quantity = parseFloat(detail.quantity);
               const valorUnitario = roundTo8(
-                parseFloat(detail.unit_price_igv) / 1.18,
+                parseFloat(detail.unit_price_igv) / taxMultiplier,
               ); // SIN IGV → backend
+              const { total, subtotal, igv } = calcItemAmounts(
+                quantity,
+                valorUnitario,
+                hasIgv,
+              );
 
               return {
                 product_id: detail.product_id.toString(),
                 product_name: detail.product?.name,
                 quantity: detail.quantity,
                 unit_price: valorUnitario.toString(),
-                subtotal: parseFloat(detail.subtotal),
-                igv: parseFloat(detail.tax),
-                total: parseFloat(detail.total),
+                subtotal,
+                igv,
+                total,
               };
             },
           );
@@ -714,6 +729,7 @@ export const SaleForm = ({
               const { total, subtotal, igv } = calcItemAmounts(
                 quantity,
                 unitPrice,
+                hasIgv,
               );
 
               return {
@@ -784,8 +800,12 @@ export const SaleForm = ({
 
     const quantity = parseFloat(currentDetail.quantity);
     const unitPriceWithIGV = parseFloat(currentDetail.unit_price); // temp_unit_price = CON IGV
-    const valorUnitario = unitPriceWithIGV / 1.18; // V.Unit SIN IGV → backend (sin redondear para mantener precisión)
-    const { total, subtotal, igv } = calcItemAmounts(quantity, valorUnitario);
+    const valorUnitario = unitPriceWithIGV / taxMultiplier; // V.Unit SIN IGV → backend
+    const { total, subtotal, igv } = calcItemAmounts(
+      quantity,
+      valorUnitario,
+      hasIgv,
+    );
 
     const newDetail: DetailRow = {
       product_id: String(currentDetail.product_id),
@@ -844,7 +864,7 @@ export const SaleForm = ({
     );
     detailTempForm.setValue(
       "temp_unit_price",
-      detail.unit_price ? formatNumberLocal(unitPriceSin * 1.18) : "",
+      detail.unit_price ? formatNumberLocal(unitPriceSin * taxMultiplier) : "",
     );
     setEditingDetailIndex(index);
   };
@@ -1516,7 +1536,7 @@ export const SaleForm = ({
                   if (!isNaN(v) && v > 0) {
                     detailTempForm.setValue(
                       "temp_unit_price",
-                      formatNumberLocal(v * 1.18),
+                      formatNumberLocal(v * taxMultiplier),
                     );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_unit_price", "");
@@ -1537,7 +1557,7 @@ export const SaleForm = ({
                   if (!isNaN(p) && p > 0) {
                     detailTempForm.setValue(
                       "temp_value_price",
-                      formatNumberLocal(p / 1.18),
+                      formatNumberLocal(p / taxMultiplier),
                     );
                   } else if (val === "") {
                     detailTempForm.setValue("temp_value_price", "");
@@ -1573,7 +1593,9 @@ export const SaleForm = ({
                       <TableHead className="text-right">V. Unit.</TableHead>
                       <TableHead className="text-right">P. Unit.</TableHead>
                       <TableHead className="text-right">Subtotal</TableHead>
-                      <TableHead className="text-right">IGV (18%)</TableHead>
+                      <TableHead className="text-right">
+                        IGV ({igvPercentage}%)
+                      </TableHead>
                       <TableHead className="text-right">Total</TableHead>
                       <TableHead className="text-center">Acciones</TableHead>
                     </TableRow>
@@ -1594,7 +1616,7 @@ export const SaleForm = ({
                         </TableCell>
                         <TableCell className="text-right">
                           {formatNumber(
-                            parseFloat(detail.unit_price) * 1.18,
+                            parseFloat(detail.unit_price) * taxMultiplier,
                             4,
                           )}
                         </TableCell>
@@ -2060,6 +2082,7 @@ export const SaleForm = ({
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
           tipoCambio={form.watch("tipo_cambio" as any) || ""}
+          porcentajeIgv={igvPercentage}
           isDetraccion={isDetraccion}
           codigosDetraccion={codigosDetraccion}
         />
