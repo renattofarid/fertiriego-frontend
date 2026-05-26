@@ -30,9 +30,11 @@ export const truncTo2 = (n: number): number => {
 export function calcItemAmounts(
   quantity: number,
   unitPriceSinIGV: number,
+  hasIgv = true,
 ): { total: number; subtotal: number; igv: number } {
+  const taxRate = hasIgv ? 0.18 : 0;
   const subtotal = roundTo4(quantity * unitPriceSinIGV);
-  const total = roundTo4(subtotal * 1.18);
+  const total = roundTo4(subtotal * (1 + taxRate));
   const igv = roundTo4(total - subtotal);
   return { total, subtotal, igv };
 }
