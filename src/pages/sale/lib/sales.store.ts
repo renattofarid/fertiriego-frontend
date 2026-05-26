@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { roundTo8 } from "@/lib/saleCalculations";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import type {
   SaleResource,
   CreateSaleRequest,
@@ -25,6 +26,11 @@ import { SALE } from "./sale.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = SALE;
+
+const getAuthenticatedBranchHasIgv = () =>
+  useAuthStore
+    .getState()
+    .user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
 
 interface SaleStore {
   // State
@@ -101,6 +107,8 @@ export const useSaleStore = create<SaleStore>((set) => ({
   createSale: async (data: SaleSchema) => {
     set({ isSubmitting: true, error: undefined });
     try {
+      const hasIgv = getAuthenticatedBranchHasIgv();
+      const taxMultiplier = hasIgv ? 1.18 : 1;
       const request: CreateSaleRequest = {
         customer_id: Number(data.customer_id),
         warehouse_id: Number(data.warehouse_id),
@@ -131,7 +139,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
           product_id: Number(detail.product_id),
           quantity: parseFloat(Number(detail.quantity).toFixed(4)),
           unit_price: roundTo8(Number(detail.unit_price)),
-          unit_price_igv: roundTo8(Number(detail.unit_price) * 1.18),
+          unit_price_igv: roundTo8(Number(detail.unit_price) * taxMultiplier),
         })),
         installments:
           data.installments.length > 0
@@ -154,6 +162,8 @@ export const useSaleStore = create<SaleStore>((set) => ({
   updateSale: async (id: number, data: Partial<SaleUpdateSchema>) => {
     set({ isSubmitting: true, error: undefined });
     try {
+      const hasIgv = getAuthenticatedBranchHasIgv();
+      const taxMultiplier = hasIgv ? 1.18 : 1;
       const request: UpdateSaleRequest = {
         ...(data.customer_id && { customer_id: Number(data.customer_id) }),
         ...(data.warehouse_id && { warehouse_id: Number(data.warehouse_id) }),
@@ -190,7 +200,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
               product_id: Number(detail.product_id),
               quantity: parseFloat(Number(detail.quantity).toFixed(4)),
               unit_price: roundTo8(Number(detail.unit_price)),
-              unit_price_igv: roundTo8(Number(detail.unit_price) * 1.18),
+              unit_price_igv: roundTo8(Number(detail.unit_price) * taxMultiplier),
             })),
           }),
         ...(data.installments &&

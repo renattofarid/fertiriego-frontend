@@ -12,14 +12,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ButtonAction } from "@/components/ButtonAction";
 import {
   Copy,
   Eye,
-  Pencil,
   BanknoteArrowUp,
   FileCode2,
   FileArchive,
@@ -53,7 +51,6 @@ const downloadXml = async (endpoint: string, fileName: string) => {
 };
 
 interface GuideColumnsProps {
-  onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onView: (id: number) => void;
   onChangeStatus: (id: number, status: GuideStatus) => void;
@@ -62,7 +59,6 @@ interface GuideColumnsProps {
 }
 
 export const GuideColumns = ({
-  onEdit,
   onDelete,
   onView,
   onChangeStatus,
@@ -364,14 +360,6 @@ export const GuideColumns = ({
                   Anular guía
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={() => onEdit(row.original.id)}
-                disabled={isAceptado}
-              >
-                <Pencil className="h-4 w-4 mr-2 text-muted-foreground" />
-                {isAceptado ? "No se puede editar" : "Editar"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => onDelete(row.original.id)}
                 disabled={isAceptado}
