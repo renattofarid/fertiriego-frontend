@@ -59,5 +59,8 @@ export interface Box {
   status: string;
   serie: string;
   branch_id: number;
+  branch?: {
+    has_igv?: number | boolean;
+  };
   created_at: string;
 }
