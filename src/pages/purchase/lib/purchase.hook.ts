@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
-import { getAllPurchases, getPurchases, getPurchasesInRange } from "./purchase.actions";
+import { getAllPurchases, getPurchases, getPurchaseDetails } from "./purchase.actions";
 import { useQuery } from "@tanstack/react-query";
 import { PURCHASE, type PurchaseResource } from "./purchase.interface";
 
@@ -62,3 +62,11 @@ export const usePurchaseById = (id: number) => {
     refetch,
   };
 };
+
+export const usePurchaseDetails =(purchaseId: number) =>{
+  return useQuery({
+    queryKey: ['purchaseDetails',purchaseId],
+    queryFn: () => getPurchaseDetails(purchaseId,{all: true}),
+    enabled: !!purchaseId,
+  })
+}

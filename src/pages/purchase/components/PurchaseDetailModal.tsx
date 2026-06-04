@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -46,28 +46,22 @@ export function PurchaseDetailModal({
     resetDetail,
   } = usePurchaseDetailStore();
 
-  const [formData, setFormData] = useState({
-    product_id: "",
-    quantity: "",
-    unit_price: "",
-    tax: "",
-  });
-
   const form = useForm({
     defaultValues: {
       product_id: "",
       quantity: "",
       unit_price: "",
       tax: "",
-    },
+    }
   });
+
 
   useEffect(() => {
     if (detailId) {
       fetchDetail(detailId);
     } else {
       resetDetail();
-      setFormData({
+      form.reset({
         product_id: "",
         quantity: "",
         unit_price: "",
@@ -84,49 +78,55 @@ export function PurchaseDetailModal({
 
   useEffect(() => {
     if (detail && detailId) {
-      const newFormData = {
+      form.reset({
         product_id: detail.product_id.toString(),
-        quantity: detail.quantity,
-        unit_price: detail.unit_price,
-        tax: detail.tax,
-      };
-      setFormData(newFormData);
-      form.reset(newFormData);
+        quantity: detail.quantity.toString(),
+        unit_price: detail.unit_price.toString(),
+        tax: detail.tax.toString(),
+      });
     }
   }, [detail, detailId, form]);
 
   useEffect(() => {
-    const subscription = form.watch((values) => {
-      setFormData({
-        product_id: values.product_id || "",
-        quantity: values.quantity || "",
-        unit_price: values.unit_price || "",
-        tax: values.tax || "",
-      });
+    const subscription = form.watch((value, info) => {
+      if (info?.name === "product_id") {
+        const isOriginalProduct = detail && detail.product_id.toString() === value.product_id;
+        if(!isOriginalProduct){
+        form.setValue("unit_price", "", {
+          shouldValidate: true,
+          shouldDirty: true,
+        });
+      }
+    }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form,detail]);
+
+  const watchedQuantity = form.watch("quantity");
+  const watchedUnitPrice = form.watch("unit_price");
+  const watchedTax = form.watch("tax");
 
   const calculateSubtotal = () => {
-    const quantity = parseFloat(formData.quantity) || 0;
-    const price = parseFloat(formData.unit_price) || 0;
+    const quantity = parseFloat(watchedQuantity?.toString() || "0");
+    const price = parseFloat(watchedUnitPrice?.toString() || "0");
     return quantity * price;
   };
 
   const calculateTotal = () => {
     const subtotal = calculateSubtotal();
-    const tax = parseFloat(formData.tax) || 0;
+    const tax = parseFloat(watchedTax?.toString() || "0");
     return subtotal + tax;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const values = form.getValues();
     if (
-      !formData.product_id ||
-      !formData.quantity ||
-      !formData.unit_price ||
-      !formData.tax
+      !values.product_id ||
+      !values.quantity ||
+      !values.unit_price ||
+      !values.tax
     ) {
       errorToast("Por favor complete todos los campos");
       return;
@@ -135,19 +135,19 @@ export function PurchaseDetailModal({
     try {
       if (detailId) {
         await updateDetail(detailId, {
-          product_id: Number(formData.product_id),
-          quantity: Number(formData.quantity),
-          unit_price: Number(formData.unit_price),
-          tax: Number(formData.tax),
+          product_id: Number(values.product_id),
+          quantity: Number(values.quantity),
+          unit_price: Number(values.unit_price),
+          tax: Number(values.tax),
         });
         successToast("Detalle actualizado exitosamente");
       } else {
         await createDetail({
           purchase_id: purchaseId,
-          product_id: Number(formData.product_id),
-          quantity: Number(formData.quantity),
-          unit_price: Number(formData.unit_price),
-          tax: Number(formData.tax),
+          product_id: Number(values.product_id),
+          quantity: Number(values.quantity),
+          unit_price: Number(values.unit_price),
+          tax: Number(values.tax),
         });
         successToast("Detalle agregado exitosamente");
       }
@@ -182,7 +182,13 @@ export function PurchaseDetailModal({
                 value: product.id.toString(),
                 label: product.name,
               })}
-              disabled={!!detailId}
+              defaultOption={
+                detail && detailId
+                ?{
+                  value: detail.product_id.toString(), label: (detail as any ).product_name}
+                  :undefined
+              }
+              
             />
 
             <FormField

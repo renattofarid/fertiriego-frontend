@@ -10,7 +10,12 @@ export interface GuideMotiveResource {
   name: string;
 }
 
-export type GuideStatus = "EMITIDA" | "EN_TRANSITO" | "ENTREGADA" | "ANULADA";
+export type GuideStatus =
+  | "EMITIDA"
+  | "EN_TRANSITO"
+  | "ENTREGADA"
+  | "DECLARADA"
+  | "ANULADA";
 
 export interface GuideResourceById {
   data: GuideResource;
@@ -214,6 +219,7 @@ export const GUIDE_STATUSES = [
   { value: "EMITIDA", label: "Emitida" },
   { value: "EN_TRANSITO", label: "En tránsito" },
   { value: "ENTREGADA", label: "Entregada" },
+  { value: "DECLARADA", label: "Declarada" },
   { value: "ANULADA", label: "Anulada" },
 ] as const;
 
@@ -221,6 +227,7 @@ export const GUIDE_STATUS_LABELS: Record<GuideStatus, string> = {
   EMITIDA: "Emitida",
   EN_TRANSITO: "En tránsito",
   ENTREGADA: "Entregada",
+  DECLARADA: "Declarada",
   ANULADA: "Anulada",
 };
 

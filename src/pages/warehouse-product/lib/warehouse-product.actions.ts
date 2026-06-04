@@ -59,3 +59,11 @@ export async function deleteWarehouseProduct(id: number): Promise<any> {
   const { data } = await api.delete<any>(`${ENDPOINT}/${id}`);
   return data;
 }
+
+export const updateWarehouseProductStock = async (
+  id: number,
+  payload: { stock: number }
+) => {
+  const { data } = await api.put(`${ENDPOINT}/${id}`, payload);
+  return data;
+};

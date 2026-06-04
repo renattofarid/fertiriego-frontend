@@ -12,76 +12,75 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Button } from "@/components/ui/button";
-import { formatNumber } from "@/lib/formatCurrency";
-import type {
-  SaleStatisticsTopProductVenta,
-  SaleStatisticsTopProductCompra,
-} from "@/pages/sale/lib/sale.interface";
 
-export interface TopProductsChartProps {
-  ventasData: SaleStatisticsTopProductVenta[];
-  comprasData: SaleStatisticsTopProductCompra[];
+interface TopProduct {
+  name: string;
+  quantity: number;
+  revenue: number;
 }
 
-const COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-];
+interface TopProductsChartProps {
+  data: TopProduct[];
+  currencySymbol?: string;
+}
 
-const CustomYAxisTick = (props: any) => {
-  const { x, y, payload } = props;
-  const label: string = payload.value;
-  const truncated = label.length > 16 ? `${label.substring(0, 16)}…` : label;
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <title>{label}</title>
-      <text
-        x={0}
-        y={0}
-        dy={4}
-        textAnchor="end"
-        fill="currentColor"
-        fontSize={10}
-      >
-        {truncated}
-      </text>
-    </g>
-  );
-};
-
-export function TopProductsChart({
-  ventasData,
-  comprasData,
-}: TopProductsChartProps) {
-  const [tab, setTab] = useState<"ventas" | "compras">("ventas");
-
-  const isVentas = tab === "ventas";
-  const raw = isVentas ? ventasData : comprasData;
-
-  const chartData = raw.map((p, i) => ({
-    name: p.name,
-    cantidad: parseFloat(p.total_cantidad),
-    monto: parseFloat(
-      isVentas
-        ? (p as SaleStatisticsTopProductVenta).total_vendido
-        : (p as SaleStatisticsTopProductCompra).total_comprado,
-    ),
-    fill: COLORS[i % COLORS.length],
+export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChartProps) {
+  // Transform data to include fill color for each product
+  const chartData = data.map((product, index) => ({
+    ...product,
+    fill: `var(--color-product-${index + 1})`,
   }));
 
+  // Create dynamic chart config based on products
   const chartConfig = {
-    cantidad: { label: "Cantidad" },
+    quantity: {
+      label: "Cantidad",
+    },
     ...Object.fromEntries(
-      raw.map((p, i) => [
-        `product-${i + 1}`,
-        { label: p.name, color: COLORS[i % COLORS.length] },
-      ]),
+      data.map((product, index) => [
+        `product-${index + 1}`,
+        {
+          label: product.name,
+          color: `var(--chart-${(index % 5) + 1})`,
+        },
+      ])
     ),
   } satisfies ChartConfig;
+
+  const totalQuantity = data.reduce(
+    (sum, product) => sum + product.quantity,
+    0
+  );
+  const totalRevenue = data.reduce((sum, product) => sum + product.revenue, 0);
+
+  // Custom tick component for truncating long text
+  const CustomYAxisTick = (props: any) => {
+    const { x, y, payload } = props;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text
+          x={-95}
+          y={0}
+          dy={4}
+          textAnchor="start"
+          fill="currentColor"
+          fontSize={10}
+          className="line-clamp-1 fill-slate-600 dark:fill-slate-400"
+          style={{
+            maxWidth: "100px",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <title>{payload.value}</title>
+          {payload.value.length > 15
+            ? `${payload.value.substring(0, 15)}...`
+            : payload.value}
+        </text>
+      </g>
+    );
+  };
 
   return (
     <Card className="border-none shadow-md">
@@ -136,7 +135,11 @@ export function TopProductsChart({
                   <ChartTooltipContent
                     hideLabel
                     formatter={(value, _name, props) => [
-                      `${props.payload.name}: ${formatNumber(Number(value), 0)} uds · S/ ${formatNumber(props.payload.monto)}`,
+                      `${
+                        props.payload.name
+                      } (${value} unidades) - ${currencySymbol} ${props.payload.revenue.toFixed(
+                        2
+                      )}`,
                     ]}
                   />
                 }
@@ -150,6 +153,15 @@ export function TopProductsChart({
           </div>
         )}
       </CardContent>
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="flex gap-2 leading-none font-medium">
+          Total: {totalQuantity} unidades vendidas{" "}
+          <TrendingUp className="h-4 w-4" />
+        </div>
+        <div className="text-muted-foreground leading-none">
+          Ingresos totales: {currencySymbol} {totalRevenue.toFixed(2)}
+        </div>
+      </CardFooter>
     </Card>
   );
 }

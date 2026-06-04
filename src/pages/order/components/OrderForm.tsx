@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -678,7 +679,10 @@ export const OrderForm = ({
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>{detail.product_name}</TableCell>
                       <TableCell className="text-right">
-                        {parseFloat(detail.quantity).toFixed(4)}
+                        {formatQuantityWithUnit(
+                          Number(detail.quantity),
+                          getDetailQuantityUnit(detail),
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         {(getDisplayPriceIgv(detail) / 1.18).toFixed(4)}

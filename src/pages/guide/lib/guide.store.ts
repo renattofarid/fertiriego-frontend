@@ -4,6 +4,7 @@ import type {
   GuideMotiveResource,
   CreateGuideRequest,
   UpdateGuideRequest,
+  GuideStatus,
 } from "./guide.interface";
 import {
   getGuides,
@@ -45,7 +46,7 @@ interface GuideStore {
   createGuide: (data: GuideSchema) => Promise<void>;
   updateGuide: (id: number, data: Partial<GuideSchema>) => Promise<void>;
   removeGuide: (id: number) => Promise<void>;
-  changeStatus: (id: number, status: string) => Promise<void>;
+  changeStatus: (id: number, status: GuideStatus) => Promise<void>;
   resetGuide: () => void;
 }
 
@@ -320,9 +321,12 @@ export const useGuideStore = create<GuideStore>((set) => ({
   },
 
   // Change guide status
-  changeStatus: async (id: number, status: string) => {
+  changeStatus: async (id: number, status: GuideStatus) => {
     set({ isSubmitting: true, error: null });
     try {
+      if (status !== "ANULADA") {
+        throw new Error("Solo se permite anular la guía");
+      }
       await changeGuideStatus(id, { status });
       set({ isSubmitting: false });
     } catch (error) {

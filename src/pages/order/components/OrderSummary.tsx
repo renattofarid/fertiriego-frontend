@@ -7,6 +7,7 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import { formatNumber } from "@/lib/formatCurrency";
 import type { UseFormReturn } from "react-hook-form";
+import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 
 interface DetailRow {
   product_id: string;
@@ -177,7 +178,11 @@ export function OrderSummary({
                         {detail.product_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {detail.quantity} x {currencySymbol}{" "}
+                        {formatQuantityWithUnit(
+                          Number(detail.quantity),
+                          getDetailQuantityUnit(detail),
+                        )}{" "}
+                        x {currencySymbol}{" "}
                         {parseFloat(detail.unit_price).toLocaleString("es-PE", {
                           minimumFractionDigits: 2,
                         })}
