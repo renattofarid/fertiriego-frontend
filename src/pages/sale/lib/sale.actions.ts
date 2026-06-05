@@ -347,3 +347,13 @@ export const deleteSalePayment = async (
   );
   return response.data;
 };
+
+export const deletePayment = async (
+  installmentId: number,
+  paymentId: number,
+): Promise<{ message: string }> => {
+  const response = await api.delete<{ message: string }>(
+    `installment/${installmentId}/payments/${paymentId}`,
+  );
+  return response.data;
+};
