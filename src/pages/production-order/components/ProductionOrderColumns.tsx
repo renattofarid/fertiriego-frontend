@@ -1,6 +1,18 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Eye, FilePlus, Pencil, Send, CheckCircle, XCircle, Ban, Trash2 } from "lucide-react";
-import type { ProductionOrderResource, ProductionOrderStatus } from "../lib/production-order.interface";
+import {
+  Eye,
+  FilePlus,
+  Pencil,
+  Send,
+  CheckCircle,
+  XCircle,
+  Ban,
+  Trash2,
+} from "lucide-react";
+import type {
+  ProductionOrderResource,
+  ProductionOrderStatus,
+} from "../lib/production-order.interface";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ColumnActions } from "@/components/SelectActions";
@@ -9,12 +21,42 @@ const statusConfig: Record<
   ProductionOrderStatus,
   { label: string; dot: string; text: string; bg: string }
 > = {
-  BORRADOR:  { label: "Borrador",  dot: "bg-slate-400",  text: "text-slate-700",  bg: "bg-slate-100"  },
-  PENDIENTE: { label: "Pendiente", dot: "bg-amber-400",  text: "text-amber-700",  bg: "bg-amber-100"  },
-  APROBADO:  { label: "Aprobado",  dot: "bg-green-500",  text: "text-green-700",  bg: "bg-green-100"  },
-  RECHAZADO: { label: "Rechazado", dot: "bg-red-500",    text: "text-red-700",    bg: "bg-red-100"    },
-  PROCESADO: { label: "Procesado", dot: "bg-blue-500",   text: "text-blue-700",   bg: "bg-blue-100"   },
-  ANULADO:   { label: "Anulado",   dot: "bg-zinc-400",   text: "text-zinc-600",   bg: "bg-zinc-100"   },
+  BORRADOR: {
+    label: "Borrador",
+    dot: "bg-slate-400",
+    text: "text-slate-700",
+    bg: "bg-slate-100",
+  },
+  PENDIENTE: {
+    label: "Pendiente",
+    dot: "bg-amber-400",
+    text: "text-amber-700",
+    bg: "bg-amber-100",
+  },
+  APROBADO: {
+    label: "Aprobado",
+    dot: "bg-green-500",
+    text: "text-green-700",
+    bg: "bg-green-100",
+  },
+  RECHAZADO: {
+    label: "Rechazado",
+    dot: "bg-red-500",
+    text: "text-red-700",
+    bg: "bg-red-100",
+  },
+  PROCESADO: {
+    label: "Procesado",
+    dot: "bg-blue-500",
+    text: "text-blue-700",
+    bg: "bg-blue-100",
+  },
+  ANULADO: {
+    label: "Anulado",
+    dot: "bg-zinc-400",
+    text: "text-zinc-600",
+    bg: "bg-zinc-100",
+  },
 };
 
 export type ProductionOrderColumnCallbacks = {
@@ -29,7 +71,7 @@ export type ProductionOrderColumnCallbacks = {
 };
 
 export const createProductionOrderColumns = (
-  callbacks: ProductionOrderColumnCallbacks
+  callbacks: ProductionOrderColumnCallbacks,
 ): ColumnDef<ProductionOrderResource>[] => [
   {
     accessorKey: "order_number",
@@ -37,7 +79,9 @@ export const createProductionOrderColumns = (
     cell: ({ row }) => (
       <div>
         <div className="font-mono font-bold">{row.original.order_number}</div>
-        <div className="text-sm text-muted-foreground">{row.original.requested_date}</div>
+        <div className="text-sm text-muted-foreground">
+          {row.original.requested_date}
+        </div>
       </div>
     ),
   },
@@ -47,7 +91,9 @@ export const createProductionOrderColumns = (
     cell: ({ row }) => (
       <div>
         <div className="font-medium">{row.original.quantity_requested}</div>
-        <div className="text-sm text-muted-foreground">{row.original.currency}</div>
+        <div className="text-sm text-muted-foreground">
+          {row.original.currency}
+        </div>
       </div>
     ),
   },
@@ -61,15 +107,15 @@ export const createProductionOrderColumns = (
   {
     accessorKey: "labor_cost",
     header: "C. Laboral",
-    cell: ({ row }) => (
-      <span>S/ {row.original.labor_cost.toFixed(2)}</span>
-    ),
+    cell: ({ row }) => <span>S/ {row.original.labor_cost.toFixed(2)}</span>,
   },
   {
     accessorKey: "estimated_total_cost",
     header: "Costo Total",
     cell: ({ row }) => (
-      <span className="font-semibold">S/ {row.original.estimated_total_cost.toFixed(2)}</span>
+      <span className="font-semibold">
+        S/ {row.original.estimated_total_cost.toFixed(2)}
+      </span>
     ),
   },
   {
@@ -117,7 +163,13 @@ export const createProductionOrderColumns = (
 
           {canSubmit && callbacks.onSubmit && (
             <ConfirmationDialog
-              trigger={<ButtonAction icon={Send} tooltip="Enviar a Revisión" />}
+              trigger={
+                <ButtonAction
+                  color="blue"
+                  icon={Send}
+                  tooltip="Enviar a Revisión"
+                />
+              }
               title="Enviar a Revisión"
               description="¿Está seguro de enviar esta orden a revisión? Pasará al estado PENDIENTE."
               confirmText="Enviar"
@@ -128,7 +180,13 @@ export const createProductionOrderColumns = (
 
           {canApprove && callbacks.onApprove && (
             <ConfirmationDialog
-              trigger={<ButtonAction icon={CheckCircle} tooltip="Aprobar" />}
+              trigger={
+                <ButtonAction
+                  color="green"
+                  icon={CheckCircle}
+                  tooltip="Aprobar"
+                />
+              }
               title="Aprobar Orden"
               description="¿Está seguro de aprobar esta orden de producción? Pasará al estado APROBADO."
               confirmText="Aprobar"
@@ -149,6 +207,7 @@ export const createProductionOrderColumns = (
             production_document_id === null && (
               <ButtonAction
                 icon={FilePlus}
+                color="indigo"
                 tooltip="Generar Documento de Producción"
                 onClick={() => callbacks.onGenerateDocument!(id)}
               />
@@ -156,7 +215,9 @@ export const createProductionOrderColumns = (
 
           {canCancel && callbacks.onCancel && (
             <ConfirmationDialog
-              trigger={<ButtonAction icon={Ban} tooltip="Anular" />}
+              trigger={
+                <ButtonAction color="orange" icon={Ban} tooltip="Anular" />
+              }
               title="Anular Orden"
               description="¿Está seguro de anular esta orden de producción? Pasará al estado ANULADO."
               confirmText="Anular"
@@ -167,7 +228,9 @@ export const createProductionOrderColumns = (
 
           {canDelete && callbacks.onDelete && (
             <ConfirmationDialog
-              trigger={<ButtonAction icon={Trash2} tooltip="Eliminar" />}
+              trigger={
+                <ButtonAction color="red" icon={Trash2} tooltip="Eliminar" />
+              }
               title="Eliminar Orden"
               description="¿Está seguro de eliminar esta orden? Esta acción no se puede deshacer."
               confirmText="Eliminar"
