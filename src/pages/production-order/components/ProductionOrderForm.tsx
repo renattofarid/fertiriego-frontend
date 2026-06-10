@@ -30,6 +30,8 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useProduct } from "@/pages/product/lib/product.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
+import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 
 export type ProductionOrderFormValues = {
   warehouse_origin_id: string;
@@ -120,6 +122,8 @@ export function ProductionOrderForm({
     resolver: zodResolver(productionOrderSchema) as Resolver<ProductionOrderFormValues>,
     defaultValues: initialValues ?? defaultValues,
   });
+
+  const warehouseOriginId = form.watch("warehouse_origin_id");
 
   useEffect(() => {
     if (initialValues?.components && initialValues.components.length > 0) {
@@ -425,18 +429,20 @@ export function ProductionOrderForm({
                     control={componentForm.control}
                     name="component_id"
                     label="Componente"
-                    placeholder="Buscar componente..."
-                    useQueryHook={useProduct}
-                    mapOptionFn={(p: ProductResource) => ({
-                      value: p.id.toString(),
-                      label: p.name,
-                      description: p.unit_name,
+                    placeholder={warehouseOriginId ? "Buscar componente..." : "Seleccione primero el almacén origen"}
+                    useQueryHook={useWarehouseProducts}
+                    mapOptionFn={(wp: WarehouseProductResource) => ({
+                      value: wp.product_id.toString(),
+                      label: wp.product_name,
+                      description: `Stock: ${wp.stock}`,
                     })}
+                    additionalParams={warehouseOriginId ? { warehouse_id: Number(warehouseOriginId) } : {}}
+                    disabled={!warehouseOriginId}
                     onValueChange={(value, item) =>
                       setCurrentComponent((prev) => ({
                         ...prev,
                         component_id: value,
-                        component_name: (item as ProductResource)?.name ?? "",
+                        component_name: (item as WarehouseProductResource)?.product_name ?? "",
                       }))
                     }
                     withValue

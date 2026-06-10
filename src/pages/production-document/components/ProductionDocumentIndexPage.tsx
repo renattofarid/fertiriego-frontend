@@ -35,7 +35,8 @@ export default function ProductionDocumentIndexPage() {
   const [warehouseOriginId, setWarehouseOriginId] = useState("");
   const [warehouseDestId, setWarehouseDestId] = useState("");
 
-  const { data: warehouses = [] } = useAllWarehouses();
+  const { data: warehousesData } = useAllWarehouses();
+  const warehouses = warehousesData ?? [];
 
   const params: GetProductionDocumentsParams = useMemo(
     () => ({
