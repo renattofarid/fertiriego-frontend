@@ -52,6 +52,7 @@ export default function ProductionDocumentEditPage() {
 
   // Mapear datos del documento a initialValues
   const initialValues: ProductionDocumentFormValues = {
+    production_order_id: document.production_order_id?.toString() || "",
     warehouse_origin_id: document.warehouse_origin_id.toString(),
     warehouse_dest_id: document.warehouse_dest_id.toString(),
     product_id: document.product_id.toString(),

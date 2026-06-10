@@ -8,6 +8,8 @@ import {
   ShoppingBag,
   Warehouse,
   Activity,
+  TrendingUp,
+  DollarSign,
 } from "lucide-react";
 import {
   Sidebar,
@@ -55,6 +57,7 @@ import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 import { GUIDE } from "@/pages/guide/lib/guide.interface";
 import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
+import { PRODUCTION_ORDER } from "@/pages/production-order/lib/production-order.interface";
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
 import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
 
@@ -257,6 +260,12 @@ const {
 } = PRODUCTION_DOCUMENT;
 
 const {
+  ICON_REACT: ProductionOrderIcon,
+  ROUTE: ProductionOrderRoute,
+  MODEL: { plural: ProductionOrderTitle },
+} = PRODUCTION_ORDER;
+
+const {
   ICON_REACT: ProductPriceCategoryIcon,
   ROUTE: ProductPriceCategoryRoute,
   MODEL: { name: ProductPriceCategoryTitle },
@@ -453,6 +462,21 @@ const data = {
           title: ProductionDocumentTitle,
           url: ProductionDocumentRoute,
           icon: ProductionDocumentIcon,
+        },
+        {
+          title: ProductionOrderTitle,
+          url: ProductionOrderRoute,
+          icon: ProductionOrderIcon,
+        },
+        {
+          title: "Reporte de Rendimiento",
+          url: "/documentos-produccion/reporte-rendimiento",
+          icon: TrendingUp,
+        },
+        {
+          title: "Reporte de Costos",
+          url: "/documentos-produccion/reporte-costos",
+          icon: DollarSign,
         },
         {
           title: "Kardex",

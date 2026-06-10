@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useSaleStore } from "./sales.store";
-import { getSales, type GetSalesParams } from "./sale.actions";
+import { getSales, getSaleStatistics, getSalesInRange, type GetSalesParams } from "./sale.actions";
 import { SALE, type SaleResource } from "./sale.interface";
 import { useQuery } from "@tanstack/react-query";
 
@@ -36,6 +36,30 @@ export const useAllSales = () => {
     error,
     refetch,
   };
+};
+
+/**
+ * Hook to fetch all sales within a date range
+ */
+export const useSalesInRange = (from: string, to: string) => {
+  return useQuery({
+    queryKey: ["sales-in-range", from, to],
+    queryFn: () => getSalesInRange(from, to),
+    enabled: !!from && !!to,
+    refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook to fetch sale statistics for a date range
+ */
+export const useSaleStatistics = (from: string, to: string) => {
+  return useQuery({
+    queryKey: ["sale-statistics", from, to],
+    queryFn: () => getSaleStatistics(from, to),
+    enabled: !!from && !!to,
+    refetchOnWindowFocus: false,
+  });
 };
 
 /**

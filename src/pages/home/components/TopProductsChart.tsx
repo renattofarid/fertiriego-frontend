@@ -1,13 +1,7 @@
-"use client";
-
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
-
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -89,35 +83,29 @@ export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChar
 
   return (
     <Card className="border-none shadow-md">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base md:text-lg">
-          Top 5 Productos Más Vendidos
-        </CardTitle>
-        <CardDescription className="text-xs md:text-sm">
-          Por cantidad vendida
-        </CardDescription>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Top 5 Productos</CardTitle>
+        <p className="text-xs text-muted-foreground mt-0.5">Por cantidad vendida</p>
       </CardHeader>
-      <CardContent>
-        {data.length > 0 ? (
-          <ChartContainer config={chartConfig}>
+      <CardContent className="pt-1">
+        {chartData.length > 0 ? (
+          <ChartContainer config={chartConfig} className="h-[200px] w-full">
             <BarChart
               accessibilityLayer
               data={chartData}
               layout="vertical"
-              margin={{
-                left: 0,
-              }}
+              margin={{ left: 0, right: 8 }}
             >
               <YAxis
                 dataKey="name"
                 type="category"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={8}
                 axisLine={false}
                 tick={<CustomYAxisTick />}
-                width={120}
+                width={110}
               />
-              <XAxis dataKey="quantity" type="number" hide />
+              <XAxis dataKey="cantidad" type="number" hide />
               <ChartTooltip
                 cursor={false}
                 content={
@@ -133,24 +121,18 @@ export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChar
                   />
                 }
               />
-              <Bar dataKey="quantity" layout="vertical" radius={5} />
+              <Bar dataKey="cantidad" layout="vertical" radius={4} />
             </BarChart>
           </ChartContainer>
         ) : (
-          <div className="h-[280px] flex items-center justify-center text-muted-foreground text-sm">
-            No hay datos de productos vendidos
+          <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+            Sin datos para el período
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Total: {totalQuantity} unidades vendidas{" "}
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Ingresos totales: {currencySymbol} {totalRevenue.toFixed(2)}
-        </div>
-      </CardFooter>
+      <CardContent className="pt-0 pb-3 px-4 text-sm text-muted-foreground">
+        <div>Total: {totalQuantity} unidades · {currencySymbol} {totalRevenue.toFixed(2)}</div>
+      </CardContent>
     </Card>
   );
 }

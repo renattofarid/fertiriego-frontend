@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import GeneralSheet from "@/components/GeneralSheet";
+import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type {
   SaleInstallmentResource,
   SalePaymentResource,
 } from "../lib/sale.interface";
-import { getAllSalePayments } from "../lib/sale.actions";
+import { deletePayment, getAllSalePayments } from "../lib/sale.actions";
+import { errorToast, successToast } from "@/lib/core.function";
+import { Trash2 } from "lucide-react";
 
 interface InstallmentPaymentsSheetProps {
   open: boolean;
@@ -25,6 +29,12 @@ export default function InstallmentPaymentsSheet({
 }: InstallmentPaymentsSheetProps) {
   const [payments, setPayments] = useState<SalePaymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(
+    null,
+  );
+  const [paymentToDeleteId, setPaymentToDeleteId] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     if (open && installment) {
@@ -43,6 +53,22 @@ export default function InstallmentPaymentsSheet({
       console.error("Error fetching payments:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDeletePayment = async (paymentId: number) => {
+    if (!installment) return;
+
+    setDeletingPaymentId(paymentId);
+    try {
+      await deletePayment(installment.id, paymentId);
+      successToast("Pago eliminado correctamente");
+      await fetchPayments();
+      setPaymentToDeleteId(null);
+    } catch (error: any) {
+      errorToast(error?.response?.data?.message || "Error al eliminar el pago");
+    } finally {
+      setDeletingPaymentId(null);
     }
   };
 
@@ -69,13 +95,14 @@ export default function InstallmentPaymentsSheet({
   if (!installment) return null;
 
   return (
-    <GeneralSheet
-      open={open}
-      onClose={onClose}
-      title={`Pagos de Cuota ${installment.installment_number}`}
-      icon={"CreditCard"}
-      className="overflow-y-auto w-full p-4 sm:max-w-2xl"
-    >
+    <>
+      <GeneralSheet
+        open={open}
+        onClose={onClose}
+        title={`Pagos de Cuota ${installment.installment_number}`}
+        icon={"CreditCard"}
+        className="overflow-y-auto w-full p-4 sm:max-w-2xl"
+      >
       <div className="space-y-6">
         {/* Installment Summary */}
         <div className="p-4 bg-muted rounded-lg space-y-2">
@@ -156,9 +183,23 @@ export default function InstallmentPaymentsSheet({
                         {formatDate(payment.payment_date)}
                       </p>
                     </div>
-                    <p className="text-lg font-bold text-primary">
-                      {currency} {payment.total_paid.toFixed(2)}
-                    </p>
+                    <div className="flex flex-col items-end gap-2">
+                      <p className="text-lg font-bold text-primary">
+                        {currency} {payment.total_paid.toFixed(2)}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        color="red"
+                        onClick={() => setPaymentToDeleteId(payment.id)}
+                        disabled={deletingPaymentId === payment.id}
+                      >
+                        <Trash2 className="size-4" />
+                        {deletingPaymentId === payment.id
+                          ? "Eliminando..."
+                          : "Eliminar"}
+                      </Button>
+                    </div>
                   </div>
 
                   <Separator className="my-3" />
@@ -250,6 +291,23 @@ export default function InstallmentPaymentsSheet({
           )}
         </div>
       </div>
-    </GeneralSheet>
+      </GeneralSheet>
+
+      <SimpleDeleteDialog
+        open={paymentToDeleteId !== null}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) setPaymentToDeleteId(null);
+        }}
+        title="Eliminar pago"
+        description="¿Estás seguro de eliminar este pago?"
+        confirmText="Eliminar"
+        isLoading={deletingPaymentId !== null}
+        onConfirm={async () => {
+          if (paymentToDeleteId !== null) {
+            await handleDeletePayment(paymentToDeleteId);
+          }
+        }}
+      />
+    </>
   );
 }
