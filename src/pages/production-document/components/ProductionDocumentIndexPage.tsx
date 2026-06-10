@@ -6,7 +6,6 @@ import {
   PRODUCTION_DOCUMENT_STATUSES,
 } from "../lib/production-document.interface";
 import { createProductionDocumentColumns } from "./ProductionDocumentColumns";
-import FormWrapper from "@/components/FormWrapper";
 import PageSkeleton from "@/components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/DataTable";
@@ -19,6 +18,7 @@ import SearchInput from "@/components/SearchInput";
 import { SearchableSelect } from "@/components/SearchableSelect";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import type { Option } from "@/lib/core.interface";
+import PageWrapper from "@/components/PageWrapper";
 
 export default function ProductionDocumentIndexPage() {
   const { ROUTE_ADD, MODEL, ICON } = PRODUCTION_DOCUMENT;
@@ -83,7 +83,7 @@ export default function ProductionDocumentIndexPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6 flex items-center justify-between">
         <TitleComponent
           title={MODEL.plural ?? "Documentos de Producción"}
@@ -164,6 +164,6 @@ export default function ProductionDocumentIndexPage() {
           />
         )}
       </div>
-    </FormWrapper>
+    </PageWrapper>
   );
 }

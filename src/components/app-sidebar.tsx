@@ -8,6 +8,8 @@ import {
   ShoppingBag,
   Warehouse,
   Activity,
+  TrendingUp,
+  DollarSign,
 } from "lucide-react";
 import {
   Sidebar,
@@ -465,6 +467,16 @@ const data = {
           title: ProductionOrderTitle,
           url: ProductionOrderRoute,
           icon: ProductionOrderIcon,
+        },
+        {
+          title: "Reporte de Rendimiento",
+          url: "/documentos-produccion/reporte-rendimiento",
+          icon: TrendingUp,
+        },
+        {
+          title: "Reporte de Costos",
+          url: "/documentos-produccion/reporte-costos",
+          icon: DollarSign,
         },
         {
           title: "Kardex",

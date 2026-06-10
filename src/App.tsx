@@ -127,6 +127,8 @@ import ProductionDocumentPage from "./pages/production-document/components/Produ
 import ProductionDocumentAddPage from "./pages/production-document/components/ProductionDocumentAddPage";
 import ProductionDocumentEditPage from "./pages/production-document/components/ProductionDocumentEditPage";
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
+import ProductionDocumentPerformanceReportPage from "./pages/production-document/components/ProductionDocumentPerformanceReportPage";
+import ProductionDocumentCostReportPage from "./pages/production-document/components/ProductionDocumentCostReportPage";
 import { PRODUCTION_ORDER } from "./pages/production-order/lib/production-order.interface";
 import ProductionOrderPage from "./pages/production-order/components/ProductionOrderPage";
 import ProductionOrderAddPage from "./pages/production-order/components/ProductionOrderAddPage";
@@ -998,6 +1000,24 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductionDocumentRoute}>
                 <ProductionDocumentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-produccion/reporte-rendimiento"
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentPerformanceReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-produccion/reporte-costos"
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentCostReportPage />
               </ProtectedRoute>
             }
           />

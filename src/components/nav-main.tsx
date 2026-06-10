@@ -52,8 +52,7 @@ export function NavMain({
 
   // Función para verificar si un subitem está activo
   const isSubItemActive = (url: string): boolean => {
-    // Coincidencia exacta o coincidencia con sub-ruta (seguida de /)
-    return location.pathname === url || location.pathname.startsWith(url + "/");
+    return location.pathname === url;
   };
 
   // Efecto para abrir automáticamente el collapsible que contiene la ruta actual

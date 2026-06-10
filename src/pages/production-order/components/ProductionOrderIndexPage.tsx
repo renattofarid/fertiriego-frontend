@@ -5,7 +5,7 @@ import { useProductionOrderStore } from "../lib/production-order.store";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import type { GetProductionOrdersParams } from "../lib/production-order.interface";
 import { createProductionOrderColumns } from "./ProductionOrderColumns";
-import FormWrapper from "@/components/FormWrapper";
+import PageWrapper from "@/components/PageWrapper";
 import PageSkeleton from "@/components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/DataTable";
@@ -33,10 +33,15 @@ export default function ProductionOrderIndexPage() {
 
   const params: GetProductionOrdersParams = useMemo(
     () => ({ page, per_page: perPage }),
-    [page, perPage]
+    [page, perPage],
   );
 
-  const { data: orders, meta, isLoading, refetch } = useProductionOrders(params);
+  const {
+    data: orders,
+    meta,
+    isLoading,
+    refetch,
+  } = useProductionOrders(params);
   const { submitOrder, approveOrder, rejectOrder, cancelOrder, removeOrder } =
     useProductionOrderStore();
 
@@ -123,7 +128,7 @@ export default function ProductionOrderIndexPage() {
         onDelete: handleDelete,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navigate, ROUTE, ROUTE_UPDATE, page, perPage]
+    [navigate, ROUTE, ROUTE_UPDATE, page, perPage],
   );
 
   const handlePageChange = (newPage: number) => {
@@ -135,7 +140,7 @@ export default function ProductionOrderIndexPage() {
   }
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6 flex items-center justify-between">
         <TitleComponent
           title={MODEL.plural ?? "Órdenes de Producción"}
@@ -177,7 +182,8 @@ export default function ProductionOrderIndexPage() {
           <DialogHeader>
             <DialogTitle>Rechazar Orden</DialogTitle>
             <DialogDescription>
-              Indica el motivo del rechazo. Esta información quedará registrada en la orden.
+              Indica el motivo del rechazo. Esta información quedará registrada
+              en la orden.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -188,7 +194,8 @@ export default function ProductionOrderIndexPage() {
               value={rejectionReason}
               onChange={(e) => {
                 setRejectionReason(e.target.value);
-                if (e.target.value.trim().length >= 4) setRejectionReasonError("");
+                if (e.target.value.trim().length >= 4)
+                  setRejectionReasonError("");
               }}
               placeholder="Describe el motivo del rechazo..."
               rows={4}
@@ -224,6 +231,6 @@ export default function ProductionOrderIndexPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </FormWrapper>
+    </PageWrapper>
   );
 }
