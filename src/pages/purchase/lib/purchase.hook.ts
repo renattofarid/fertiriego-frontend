@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
-import { getAllPurchases, getPurchases, getPurchaseDetails } from "./purchase.actions";
+import { getAllPurchases, getPurchases, getPurchaseDetails, getPurchasesInRange } from "./purchase.actions";
 import { useQuery } from "@tanstack/react-query";
 import { PURCHASE, type PurchaseResource } from "./purchase.interface";
 

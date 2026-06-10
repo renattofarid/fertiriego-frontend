@@ -1,7 +1,8 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye, FilePlus } from "lucide-react";
+import { Eye, FilePlus, Pencil, Send, CheckCircle, XCircle, Ban, Trash2 } from "lucide-react";
 import type { ProductionOrderResource, ProductionOrderStatus } from "../lib/production-order.interface";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 const statusConfig: Record<
   ProductionOrderStatus,
@@ -15,9 +16,19 @@ const statusConfig: Record<
   ANULADO:   { label: "Anulado",   dot: "bg-zinc-400",   text: "text-zinc-600",   bg: "bg-zinc-100"   },
 };
 
+export type ProductionOrderColumnCallbacks = {
+  onView: (id: number) => void;
+  onEdit?: (id: number) => void;
+  onGenerateDocument?: (id: number) => void;
+  onSubmit?: (id: number) => void;
+  onApprove?: (id: number) => void;
+  onRejectClick?: (id: number) => void;
+  onCancel?: (id: number) => void;
+  onDelete?: (id: number) => void;
+};
+
 export const createProductionOrderColumns = (
-  onView: (id: number) => void,
-  onGenerateDocument?: (id: number) => void
+  callbacks: ProductionOrderColumnCallbacks
 ): ColumnDef<ProductionOrderResource>[] => [
   {
     accessorKey: "order_number",
@@ -79,24 +90,107 @@ export const createProductionOrderColumns = (
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" onClick={() => onView(row.original.id)}>
-          <Eye className="h-4 w-4" />
-        </Button>
-        {onGenerateDocument &&
-          row.original.status === "APROBADO" &&
-          row.original.production_document_id === null && (
-            <Button
-              variant="ghost"
-              size="sm"
-              tooltip="Generar Documento de Producción"
-              onClick={() => onGenerateDocument(row.original.id)}
-            >
-              <FilePlus className="h-4 w-4 text-green-600" />
+    cell: ({ row }) => {
+      const { id, status, production_document_id } = row.original;
+      const canEdit = status === "BORRADOR" || status === "RECHAZADO";
+      const canSubmit = status === "BORRADOR" || status === "RECHAZADO";
+      const canApprove = status === "PENDIENTE";
+      const canReject = status === "PENDIENTE";
+      const canCancel = status !== "PROCESADO" && status !== "ANULADO";
+      const canDelete = status === "BORRADOR" || status === "RECHAZADO";
+
+      return (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="sm" tooltip="Ver detalle" onClick={() => callbacks.onView(id)}>
+            <Eye className="h-4 w-4" />
+          </Button>
+
+          {canEdit && callbacks.onEdit && (
+            <Button variant="ghost" size="sm" tooltip="Editar" onClick={() => callbacks.onEdit!(id)}>
+              <Pencil className="h-4 w-4" />
             </Button>
           )}
-      </div>
-    ),
+
+          {canSubmit && callbacks.onSubmit && (
+            <ConfirmationDialog
+              trigger={
+                <Button variant="ghost" size="sm" tooltip="Enviar a Revisión">
+                  <Send className="h-4 w-4 text-blue-600" />
+                </Button>
+              }
+              title="Enviar a Revisión"
+              description="¿Está seguro de enviar esta orden a revisión? Pasará al estado PENDIENTE."
+              confirmText="Enviar"
+              icon="info"
+              onConfirm={() => callbacks.onSubmit!(id)}
+            />
+          )}
+
+          {canApprove && callbacks.onApprove && (
+            <ConfirmationDialog
+              trigger={
+                <Button variant="ghost" size="sm" tooltip="Aprobar">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </Button>
+              }
+              title="Aprobar Orden"
+              description="¿Está seguro de aprobar esta orden de producción? Pasará al estado APROBADO."
+              confirmText="Aprobar"
+              icon="info"
+              onConfirm={() => callbacks.onApprove!(id)}
+            />
+          )}
+
+          {canReject && callbacks.onRejectClick && (
+            <Button variant="ghost" size="sm" tooltip="Rechazar" onClick={() => callbacks.onRejectClick!(id)}>
+              <XCircle className="h-4 w-4 text-red-500" />
+            </Button>
+          )}
+
+          {callbacks.onGenerateDocument &&
+            status === "APROBADO" &&
+            production_document_id === null && (
+              <Button
+                variant="ghost"
+                size="sm"
+                tooltip="Generar Documento de Producción"
+                onClick={() => callbacks.onGenerateDocument!(id)}
+              >
+                <FilePlus className="h-4 w-4 text-green-600" />
+              </Button>
+            )}
+
+          {canCancel && callbacks.onCancel && (
+            <ConfirmationDialog
+              trigger={
+                <Button variant="ghost" size="sm" tooltip="Anular">
+                  <Ban className="h-4 w-4 text-amber-500" />
+                </Button>
+              }
+              title="Anular Orden"
+              description="¿Está seguro de anular esta orden de producción? Pasará al estado ANULADO."
+              confirmText="Anular"
+              icon="warning"
+              onConfirm={() => callbacks.onCancel!(id)}
+            />
+          )}
+
+          {canDelete && callbacks.onDelete && (
+            <ConfirmationDialog
+              trigger={
+                <Button variant="ghost" size="sm" tooltip="Eliminar">
+                  <Trash2 className="h-4 w-4 text-red-500" />
+                </Button>
+              }
+              title="Eliminar Orden"
+              description="¿Está seguro de eliminar esta orden? Esta acción no se puede deshacer."
+              confirmText="Eliminar"
+              icon="danger"
+              onConfirm={() => callbacks.onDelete!(id)}
+            />
+          )}
+        </div>
+      );
+    },
   },
 ];

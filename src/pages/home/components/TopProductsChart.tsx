@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Bar, BarChart, XAxis, YAxis } from "recharts";
 import {
   Card,
@@ -84,31 +83,9 @@ export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChar
 
   return (
     <Card className="border-none shadow-md">
-      <CardHeader className="pb-2 flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-base">Top 5 Productos</CardTitle>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Por cantidad {isVentas ? "vendida" : "comprada"}
-          </p>
-        </div>
-        <div className="flex gap-1">
-          <Button
-            variant={isVentas ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 text-xs px-2"
-            onClick={() => setTab("ventas")}
-          >
-            Ventas
-          </Button>
-          <Button
-            variant={!isVentas ? "secondary" : "ghost"}
-            size="sm"
-            className="h-7 text-xs px-2"
-            onClick={() => setTab("compras")}
-          >
-            Compras
-          </Button>
-        </div>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-base">Top 5 Productos</CardTitle>
+        <p className="text-xs text-muted-foreground mt-0.5">Por cantidad vendida</p>
       </CardHeader>
       <CardContent className="pt-1">
         {chartData.length > 0 ? (
@@ -153,15 +130,9 @@ export function TopProductsChart({ data, currencySymbol= "S/" }: TopProductsChar
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Total: {totalQuantity} unidades vendidas{" "}
-          <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="text-muted-foreground leading-none">
-          Ingresos totales: {currencySymbol} {totalRevenue.toFixed(2)}
-        </div>
-      </CardFooter>
+      <CardContent className="pt-0 pb-3 px-4 text-sm text-muted-foreground">
+        <div>Total: {totalQuantity} unidades · {currencySymbol} {totalRevenue.toFixed(2)}</div>
+      </CardContent>
     </Card>
   );
 }
