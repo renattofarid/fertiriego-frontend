@@ -32,7 +32,7 @@ export const productionDocumentSchema = z.object({
   product_id: requiredStringId("Debe seleccionar un producto"),
   user_id: requiredStringId("Debe seleccionar un usuario"),
   responsible_id: requiredStringId("Debe seleccionar un responsable"),
-  production_order_id: z.string().optional(),
+  production_order_id: requiredStringId("Debe seleccionar una orden de producción"),
   production_date: z
     .string()
     .min(1, { message: "La fecha de producción es requerida" }),

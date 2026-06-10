@@ -1,4 +1,5 @@
 import { api } from "@/lib/config";
+import type { AxiosRequestConfig } from "axios";
 import type {
   ProductionOrderResponse,
   ProductionOrderResourceById,
@@ -14,6 +15,18 @@ export async function getProductionOrders(params?: GetProductionOrdersParams) {
     `${PRODUCTION_ORDER_ENDPOINT}?page=${page}&per_page=${per_page}`
   );
   return response;
+}
+
+export async function getProductionOrdersSearch(params?: Record<string, any>): Promise<ProductionOrderResponse> {
+  const config: AxiosRequestConfig = {
+    params: {
+      per_page: 15,
+      status: "APROBADO",
+      ...params,
+    },
+  };
+  const { data } = await api.get<ProductionOrderResponse>(PRODUCTION_ORDER_ENDPOINT, config);
+  return data;
 }
 
 export async function findProductionOrderById(id: number) {

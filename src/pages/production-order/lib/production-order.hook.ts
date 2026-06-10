@@ -1,6 +1,9 @@
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useProductionOrderStore } from "./production-order.store";
 import type { GetProductionOrdersParams } from "./production-order.interface";
+import { PRODUCTION_ORDER_QUERY_KEY } from "./production-order.interface";
+import { getProductionOrdersSearch } from "./production-order.actions";
 
 export function useProductionOrders(params?: GetProductionOrdersParams) {
   const { orders, meta, isLoading, error, fetchOrders } = useProductionOrderStore();
@@ -19,6 +22,14 @@ export function useProductionOrders(params?: GetProductionOrdersParams) {
     error,
     refetch: fetchOrders,
   };
+}
+
+export function useProductionOrdersSearch(params?: Record<string, any>) {
+  return useQuery({
+    queryKey: [PRODUCTION_ORDER_QUERY_KEY, "search", params],
+    queryFn: () => getProductionOrdersSearch(params),
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useProductionOrderById(id: number) {
