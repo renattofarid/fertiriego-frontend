@@ -1,8 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
 import { Eye, FilePlus, Pencil, Send, CheckCircle, XCircle, Ban, Trash2 } from "lucide-react";
 import type { ProductionOrderResource, ProductionOrderStatus } from "../lib/production-order.interface";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { ButtonAction } from "@/components/ButtonAction";
+import { ColumnActions } from "@/components/SelectActions";
 
 const statusConfig: Record<
   ProductionOrderStatus,
@@ -100,24 +101,23 @@ export const createProductionOrderColumns = (
       const canDelete = status === "BORRADOR" || status === "RECHAZADO";
 
       return (
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" tooltip="Ver detalle" onClick={() => callbacks.onView(id)}>
-            <Eye className="h-4 w-4" />
-          </Button>
+        <ColumnActions>
+          <ButtonAction
+            icon={Eye}
+            tooltip="Ver detalle"
+            onClick={() => callbacks.onView(id)}
+          />
 
-          {canEdit && callbacks.onEdit && (
-            <Button variant="ghost" size="sm" tooltip="Editar" onClick={() => callbacks.onEdit!(id)}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            canRender={canEdit && !!callbacks.onEdit}
+            onClick={() => callbacks.onEdit!(id)}
+          />
 
           {canSubmit && callbacks.onSubmit && (
             <ConfirmationDialog
-              trigger={
-                <Button variant="ghost" size="sm" tooltip="Enviar a Revisión">
-                  <Send className="h-4 w-4 text-blue-600" />
-                </Button>
-              }
+              trigger={<ButtonAction icon={Send} tooltip="Enviar a Revisión" />}
               title="Enviar a Revisión"
               description="¿Está seguro de enviar esta orden a revisión? Pasará al estado PENDIENTE."
               confirmText="Enviar"
@@ -128,11 +128,7 @@ export const createProductionOrderColumns = (
 
           {canApprove && callbacks.onApprove && (
             <ConfirmationDialog
-              trigger={
-                <Button variant="ghost" size="sm" tooltip="Aprobar">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                </Button>
-              }
+              trigger={<ButtonAction icon={CheckCircle} tooltip="Aprobar" />}
               title="Aprobar Orden"
               description="¿Está seguro de aprobar esta orden de producción? Pasará al estado APROBADO."
               confirmText="Aprobar"
@@ -141,32 +137,26 @@ export const createProductionOrderColumns = (
             />
           )}
 
-          {canReject && callbacks.onRejectClick && (
-            <Button variant="ghost" size="sm" tooltip="Rechazar" onClick={() => callbacks.onRejectClick!(id)}>
-              <XCircle className="h-4 w-4 text-red-500" />
-            </Button>
-          )}
+          <ButtonAction
+            icon={XCircle}
+            tooltip="Rechazar"
+            canRender={canReject && !!callbacks.onRejectClick}
+            onClick={() => callbacks.onRejectClick!(id)}
+          />
 
           {callbacks.onGenerateDocument &&
             status === "APROBADO" &&
             production_document_id === null && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <ButtonAction
+                icon={FilePlus}
                 tooltip="Generar Documento de Producción"
                 onClick={() => callbacks.onGenerateDocument!(id)}
-              >
-                <FilePlus className="h-4 w-4 text-green-600" />
-              </Button>
+              />
             )}
 
           {canCancel && callbacks.onCancel && (
             <ConfirmationDialog
-              trigger={
-                <Button variant="ghost" size="sm" tooltip="Anular">
-                  <Ban className="h-4 w-4 text-amber-500" />
-                </Button>
-              }
+              trigger={<ButtonAction icon={Ban} tooltip="Anular" />}
               title="Anular Orden"
               description="¿Está seguro de anular esta orden de producción? Pasará al estado ANULADO."
               confirmText="Anular"
@@ -177,11 +167,7 @@ export const createProductionOrderColumns = (
 
           {canDelete && callbacks.onDelete && (
             <ConfirmationDialog
-              trigger={
-                <Button variant="ghost" size="sm" tooltip="Eliminar">
-                  <Trash2 className="h-4 w-4 text-red-500" />
-                </Button>
-              }
+              trigger={<ButtonAction icon={Trash2} tooltip="Eliminar" />}
               title="Eliminar Orden"
               description="¿Está seguro de eliminar esta orden? Esta acción no se puede deshacer."
               confirmText="Eliminar"
@@ -189,7 +175,7 @@ export const createProductionOrderColumns = (
               onConfirm={() => callbacks.onDelete!(id)}
             />
           )}
-        </div>
+        </ColumnActions>
       );
     },
   },
