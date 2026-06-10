@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, FilePlus } from "lucide-react";
 import type { ProductionOrderResource, ProductionOrderStatus } from "../lib/production-order.interface";
 
 const statusConfig: Record<
@@ -16,7 +16,8 @@ const statusConfig: Record<
 };
 
 export const createProductionOrderColumns = (
-  onView: (id: number) => void
+  onView: (id: number) => void,
+  onGenerateDocument?: (id: number) => void
 ): ColumnDef<ProductionOrderResource>[] => [
   {
     accessorKey: "order_number",
@@ -79,9 +80,23 @@ export const createProductionOrderColumns = (
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (
-      <Button variant="ghost" onClick={() => onView(row.original.id)}>
-        <Eye className="h-4 w-4" />
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" onClick={() => onView(row.original.id)}>
+          <Eye className="h-4 w-4" />
+        </Button>
+        {onGenerateDocument &&
+          row.original.status === "APROBADO" &&
+          row.original.production_document_id === null && (
+            <Button
+              variant="ghost"
+              size="sm"
+              tooltip="Generar Documento de Producción"
+              onClick={() => onGenerateDocument(row.original.id)}
+            >
+              <FilePlus className="h-4 w-4 text-green-600" />
+            </Button>
+          )}
+      </div>
     ),
   },
 ];

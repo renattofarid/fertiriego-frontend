@@ -27,7 +27,14 @@ export default function ProductionOrderIndexPage() {
   const { data: orders, meta, isLoading } = useProductionOrders(params);
 
   const columns = useMemo(
-    () => createProductionOrderColumns((id) => navigate(`${ROUTE}/${id}`)),
+    () =>
+      createProductionOrderColumns(
+        (id) => navigate(`${ROUTE}/${id}`),
+        (id) =>
+          navigate("/documentos-produccion/agregar", {
+            state: { fromOrderId: id },
+          })
+      ),
     [navigate, ROUTE]
   );
 

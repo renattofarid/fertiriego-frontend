@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Loader, Factory, Pencil } from "lucide-react";
+import { Plus, Trash2, Loader, Factory, Pencil, ClipboardList } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -38,6 +38,7 @@ export type ProductionDocumentFormValues = {
   product_id: string;
   user_id: string;
   responsible_id: string;
+  production_order_id?: string;
   production_date: string;
   quantity_produced: string;
   labor_cost: string;
@@ -81,12 +82,19 @@ export function ProductionDocumentForm({
     product_id: "",
     user_id: user?.id.toString() || "",
     responsible_id: "",
+    production_order_id: "",
     production_date: "",
     quantity_produced: "",
     labor_cost: "",
     overhead_cost: "",
     observations: "",
     components: [],
+  };
+
+  const mergedDefaults: ProductionDocumentFormValues = {
+    ...defaultValues,
+    ...(initialValues || {}),
+    user_id: user?.id.toString() || initialValues?.user_id || "",
   };
 
   // Estado para detalles
@@ -117,7 +125,7 @@ export function ProductionDocumentForm({
     resolver: zodResolver(
       productionDocumentSchema,
     ) as Resolver<ProductionDocumentFormValues>,
-    defaultValues: initialValues ?? defaultValues,
+    defaultValues: mergedDefaults,
   });
 
   // Cargar componentes iniciales cuando hay initialValues
@@ -310,6 +318,15 @@ export function ProductionDocumentForm({
 
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
+          {form.watch("production_order_id") && (
+            <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg border border-blue-200">
+              <ClipboardList className="h-4 w-4 flex-shrink-0" />
+              <span className="text-sm font-medium">
+                Generado desde la Orden de Producción #{form.watch("production_order_id")}
+              </span>
+            </div>
+          )}
+
           {/* Información General */}
           <GroupFormSection
             icon={Factory}
