@@ -127,6 +127,11 @@ import ProductionDocumentPage from "./pages/production-document/components/Produ
 import ProductionDocumentAddPage from "./pages/production-document/components/ProductionDocumentAddPage";
 import ProductionDocumentEditPage from "./pages/production-document/components/ProductionDocumentEditPage";
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
+import { PRODUCTION_ORDER } from "./pages/production-order/lib/production-order.interface";
+import ProductionOrderPage from "./pages/production-order/components/ProductionOrderPage";
+import ProductionOrderAddPage from "./pages/production-order/components/ProductionOrderAddPage";
+import ProductionOrderEditPage from "./pages/production-order/components/ProductionOrderEditPage";
+import ProductionOrderDetailPage from "./pages/production-order/components/ProductionOrderDetailPage";
 import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
 import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
 import { CARRIER } from "./pages/carrier/lib/carrier.interface";
@@ -170,6 +175,9 @@ const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } =
 const { ROUTE: ProductionDocumentRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
+const { ROUTE: ProductionOrderRoute } = PRODUCTION_ORDER;
+const { ROUTE_ADD: ProductionOrderAddRoute } = PRODUCTION_ORDER;
+const { ROUTE_UPDATE: ProductionOrderUpdateRoute } = PRODUCTION_ORDER;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
 
 
@@ -990,6 +998,43 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductionDocumentRoute}>
                 <ProductionDocumentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Órdenes de Producción */}
+          <Route
+            path={ProductionOrderRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderAddRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderUpdateRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ordenes-produccion/:id"
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderDetailPage />
               </ProtectedRoute>
             }
           />
