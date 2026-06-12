@@ -771,21 +771,16 @@ export function ProductionDocumentForm({
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingPayload) onSubmit(pendingPayload);
-                setShowStockDialog(false);
-              }}
-              className={
-                stockResults.some((r) => !r.sufficient)
-                  ? "bg-amber-600 hover:bg-amber-700 focus:ring-amber-600"
-                  : ""
-              }
-            >
-              {stockResults.some((r) => !r.sufficient)
-                ? "Guardar de todas formas"
-                : "Confirmar y Guardar"}
-            </AlertDialogAction>
+            {stockResults.every((r) => r.sufficient) && (
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingPayload) onSubmit(pendingPayload);
+                  setShowStockDialog(false);
+                }}
+              >
+                Confirmar y Guardar
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
