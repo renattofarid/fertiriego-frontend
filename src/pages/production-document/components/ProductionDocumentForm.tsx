@@ -151,14 +151,21 @@ export function ProductionDocumentForm({
   const [pendingPayload, setPendingPayload] = useState<ProductionDocumentFormValues | null>(null);
   const [checkingStock, setCheckingStock] = useState(false);
 
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
   const form = useForm<ProductionDocumentFormValues>({
     resolver: zodResolver(
       productionDocumentSchema,
     ) as Resolver<ProductionDocumentFormValues>,
-    defaultValues: mergedDefaults,
+    defaultValues: {
+      ...mergedDefaults,
+      production_date: mergedDefaults.production_date || todayStr,
+    },
   });
 
   const warehouseOriginId = form.watch("warehouse_origin_id");
+  const warehouseDestId = form.watch("warehouse_dest_id");
 
   // Cargar componentes iniciales cuando hay initialValues
   useEffect(() => {
@@ -451,11 +458,13 @@ export function ProductionDocumentForm({
               name="warehouse_origin_id"
               label="Almacén Origen"
               placeholder="Seleccione almacén de origen"
-              options={warehouses.map((w) => ({
-                value: w.id.toString(),
-                label: w.name,
-                description: w.address,
-              }))}
+              options={warehouses
+                .filter((w) => w.id.toString() !== warehouseDestId)
+                .map((w) => ({
+                  value: w.id.toString(),
+                  label: w.name,
+                  description: w.address,
+                }))}
               withValue
             />
 
@@ -464,11 +473,13 @@ export function ProductionDocumentForm({
               name="warehouse_dest_id"
               label="Almacén Destino"
               placeholder="Seleccione almacén de destino"
-              options={warehouses.map((w) => ({
-                value: w.id.toString(),
-                label: w.name,
-                description: w.address,
-              }))}
+              options={warehouses
+                .filter((w) => w.id.toString() !== warehouseOriginId)
+                .map((w) => ({
+                  value: w.id.toString(),
+                  label: w.name,
+                  description: w.address,
+                }))}
               withValue
             />
 
@@ -507,6 +518,7 @@ export function ProductionDocumentForm({
               name="production_date"
               label="Fecha de Producción"
               placeholder="Seleccione fecha"
+              disabledRange={{ after: today }}
             />
 
             <FormField
@@ -771,21 +783,16 @@ export function ProductionDocumentForm({
 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (pendingPayload) onSubmit(pendingPayload);
-                setShowStockDialog(false);
-              }}
-              className={
-                stockResults.some((r) => !r.sufficient)
-                  ? "bg-amber-600 hover:bg-amber-700 focus:ring-amber-600"
-                  : ""
-              }
-            >
-              {stockResults.some((r) => !r.sufficient)
-                ? "Guardar de todas formas"
-                : "Confirmar y Guardar"}
-            </AlertDialogAction>
+            {stockResults.every((r) => r.sufficient) && (
+              <AlertDialogAction
+                onClick={() => {
+                  if (pendingPayload) onSubmit(pendingPayload);
+                  setShowStockDialog(false);
+                }}
+              >
+                Confirmar y Guardar
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
