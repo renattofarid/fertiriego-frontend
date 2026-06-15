@@ -43,7 +43,6 @@ interface SaleSummaryProps {
   calculateNetTotal?: () => number;
   calculatePaymentTotal?: () => number;
   installmentsMatchTotal?: () => boolean;
-  paymentAmountsMatchTotal?: () => boolean;
   onCancel?: () => void;
   selectedPaymentType?: string;
   tipoCambio?: string;
@@ -70,7 +69,6 @@ export function SaleSummary({
   calculateNetTotal,
   calculatePaymentTotal: _calculatePaymentTotal,
   installmentsMatchTotal,
-  paymentAmountsMatchTotal,
   onCancel,
   selectedPaymentType,
   tipoCambio,
@@ -385,12 +383,9 @@ export function SaleSummary({
                 isSubmitting ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
-                  selectedPaymentType === "CREDITO" &&
+                  (selectedPaymentType === "CREDITO" ||
+                    selectedPaymentType === "CONTADO") &&
                   installments.length === 0) ||
-                (mode === "create" &&
-                  selectedPaymentType === "CONTADO" &&
-                  paymentAmountsMatchTotal &&
-                  !paymentAmountsMatchTotal()) ||
                 (mode === "create" &&
                   installments.length > 0 &&
                   installmentsMatchTotal &&

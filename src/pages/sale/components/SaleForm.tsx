@@ -902,6 +902,11 @@ export const SaleForm = ({
     return roundTo2(calculateDetailsTotal() - calculateRetencion());
   };
 
+  const createImmediateInstallment = (): InstallmentRow => ({
+    due_days: "0",
+    amount: truncTo2(calculateNetTotal()).toFixed(2),
+  });
+
   // Auto-generar cuota cuando se habilita retención IGV con pago a crédito
   useEffect(() => {
     if (mode === "edit") return;
@@ -928,7 +933,7 @@ export const SaleForm = ({
       return;
     }
     if (mode === "edit") return;
-    if (selectedPaymentType === "CREDITO") {
+    if (selectedPaymentType === "CREDITO" && installments.length === 0) {
       const netTotal = calculateNetTotal();
       const autoInstallment: InstallmentRow = {
         due_days: "30",
@@ -937,11 +942,19 @@ export const SaleForm = ({
       setInstallments([autoInstallment]);
       form.setValue("installments", [autoInstallment]);
     } else if (selectedPaymentType === "CONTADO") {
-      setInstallments([]);
-      form.setValue("installments", []);
+      const autoInstallment = createImmediateInstallment();
+
+      if (
+        installments.length !== 1 ||
+        installments[0]?.due_days !== autoInstallment.due_days ||
+        installments[0]?.amount !== autoInstallment.amount
+      ) {
+        setInstallments([autoInstallment]);
+        form.setValue("installments", [autoInstallment]);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPaymentType]);
+  }, [selectedPaymentType, details, isRetencionIGV]);
 
   // Funciones para cuotas
   const handleAddInstallment = () => {
@@ -1107,29 +1120,59 @@ export const SaleForm = ({
   };
 
   const handleFormSubmit = (data: any) => {
-    // Validar que si es al contado, los montos de pago deben coincidir con el total
-    if (selectedPaymentType === "CONTADO" && !paymentAmountsMatchTotal()) {
-      errorToast(
-        `El total pagado (${formatNumber(
-          calculatePaymentTotal(),
-        )}) debe ser igual al total de la venta (${formatNumber(
-          calculateNetTotal(),
-        )})`,
+    const validInstallments = installments
+      .filter((inst) => inst.due_days && inst.amount)
+      .map((inst) => ({
+        due_days: inst.due_days,
+        amount: inst.amount,
+      }));
+
+    if (
+      (selectedPaymentType === "CONTADO" || selectedPaymentType === "CREDITO") &&
+      validInstallments.length === 0
+    ) {
+      errorToast("El total de las cuotas debe coincidir exactamente con el total de la venta");
+      return;
+    }
+
+    const hasInvalidInstallment = validInstallments.some((inst) => {
+      const dueDays = Number(inst.due_days);
+      const amount = Number(inst.amount);
+      return (
+        !Number.isFinite(dueDays) ||
+        dueDays < 0 ||
+        !Number.isFinite(amount) ||
+        amount <= 0
       );
+    });
+
+    if (hasInvalidInstallment) {
+      errorToast("Las cuotas deben tener días válidos y montos mayores a 0");
       return;
     }
 
-    // Validar que si es a crédito, debe tener cuotas
-    if (selectedPaymentType === "CREDITO" && installments.length === 0) {
-      errorToast("Para pagos a crédito, debe agregar al menos una cuota");
-      return;
-    }
+    const installmentsTotal = roundTo4(
+      validInstallments.reduce(
+        (sum, inst) => sum + parseFloat(inst.amount),
+        0,
+      ),
+    );
+    const saleTotal = roundTo4(calculateNetTotal());
 
-    // Validar que las cuotas coincidan con el total si hay cuotas
-    if (installments.length > 0 && !installmentsMatchTotal()) {
+    if (
+      selectedPaymentType === "CONTADO" || selectedPaymentType === "CREDITO"
+    ) {
+      if (installmentsTotal !== saleTotal) {
+        errorToast("El total de las cuotas debe coincidir exactamente con el total de la venta");
+        return;
+      }
+    } else if (
+      validInstallments.length > 0 &&
+      Math.abs(saleTotal - installmentsTotal) >= 0.01
+    ) {
       errorToast(
         `El total de cuotas (${formatNumber(
-          calculateInstallmentsTotal(),
+          installmentsTotal,
           2,
         )}) debe ser igual al total de la venta (${formatNumber(
           calculateNetTotal(),
@@ -1137,25 +1180,6 @@ export const SaleForm = ({
         )})`,
       );
       return;
-    }
-
-    // Preparar cuotas según el tipo de pago
-    let validInstallments: {
-      due_days: string;
-      amount: string;
-    }[];
-
-    if (selectedPaymentType === "CONTADO") {
-      // Para pagos al contado, las cuotas van vacías
-      validInstallments = [];
-    } else {
-      // Para pagos a crédito, usar las cuotas ingresadas
-      validInstallments = installments
-        .filter((inst) => inst.due_days && inst.amount)
-        .map((inst) => ({
-          due_days: inst.due_days,
-          amount: inst.amount,
-        }));
     }
 
     onSubmit({
@@ -1169,7 +1193,6 @@ export const SaleForm = ({
       tipo_cambio: data.tipo_cambio ? parseFloat(data.tipo_cambio as any) : 0,
     });
   };
-
   return (
     <Form {...form}>
       <form
@@ -1804,8 +1827,8 @@ export const SaleForm = ({
             )}
           </GroupFormSection>
 
-          {/* Métodos de Pago - Solo mostrar si es al contado */}
-          {selectedPaymentType === "CONTADO" && (
+          {/* Métodos de Pago - oculto: el flujo ahora usa cuotas */}
+          {false && selectedPaymentType === "CONTADO" && (
             <GroupFormSection
               title="Métodos de Pago"
               icon={CreditCard}
@@ -1910,8 +1933,9 @@ export const SaleForm = ({
             </GroupFormSection>
           )}
 
-          {/* Cuotas - Solo mostrar si es a crédito */}
-          {selectedPaymentType === "CREDITO" && (
+          {/* Cuotas */}
+          {(selectedPaymentType === "CREDITO" ||
+            selectedPaymentType === "CONTADO") && (
             <GroupFormSection
               title="Información General"
               icon={FileText}
@@ -2078,7 +2102,6 @@ export const SaleForm = ({
           calculateNetTotal={calculateNetTotal}
           calculatePaymentTotal={calculatePaymentTotal}
           installmentsMatchTotal={installmentsMatchTotal}
-          paymentAmountsMatchTotal={paymentAmountsMatchTotal}
           onCancel={onCancel}
           selectedPaymentType={selectedPaymentType}
           tipoCambio={form.watch("tipo_cambio" as any) || ""}
