@@ -82,6 +82,7 @@ export default function SaleManagePage() {
 
   const currency = sale.currency === "PEN" ? "S/." : sale.currency === "USD" ? "$" : "€";
   const isContado = sale.payment_type === "CONTADO";
+  const hasInstallments = (sale.installments?.length || 0) > 0;
   const currentAmount = Number(sale.current_amount);
   const totalAmount = Number(sale.total_amount);
   const totalPaid = Number(sale.total_paid);
@@ -344,13 +345,13 @@ export default function SaleManagePage() {
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   {isContado ? "Pago al Contado" : "Cuotas de Crédito"}
                 </span>
-                {!isContado && (
+                {hasInstallments && (
                   <Badge variant="secondary">{sale.installments?.length || 0} cuota(s)</Badge>
                 )}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {isContado ? (
+              {!hasInstallments && isContado ? (
                 <div className="flex items-center gap-4 px-5 py-6">
                   <div className="bg-primary/10 p-3 rounded-full">
                     <Wallet className="h-6 w-6 text-primary" />
