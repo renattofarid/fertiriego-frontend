@@ -27,8 +27,8 @@ export const saleInstallmentSchema = z.object({
   due_days: z
     .string()
     .min(1, { message: "Los días de vencimiento son requeridos" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Los días deben ser un número mayor a 0",
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Los días deben ser un número mayor o igual a 0",
     }),
   amount: z
     .string()
@@ -170,8 +170,8 @@ export const saleInstallmentSchemaCreate = z.object({
   due_days: z
     .string()
     .min(1, { message: "Los días de vencimiento son requeridos" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Los días deben ser un número mayor a 0",
+    .refine((val) => !isNaN(Number(val)) && Number(val) >= 0, {
+      message: "Los días deben ser un número mayor o igual a 0",
     }),
   amount: z
     .string()
