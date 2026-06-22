@@ -59,6 +59,7 @@ import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipp
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
 import { PRODUCTION_ORDER } from "@/pages/production-order/lib/production-order.interface";
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
+import { PRODUCT_TAG } from "@/pages/product-tag/lib/product-tag.interface";
 import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
 
 const {
@@ -271,6 +272,12 @@ const {
   MODEL: { name: ProductPriceCategoryTitle },
 } = PRODUCT_PRICE_CATEGORY;
 
+const {
+  ICON_REACT: ProductTagIcon,
+  ROUTE: ProductTagRoute,
+  MODEL: { name: ProductTagTitle },
+} = PRODUCT_TAG;
+
 const data = {
   navMain: [
     {
@@ -376,6 +383,11 @@ const data = {
           title: ProductPriceCategoryTitle,
           url: ProductPriceCategoryRoute,
           icon: ProductPriceCategoryIcon,
+        },
+        {
+          title: ProductTagTitle,
+          url: ProductTagRoute,
+          icon: ProductTagIcon,
         },
         {
           title: WarehouseProductTitle,

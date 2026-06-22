@@ -18,6 +18,9 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { PRODUCT } from "../lib/product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import WarehouseProductModal from "@/pages/warehouse-product/components/WarehouseProductModal";
+import AssignClassificationModal from "./AssignClassificationModal";
+import ProductClassificationModal from "./ProductClassificationModal";
+import type { RowSelectionState } from "@tanstack/react-table";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -30,9 +33,14 @@ export default function ProductPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [assignStockProductId, setAssignStockProductId] = useState<
-    number | null
-  >(null);
+  const [assignStockProductId, setAssignStockProductId] = useState<number | null>(null);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [assignClassificationOpen, setAssignClassificationOpen] = useState(false);
+  const [viewClassificationProductId, setViewClassificationProductId] = useState<number | null>(null);
+
+  const selectedProductIds = Object.keys(rowSelection)
+    .filter((k) => rowSelection[k])
+    .map(Number);
 
   const { data, isLoading, refetch } = useProduct({
     page,
@@ -45,6 +53,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     setPage(1);
+    setRowSelection({});
   }, [
     search,
     per_page,
@@ -91,7 +100,11 @@ export default function ProductPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <ProductActions onCreateProduct={handleCreateProduct} />
+        <ProductActions
+          onCreateProduct={handleCreateProduct}
+          selectedCount={selectedProductIds.length}
+          onAssignClassification={() => setAssignClassificationOpen(true)}
+        />
       </div>
 
       <ProductTable
@@ -101,8 +114,12 @@ export default function ProductPage() {
           onDelete: setDeleteId,
           onView: handleViewProduct,
           onAssignStock: setAssignStockProductId,
+          onViewClassification: setViewClassificationProductId,
         })}
         data={data?.data || []}
+        enableRowSelection={true}
+        rowSelection={rowSelection}
+        onRowSelectionChange={setRowSelection}
       >
         <ProductOptions
           search={search}
@@ -140,6 +157,27 @@ export default function ProductPage() {
           title="Asignar Producto a Almacén"
           mode="create"
           preselectedProductId={assignStockProductId}
+        />
+      )}
+
+      {assignClassificationOpen && (
+        <AssignClassificationModal
+          open={true}
+          productIds={selectedProductIds}
+          onClose={() => setAssignClassificationOpen(false)}
+          onSuccess={() => {
+            setAssignClassificationOpen(false);
+            setRowSelection({});
+            refetch();
+          }}
+        />
+      )}
+
+      {viewClassificationProductId !== null && (
+        <ProductClassificationModal
+          open={true}
+          productId={viewClassificationProductId}
+          onClose={() => setViewClassificationProductId(null)}
         />
       )}
     </div>

@@ -140,6 +140,8 @@ import { CARRIER } from "./pages/carrier/lib/carrier.interface";
 import CarrierPage from "./pages/carrier/components/CarrierPage";
 import CarrierAddPage from "./pages/carrier/components/CarrierAddPage";
 import CarrierEditPage from "./pages/carrier/components/CarrierEditPage";
+import { PRODUCT_TAG } from "./pages/product-tag/lib/product-tag.interface";
+import ProductTagPage from "./pages/product-tag/components/TagPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -181,6 +183,7 @@ const { ROUTE: ProductionOrderRoute } = PRODUCTION_ORDER;
 const { ROUTE_ADD: ProductionOrderAddRoute } = PRODUCTION_ORDER;
 const { ROUTE_UPDATE: ProductionOrderUpdateRoute } = PRODUCTION_ORDER;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
+const { ROUTE: ProductTagRoute } = PRODUCT_TAG;
 
 
 function ProtectedRoute({
@@ -434,6 +437,15 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductPriceCategoryRoute}>
                 <ProductPriceCategoryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductTagRoute}
+            element={
+              <ProtectedRoute path={ProductTagRoute}>
+                <ProductTagPage />
               </ProtectedRoute>
             }
           />
