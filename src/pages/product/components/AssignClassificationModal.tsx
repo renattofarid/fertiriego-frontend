@@ -13,8 +13,9 @@ import { FormTextArea } from "@/components/FormTextArea";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { assignClassification } from "@/pages/product-tag/lib/classification.actions";
 import { useProductTag } from "@/pages/product-tag/lib/product-tag.hook";
-import type { TagResource } from "@/pages/product-tag/lib/product-tag.interface";
+import { PRODUCT_TAG, type TagResource } from "@/pages/product-tag/lib/product-tag.interface";
 import { errorToast, successToast } from "@/lib/core.function";
+import { useQueryClient } from "@tanstack/react-query";
 
 const assignSchema = z.object({
   priority: z.enum(["A", "B", "C"], {
@@ -51,6 +52,7 @@ export default function AssignClassificationModal({
   const [selectedTags, setSelectedTags] = useState<TagResource[]>([]);
   const [tagSearchValue, setTagSearchValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<AssignSchema>({
     resolver: zodResolver(assignSchema),
@@ -85,6 +87,7 @@ export default function AssignClassificationModal({
         priority: data.priority,
         notes: data.notes || undefined,
       });
+      await queryClient.invalidateQueries({ queryKey: [PRODUCT_TAG.QUERY_KEY] });
       successToast("Clasificación asignada exitosamente");
       onSuccess();
     } catch (error: any) {

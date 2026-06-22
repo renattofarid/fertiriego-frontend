@@ -17,6 +17,7 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { PRODUCT_TAG } from "../lib/product-tag.interface";
 import TagModal from "./TagModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
+import { useQueryClient } from "@tanstack/react-query";
 
 const { MODEL, ICON } = PRODUCT_TAG;
 
@@ -38,11 +39,13 @@ export default function TagPage() {
   });
 
   const meta = data?.meta;
+  const queryClient = useQueryClient();
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deleteTag(deleteId);
+      await queryClient.invalidateQueries({ queryKey: [PRODUCT_TAG.QUERY_KEY] });
       await refetch();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {

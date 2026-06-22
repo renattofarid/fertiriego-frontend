@@ -11,6 +11,7 @@ import { PRODUCT_TAG, type TagResource } from "../lib/product-tag.interface";
 import { useProductTag, useProductTagById } from "../lib/product-tag.hook";
 import { useProductTagStore } from "../lib/product-tag.store";
 import { TagForm } from "./TagForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
   id?: number;
@@ -43,13 +44,15 @@ export default function TagModal({ id, open, title, mode, onClose }: Props) {
   });
 
   const { isSubmitting, createTag, updateTag } = useProductTagStore();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (data: TagSchema) => {
     if (mode === "create") {
       await createTag(data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "create"));
+          await queryClient.invalidateQueries({ queryKey: [PRODUCT_TAG.QUERY_KEY] });
           refetch();
         })
         .catch((error: any) => {
@@ -61,9 +64,10 @@ export default function TagModal({ id, open, title, mode, onClose }: Props) {
         });
     } else {
       await updateTag(id!, data)
-        .then(() => {
+        .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
+          await queryClient.invalidateQueries({ queryKey: [PRODUCT_TAG.QUERY_KEY] });
           refetchTag();
           refetch();
         })

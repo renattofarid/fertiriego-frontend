@@ -45,7 +45,7 @@ export const TagForm = ({
   mode = "create",
 }: TagFormProps) => {
   const form = useForm<TagSchema>({
-    resolver: zodResolver(mode === "create" ? tagSchemaCreate : tagSchemaUpdate),
+    resolver: zodResolver((mode === "create" ? tagSchemaCreate : tagSchemaUpdate) as any),
     defaultValues: {
       name: "",
       color: "#3b82f6",
@@ -107,11 +107,14 @@ export const TagForm = ({
             options={TYPE_OPTIONS}
           />
 
-          <FormSwitch
-            control={form.control}
-            name="is_active"
-            text="Etiqueta activa"
-          />
+          {mode === "edit" && (
+            <FormSwitch
+              control={form.control}
+              name="is_active"
+              label="Estado"
+              text="Etiqueta activa"
+            />
+          )}
 
           <div className="md:col-span-2">
             <FormTextArea
