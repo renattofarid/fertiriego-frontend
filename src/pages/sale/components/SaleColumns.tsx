@@ -286,8 +286,9 @@ export const getSaleColumns = ({
     cell: ({ row }) => {
       // Si es al contado, ya está pagado y no hay cuotas
       const isContado = row.original.payment_type === "CONTADO";
+      const hasInstallments = (row.original.installments?.length || 0) > 0;
 
-      if (isContado) {
+      if (isContado && !hasInstallments) {
         return (
           <Badge variant="outline" className="text-primary">
             Pagado
