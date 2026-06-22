@@ -99,13 +99,49 @@ export default function TraceabilityTimeline({
 
   const getStatusColor = (
     status: string
-  ): "secondary" | "outline" | "destructive" | "default" | "green" => {
-    const statusLower = status.toLowerCase();
-    if (statusLower.includes("pendiente")) return "outline";
-    if (statusLower.includes("pagada") || statusLower.includes("completado"))
+  ):
+    | "secondary"
+    | "outline"
+    | "destructive"
+    | "default"
+    | "green"
+    | "yellow"
+    | "red"
+    | "gray"
+    | "blue" => {
+    const normalizedStatus = status.trim().toUpperCase();
+
+    if (normalizedStatus.includes("PENDIENTE")) return "yellow";
+    if (
+      normalizedStatus.includes("APROBADA") ||
+      normalizedStatus.includes("APROBADO") ||
+      normalizedStatus.includes("PAGADA") ||
+      normalizedStatus.includes("PAGADO") ||
+      normalizedStatus.includes("COMPLETADO")
+    ) {
       return "green";
-    if (statusLower.includes("cancelado") || statusLower.includes("anulado"))
-      return "destructive";
+    }
+    if (
+      normalizedStatus.includes("PROCESADA") ||
+      normalizedStatus.includes("PROCESADO")
+    ) {
+      return "blue";
+    }
+    if (
+      normalizedStatus.includes("RECHAZADA") ||
+      normalizedStatus.includes("RECHAZADO") ||
+      normalizedStatus.includes("CANCELADO") ||
+      normalizedStatus.includes("ANULADO")
+    ) {
+      return "red";
+    }
+    if (
+      normalizedStatus.includes("VENCIDA") ||
+      normalizedStatus.includes("VENCIDO")
+    ) {
+      return "gray";
+    }
+
     return "secondary";
   };
 
