@@ -38,6 +38,7 @@ import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { DRIVER } from "@/pages/driver/lib/driver.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
+import { PURCHASE_ORDER_BATCH } from "@/pages/purchase-order-batch/lib/purchase-order-batch.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SALE } from "@/pages/sale/lib/sale.interface";
 import { ACCOUNTS_RECEIVABLE } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
@@ -61,6 +62,14 @@ import { PRODUCTION_ORDER } from "@/pages/production-order/lib/production-order.
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
 import { PRODUCT_TAG } from "@/pages/product-tag/lib/product-tag.interface";
 import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
+import {
+  PREDICTIVE_META,
+  PREDICTIVE_ROUTE,
+} from "@/pages/predictive/lib/predictive.interface";
+import {
+  DASHBOARD_META,
+  DASHBOARD_MONITORING_ROUTE,
+} from "@/pages/dashboard/lib/dashboard.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -163,6 +172,12 @@ const {
   ROUTE: PurchaseOrderRoute,
   MODEL: { name: PurchaseOrderTitle },
 } = PURCHASE_ORDER;
+
+const {
+  ICON_REACT: PurchaseOrderBatchIcon,
+  ROUTE: PurchaseOrderBatchRoute,
+  MODEL: { name: PurchaseOrderBatchTitle },
+} = PURCHASE_ORDER_BATCH;
 
 const {
   ICON_REACT: PurchaseIcon,
@@ -278,6 +293,16 @@ const {
   MODEL: { name: ProductTagTitle },
 } = PRODUCT_TAG;
 
+const {
+  ICON_REACT: PredictiveIcon,
+  MODEL: { name: PredictiveTitle },
+} = PREDICTIVE_META;
+
+const {
+  ICON_REACT: DashboardMonitoringIcon,
+  MODEL: { name: DashboardMonitoringTitle },
+} = DASHBOARD_META;
+
 const data = {
   navMain: [
     {
@@ -294,6 +319,11 @@ const data = {
           title: PurchaseOrderTitle,
           url: PurchaseOrderRoute,
           icon: PurchaseOrderIcon,
+        },
+        {
+          title: PurchaseOrderBatchTitle,
+          url: PurchaseOrderBatchRoute,
+          icon: PurchaseOrderBatchIcon,
         },
         {
           title: PurchasesTitle,
@@ -516,6 +546,16 @@ const data = {
           icon: VehicleIcon,
         },
       ],
+    },
+    {
+      title: PredictiveTitle,
+      url: PREDICTIVE_ROUTE,
+      icon: PredictiveIcon,
+    },
+    {
+      title: DashboardMonitoringTitle,
+      url: DASHBOARD_MONITORING_ROUTE,
+      icon: DashboardMonitoringIcon,
     },
     {
       title: "Seguridad",

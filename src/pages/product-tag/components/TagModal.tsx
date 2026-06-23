@@ -1,4 +1,3 @@
-import FormSkeleton from "@/components/FormSkeleton";
 import { GeneralModal } from "@/components/GeneralModal";
 import type { TagSchema } from "../lib/product-tag.schema";
 import {
@@ -8,13 +7,13 @@ import {
   successToast,
 } from "@/lib/core.function";
 import { PRODUCT_TAG, type TagResource } from "../lib/product-tag.interface";
-import { useProductTag, useProductTagById } from "../lib/product-tag.hook";
+import { useProductTag } from "../lib/product-tag.hook";
 import { useProductTagStore } from "../lib/product-tag.store";
 import { TagForm } from "./TagForm";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface Props {
-  id?: number;
+  tag?: TagResource;
   open: boolean;
   title: string;
   mode: "create" | "edit";
@@ -23,17 +22,9 @@ interface Props {
 
 const { MODEL, EMPTY } = PRODUCT_TAG;
 
-export default function TagModal({ id, open, title, mode, onClose }: Props) {
+export default function TagModal({ tag, open, title, mode, onClose }: Props) {
   const { refetch } = useProductTag();
-
-  const {
-    data: tag,
-    isFinding: findingTag,
-    refetch: refetchTag,
-  } =
-    mode === "create"
-      ? { data: EMPTY, isFinding: false, refetch }
-      : useProductTagById(id!);
+  const currentTag = mode === "create" ? EMPTY : tag!;
 
   const mapTagToForm = (data: TagResource): Partial<TagSchema> => ({
     name: data.name,
@@ -63,12 +54,11 @@ export default function TagModal({ id, open, title, mode, onClose }: Props) {
           );
         });
     } else {
-      await updateTag(id!, data)
+      await updateTag(currentTag.id, data)
         .then(async () => {
           onClose();
           successToast(SUCCESS_MESSAGE(MODEL, "edit"));
           await queryClient.invalidateQueries({ queryKey: [PRODUCT_TAG.QUERY_KEY] });
-          refetchTag();
           refetch();
         })
         .catch((error: any) => {
@@ -81,21 +71,15 @@ export default function TagModal({ id, open, title, mode, onClose }: Props) {
     }
   };
 
-  const isLoadingAny = isSubmitting || findingTag;
-
   return (
     <GeneralModal open={open} onClose={onClose} title={title} maxWidth="!max-w-2xl">
-      {!isLoadingAny && tag ? (
-        <TagForm
-          defaultValues={mapTagToForm(tag)}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          mode={mode}
-          onCancel={onClose}
-        />
-      ) : (
-        <FormSkeleton />
-      )}
+      <TagForm
+        defaultValues={mapTagToForm(currentTag)}
+        onSubmit={handleSubmit}
+        isSubmitting={isSubmitting}
+        mode={mode}
+        onCancel={onClose}
+      />
     </GeneralModal>
   );
 }

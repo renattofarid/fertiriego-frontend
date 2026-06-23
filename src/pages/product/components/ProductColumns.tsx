@@ -2,7 +2,7 @@ import type { ProductResource } from "../lib/product.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Eye, FileText, Image, Pencil, ShoppingCart, Tags } from "lucide-react";
+import { BrainCircuit, Eye, FileText, Image, Pencil, ShoppingCart, Tags } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -12,12 +12,14 @@ export const ProductColumns = ({
   onView,
   onAssignStock,
   onViewClassification,
+  onViewMetrics,
 }: {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onView: (id: number) => void;
   onAssignStock?: (id: number) => void;
   onViewClassification?: (id: number) => void;
+  onViewMetrics?: (id: number) => void;
 }): ColumnDef<ProductResource>[] => [
   {
     id: "select",
@@ -163,6 +165,12 @@ export const ProductColumns = ({
             icon={Tags}
             tooltip="Ver Clasificación"
             canRender={!!onViewClassification}
+          />
+          <ButtonAction
+            onClick={() => onViewMetrics?.(id)}
+            icon={BrainCircuit}
+            tooltip="Ver Métricas Predictivas"
+            canRender={!!onViewMetrics}
           />
           <DeleteButton onClick={() => onDelete(id)} />
         </div>

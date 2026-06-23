@@ -1,10 +1,10 @@
 import type { TagResource, TagType } from "../lib/product-tag.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-// import { ColumnActions } from "@/components/SelectActions";
-// import { Pencil } from "lucide-react";
-// import { ButtonAction } from "@/components/ButtonAction";
-// import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { ColumnActions } from "@/components/SelectActions";
+import { Pencil } from "lucide-react";
+import { ButtonAction } from "@/components/ButtonAction";
+import { DeleteButton } from "@/components/SimpleDeleteDialog";
 
 const TAG_TYPE_LABELS: Record<TagType, string> = {
   rotation: "Rotación",
@@ -13,15 +13,13 @@ const TAG_TYPE_LABELS: Record<TagType, string> = {
   custom: "Personalizado",
 };
 
-export const TagColumns = (
-  {
-    // onEdit,
-    // onDelete,
-  }: {
-    onEdit: (id: number) => void;
-    onDelete: (id: number) => void;
-  },
-): ColumnDef<TagResource>[] => [
+export const TagColumns = ({
+  onEdit,
+  onDelete,
+}: {
+  onEdit: (tag: TagResource) => void;
+  onDelete: (id: number) => void;
+}): ColumnDef<TagResource>[] => [
   {
     accessorKey: "name",
     header: "Nombre",
@@ -99,17 +97,21 @@ export const TagColumns = (
       });
     },
   },
-  // {
-  //   id: "actions",
-  //   header: "Acciones",
-  //   cell: ({ row }) => {
-  //     const id = row.original.id;
-  //     return (
-  //       <ColumnActions>
-  //         <ButtonAction icon={Pencil} tooltip="Editar" onClick={() => onEdit(id)} />
-  //         <DeleteButton onClick={() => onDelete(id)} />
-  //       </ColumnActions>
-  //     );
-  //   },
-  // },
+  {
+    id: "actions",
+    header: "Acciones",
+    cell: ({ row }) => {
+      const id = row.original.id;
+      return (
+        <ColumnActions>
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(row.original)}
+          />
+          <DeleteButton onClick={() => onDelete(id)} />
+        </ColumnActions>
+      );
+    },
+  },
 ];

@@ -14,7 +14,7 @@ import {
 } from "@/lib/core.function";
 import { TagColumns } from "./TagColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { PRODUCT_TAG } from "../lib/product-tag.interface";
+import { PRODUCT_TAG, type TagResource } from "../lib/product-tag.interface";
 import TagModal from "./TagModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,7 +27,7 @@ export default function TagPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedType, setSelectedType] = useState("");
   const [selectedActive, setSelectedActive] = useState("");
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editTag, setEditTag] = useState<TagResource | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const { data, isLoading, refetch } = useProductTag({
@@ -73,7 +73,7 @@ export default function TagPage() {
       <TagTable
         isLoading={isLoading}
         columns={TagColumns({
-          onEdit: setEditId,
+          onEdit: setEditTag,
           onDelete: setDeleteId,
         })}
         data={data?.data || []}
@@ -97,11 +97,11 @@ export default function TagPage() {
         totalData={meta?.total || 0}
       />
 
-      {editId !== null && (
+      {editTag !== null && (
         <TagModal
-          id={editId}
+          tag={editTag}
           open={true}
-          onClose={() => setEditId(null)}
+          onClose={() => setEditTag(null)}
           title={MODEL.name}
           mode="edit"
         />

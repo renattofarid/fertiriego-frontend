@@ -20,6 +20,7 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import WarehouseProductModal from "@/pages/warehouse-product/components/WarehouseProductModal";
 import AssignClassificationModal from "./AssignClassificationModal";
 import ProductClassificationModal from "./ProductClassificationModal";
+import ProductMetricsModal from "./ProductMetricsModal";
 import type { RowSelectionState } from "@tanstack/react-table";
 
 const { MODEL, ICON } = PRODUCT;
@@ -37,6 +38,7 @@ export default function ProductPage() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [assignClassificationOpen, setAssignClassificationOpen] = useState(false);
   const [viewClassificationProductId, setViewClassificationProductId] = useState<number | null>(null);
+  const [metricsProductId, setMetricsProductId] = useState<number | null>(null);
 
   const selectedProductIds = Object.keys(rowSelection)
     .filter((k) => rowSelection[k])
@@ -115,6 +117,7 @@ export default function ProductPage() {
           onView: handleViewProduct,
           onAssignStock: setAssignStockProductId,
           onViewClassification: setViewClassificationProductId,
+          onViewMetrics: setMetricsProductId,
         })}
         data={data?.data || []}
         enableRowSelection={true}
@@ -178,6 +181,14 @@ export default function ProductPage() {
           open={true}
           productId={viewClassificationProductId}
           onClose={() => setViewClassificationProductId(null)}
+        />
+      )}
+
+      {metricsProductId !== null && (
+        <ProductMetricsModal
+          open={true}
+          productId={metricsProductId}
+          onClose={() => setMetricsProductId(null)}
         />
       )}
     </div>
