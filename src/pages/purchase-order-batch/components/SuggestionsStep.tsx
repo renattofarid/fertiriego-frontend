@@ -11,6 +11,7 @@ import {
   RefreshCcw,
   Search,
   ShoppingCart,
+  UserX,
 } from "lucide-react";
 import { getSuggestedLots } from "../lib/purchase-order-batch.actions";
 import type {
@@ -47,7 +48,7 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<SuggestedLot[] | null>(null);
   const [selectedSuppliers, setSelectedSuppliers] = useState<
-    Record<number, boolean>
+    Record<string, boolean>
   >({});
   const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>(
     {}
@@ -78,10 +79,10 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
       const lots = Array.isArray(result) ? result : [];
       setSuggestions(lots);
 
-      const newSuppliers: Record<number, boolean> = {};
+      const newSuppliers: Record<string, boolean> = {};
       const newItems: Record<string, boolean> = {};
       lots.forEach((lot) => {
-        newSuppliers[lot.supplier_id] = true;
+        newSuppliers[String(lot.supplier_id)] = true;
         lot.items.forEach((item) => {
           newItems[`${lot.supplier_id}-${item.product_id}`] = true;
         });
@@ -97,11 +98,12 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
     }
   };
 
-  const toggleSupplier = (supplierId: number, lots: SuggestedLot[]) => {
+  const toggleSupplier = (supplierId: number | null, lots: SuggestedLot[]) => {
+    const sKey = String(supplierId);
     const lot = lots.find((l) => l.supplier_id === supplierId);
     if (!lot) return;
-    const newVal = !selectedSuppliers[supplierId];
-    setSelectedSuppliers((prev) => ({ ...prev, [supplierId]: newVal }));
+    const newVal = !selectedSuppliers[sKey];
+    setSelectedSuppliers((prev) => ({ ...prev, [sKey]: newVal }));
     const newItems = { ...selectedItems };
     lot.items.forEach((item) => {
       newItems[`${supplierId}-${item.product_id}`] = newVal;
@@ -109,8 +111,9 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
     setSelectedItems(newItems);
   };
 
-  const toggleItem = (supplierId: number, productId: number) => {
+  const toggleItem = (supplierId: number | null, productId: number) => {
     const key = `${supplierId}-${productId}`;
+    const sKey = String(supplierId);
     const newVal = !selectedItems[key];
     const newItems = { ...selectedItems, [key]: newVal };
     setSelectedItems(newItems);
@@ -123,7 +126,7 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
         );
         setSelectedSuppliers((prev) => ({
           ...prev,
-          [supplierId]: anySelected,
+          [sKey]: anySelected,
         }));
       }
     }
@@ -133,9 +136,10 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
     if (!suggestions) return;
 
     const configs: LotOrderConfig[] = suggestions
-      .filter((lot) => selectedSuppliers[lot.supplier_id])
+      .filter((lot) => selectedSuppliers[String(lot.supplier_id)])
       .map((lot) => ({
         supplier_id: lot.supplier_id,
+        supplier_id_selected: "",
         supplier_name: lot.supplier_name,
         warehouse_id: warehouseId,
         currency: "PEN" as const,
@@ -259,7 +263,7 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
 
               <div className="overflow-hidden rounded-lg border border-border">
                 {suggestions.map((lot, lotIndex) => {
-                  const lotSelected = !!selectedSuppliers[lot.supplier_id];
+                  const lotSelected = !!selectedSuppliers[String(lot.supplier_id)];
                   const lotItemCount = lot.items.filter(
                     (item) =>
                       !!selectedItems[`${lot.supplier_id}-${item.product_id}`]
@@ -283,10 +287,19 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
                           }
                           aria-label={`Seleccionar lote de ${lot.supplier_name}`}
                         />
-                        <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        {lot.supplier_id === null ? (
+                          <UserX className="h-4 w-4 shrink-0 text-yellow-600 dark:text-yellow-400" />
+                        ) : (
+                          <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        )}
                         <span className="flex-1 text-sm font-semibold">
                           {lot.supplier_name}
                         </span>
+                        {lot.supplier_id === null && (
+                          <Badge variant="yellow" className="text-xs">
+                            Asignar proveedor
+                          </Badge>
+                        )}
                         <Badge variant="outline" className="text-xs">
                           {lotItemCount}/{lot.items.length} ítems
                         </Badge>

@@ -30,7 +30,7 @@ export interface SuggestedLotItem {
 }
 
 export interface SuggestedLot {
-  supplier_id: number;
+  supplier_id: number | null;
   supplier_name: string;
   items: SuggestedLotItem[];
 }
@@ -114,7 +114,8 @@ export interface CreateBatchOrderResponse {
 
 // Internal UI state per lot group (after selecting from suggestions)
 export interface LotOrderConfig {
-  supplier_id: number;
+  supplier_id: number | null;
+  supplier_id_selected: string;
   supplier_name: string;
   warehouse_id: string;
   currency: "PEN" | "USD";

@@ -11,6 +11,7 @@ import type {
 } from "../lib/purchase-order-batch.interface";
 import { cn } from "@/lib/utils";
 import { Check, ChevronRight } from "lucide-react";
+import FormWrapper from "@/components/FormWrapper";
 
 const { MODEL, ICON } = PURCHASE_ORDER_BATCH;
 
@@ -27,7 +28,7 @@ export default function PurchaseOrderBatchPage() {
   const [batchResult, setBatchResult] = useState<BatchOrderResource[]>([]);
 
   return (
-    <div className="space-y-6">
+    <FormWrapper>
       <div className="flex justify-between items-center">
         <TitleComponent
           title={MODEL.plural!}
@@ -47,8 +48,8 @@ export default function PurchaseOrderBatchPage() {
                   i < step
                     ? "bg-primary border-primary text-primary-foreground"
                     : i === step
-                    ? "border-primary text-primary bg-background"
-                    : "border-muted-foreground/30 text-muted-foreground bg-background"
+                      ? "border-primary text-primary bg-background"
+                      : "border-muted-foreground/30 text-muted-foreground bg-background",
                 )}
               >
                 {i < step ? <Check className="h-3.5 w-3.5" /> : i + 1}
@@ -56,7 +57,7 @@ export default function PurchaseOrderBatchPage() {
               <span
                 className={cn(
                   "text-sm font-medium",
-                  i === step ? "text-foreground" : "text-muted-foreground"
+                  i === step ? "text-foreground" : "text-muted-foreground",
                 )}
               >
                 {s.label}
@@ -101,6 +102,6 @@ export default function PurchaseOrderBatchPage() {
           }}
         />
       )}
-    </div>
+    </FormWrapper>
   );
 }

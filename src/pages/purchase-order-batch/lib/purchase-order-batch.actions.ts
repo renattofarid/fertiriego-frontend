@@ -50,8 +50,8 @@ export async function getSuggestedLots(
     config
   );
   const lots: ApiSuggestedLot[] = Array.isArray(data?.data) ? data.data : [];
-  return lots.map((lot, index) => ({
-    supplier_id: lot.supplier.id ?? -(index + 1),
+  return lots.map((lot) => ({
+    supplier_id: lot.supplier.id,
     supplier_name: lot.supplier.name,
     items: lot.items.map((item) => ({
       product_id: item.product_id,
