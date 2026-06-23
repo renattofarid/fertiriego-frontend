@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { FormSelect } from "@/components/FormSelect";
 import {
   AlertTriangle,
   ArrowRight,
   Building2,
+  Layers,
   Package,
   RefreshCcw,
   Search,
@@ -39,6 +34,11 @@ const URGENCY_OPTIONS = [
   { value: "ADVERTENCIA", label: "Advertencia" },
 ];
 
+const URGENCY_LABEL: Record<string, string> = {
+  CRITICO: "Crítico",
+  ADVERTENCIA: "Advertencia",
+};
+
 interface SuggestionsStepProps {
   onNext: (configs: LotOrderConfig[]) => void;
 }
@@ -49,9 +49,9 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
   const [selectedSuppliers, setSelectedSuppliers] = useState<
     Record<number, boolean>
   >({});
-  const [selectedItems, setSelectedItems] = useState<
-    Record<string, boolean>
-  >({});
+  const [selectedItems, setSelectedItems] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const filterForm = useForm({
     defaultValues: {
@@ -60,6 +60,8 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
       warehouse_id: "",
     },
   });
+
+  const warehouseId = filterForm.watch("warehouse_id");
 
   const { data: warehousesData } = useWarehouses();
   const warehouses: WarehouseResource[] = warehousesData?.data ?? [];
@@ -76,7 +78,6 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
       const lots = Array.isArray(result) ? result : [];
       setSuggestions(lots);
 
-      // Auto-select all
       const newSuppliers: Record<number, boolean> = {};
       const newItems: Record<string, boolean> = {};
       lots.forEach((lot) => {
@@ -110,7 +111,22 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
 
   const toggleItem = (supplierId: number, productId: number) => {
     const key = `${supplierId}-${productId}`;
-    setSelectedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+    const newVal = !selectedItems[key];
+    const newItems = { ...selectedItems, [key]: newVal };
+    setSelectedItems(newItems);
+
+    if (suggestions) {
+      const lot = suggestions.find((l) => l.supplier_id === supplierId);
+      if (lot) {
+        const anySelected = lot.items.some(
+          (item) => !!newItems[`${supplierId}-${item.product_id}`]
+        );
+        setSelectedSuppliers((prev) => ({
+          ...prev,
+          [supplierId]: anySelected,
+        }));
+      }
+    }
   };
 
   const handleNext = () => {
@@ -121,7 +137,7 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
       .map((lot) => ({
         supplier_id: lot.supplier_id,
         supplier_name: lot.supplier_name,
-        warehouse_id: filterForm.getValues("warehouse_id") || "",
+        warehouse_id: warehouseId,
         currency: "PEN" as const,
         apply_igv: false,
         payment_type: "CONTADO",
@@ -149,70 +165,79 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
   };
 
   const selectedCount = Object.values(selectedSuppliers).filter(Boolean).length;
-  const hasResults = suggestions !== null && suggestions.length > 0;
+  const canProceed = selectedCount > 0 && !!warehouseId;
+
+  const lotCount = suggestions?.length ?? 0;
+  const lotsLabel =
+    lotCount === 1 ? "1 lote sugerido" : `${lotCount} lotes sugeridos`;
+  const selectedLabel =
+    selectedCount === 1 ? "1 seleccionado" : `${selectedCount} seleccionados`;
 
   return (
     <div className="space-y-4">
-      {/* Filtros */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            Filtros de búsqueda
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...filterForm}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <FormSelectAsync
-                control={filterForm.control}
-                name="supplier_id"
-                label="Proveedor (opcional)"
-                placeholder="Todos los proveedores"
-                useQueryHook={useSuppliers}
-                mapOptionFn={(p: PersonResource) => ({
-                  value: p.id.toString(),
-                  label: p.business_name ?? `${p.names} ${p.father_surname}`,
-                  description: p.number_document,
-                })}
-              />
+      {/* Barra de filtros */}
+      <Form {...filterForm}>
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-3 items-end rounded-lg border border-border bg-muted/40 p-4">
+          <FormSelectAsync
+            control={filterForm.control}
+            name="supplier_id"
+            label="Proveedor"
+            placeholder="Todos los proveedores"
+            useQueryHook={useSuppliers}
+            mapOptionFn={(p: PersonResource) => ({
+              value: p.id.toString(),
+              label: p.business_name ?? `${p.names} ${p.father_surname}`,
+              description: p.number_document,
+            })}
+          />
 
-              <FormSelect
-                control={filterForm.control}
-                name="urgency"
-                label="Urgencia (opcional)"
-                placeholder="Todas las urgencias"
-                options={URGENCY_OPTIONS}
-              />
+          <FormSelect
+            control={filterForm.control}
+            name="urgency"
+            label="Urgencia"
+            placeholder="Todas"
+            options={URGENCY_OPTIONS}
+          />
 
-              <FormSelect
-                control={filterForm.control}
-                name="warehouse_id"
-                label="Almacén (opcional)"
-                placeholder="Todos los almacenes"
-                options={[
-                  { value: "", label: "Todos los almacenes" },
-                  ...warehouses.map((w) => ({
-                    value: w.id.toString(),
-                    label: w.name,
-                  })),
-                ]}
-              />
-            </div>
+          <FormSelect
+            control={filterForm.control}
+            name="warehouse_id"
+            label="Almacén destino *"
+            placeholder="Selecciona un almacén"
+            options={[
+              { value: "", label: "Selecciona un almacén" },
+              ...warehouses.map((w) => ({
+                value: w.id.toString(),
+                label: w.name,
+              })),
+            ]}
+          />
 
-            <div className="mt-4 flex justify-end">
-              <Button onClick={handleSearch} disabled={isLoading}>
-                {isLoading ? (
-                  <RefreshCcw className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4 mr-2" />
-                )}
-                Buscar sugerencias
-              </Button>
-            </div>
-          </Form>
-        </CardContent>
-      </Card>
+          <Button onClick={handleSearch} disabled={isLoading} className="h-9">
+            {isLoading ? (
+              <RefreshCcw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+            <span className="ml-2">Buscar</span>
+          </Button>
+        </div>
+      </Form>
+
+      {/* Estado inicial */}
+      {suggestions === null && (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-12 text-center">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+            <Layers className="h-5 w-5 text-primary" />
+          </div>
+          <p className="text-sm font-medium">Genera órdenes de compra por lote</p>
+          <p className="max-w-sm text-xs text-muted-foreground">
+            El sistema revisará el stock actual y sugerirá productos para
+            reponer, agrupados por proveedor. Selecciona un almacén destino y
+            presiona «Buscar» para comenzar.
+          </p>
+        </div>
+      )}
 
       {/* Resultados */}
       {suggestions !== null && (
@@ -227,113 +252,129 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  {suggestions.length} lote(s) sugerido(s) — selecciona los
-                  que deseas generar
+                  {lotsLabel} — selecciona los que deseas generar
                 </p>
-                <Badge variant="secondary">{selectedCount} seleccionado(s)</Badge>
+                <Badge variant="secondary">{selectedLabel}</Badge>
               </div>
 
-              {suggestions.map((lot) => {
-                const lotSelected = !!selectedSuppliers[lot.supplier_id];
-                const lotItemCount = lot.items.filter(
-                  (item) =>
-                    !!selectedItems[`${lot.supplier_id}-${item.product_id}`]
-                ).length;
+              <div className="overflow-hidden rounded-lg border border-border">
+                {suggestions.map((lot, lotIndex) => {
+                  const lotSelected = !!selectedSuppliers[lot.supplier_id];
+                  const lotItemCount = lot.items.filter(
+                    (item) =>
+                      !!selectedItems[`${lot.supplier_id}-${item.product_id}`]
+                  ).length;
 
-                return (
-                  <Card
-                    key={lot.supplier_id}
-                    className={lotSelected ? "" : "opacity-60"}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center gap-3">
+                  return (
+                    <div
+                      key={lot.supplier_id}
+                      className={lotIndex > 0 ? "border-t border-border" : ""}
+                    >
+                      {/* Cabecera de proveedor */}
+                      <div
+                        className={`flex items-center gap-3 bg-muted/50 px-4 py-3 transition-opacity ${
+                          !lotSelected ? "opacity-60" : ""
+                        }`}
+                      >
                         <Checkbox
                           checked={lotSelected}
                           onCheckedChange={() =>
                             toggleSupplier(lot.supplier_id, suggestions)
                           }
+                          aria-label={`Seleccionar lote de ${lot.supplier_name}`}
                         />
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <CardTitle className="text-base flex-1">
+                        <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="flex-1 text-sm font-semibold">
                           {lot.supplier_name}
-                        </CardTitle>
-                        <Badge variant="outline">
+                        </span>
+                        <Badge variant="outline" className="text-xs">
                           {lotItemCount}/{lot.items.length} ítems
                         </Badge>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        {lot.items.map((item) => {
-                          const key = `${lot.supplier_id}-${item.product_id}`;
-                          const itemSelected = !!selectedItems[key];
-                          return (
-                            <div
-                              key={item.product_id}
-                              className="flex items-start gap-3 p-2.5 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-                            >
-                              <Checkbox
-                                checked={itemSelected && lotSelected}
-                                disabled={!lotSelected}
-                                onCheckedChange={() =>
-                                  toggleItem(lot.supplier_id, item.product_id)
-                                }
-                                className="mt-0.5"
-                              />
-                              <Package className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium leading-tight">
-                                  {item.product_name}
+
+                      {/* Filas de producto */}
+                      {lot.items.map((item) => {
+                        const key = `${lot.supplier_id}-${item.product_id}`;
+                        const itemSelected = !!selectedItems[key];
+                        const urgencyLabel = item.urgency
+                          ? (URGENCY_LABEL[item.urgency] ?? item.urgency)
+                          : null;
+
+                        return (
+                          <div
+                            key={item.product_id}
+                            className={`flex items-center gap-3 border-t border-border/50 px-4 py-2.5 pl-10 transition-opacity ${
+                              !lotSelected || !itemSelected ? "opacity-50" : ""
+                            }`}
+                          >
+                            <Checkbox
+                              checked={itemSelected && lotSelected}
+                              disabled={!lotSelected}
+                              onCheckedChange={() =>
+                                toggleItem(lot.supplier_id, item.product_id)
+                              }
+                              aria-label={`Seleccionar ${item.product_name}`}
+                            />
+                            <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium leading-tight">
+                                {item.product_name}
+                              </p>
+                              {item.suggestion_reason && (
+                                <p className="text-xs text-muted-foreground">
+                                  {item.suggestion_reason}
                                 </p>
-                                {item.suggestion_reason && (
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    {item.suggestion_reason}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="text-right text-sm shrink-0 space-y-0.5">
-                                <p className="font-medium">
-                                  Cant.:{" "}
-                                  <span className="text-primary">
-                                    {item.quantity_suggested ?? "—"}
-                                  </span>
-                                </p>
-                                <p className="text-muted-foreground text-xs">
-                                  P.U.: S/.{" "}
-                                  {Number(item.unit_price_estimated).toFixed(2)}
-                                </p>
-                              </div>
-                              {item.urgency && (
-                                <Badge
-                                  variant={
-                                    item.urgency === "CRITICO"
-                                      ? "destructive"
-                                      : "secondary"
-                                  }
-                                  className="shrink-0 text-xs"
-                                >
-                                  {item.urgency === "CRITICO" && (
-                                    <AlertTriangle className="h-3 w-3 mr-1" />
-                                  )}
-                                  {item.urgency}
-                                </Badge>
                               )}
                             </div>
-                          );
-                        })}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                            <div className="shrink-0 text-right text-sm tabular-nums">
+                              <span className="font-medium text-primary">
+                                {item.quantity_suggested ?? "—"}
+                              </span>
+                              <span className="ml-1 text-xs text-muted-foreground">
+                                und
+                              </span>
+                            </div>
+                            <div className="w-20 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
+                              S/. {(item.unit_price_estimated ?? 0).toFixed(2)}
+                            </div>
+                            {urgencyLabel ? (
+                              <Badge
+                                variant={
+                                  item.urgency === "CRITICO"
+                                    ? "destructive"
+                                    : "secondary"
+                                }
+                                className="shrink-0 text-xs"
+                              >
+                                {item.urgency === "CRITICO" && (
+                                  <AlertTriangle className="mr-1 h-3 w-3" />
+                                )}
+                                {urgencyLabel}
+                              </Badge>
+                            ) : (
+                              <div className="w-20 shrink-0" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex items-center justify-end gap-3 pt-1">
+                {!warehouseId && (
+                  <p className="text-xs text-muted-foreground">
+                    Selecciona un almacén destino para continuar
+                  </p>
+                )}
                 <Button
                   onClick={handleNext}
-                  disabled={selectedCount === 0}
+                  disabled={!canProceed}
+                  aria-disabled={!canProceed}
                 >
                   Configurar lotes
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
             </div>
