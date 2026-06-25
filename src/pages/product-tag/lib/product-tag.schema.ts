@@ -9,8 +9,8 @@ export const tagSchemaCreate = z.object({
     .string()
     .regex(/^#[0-9A-Fa-f]{6}$/, { message: "Debe ser un color hexadecimal válido (ej: #3b82f6)" })
     .default("#3b82f6"),
-  type: z.enum(["rotation", "priority", "supplier", "custom"], {
-    required_error: "El tipo es requerido",
+  type: z.enum(["rotation", "priority", "supplier", "custom"] as const, {
+    error: "El tipo es requerido",
   }),
   description: z
     .string()

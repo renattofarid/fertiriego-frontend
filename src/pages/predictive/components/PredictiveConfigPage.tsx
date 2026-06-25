@@ -16,26 +16,26 @@ const { ICON } = PREDICTIVE_META;
 const configSchema = z.object({
   product_id: z.union([z.number().int().positive(), z.literal(""), z.null()]).optional(),
   safety_stock_days: z
-    .number({ required_error: "Requerido" })
+    .number({ error: "Requerido" })
     .int()
     .min(0)
     .max(365, "Máximo 365 días"),
   sales_velocity_window_days: z
-    .number({ required_error: "Requerido" })
+    .number({ error: "Requerido" })
     .int()
     .min(1, "Mínimo 1 día")
     .max(365, "Máximo 365 días"),
   critical_stock_days: z
-    .number({ required_error: "Requerido" })
+    .number({ error: "Requerido" })
     .int()
     .min(0)
     .max(365, "Máximo 365 días"),
   warning_stock_days: z
-    .number({ required_error: "Requerido" })
+    .number({ error: "Requerido" })
     .int()
     .min(0)
     .max(365, "Máximo 365 días"),
-  alerts_enabled: z.boolean().default(true),
+  alerts_enabled: z.boolean(),
 });
 
 type ConfigFormValues = z.infer<typeof configSchema>;

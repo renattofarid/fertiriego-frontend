@@ -18,8 +18,8 @@ import { errorToast, successToast } from "@/lib/core.function";
 import { useQueryClient } from "@tanstack/react-query";
 
 const assignSchema = z.object({
-  priority: z.enum(["A", "B", "C"], {
-    required_error: "La prioridad es requerida",
+  priority: z.enum(["A", "B", "C"] as const, {
+    error: "La prioridad es requerida",
   }),
   notes: z
     .string()
