@@ -54,6 +54,8 @@ import { PURCHASE_ORDER } from "./pages/purchase-order/lib/purchase-order.interf
 import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPage";
 import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
+import { PURCHASE_ORDER_BATCH } from "./pages/purchase-order-batch/lib/purchase-order-batch.interface";
+import { PurchaseOrderBatchPage } from "./pages/purchase-order-batch/components";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
 import {
   PurchasePage,
@@ -140,6 +142,20 @@ import { CARRIER } from "./pages/carrier/lib/carrier.interface";
 import CarrierPage from "./pages/carrier/components/CarrierPage";
 import CarrierAddPage from "./pages/carrier/components/CarrierAddPage";
 import CarrierEditPage from "./pages/carrier/components/CarrierEditPage";
+import { PRODUCT_TAG } from "./pages/product-tag/lib/product-tag.interface";
+import ProductTagPage from "./pages/product-tag/components/TagPage";
+import {
+  PredictivePage,
+  PredictiveMetricsPage,
+  PredictiveConfigPage,
+} from "./pages/predictive/components";
+import {
+  PREDICTIVE_ROUTE,
+  PREDICTIVE_CONFIG_ROUTE,
+  PREDICTIVE_METRICS_ROUTE,
+} from "./pages/predictive/lib/predictive.interface";
+import { DashboardMonitoringPage } from "./pages/dashboard/components";
+import { DASHBOARD_MONITORING_ROUTE } from "./pages/dashboard/lib/dashboard.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -159,6 +175,7 @@ const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: DriverRoute } = DRIVER;
 const { ROUTE: CarrierRoute } = CARRIER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
+const { ROUTE: PurchaseOrderBatchRoute } = PURCHASE_ORDER_BATCH;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
 const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
@@ -181,7 +198,7 @@ const { ROUTE: ProductionOrderRoute } = PRODUCTION_ORDER;
 const { ROUTE_ADD: ProductionOrderAddRoute } = PRODUCTION_ORDER;
 const { ROUTE_UPDATE: ProductionOrderUpdateRoute } = PRODUCTION_ORDER;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
-
+const { ROUTE: ProductTagRoute } = PRODUCT_TAG;
 
 function ProtectedRoute({
   children,
@@ -439,6 +456,15 @@ export default function App() {
           />
 
           <Route
+            path={ProductTagRoute}
+            element={
+              <ProtectedRoute path={ProductTagRoute}>
+                <ProductTagPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={WorkerRoute}
             element={
               <ProtectedRoute path={WorkerRoute}>
@@ -524,6 +550,15 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseOrderRoute}>
                 <PurchaseOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PurchaseOrderBatchRoute}
+            element={
+              <ProtectedRoute path={PurchaseOrderBatchRoute}>
+                <PurchaseOrderBatchPage />
               </ProtectedRoute>
             }
           />
@@ -1055,6 +1090,44 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductionOrderRoute}>
                 <ProductionOrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Motor Predictivo */}
+          <Route
+            path={PREDICTIVE_ROUTE}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictivePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PREDICTIVE_CONFIG_ROUTE}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictiveConfigPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={`${PREDICTIVE_METRICS_ROUTE}/:id`}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictiveMetricsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Dashboard y Monitoreo */}
+          <Route
+            path={DASHBOARD_MONITORING_ROUTE}
+            element={
+              <ProtectedRoute>
+                <DashboardMonitoringPage />
               </ProtectedRoute>
             }
           />
