@@ -6,8 +6,6 @@ import TitleFormComponent from "@/components/TitleFormComponent";
 import { GuideForm } from "./GuideForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useGuideMotives } from "../lib/guide.hook";
-import { useAllSales } from "@/pages/sale/lib/sale.hook";
-import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import FormSkeleton from "@/components/FormSkeleton";
 import { ERROR_MESSAGE, errorToast, successToast } from "@/lib/core.function";
 import { useGuideStore } from "../lib/guide.store";
@@ -23,22 +21,10 @@ export default function GuideEditPage() {
   const { MODEL, ROUTE, ICON } = GUIDE;
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: sales, isLoading: salesLoading } = useAllSales();
-  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
-    useWarehouseDocuments();
   const { setOpen, setOpenMobile } = useSidebar();
   const { updateGuide, fetchGuide, guide, isFinding } = useGuideStore();
 
-  const isLoading =
-    warehousesLoading ||
-    motivesLoading ||
-    salesLoading ||
-    warehouseDocumentsLoading ||
-    !warehouses ||
-    !motives ||
-    !sales ||
-    !warehouseDocuments ||
-    isFinding;
+  const isLoading = warehousesLoading || motivesLoading || !warehouses || !motives || isFinding;
 
   useEffect(() => {
     setOpen(false);
