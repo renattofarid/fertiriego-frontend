@@ -42,6 +42,7 @@ import { useSuppliers } from "@/pages/supplier/lib/supplier.hook";
 import { usePurchases } from "@/pages/purchase/lib/purchase.hook";
 import { useOrder } from "@/pages/order/lib/order.hook";
 import { useSale } from "@/pages/sale/lib/sale.hook";
+import type { GetSalesParams } from "@/pages/sale/lib/sale.actions";
 import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import { findSaleById } from "@/pages/sale/lib/sale.actions";
 import { findPurchaseById } from "@/pages/purchase/lib/purchase.actions";
@@ -141,6 +142,16 @@ const UNIT_MEASUREMENTS = [
   { value: "GRM", label: "Gramos (GRM)" },
   { value: "UND", label: "Unidades (UND)" },
 ];
+
+const useSalesByNumber = (params: GetSalesParams = {}) => {
+  const { search, ...rest } = params;
+  const numberSearch = search?.trim();
+
+  return useSale({
+    ...rest,
+    ...(numberSearch ? { numero: numberSearch } : {}),
+  });
+};
 
 export const GuideForm = ({
   onCancel,
@@ -744,7 +755,7 @@ export const GuideForm = ({
                 name="sale_id"
                 label="Venta"
                 placeholder="Selecciona una venta"
-                useQueryHook={useSale}
+                useQueryHook={useSalesByNumber}
                 mapOptionFn={(sale: SaleResource) => ({
                   value: sale.id.toString(),
                   label: sale.sequential_number || `Venta #${sale.id}`,

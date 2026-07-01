@@ -24,6 +24,7 @@ export interface GetGuidesParams {
   customer_id?: number;
   date_from?: string;
   date_to?: string;
+  numero?: string;
 }
 
 export const getGuides = async (

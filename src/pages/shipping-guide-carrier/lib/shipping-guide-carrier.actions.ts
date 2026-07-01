@@ -20,6 +20,7 @@ export interface GetShippingGuideCarriersParams {
   carrier_id?: number;
   date_from?: string;
   date_to?: string;
+  numero?: string;
 }
 
 export const getShippingGuideCarriers = async (
