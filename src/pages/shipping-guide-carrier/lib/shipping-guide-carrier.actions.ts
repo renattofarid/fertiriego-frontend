@@ -21,6 +21,8 @@ export interface GetShippingGuideCarriersParams {
   date_from?: string;
   date_to?: string;
   numero?: string;
+  full_guide_number?: string;
+  guide_number?: string;
 }
 
 export const getShippingGuideCarriers = async (

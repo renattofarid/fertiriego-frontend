@@ -35,6 +35,7 @@ interface QuotationSummaryProps {
   selectedPaymentType?: string;
   selectedCustomer?: PersonResource;
   tipoCambio?: string;
+  hasIgv?: boolean;
 }
 
 export function QuotationSummary({
@@ -50,6 +51,7 @@ export function QuotationSummary({
   selectedPaymentType,
   selectedCustomer,
   tipoCambio,
+  hasIgv = true,
 }: QuotationSummaryProps) {
   const warehouseWatch = form.watch("warehouse_id");
   const currencyWatch = form.watch("currency");
@@ -221,12 +223,14 @@ export function QuotationSummary({
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">IGV (18%)</span>
-              <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateTaxTotal())}
-              </span>
-            </div>
+            {hasIgv && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">IGV (18%)</span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(calculateTaxTotal())}
+                </span>
+              </div>
+            )}
 
             <Separator className="bg-primary/20" />
 
