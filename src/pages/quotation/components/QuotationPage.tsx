@@ -17,6 +17,7 @@ import ExportButtons from "@/components/ExportButtons";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import DataTablePagination from "@/components/DataTablePagination";
 import { useSidebar } from "@/components/ui/sidebar";
+import QuoteDetailDrawer from "./QuoteDetailDrawer";
 
 export default function QuotationPage() {
   const navigate = useNavigate();
@@ -27,6 +28,10 @@ export default function QuotationPage() {
   const [quotationToDelete, setQuotationToDelete] = useState<number | null>(
     null,
   );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<number | null>(null);
+  const [selectedQuotation, setSelectedQuotation] =
+    useState<QuotationResource | null>(null);
   const { setOpen, setOpenMobile } = useSidebar();
   const { removeQuotation } = useQuotationStore();
 
@@ -54,8 +59,10 @@ export default function QuotationPage() {
     setOpenDelete(true);
   };
 
-  const handleViewDetails = async (quotation: QuotationResource) => {
-    navigate(`/cotizaciones/${quotation.id}`);
+  const handleViewDetails = (quotation: QuotationResource) => {
+    setSelectedQuoteId(quotation.id);
+    setSelectedQuotation(quotation);
+    setIsDrawerOpen(true);
   };
 
   const handleDuplicate = (quotation: QuotationResource) => {
@@ -132,6 +139,17 @@ export default function QuotationPage() {
         open={openDelete}
         onOpenChange={() => setOpenDelete(false)}
         onConfirm={confirmDelete}
+      />
+
+      <QuoteDetailDrawer
+        quoteId={selectedQuoteId}
+        initialQuotation={selectedQuotation}
+        isOpen={isDrawerOpen}
+        onClose={() => {
+          setIsDrawerOpen(false);
+          setSelectedQuoteId(null);
+          setSelectedQuotation(null);
+        }}
       />
     </PageWrapper>
   );

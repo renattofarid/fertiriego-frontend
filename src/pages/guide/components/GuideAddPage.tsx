@@ -16,8 +16,6 @@ import {
 import { useGuideStore } from "../lib/guide.store";
 import type { GuideSchema } from "../lib/guide.schema";
 import { GUIDE, type GuideResource } from "../lib/guide.interface";
-import { useAllSales } from "@/pages/sale/lib/sale.hook";
-import { useWarehouseDocuments } from "@/pages/warehouse-document/lib/warehouse-document.hook";
 import PageWrapper from "@/components/PageWrapper";
 import { useSidebar } from "@/components/ui/sidebar";
 
@@ -80,9 +78,6 @@ export default function GuideAddPage() {
   const { setOpen, setOpenMobile } = useSidebar();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { data: motives, isLoading: motivesLoading } = useGuideMotives();
-  const { data: sales, isLoading: salesLoading } = useAllSales();
-  const { data: warehouseDocuments, isLoading: warehouseDocumentsLoading } =
-    useWarehouseDocuments();
 
   const { createGuide } = useGuideStore();
 
@@ -91,15 +86,7 @@ export default function GuideAddPage() {
     setOpenMobile(false);
   }, []);
 
-  const isLoading =
-    warehousesLoading ||
-    motivesLoading ||
-    salesLoading ||
-    warehouseDocumentsLoading ||
-    !warehouses ||
-    !motives ||
-    !sales ||
-    !warehouseDocuments;
+  const isLoading = warehousesLoading || motivesLoading || !warehouses || !motives;
 
   const getDefaultValues = (): Partial<GuideSchema> => ({
     warehouse_id: "",

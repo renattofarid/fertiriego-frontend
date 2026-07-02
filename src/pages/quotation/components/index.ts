@@ -5,3 +5,4 @@ export { default as QuotationDetailPage } from "./QuotationDetailPage";
 export { QuotationForm } from "./QuotationForm";
 export { default as QuotationTable } from "./QuotationTable";
 export { getQuotationColumns } from "./QuotationColumns";
+export { default as QuoteDetailDrawer } from "./QuoteDetailDrawer";

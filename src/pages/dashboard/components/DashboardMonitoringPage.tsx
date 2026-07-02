@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   PackageX,
   AlertTriangle,
@@ -7,12 +7,15 @@ import {
   DollarSign,
   Package,
   RefreshCw,
-  Lightbulb,
-  BarChart3,
+  Boxes,
+  TrendingUp,
 } from "lucide-react";
+import { Pie, PieChart, Cell } from "recharts";
 import { cn } from "@/lib/utils";
 import { promiseToast } from "@/lib/core.function";
 import { SearchableSelect } from "@/components/SearchableSelect";
+import { DataTable } from "@/components/DataTable";
+import { FinancialSummaryCard } from "@/pages/home/components/FinancialSummaryCard";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import {
   getDashboardSummary,
@@ -27,85 +30,38 @@ import type {
   DashboardUrgency,
 } from "../lib/dashboard.interface";
 import { DASHBOARD_META } from "../lib/dashboard.interface";
+import {
+  URGENCY_ORDER,
+  getUrgencyStyle,
+  urgencyLabel,
+} from "../lib/dashboard.constants";
+import { DashboardSuggestionsColumns } from "./DashboardSuggestionsColumns";
 import TitleComponent from "@/components/TitleComponent";
 import { Button } from "@/components/ui/button";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 
 const { MODEL, ICON } = DASHBOARD_META;
 
-const STATUS_STYLES: Record<string, { bg: string; text: string; badge: string }> = {
-  CRITICO: {
-    bg: "bg-red-50 dark:bg-red-900/10",
-    text: "text-red-700 dark:text-red-400",
-    badge: "bg-red-100 dark:bg-red-800",
-  },
-  ADVERTENCIA: {
-    bg: "bg-orange-50 dark:bg-orange-900/10",
-    text: "text-orange-700 dark:text-orange-400",
-    badge: "bg-orange-100 dark:bg-orange-800",
-  },
-  NORMAL: {
-    bg: "bg-emerald-50 dark:bg-emerald-900/10",
-    text: "text-emerald-700 dark:text-emerald-400",
-    badge: "bg-emerald-100 dark:bg-emerald-800",
-  },
-  SIN_DATOS: {
-    bg: "bg-gray-50 dark:bg-gray-900/10",
-    text: "text-gray-500 dark:text-gray-400",
-    badge: "bg-gray-100 dark:bg-gray-800",
-  },
-};
-
-function SummaryCard({
-  title,
-  value,
-  icon: Icon,
-  variant,
+function BentoTile({
+  className,
+  children,
 }: {
-  title: string;
-  value: string | number;
-  icon: React.ElementType;
-  variant: "red" | "orange" | "blue" | "green" | "gray";
+  className?: string;
+  children: React.ReactNode;
 }) {
-  const styles = {
-    red: {
-      bg: "bg-red-50 dark:bg-red-900/10",
-      icon: "bg-red-100 dark:bg-red-800",
-      text: "text-red-700 dark:text-red-400",
-    },
-    orange: {
-      bg: "bg-orange-50 dark:bg-orange-900/10",
-      icon: "bg-orange-100 dark:bg-orange-800",
-      text: "text-orange-700 dark:text-orange-400",
-    },
-    blue: {
-      bg: "bg-blue-50 dark:bg-blue-900/10",
-      icon: "bg-blue-100 dark:bg-blue-800",
-      text: "text-blue-700 dark:text-blue-400",
-    },
-    green: {
-      bg: "bg-emerald-50 dark:bg-emerald-900/10",
-      icon: "bg-emerald-100 dark:bg-emerald-800",
-      text: "text-emerald-700 dark:text-emerald-400",
-    },
-    gray: {
-      bg: "bg-gray-50 dark:bg-gray-900/10",
-      icon: "bg-gray-100 dark:bg-gray-800",
-      text: "text-gray-600 dark:text-gray-400",
-    },
-  };
-
-  const s = styles[variant];
   return (
-    <div className={cn("rounded-lg p-4", s.bg)}>
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-md shrink-0", s.icon)}>
-          <Icon className={cn("h-5 w-5", s.text)} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-0.5">{title}</p>
-          <p className={cn("text-2xl font-bold", s.text)}>{value}</p>
-        </div>
-      </div>
+    <div
+      className={cn(
+        "rounded-2xl border bg-card p-4 flex flex-col",
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -160,8 +116,46 @@ export default function DashboardMonitoringPage() {
     { value: "ADVERTENCIA", label: "Advertencia" },
   ];
 
+  const sortedSuggestions = useMemo(
+    () =>
+      [...suggestions].sort(
+        (a, b) =>
+          (URGENCY_ORDER[a.urgency] ?? 99) - (URGENCY_ORDER[b.urgency] ?? 99),
+      ),
+    [suggestions],
+  );
+
+  const totalSuggestedInvestment = useMemo(
+    () => suggestions.reduce((acc, s) => acc + s.estimated_cost, 0),
+    [suggestions],
+  );
+
+  const distributionChartData = useMemo(
+    () =>
+      (inventory?.distribution ?? [])
+        .filter((item) => item.count > 0)
+        .map((item) => ({
+          status: item.status,
+          count: item.count,
+          percentage: item.percentage,
+          fill: getUrgencyStyle(item.status).hex,
+        })),
+    [inventory],
+  );
+
+  const distributionChartConfig = useMemo(() => {
+    const config: ChartConfig = {};
+    for (const item of inventory?.distribution ?? []) {
+      config[item.status] = {
+        label: urgencyLabel(item.status),
+        color: getUrgencyStyle(item.status).hex,
+      };
+    }
+    return config;
+  }, [inventory]);
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <TitleComponent
@@ -187,7 +181,10 @@ export default function DashboardMonitoringPage() {
           options={warehouseOptions}
           value={String(filters.warehouse_id ?? "")}
           onChange={(val) =>
-            setFilters((prev) => ({ ...prev, warehouse_id: val ? Number(val) : null }))
+            setFilters((prev) => ({
+              ...prev,
+              warehouse_id: val ? Number(val) : null,
+            }))
           }
           placeholder="Todos los almacenes"
           className="w-full sm:w-[200px]"
@@ -196,132 +193,151 @@ export default function DashboardMonitoringPage() {
           options={urgencyOptions}
           value={filters.urgency ?? ""}
           onChange={(val) =>
-            setFilters((prev) => ({ ...prev, urgency: (val as DashboardUrgency) || null }))
+            setFilters((prev) => ({
+              ...prev,
+              urgency: (val as DashboardUrgency) || null,
+            }))
           }
           placeholder="Todas las urgencias"
           className="w-full sm:w-[180px]"
         />
       </div>
 
-      {/* Summary Section */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Resumen General
-        </h2>
-        <div
-          className={cn(
-            "grid gap-3 grid-cols-2 lg:grid-cols-3 transition-opacity duration-200",
-            isLoading && "opacity-40 pointer-events-none"
-          )}
-        >
-          <SummaryCard
-            title="Sin stock"
-            value={summary?.products_out_of_stock ?? "—"}
-            icon={PackageX}
-            variant="red"
-          />
-          <SummaryCard
-            title="Productos críticos"
-            value={summary?.products_critical ?? "—"}
-            icon={AlertTriangle}
-            variant="orange"
-          />
-          <SummaryCard
-            title="En riesgo"
-            value={summary?.products_at_risk ?? "—"}
-            icon={AlertCircle}
-            variant="orange"
-          />
-          <SummaryCard
-            title="OC pendientes"
-            value={summary?.pending_purchase_orders ?? "—"}
-            icon={ShoppingCart}
-            variant="blue"
-          />
-          <SummaryCard
-            title="Inversión estimada"
-            value={
-              summary
-                ? `S/ ${summary.estimated_investment_required.toLocaleString("es-PE")}`
-                : "—"
-            }
-            icon={DollarSign}
-            variant="green"
-          />
-          <SummaryCard
-            title="Total evaluados"
-            value={summary?.total_products_evaluated ?? "—"}
-            icon={Package}
-            variant="gray"
-          />
-        </div>
-        {summary && (
-          <p className="text-xs text-muted-foreground text-right">
-            Calculado: {summary.calculated_at}
-          </p>
+      {/* Bento Grid */}
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6 transition-opacity duration-200",
+          isLoading && "opacity-60",
         )}
-      </section>
+      >
+        <FinancialSummaryCard
+          title="Sin stock"
+          value={summary ? summary.products_out_of_stock.toLocaleString("es-PE") : "—"}
+          description="Productos agotados"
+          icon={PackageX}
+          variant="destructive"
+        />
+        <FinancialSummaryCard
+          title="Productos críticos"
+          value={summary ? summary.products_critical.toLocaleString("es-PE") : "—"}
+          description="Requieren atención inmediata"
+          icon={AlertTriangle}
+          variant="orange"
+        />
+        <FinancialSummaryCard
+          title="En riesgo"
+          value={summary ? summary.products_at_risk.toLocaleString("es-PE") : "—"}
+          description="Próximos a quedarse sin stock"
+          icon={AlertCircle}
+          variant="orange"
+        />
+        <FinancialSummaryCard
+          title="OC pendientes"
+          value={summary ? summary.pending_purchase_orders.toLocaleString("es-PE") : "—"}
+          description="Órdenes de compra en curso"
+          icon={ShoppingCart}
+          variant="primary"
+        />
+        <FinancialSummaryCard
+          title="Inversión estimada"
+          value={
+            summary
+              ? `S/ ${summary.estimated_investment_required.toLocaleString("es-PE")}`
+              : "—"
+          }
+          description="Costo de reabastecimiento sugerido"
+          icon={DollarSign}
+          variant="green"
+        />
+        <FinancialSummaryCard
+          title="Total evaluados"
+          value={summary ? summary.total_products_evaluated.toLocaleString("es-PE") : "—"}
+          description="Productos considerados en el análisis"
+          icon={Package}
+          variant="muted"
+        />
 
-      {/* Inventory Status Section */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Estado de Inventario
-        </h2>
-        <div
-          className={cn(
-            "rounded-xl border bg-card p-5 space-y-4 transition-opacity duration-200",
-            isLoading && "opacity-40 pointer-events-none"
-          )}
-        >
+        {/* Inventory Status */}
+        <BentoTile className="col-span-2 md:col-span-3 xl:col-span-2 xl:row-span-2">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            Estado de Inventario
+          </h2>
           {inventory ? (
-            <>
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <span className="font-medium">
-                  Total productos:{" "}
-                  <span className="text-primary font-bold">
-                    {inventory.total_products.toLocaleString("es-PE")}
-                  </span>
-                </span>
-                <span className="text-muted-foreground">|</span>
-                <span className="font-medium">
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col items-center">
+                <ChartContainer
+                  config={distributionChartConfig}
+                  className="aspect-square h-[160px] w-[160px]"
+                >
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={
+                        <ChartTooltipContent nameKey="status" hideLabel />
+                      }
+                    />
+                    <Pie
+                      data={distributionChartData}
+                      dataKey="count"
+                      nameKey="status"
+                      innerRadius={48}
+                      outerRadius={76}
+                      strokeWidth={4}
+                    >
+                      {distributionChartData.map((entry) => (
+                        <Cell key={entry.status} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {inventory.total_products.toLocaleString("es-PE")} productos
+                  totales
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg bg-blue-50 dark:bg-blue-900/10 px-3 py-2">
+                <Boxes className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                <span className="text-sm">
                   Sobre stock:{" "}
-                  <span className="text-blue-600 dark:text-blue-400 font-bold">
+                  <span className="font-bold text-blue-700 dark:text-blue-400">
                     {inventory.over_stock_products.toLocaleString("es-PE")}
                   </span>{" "}
-                  <span className="text-muted-foreground text-xs">
+                  <span className="text-xs text-muted-foreground">
                     ({inventory.over_stock_percentage}%)
                   </span>
                 </span>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {inventory.distribution.map((item) => {
-                  const style = STATUS_STYLES[item.status] ?? STATUS_STYLES["SIN_DATOS"];
-                  const label =
-                    item.status === "SIN_DATOS"
-                      ? "Sin datos"
-                      : item.status.charAt(0) + item.status.slice(1).toLowerCase();
+                  const style = getUrgencyStyle(item.status);
                   return (
                     <div key={item.status} className="flex items-center gap-3">
                       <span
                         className={cn(
-                          "text-xs font-semibold px-2 py-0.5 rounded-full w-28 text-center",
-                          style.bg,
-                          style.text
+                          "h-2.5 w-2.5 rounded-full shrink-0",
+                          style.dot,
                         )}
-                      >
-                        {label}
+                      />
+                      <span className="text-sm font-medium w-20 shrink-0 truncate">
+                        {urgencyLabel(item.status)}
                       </span>
                       <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
                         <div
-                          className={cn("h-full rounded-full transition-all", style.badge)}
-                          style={{ width: `${Math.max(item.percentage, item.count > 0 ? 0.5 : 0)}%` }}
+                          className={cn(
+                            "h-full rounded-full transition-all",
+                            style.dot,
+                          )}
+                          style={{
+                            width: `${Math.max(item.percentage, item.count > 0 ? 2 : 0)}%`,
+                          }}
                         />
                       </div>
-                      <span className="text-sm font-medium w-16 text-right">
+                      <span className="text-sm font-semibold w-14 text-right">
                         {item.count.toLocaleString("es-PE")}
                       </span>
-                      <span className="text-xs text-muted-foreground w-14 text-right">
+                      <span className="text-xs text-muted-foreground w-10 text-right">
                         {item.percentage}%
                       </span>
                     </div>
@@ -329,51 +345,42 @@ export default function DashboardMonitoringPage() {
                 })}
               </div>
 
-              <p className="text-xs text-muted-foreground text-right">
+              <p className="text-xs text-muted-foreground text-right mt-auto pt-1">
                 Calculado: {inventory.calculated_at}
               </p>
-            </>
+            </div>
           ) : (
-            <div className="flex items-center justify-center h-24 text-muted-foreground text-sm">
+            <div className="flex flex-1 items-center justify-center text-muted-foreground text-sm">
               {isLoading ? "Cargando..." : "Sin datos"}
             </div>
           )}
-        </div>
-      </section>
+        </BentoTile>
 
-      {/* Suggestions Section */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Sugerencias Automáticas
-        </h2>
-        <div
-          className={cn(
-            "rounded-xl border bg-card p-5 transition-opacity duration-200",
-            isLoading && "opacity-40 pointer-events-none"
-          )}
-        >
-          {suggestions.length > 0 ? (
-            <div className="space-y-2">
-              {suggestions.map((s, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 text-sm"
-                >
-                  <Lightbulb className="h-4 w-4 text-yellow-500 shrink-0 mt-0.5" />
-                  <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(s, null, 2)}</pre>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center gap-2 py-8 text-muted-foreground">
-              <BarChart3 className="h-8 w-8 opacity-30" />
-              <p className="text-sm">
-                {isLoading ? "Cargando sugerencias..." : "No hay sugerencias disponibles por el momento."}
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
+        {/* Suggestions */}
+        <BentoTile className="col-span-2 md:col-span-3 xl:col-span-4 xl:row-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+              Sugerencias Automáticas
+            </h2>
+            {suggestions.length > 0 && (
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>{suggestions.length} productos</span>
+                <span className="flex items-center gap-1 font-medium text-foreground">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  S/ {totalSuggestedInvestment.toLocaleString("es-PE")}
+                </span>
+              </div>
+            )}
+          </div>
+          <DataTable
+            columns={DashboardSuggestionsColumns}
+            data={sortedSuggestions}
+            isLoading={isLoading}
+            variant="ghost"
+            isVisibleColumnFilter={false}
+          />
+        </BentoTile>
+      </div>
     </div>
   );
 }

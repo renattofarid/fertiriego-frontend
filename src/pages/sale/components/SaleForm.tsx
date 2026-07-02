@@ -34,8 +34,12 @@ import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
-import { useAllGuides } from "@/pages/guide/lib/guide.hook";
-import { useAllShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
+import { useGuides } from "@/pages/guide/lib/guide.hook";
+import type { GetGuidesParams } from "@/pages/guide/lib/guide.actions";
+import type { GuideResource } from "@/pages/guide/lib/guide.interface";
+import { useShippingGuideCarriers } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.hook";
+import type { GetShippingGuideCarriersParams } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.actions";
+import type { ShippingGuideCarrierResource } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { useAllProductPriceCategories } from "@/pages/product-price-category/lib/product-price-category.hook";
 import { useProductPrices } from "@/pages/product/lib/product-price.hook";
 import { ClientCreateModal } from "@/pages/client/components/ClientCreateModal";
@@ -120,6 +124,34 @@ const useClientByIdForSelect = (id: string) => {
   return { data, isLoading: isFinding };
 };
 
+const useRemissionGuidesByNumber = (params: GetGuidesParams = {}) => {
+  const { search, ...rest } = params;
+  const numberSearch = search?.trim();
+
+  return useGuides({
+    ...rest,
+    ...(numberSearch ? { numero: numberSearch } : {}),
+  });
+};
+
+const useCarrierGuidesByNumber = (
+  params: GetShippingGuideCarriersParams = {},
+) => {
+  const { search, ...rest } = params;
+  const numberSearch = search?.trim();
+  const { data, meta, isLoading, error, refetch } = useShippingGuideCarriers({
+    ...rest,
+    ...(numberSearch ? { numero: numberSearch } : {}),
+  });
+
+  return {
+    data: { data: data ?? [], meta: meta ?? undefined },
+    isLoading,
+    error,
+    refetch,
+  };
+};
+
 export const SaleForm = ({
   onCancel,
   defaultValues,
@@ -154,14 +186,6 @@ export const SaleForm = ({
   const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
   const [warehousesList, setWarehousesList] =
     useState<WarehouseResource[]>(warehouses);
-
-  // Obtener guías de remisión
-  const { data: guidesRemision, isLoading: isLoadingGuidesRemision } =
-    useAllGuides();
-
-  // Obtener guías de transportista
-  const { data: guidesCarrier, isLoading: isLoadingGuidesCarrier } =
-    useAllShippingGuideCarriers();
 
   // Cargar categorías de precio
   const { data: priceCategories } = useAllProductPriceCategories();
@@ -257,7 +281,6 @@ export const SaleForm = ({
 
   // Watchers para guías
   const selectedGuideType = guideTempForm.watch("temp_guide_type");
-  const selectedGuideId = guideTempForm.watch("temp_guide_id");
   const selectedGuideName = guideTempForm.watch("temp_guide_name");
   const selectedGuideCorrelative = guideTempForm.watch(
     "temp_guide_correlative",
@@ -337,42 +360,6 @@ export const SaleForm = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAmount]);
-
-  // Observers para guías - Cuando se selecciona una guía específica
-  useEffect(() => {
-    if (selectedGuideType && selectedGuideId) {
-      let guideName = "";
-      let guideCorrelative = "";
-
-      if (selectedGuideType === "remision" && guidesRemision) {
-        const guide = guidesRemision.find(
-          (g) => g.id.toString() === selectedGuideId,
-        );
-        if (guide) {
-          guideName = "Guía de Remisión";
-          guideCorrelative = guide.full_guide_number;
-        }
-      } else if (selectedGuideType === "transportista" && guidesCarrier) {
-        const guide = guidesCarrier.find(
-          (g) => g.id.toString() === selectedGuideId,
-        );
-        if (guide) {
-          guideName = "Guía de Transportista";
-          guideCorrelative = guide.full_guide_number;
-        }
-      }
-
-      if (guideName && guideCorrelative) {
-        setCurrentGuide({
-          name: guideName,
-          correlative: guideCorrelative,
-        });
-        guideTempForm.setValue("temp_guide_name", guideName);
-        guideTempForm.setValue("temp_guide_correlative", guideCorrelative);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedGuideType, selectedGuideId]);
 
   useEffect(() => {
     if (selectedGuideName !== currentGuide.name) {
@@ -1730,7 +1717,7 @@ export const SaleForm = ({
 
               {selectedGuideType && (
                 <Form {...guideTempForm}>
-                  <FormSelect
+                  <FormSelectAsync
                     control={guideTempForm.control}
                     name="temp_guide_id"
                     label={
@@ -1738,23 +1725,45 @@ export const SaleForm = ({
                         ? "Guía de Remisión"
                         : "Guía de Transportista"
                     }
-                    placeholder="Seleccione guía"
-                    options={
+                    placeholder="Buscar guía por número"
+                    useQueryHook={
                       selectedGuideType === "remision"
-                        ? (guidesRemision || []).map((guide) => ({
-                            value: guide.id.toString(),
-                            label: guide.full_guide_number,
-                          }))
-                        : (guidesCarrier || []).map((guide) => ({
-                            value: guide.id.toString(),
-                            label: guide.full_guide_number,
-                          }))
+                        ? useRemissionGuidesByNumber
+                        : useCarrierGuidesByNumber
                     }
-                    disabled={
-                      selectedGuideType === "remision"
-                        ? isLoadingGuidesRemision
-                        : isLoadingGuidesCarrier
-                    }
+                    mapOptionFn={(guide: GuideResource | ShippingGuideCarrierResource) => ({
+                      value: guide.id.toString(),
+                      label: guide.full_guide_number,
+                    })}
+                    onValueChange={(value, guide) => {
+                      const selectedGuide = guide as
+                        | GuideResource
+                        | ShippingGuideCarrierResource
+                        | undefined;
+
+                      if (!value || !selectedGuide) {
+                        setCurrentGuide({ name: "", correlative: "" });
+                        guideTempForm.setValue("temp_guide_name", "");
+                        guideTempForm.setValue("temp_guide_correlative", "");
+                        return;
+                      }
+
+                      const guideName =
+                        selectedGuideType === "remision"
+                          ? "Guía de Remisión"
+                          : "Guía de Transportista";
+
+                      setCurrentGuide({
+                        name: guideName,
+                        correlative: selectedGuide.full_guide_number,
+                      });
+                      guideTempForm.setValue("temp_guide_name", guideName);
+                      guideTempForm.setValue(
+                        "temp_guide_correlative",
+                        selectedGuide.full_guide_number,
+                      );
+                    }}
+                    withValue={false}
                   />
                 </Form>
               )}
