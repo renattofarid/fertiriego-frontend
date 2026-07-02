@@ -41,7 +41,23 @@ export interface DashboardSummaryResponse {
   data: DashboardSummary;
 }
 
-export type DashboardSuggestion = Record<string, unknown>;
+export interface DashboardSuggestionSupplier {
+  id: number;
+  name: string;
+}
+
+export interface DashboardSuggestion {
+  product_id: number;
+  product_name: string;
+  urgency: string;
+  current_stock: number;
+  incoming_stock: number;
+  days_of_inventory_remaining: number;
+  suggested_purchase_qty: number;
+  unit_price_estimated: number;
+  estimated_cost: number;
+  preferred_supplier: DashboardSuggestionSupplier | null;
+}
 
 export interface DashboardSuggestionsResponse {
   message: string;
