@@ -97,6 +97,8 @@ export const QuotationForm = ({
   warehouses,
 }: QuotationFormProps) => {
   const { user } = useAuthStore();
+  const authenticatedBranchHasIgv =
+    user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
@@ -145,6 +147,16 @@ export const QuotationForm = ({
   const paymentType = form.watch("payment_type");
   const currency = form.watch("currency");
   const watchedFechaEmision = form.watch("fecha_emision");
+  const selectedWarehouseId = form.watch("warehouse_id");
+  const selectedWarehouse = selectedWarehouseId
+    ? warehousesList.find((warehouse) => warehouse.id.toString() === selectedWarehouseId)
+    : undefined;
+  const selectedWarehouseSearchText = [selectedWarehouse?.name, selectedWarehouse?.address, selectedWarehouse?.branch?.name].filter(Boolean).join(String.fromCharCode(32)).toLowerCase();
+  const hasIgv =
+    selectedWarehouse?.branch?.has_igv !== undefined
+      ? Number(selectedWarehouse.branch.has_igv) === 1
+      : selectedWarehouseSearchText.includes('yurimagua') ? false : authenticatedBranchHasIgv;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
 
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
   const tipoCambioCache = useRef<Record<string, string>>({});
@@ -217,7 +229,7 @@ export const QuotationForm = ({
       const productDetail: ProductDetail = {
         product_id: detail.product_id,
         product_name: detail.product_name || "",
-        is_igv: detail.is_igv,
+        is_igv: hasIgv && detail.is_igv,
         quantity: detail.quantity,
         unit_price: detail.unit_price,
         unit_price_igv: detail.unit_price_igv,
@@ -286,24 +298,28 @@ export const QuotationForm = ({
           </div>
         ),
       },
-      {
-        accessorKey: "is_igv",
-        header: "IGV",
-        cell: ({ row }) => (
-          <div className="flex justify-center">
-            <Badge variant={row.original.is_igv ? "default" : "secondary"}>
-              {row.original.is_igv ? "Inc." : "No inc."}
-            </Badge>
-          </div>
-        ),
-      },
+      ...(hasIgv
+        ? [
+            {
+              accessorKey: "is_igv",
+              header: "IGV",
+              cell: ({ row }) => (
+                <div className="flex justify-center">
+                  <Badge variant={row.original.is_igv ? "default" : "secondary"}>
+                    {row.original.is_igv ? "Inc." : "No inc."}
+                  </Badge>
+                </div>
+              ),
+            } as ColumnDef<DetailRow>,
+          ]
+        : []),
       {
         accessorKey: "unit_price",
         header: "V. Unitario",
         cell: ({ row }) => {
           const { unit_price, is_igv } = row.original;
           const value = is_igv
-            ? parseFloat(unit_price) / 1.18
+            ? parseFloat(unit_price) / taxMultiplier
             : parseFloat(unit_price);
           return <div className="text-right">{value.toFixed(4)}</div>;
         },
@@ -315,7 +331,7 @@ export const QuotationForm = ({
           const { unit_price, is_igv } = row.original;
           const price = is_igv
             ? parseFloat(unit_price)
-            : parseFloat(unit_price) * 1.18;
+            : parseFloat(unit_price) * taxMultiplier;
           return <div className="text-right">{price.toFixed(4)}</div>;
         },
       },
@@ -326,13 +342,17 @@ export const QuotationForm = ({
           <div className="text-right">{row.original.subtotal.toFixed(4)}</div>
         ),
       },
-      {
-        accessorKey: "tax",
-        header: "IGV",
-        cell: ({ row }) => (
-          <div className="text-right">{row.original.tax.toFixed(4)}</div>
-        ),
-      },
+      ...(hasIgv
+        ? [
+            {
+              accessorKey: "tax",
+              header: "IGV",
+              cell: ({ row }) => (
+                <div className="text-right">{row.original.tax.toFixed(4)}</div>
+              ),
+            } as ColumnDef<DetailRow>,
+          ]
+        : []),
       {
         accessorKey: "total",
         header: "Total",
@@ -394,7 +414,7 @@ export const QuotationForm = ({
         ),
       },
     ],
-    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets],
+    [handleEditDetail, handleRemoveDetail, handleViewTechnicalSheets, hasIgv, taxMultiplier],
   );
 
   // Cargar detalles iniciales cuando se está editando o duplicando
@@ -404,7 +424,7 @@ export const QuotationForm = ({
         (detail: QuotationDetailResource) => ({
           product_id: detail.product_id.toString(),
           product_name: detail.product?.name || "",
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: detail.quantity.toString(),
           unit_price: detail.unit_price.toString(),
           unit_price_igv: detail.unit_price_igv.toString(),
@@ -426,7 +446,7 @@ export const QuotationForm = ({
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -449,7 +469,7 @@ export const QuotationForm = ({
           ...item,
           product_id: detail.product_id || item.product_id,
           product_name: detail.product_name || item.product_name,
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
           unit_price_igv: detail.unit_price_igv,
@@ -513,10 +533,10 @@ export const QuotationForm = ({
             ? rawUnitPriceIgv
             : detail.is_igv
               ? rawUnitPrice
-              : roundTo8(rawUnitPrice * 1.18);
+              : roundTo8(rawUnitPrice * taxMultiplier);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: parseFloat(detail.quantity),
           unit_price: roundTo8(rawUnitPrice),
           unit_price_igv: roundTo8(effectiveUnitPriceIgv),
@@ -856,6 +876,7 @@ export const QuotationForm = ({
             editIndex={editingIndex}
             onEdit={handleUpdateDetail}
             currency={currency}
+            hasIgv={hasIgv}
             customerId={
               form.watch("customer_id")
                 ? parseInt(form.watch("customer_id"))
@@ -883,6 +904,7 @@ export const QuotationForm = ({
           calculateSubtotalTotal={calculateSubtotalTotal}
           calculateTaxTotal={calculateTaxTotal}
           calculateDetailsTotal={calculateDetailsTotal}
+          hasIgv={hasIgv}
           onCancel={onCancel}
           selectedPaymentType={paymentType}
           tipoCambio={form.watch("tipo_cambio") || ""}

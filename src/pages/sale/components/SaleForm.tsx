@@ -130,7 +130,7 @@ const useRemissionGuidesByNumber = (params: GetGuidesParams = {}) => {
 
   return useGuides({
     ...rest,
-    ...(numberSearch ? { numero: numberSearch } : {}),
+    ...(numberSearch ? { full_guide_number: numberSearch } : {}),
   });
 };
 
@@ -141,7 +141,7 @@ const useCarrierGuidesByNumber = (
   const numberSearch = search?.trim();
   const { data, meta, isLoading, error, refetch } = useShippingGuideCarriers({
     ...rest,
-    ...(numberSearch ? { numero: numberSearch } : {}),
+    ...(numberSearch ? { full_guide_number: numberSearch } : {}),
   });
 
   return {

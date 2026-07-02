@@ -293,14 +293,16 @@ export function SaleSummary({
               </div>
             )}
 
-            <div className="flex justify-between items-center text-sm px-2">
-              <span className="text-muted-foreground font-mono uppercase">
-                IGV ({porcentajeIgv}%)
-              </span>
-              <span className="font-medium">
-                {currencySymbol} {formatNumber(truncTo2(calculateDetailsIGV()))}
-              </span>
-            </div>
+            {porcentajeIgv > 0 && (
+              <div className="flex justify-between items-center text-sm px-2">
+                <span className="text-muted-foreground font-mono uppercase">
+                  IGV ({porcentajeIgv}%)
+                </span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(truncTo2(calculateDetailsIGV()))}
+                </span>
+              </div>
+            )}
 
             {calculateRetencion && calculateRetencion() > 0 && (
               <div className="flex justify-between items-center text-sm px-2">

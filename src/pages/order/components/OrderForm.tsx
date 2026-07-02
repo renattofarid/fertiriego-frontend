@@ -89,6 +89,8 @@ export const OrderForm = ({
   order,
 }: OrderFormProps) => {
   const { user } = useAuthStore();
+  const authenticatedBranchHasIgv =
+    user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
@@ -133,6 +135,17 @@ export const OrderForm = ({
       tipo_cambio: "",
     },
   });
+
+  const selectedWarehouseId = form.watch("warehouse_id");
+  const selectedWarehouse = selectedWarehouseId
+    ? warehousesList.find((warehouse) => warehouse.id.toString() === selectedWarehouseId)
+    : undefined;
+  const selectedWarehouseSearchText = [selectedWarehouse?.name, selectedWarehouse?.address, selectedWarehouse?.branch?.name].filter(Boolean).join(String.fromCharCode(32)).toLowerCase();
+  const hasIgv =
+    selectedWarehouse?.branch?.has_igv !== undefined
+      ? Number(selectedWarehouse.branch.has_igv) === 1
+      : selectedWarehouseSearchText.includes('yurimagua') ? false : authenticatedBranchHasIgv;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
 
   const watchedOrderDate = form.watch("order_date");
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
@@ -206,7 +219,7 @@ export const OrderForm = ({
         (detail: any) => ({
           product_id: detail.product_id.toString(),
           product_name: detail.product?.name || "Producto",
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
           unit_price_igv: detail.unit_price_igv,
@@ -286,7 +299,7 @@ export const OrderForm = ({
         (detail) => ({
           product_id: detail.product_id.toString(),
           product_name: detail.product.name,
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: detail.quantity,
           unit_price: detail.unit_price,
           unit_price_igv: detail.unit_price_igv,
@@ -305,7 +318,7 @@ export const OrderForm = ({
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -327,7 +340,7 @@ export const OrderForm = ({
     const productDetail: ProductDetail = {
       product_id: detail.product_id,
       product_name: detail.product_name || "",
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -345,7 +358,7 @@ export const OrderForm = ({
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -405,10 +418,10 @@ export const OrderForm = ({
             ? rawUnitPriceIgv
             : detail.is_igv
               ? rawUnitPrice
-              : roundTo8(rawUnitPrice * 1.18);
+              : roundTo8(rawUnitPrice * taxMultiplier);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: detail.is_igv,
+          is_igv: hasIgv && detail.is_igv,
           quantity: parseFloat(detail.quantity),
           unit_price: roundTo8(rawUnitPrice),
           unit_price_igv: roundTo8(effectiveUnitPriceIgv),
@@ -441,7 +454,7 @@ export const OrderForm = ({
     const priceIgv = parseFloat(detail.unit_price_igv) || 0;
     if (priceIgv > 0) return priceIgv;
     const basePrice = parseFloat(detail.unit_price) || 0;
-    return detail.is_igv ? basePrice : basePrice * 1.18;
+    return detail.is_igv ? basePrice : basePrice * taxMultiplier;
   };
 
   return (
@@ -666,9 +679,9 @@ export const OrderForm = ({
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead className="text-right">V. Unitario</TableHead>
                     <TableHead className="text-right">P. Unitario</TableHead>
-                    <TableHead className="text-center">IGV</TableHead>
+                    {hasIgv && <TableHead className="text-center">IGV</TableHead>}
                     <TableHead className="text-right">Subtotal</TableHead>
-                    <TableHead className="text-right">IGV</TableHead>
+                    {hasIgv && <TableHead className="text-right">IGV</TableHead>}
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
@@ -685,24 +698,28 @@ export const OrderForm = ({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {(getDisplayPriceIgv(detail) / 1.18).toFixed(4)}
+                        {(getDisplayPriceIgv(detail) / taxMultiplier).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
                         {getDisplayPriceIgv(detail).toFixed(4)}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={detail.is_igv ? "default" : "secondary"}
-                        >
-                          {detail.is_igv ? "Sí" : "No"}
-                        </Badge>
-                      </TableCell>
+                      {hasIgv && (
+                        <TableCell className="text-center">
+                          <Badge
+                            variant={detail.is_igv ? "default" : "secondary"}
+                          >
+                            {detail.is_igv ? "Si" : "No"}
+                          </Badge>
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">
                         {detail.subtotal.toFixed(4)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {detail.tax.toFixed(4)}
-                      </TableCell>
+                      {hasIgv && (
+                        <TableCell className="text-right">
+                          {detail.tax.toFixed(4)}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right font-semibold">
                         {detail.total.toFixed(4)}
                       </TableCell>
@@ -727,7 +744,7 @@ export const OrderForm = ({
                     </TableRow>
                   ))}
                   <TableRow>
-                    <TableCell colSpan={7} className="text-right font-bold">
+                    <TableCell colSpan={hasIgv ? 7 : 5} className="text-right font-bold">
                       Total General:
                     </TableCell>
                     <TableCell className="text-right font-bold text-lg">
@@ -748,6 +765,7 @@ export const OrderForm = ({
             editingDetail={editingDetail}
             editingIndex={editingIndex}
             currency={form.watch("currency")}
+            hasIgv={hasIgv}
           />
         </div>
 
@@ -761,6 +779,7 @@ export const OrderForm = ({
           calculateSubtotalTotal={calculateSubtotalTotal}
           calculateTaxTotal={calculateTaxTotal}
           calculateDetailsTotal={calculateDetailsTotal}
+          hasIgv={hasIgv}
           onCancel={onCancel}
           tipoCambio={form.watch("tipo_cambio") || ""}
         />
