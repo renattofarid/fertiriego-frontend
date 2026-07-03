@@ -29,6 +29,8 @@ export interface OrderDetailResource {
   subtotal: string;
   tax: string;
   total: string;
+  stock: number;
+  is_stock: boolean;
   created_at: string;
 }
 

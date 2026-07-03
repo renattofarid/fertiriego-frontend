@@ -24,6 +24,8 @@ import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { api } from "@/lib/config";
 import { toast } from "sonner";
 
+const showMutatingActions = false;
+
 const downloadXml = async (endpoint: string, fileName: string) => {
   try {
     const response = await api.get(endpoint, { responseType: "blob" });
@@ -259,6 +261,7 @@ export const CreditNoteColumns = ({
                 </DropdownMenu>
               </TooltipProvider>
             )}
+            {showMutatingActions && (
             <ButtonAction
               icon={Pencil}
               tooltip="Editar"
@@ -266,7 +269,10 @@ export const CreditNoteColumns = ({
                 navigate(`/notas-credito/actualizar/${creditNote.id}`)
               }
             />
+            )}
+            {showMutatingActions && (
             <DeleteButton onClick={() => onDelete(row.original.id)} />
+            )}
           </ColumnActions>
         );
       },
