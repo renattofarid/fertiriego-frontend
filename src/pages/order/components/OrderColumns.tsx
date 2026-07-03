@@ -118,8 +118,12 @@ export const getOrderColumns = ({
     id: "total",
     header: "Total",
     cell: ({ row }) => {
+      const isYurimaguas = (row.original.warehouse?.name || "")
+        .toLowerCase()
+        .includes("yurimagua");
       const total = row.original.order_details.reduce(
-        (sum, detail) => sum + parseFloat(detail.total || "0"),
+        (sum, detail) =>
+          sum + parseFloat((isYurimaguas ? detail.subtotal : detail.total) || "0"),
         0,
       );
       return (

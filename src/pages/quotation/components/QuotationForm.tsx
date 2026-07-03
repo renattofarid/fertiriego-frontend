@@ -362,7 +362,7 @@ export const QuotationForm = ({
         header: "Total",
         cell: ({ row }) => (
           <div className="text-right font-semibold">
-            {row.original.total.toFixed(4)}
+            {(hasIgv ? row.original.total : row.original.subtotal).toFixed(4)}
           </div>
         ),
       },
@@ -543,8 +543,11 @@ export const QuotationForm = ({
           is_igv: hasIgv && detail.is_igv,
           quantity: parseFloat(detail.quantity),
           unit_price: roundTo8(rawUnitPrice),
-          unit_price_igv: roundTo8(effectiveUnitPriceIgv),
+          unit_price_igv: hasIgv ? roundTo8(effectiveUnitPriceIgv) : roundTo8(rawUnitPrice),
           purchase_price: parseFloat(detail.purchase_price),
+          subtotal: hasIgv ? detail.subtotal : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
+          tax: hasIgv ? detail.tax : 0,
+          total: hasIgv ? detail.total : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
           description: detail.description || "",
         };
       }),
@@ -565,11 +568,11 @@ export const QuotationForm = ({
   };
 
   const calculateTaxTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
+    return hasIgv ? roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0)) : 0;
   };
 
   const calculateDetailsTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+    return roundTo4(details.reduce((sum, detail) => sum + (hasIgv ? detail.total : detail.subtotal), 0));
   };
 
   return (

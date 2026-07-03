@@ -26,13 +26,21 @@ import { FormSelect } from "@/components/FormSelect";
 import {
   searchDNI,
   searchRUC,
-  isValidData,
+  isValidSearchResponse,
 } from "@/lib/document-search.service";
 import type { PersonResource } from "../lib/person.interface";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import { PersonAddressMiniCrud } from "./PersonAddressMiniCrud";
 import type { PendingAddress } from "../lib/person.address.interface";
+
+const getFirstString = (...values: unknown[]) =>
+  values
+    .find(
+      (value): value is string =>
+        typeof value === "string" && value.trim() !== "",
+    )
+    ?.trim() ?? "";
 
 interface PersonFormProps {
   initialData?: PersonResource | null;
@@ -120,7 +128,7 @@ export const PersonForm = ({
       if (typeDocument === "DNI") {
         const result = await searchDNI({ search: numberDocument });
 
-        if (result && isValidData(result.message) && result.data) {
+        if (isValidSearchResponse(result)) {
           const updates: Record<string, string> = {};
           const fieldsSet = {
             names: false,
@@ -148,7 +156,7 @@ export const PersonForm = ({
       } else if (typeDocument === "RUC") {
         const result = await searchRUC({ search: numberDocument });
 
-        if (result && isValidData(result.message) && result.data) {
+        if (isValidSearchResponse(result)) {
           const updates: Record<string, string> = {};
           const fieldsSet = {
             names: false,
@@ -156,17 +164,34 @@ export const PersonForm = ({
             mother_surname: false,
             business_name: false,
           };
+          const data = result.data;
+          const businessName = getFirstString(
+            data.business_name,
+            data.razon_social,
+            data.nombre_o_razon_social,
+            data.nombre,
+            data.names,
+          );
+          const address = getFirstString(data.address, data.direccion);
 
-          updates.business_name = result.data.business_name || "";
-          fieldsSet.business_name = true;
+          if (businessName) {
+            updates.business_name = businessName;
+            fieldsSet.business_name = true;
+          }
 
-          if (result.data.address) {
-            updates.address = result.data.address;
+          if (type_person === "NATURAL" && businessName) {
+            updates.names = businessName;
+            fieldsSet.names = true;
+          }
+
+          if (address && address !== "-" && address.length >= 5) {
+            updates.address = address;
           }
 
           Object.keys(updates).forEach((key) => {
             form.setValue(key as keyof PersonSchema, updates[key], {
               shouldValidate: true,
+              shouldDirty: true,
             });
           });
 
@@ -300,6 +325,15 @@ export const PersonForm = ({
                                 ? 11
                                 : 11
                       }
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          (type_document === "DNI" || type_document === "RUC")
+                        ) {
+                          e.preventDefault();
+                          handleDocumentSearch();
+                        }
+                      }}
                       onChange={(e) => {
                         let value;
                         // For DNI, RUC, CE only allow numbers
@@ -896,3 +930,5 @@ export const PersonForm = ({
     </Form>
   );
 };
+
+
