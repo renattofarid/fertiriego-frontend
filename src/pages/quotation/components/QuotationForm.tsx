@@ -152,10 +152,14 @@ export const QuotationForm = ({
     ? warehousesList.find((warehouse) => warehouse.id.toString() === selectedWarehouseId)
     : undefined;
   const selectedWarehouseSearchText = [selectedWarehouse?.name, selectedWarehouse?.address, selectedWarehouse?.branch?.name].filter(Boolean).join(String.fromCharCode(32)).toLowerCase();
-  const hasIgv =
-    selectedWarehouse?.branch?.has_igv !== undefined
+  const isYurimaguasWarehouse = selectedWarehouseSearchText.includes('yurimagua');
+  const hasIgv = isYurimaguasWarehouse
+    ? false
+    : selectedWarehouse?.branch?.has_igv !== undefined
       ? Number(selectedWarehouse.branch.has_igv) === 1
-      : selectedWarehouseSearchText.includes('yurimagua') ? false : authenticatedBranchHasIgv;
+      : selectedWarehouseId
+        ? true
+        : authenticatedBranchHasIgv;
   const taxMultiplier = hasIgv ? 1.18 : 1;
 
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
