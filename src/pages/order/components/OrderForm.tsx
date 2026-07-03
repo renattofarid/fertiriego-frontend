@@ -428,7 +428,7 @@ export const OrderForm = ({
           is_igv: hasIgv && detail.is_igv,
           quantity: parseFloat(detail.quantity),
           unit_price: roundTo8(rawUnitPrice),
-          unit_price_igv: roundTo8(effectiveUnitPriceIgv),
+          unit_price_igv: hasIgv ? roundTo8(effectiveUnitPriceIgv) : roundTo8(rawUnitPrice),
           purchase_price: parseFloat(detail.purchase_price),
         };
       }),
@@ -438,7 +438,7 @@ export const OrderForm = ({
   };
 
   const getTotalAmount = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+    return roundTo4(details.reduce((sum, detail) => sum + (hasIgv ? detail.total : detail.subtotal), 0));
   };
 
   const calculateSubtotalTotal = () => {
@@ -446,11 +446,11 @@ export const OrderForm = ({
   };
 
   const calculateTaxTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
+    return hasIgv ? roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0)) : 0;
   };
 
   const calculateDetailsTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+    return roundTo4(details.reduce((sum, detail) => sum + (hasIgv ? detail.total : detail.subtotal), 0));
   };
 
   // Obtener precio CON IGV efectivo para mostrar en tabla (fallback a unit_price cuando unit_price_igv=0)
@@ -725,7 +725,7 @@ export const OrderForm = ({
                         </TableCell>
                       )}
                       <TableCell className="text-right font-semibold">
-                        {detail.total.toFixed(4)}
+                        {(hasIgv ? detail.total : detail.subtotal).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-1 justify-center">
@@ -805,3 +805,4 @@ export const OrderForm = ({
     </Form>
   );
 };
+
