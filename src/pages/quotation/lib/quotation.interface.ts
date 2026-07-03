@@ -186,6 +186,9 @@ export interface CreateQuotationDetailRequest {
   unit_price: number;
   unit_price_igv: number;
   purchase_price: number;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
   description?: string;
 }
 

@@ -170,6 +170,9 @@ export interface CreateOrderDetailRequest {
   unit_price: number;
   unit_price_igv: number;
   purchase_price: number;
+  subtotal?: number;
+  tax?: number;
+  total?: number;
 }
 
 export interface CreateOrderRequest {

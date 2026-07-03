@@ -545,6 +545,9 @@ export const QuotationForm = ({
           unit_price: roundTo8(rawUnitPrice),
           unit_price_igv: hasIgv ? roundTo8(effectiveUnitPriceIgv) : roundTo8(rawUnitPrice),
           purchase_price: parseFloat(detail.purchase_price),
+          subtotal: hasIgv ? detail.subtotal : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
+          tax: hasIgv ? detail.tax : 0,
+          total: hasIgv ? detail.total : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
           description: detail.description || "",
         };
       }),
