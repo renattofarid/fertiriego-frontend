@@ -104,6 +104,7 @@ export default function DatePicker({
   };
 
   const handleClear = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     onChange(undefined);
   };
@@ -153,6 +154,10 @@ export default function DatePicker({
                 {parsedDate && showClearButton && !disabled && (
                   <X
                     className="h-4 w-4 hover:text-red-500 transition-colors"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onClick={handleClear}
                   />
                 )}
@@ -195,6 +200,10 @@ export default function DatePicker({
                 {parsedDate && showClearButton && !disabled && (
                   <X
                     className="h-4 w-4 hover:text-red-500 transition-colors"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
                     onClick={handleClear}
                   />
                 )}

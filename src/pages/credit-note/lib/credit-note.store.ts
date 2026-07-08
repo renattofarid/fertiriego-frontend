@@ -52,7 +52,12 @@ export const useCreditNoteStore = create<CreditNoteStore>((set) => ({
       const { data, meta } = await getCreditNotes({ params });
       set({ creditNotes: data, meta: meta, isLoading: false });
     } catch (err) {
-      set({ error: "Error al cargar notas de crédito", isLoading: false });
+      set({
+        creditNotes: [],
+        meta: undefined,
+        error: "Error al cargar notas de crédito",
+        isLoading: false,
+      });
     }
   },
 
