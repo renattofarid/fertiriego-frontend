@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCreditNote } from "../lib/credit-note.hook";
 import TitleComponent from "@/components/TitleComponent";
 import CreditNoteActions from "./CreditNoteActions";
@@ -19,6 +19,8 @@ import { CREDIT_NOTE } from "../lib/credit-note.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
 const { MODEL, ICON } = CREDIT_NOTE;
+
+const normalizeDate = (value?: string) => value?.split("T")[0] ?? "";
 
 export default function CreditNotePage() {
   const [search, setSearch] = useState("");
@@ -63,6 +65,55 @@ export default function CreditNotePage() {
     affects_stock: affectsStock || undefined,
     created_at: createdAtFilter,
   };
+
+  const filteredData = useMemo(() => {
+    return (data || []).filter((creditNote) => {
+      const documentMatches =
+        !search ||
+        creditNote.full_document_number
+          ?.toLowerCase()
+          .includes(search.toLowerCase());
+      const issueDate = normalizeDate(creditNote.issue_date);
+      const issueMatches =
+        !issueDateFilter ||
+        (issueDate >= issueDateFilter[0] && issueDate <= issueDateFilter[1]);
+      const reasonMatches =
+        !creditNoteMotiveId ||
+        String(creditNote.credit_note_motive_id) === creditNoteMotiveId;
+      const statusMatches = !status || creditNote.status === status;
+      const customerMatches =
+        !customerId || String(creditNote.customer?.id) === customerId;
+      const saleMatches = !saleId || String(creditNote.sale?.id) === saleId;
+      const affectsStockMatches =
+        !affectsStock ||
+        (affectsStock === "1" ? creditNote.affects_stock : !creditNote.affects_stock);
+      const createdDate = normalizeDate(creditNote.created_at);
+      const createdMatches =
+        !createdAtFilter ||
+        (createdDate >= createdAtFilter[0] && createdDate <= createdAtFilter[1]);
+
+      return (
+        documentMatches &&
+        issueMatches &&
+        reasonMatches &&
+        statusMatches &&
+        customerMatches &&
+        saleMatches &&
+        affectsStockMatches &&
+        createdMatches
+      );
+    });
+  }, [
+    data,
+    search,
+    issueDateFilterKey,
+    creditNoteMotiveId,
+    status,
+    customerId,
+    saleId,
+    affectsStock,
+    createdAtFilterKey,
+  ]);
 
   useEffect(() => {
     refetch(filters);
@@ -134,7 +185,7 @@ export default function CreditNotePage() {
         columns={CreditNoteColumns({
           onDelete: setDeleteId,
         })}
-        data={data || []}
+        data={filteredData}
       >
         <CreditNoteOptions
           search={search}
