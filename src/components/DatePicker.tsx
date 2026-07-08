@@ -152,14 +152,26 @@ export default function DatePicker({
               <span className="truncate">{displayValue}</span>
               <div className="flex items-center space-x-2">
                 {parsedDate && showClearButton && !disabled && (
-                  <X
-                    className="h-4 w-4 hover:text-red-500 transition-colors"
+                  <span
+                    role="button"
+                    aria-label="Limpiar fecha"
+                    tabIndex={0}
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-md border border-border/70 bg-background/60 text-muted-foreground transition-colors hover:border-red-400 hover:bg-red-500/10 hover:text-red-500"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onChange(undefined);
+                      }
+                    }}
                     onClick={handleClear}
-                  />
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </span>
                 )}
                 <CalendarPlusIcon className="h-4 w-4 opacity-50" />
               </div>
@@ -198,14 +210,26 @@ export default function DatePicker({
               <span className="truncate">{displayValue}</span>
               <div className="flex items-center space-x-2">
                 {parsedDate && showClearButton && !disabled && (
-                  <X
-                    className="h-4 w-4 hover:text-red-500 transition-colors"
+                  <span
+                    role="button"
+                    aria-label="Limpiar fecha"
+                    tabIndex={0}
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-md border border-border/70 bg-background/60 text-muted-foreground transition-colors hover:border-red-400 hover:bg-red-500/10 hover:text-red-500"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                     }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onChange(undefined);
+                      }
+                    }}
                     onClick={handleClear}
-                  />
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </span>
                 )}
                 <CalendarIcon className="h-4 w-4 opacity-50" />
               </div>

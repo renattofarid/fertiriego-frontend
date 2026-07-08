@@ -21,8 +21,8 @@ const statusOptions: Option[] = [
 
 const affectsStockOptions: Option[] = [
   { value: "", label: "Todos" },
-  { value: "true", label: "Sí afecta stock" },
-  { value: "false", label: "No afecta stock" },
+  { value: "1", label: "Sí afecta stock" },
+  { value: "0", label: "No afecta stock" },
 ];
 
 const mapClientOption = (person: PersonResource): Option => ({
