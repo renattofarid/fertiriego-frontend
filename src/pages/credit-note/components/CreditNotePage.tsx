@@ -5,6 +5,7 @@ import CreditNoteActions from "./CreditNoteActions";
 import CreditNoteTable from "./CreditNoteTable";
 import CreditNoteOptions from "./CreditNoteOptions";
 import { deleteCreditNote } from "../lib/credit-note.actions";
+import type { GetCreditNotesParams } from "../lib/credit-note.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -21,14 +22,76 @@ const { MODEL, ICON } = CREDIT_NOTE;
 
 export default function CreditNotePage() {
   const [search, setSearch] = useState("");
+  const [issueStartDate, setIssueStartDate] = useState("");
+  const [issueEndDate, setIssueEndDate] = useState("");
+  const [creditNoteMotiveId, setCreditNoteMotiveId] = useState("");
+  const [status, setStatus] = useState("");
+  const [customerId, setCustomerId] = useState("");
+  const [saleId, setSaleId] = useState("");
+  const [affectsStock, setAffectsStock] = useState("");
+  const [createdStartDate, setCreatedStartDate] = useState("");
+  const [createdEndDate, setCreatedEndDate] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const { data, meta, isLoading, refetch } = useCreditNote();
 
+  const issueDateFilterKey =
+    issueStartDate && issueEndDate ? `${issueStartDate},${issueEndDate}` : "";
+  const createdAtFilterKey =
+    createdStartDate && createdEndDate
+      ? `${createdStartDate},${createdEndDate}`
+      : "";
+  const issueDateFilter = issueDateFilterKey
+    ? [issueStartDate, issueEndDate]
+    : undefined;
+  const createdAtFilter = createdAtFilterKey
+    ? [createdStartDate, createdEndDate]
+    : undefined;
+
+  const filters: GetCreditNotesParams = {
+    page,
+    per_page,
+    full_document_number: search || undefined,
+    issue_date: issueDateFilter,
+    credit_note_motive_id: creditNoteMotiveId
+      ? Number(creditNoteMotiveId)
+      : undefined,
+    status: status || undefined,
+    customer_id: customerId ? Number(customerId) : undefined,
+    sale_id: saleId ? Number(saleId) : undefined,
+    affects_stock: affectsStock || undefined,
+    created_at: createdAtFilter,
+  };
+
   useEffect(() => {
-    refetch({ page, search, per_page });
-  }, [page, search, per_page]);
+    refetch(filters);
+  }, [
+    page,
+    per_page,
+    search,
+    issueDateFilterKey,
+    creditNoteMotiveId,
+    status,
+    customerId,
+    saleId,
+    affectsStock,
+    createdAtFilterKey,
+  ]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [
+    per_page,
+    search,
+    issueDateFilterKey,
+    creditNoteMotiveId,
+    status,
+    customerId,
+    saleId,
+    affectsStock,
+    createdAtFilterKey,
+  ]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -54,7 +117,16 @@ export default function CreditNotePage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <CreditNoteActions />
+        <CreditNoteActions
+          search={search}
+          issueDate={issueDateFilter}
+          creditNoteMotiveId={creditNoteMotiveId}
+          status={status}
+          customerId={customerId}
+          saleId={saleId}
+          affectsStock={affectsStock}
+          createdAt={createdAtFilter}
+        />
       </div>
 
       <CreditNoteTable
@@ -64,7 +136,28 @@ export default function CreditNotePage() {
         })}
         data={data || []}
       >
-        <CreditNoteOptions search={search} setSearch={setSearch} />
+        <CreditNoteOptions
+          search={search}
+          setSearch={setSearch}
+          issueStartDate={issueStartDate}
+          setIssueStartDate={setIssueStartDate}
+          issueEndDate={issueEndDate}
+          setIssueEndDate={setIssueEndDate}
+          creditNoteMotiveId={creditNoteMotiveId}
+          setCreditNoteMotiveId={setCreditNoteMotiveId}
+          status={status}
+          setStatus={setStatus}
+          customerId={customerId}
+          setCustomerId={setCustomerId}
+          saleId={saleId}
+          setSaleId={setSaleId}
+          affectsStock={affectsStock}
+          setAffectsStock={setAffectsStock}
+          createdStartDate={createdStartDate}
+          setCreatedStartDate={setCreatedStartDate}
+          createdEndDate={createdEndDate}
+          setCreatedEndDate={setCreatedEndDate}
+        />
       </CreditNoteTable>
 
       <DataTablePagination
