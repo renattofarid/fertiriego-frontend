@@ -40,8 +40,7 @@
     product_name: string;
     is_igv: boolean;
     quantity: string;
-    // Cuando is_igv=true: precio con IGV. Cuando is_igv=false: valor sin IGV.
-    unit_price: string;
+    unit_price: string; // Siempre precio SIN IGV
     unit_price_igv: string; // Siempre precio CON IGV
     purchase_price: string;
     description?: string;
@@ -249,16 +248,14 @@
         : typedUnitPrice / EXCHANGE_RATE;
     } 
     const sentUnitPriceIgv = formatNumber(finalPriceIgv);
-    const sentUnitPrice = formData.is_igv
-      ? formatNumber(finalPriceIgv)
-      : formatNumber(finalPriceIgv / taxMultiplier);
+    const sentUnitPrice = formatNumber(finalPriceIgv / taxMultiplier);
 
       const finalCurrency = formData.convert_currency ? "USD" : currency;
 
       const detail: ProductDetail = {
         product_id: formData.product_id,
         product_name: productName,
-        is_igv: hasIgv && formData.is_igv,
+        is_igv: hasIgv && calculatedValues.tax > 0,
         quantity: Number(formData.quantity).toString(),
         unit_price: sentUnitPrice,
         unit_price_igv: sentUnitPriceIgv,
