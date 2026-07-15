@@ -127,6 +127,9 @@ export interface QuotationResource {
     branch_id: number;
     phone: string;
     email: string;
+    branch?: {
+      has_igv?: number | string | boolean;
+    };
     created_at: string;
   };
   customer_id: number;

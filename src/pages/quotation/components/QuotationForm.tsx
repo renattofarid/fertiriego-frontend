@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
+import { calcItemAmounts, roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -151,11 +151,8 @@ export const QuotationForm = ({
   const selectedWarehouse = selectedWarehouseId
     ? warehousesList.find((warehouse) => warehouse.id.toString() === selectedWarehouseId)
     : undefined;
-  const selectedWarehouseSearchText = [selectedWarehouse?.name, selectedWarehouse?.address, selectedWarehouse?.branch?.name].filter(Boolean).join(String.fromCharCode(32)).toLowerCase();
-  const isYurimaguasWarehouse = selectedWarehouseSearchText.includes('yurimagua');
-  const hasIgv = isYurimaguasWarehouse
-    ? false
-    : selectedWarehouse?.branch?.has_igv !== undefined
+  const hasIgv =
+    selectedWarehouse?.branch?.has_igv !== undefined
       ? Number(selectedWarehouse.branch.has_igv) === 1
       : selectedWarehouseId
         ? true
@@ -321,10 +318,7 @@ export const QuotationForm = ({
         accessorKey: "unit_price",
         header: "V. Unitario",
         cell: ({ row }) => {
-          const { unit_price, is_igv } = row.original;
-          const value = is_igv
-            ? parseFloat(unit_price) / taxMultiplier
-            : parseFloat(unit_price);
+          const value = parseFloat(row.original.unit_price) || 0;
           return <div className="text-right">{value.toFixed(4)}</div>;
         },
       },
@@ -332,10 +326,9 @@ export const QuotationForm = ({
         accessorKey: "unit_price_with_igv",
         header: "P. Unitario",
         cell: ({ row }) => {
-          const { unit_price, is_igv } = row.original;
-          const price = is_igv
-            ? parseFloat(unit_price)
-            : parseFloat(unit_price) * taxMultiplier;
+          const priceIgv = parseFloat(row.original.unit_price_igv) || 0;
+          const unitPrice = parseFloat(row.original.unit_price) || 0;
+          const price = priceIgv > 0 ? priceIgv : unitPrice * taxMultiplier;
           return <div className="text-right">{price.toFixed(4)}</div>;
         },
       },
@@ -425,26 +418,45 @@ export const QuotationForm = ({
   useEffect(() => {
     if (initialData?.quotation_details) {
       const loadedDetails: DetailRow[] = initialData.quotation_details.map(
-        (detail: QuotationDetailResource) => ({
-          product_id: detail.product_id.toString(),
-          product_name: detail.product?.name || "",
-          is_igv: hasIgv && detail.is_igv,
-          quantity: detail.quantity.toString(),
-          unit_price: detail.unit_price.toString(),
-          unit_price_igv: detail.unit_price_igv.toString(),
-          purchase_price: detail.purchase_price.toString(),
-          description: detail.description || "",
-          subtotal: parseFloat(detail.subtotal),
-          tax: parseFloat(detail.tax),
-          total: parseFloat(detail.total),
-          technical_sheet: Array.isArray(detail.product?.technical_sheet)
-            ? detail.product.technical_sheet
-            : [],
-        }),
+        (detail: QuotationDetailResource) => {
+          const quantity = parseFloat(detail.quantity);
+          const rawUnitPrice = parseFloat(detail.unit_price) || 0;
+          const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+          const effectiveUnitPrice =
+            hasIgv && rawUnitPriceIgv > rawUnitPrice
+              ? rawUnitPrice
+              : hasIgv && rawUnitPriceIgv > 0
+                ? roundTo8(rawUnitPriceIgv / taxMultiplier)
+                : hasIgv && detail.is_igv
+                  ? roundTo8(rawUnitPrice / taxMultiplier)
+                  : rawUnitPrice;
+          const effectiveUnitPriceIgv = hasIgv
+            ? rawUnitPriceIgv > 0
+              ? rawUnitPriceIgv
+              : roundTo8(effectiveUnitPrice * taxMultiplier)
+            : effectiveUnitPrice;
+          const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product?.name || "",
+            is_igv: hasIgv && amounts.igv > 0,
+            quantity: detail.quantity.toString(),
+            unit_price: effectiveUnitPrice.toString(),
+            unit_price_igv: effectiveUnitPriceIgv.toString(),
+            purchase_price: detail.purchase_price.toString(),
+            description: detail.description || "",
+            subtotal: amounts.subtotal,
+            tax: amounts.igv,
+            total: amounts.total,
+            technical_sheet: Array.isArray(detail.product?.technical_sheet)
+              ? detail.product.technical_sheet
+              : [],
+          };
+        },
       );
       setDetails(loadedDetails);
     }
-  }, [mode, initialData]);
+  }, [mode, initialData, hasIgv, taxMultiplier]);
 
   const handleAddDetail = (detail: ProductDetail) => {
     const newDetail: DetailRow = {
@@ -532,22 +544,34 @@ export const QuotationForm = ({
       quotation_details: details.map((detail) => {
         const rawUnitPrice = parseFloat(detail.unit_price) || 0;
         const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+        const quantity = parseFloat(detail.quantity);
         const effectiveUnitPriceIgv =
-          rawUnitPriceIgv > 0
+          hasIgv && rawUnitPriceIgv > 0
             ? rawUnitPriceIgv
-            : detail.is_igv
+            : hasIgv && detail.is_igv
               ? rawUnitPrice
-              : roundTo8(rawUnitPrice * taxMultiplier);
+              : hasIgv
+                ? roundTo8(rawUnitPrice * taxMultiplier)
+                : rawUnitPrice;
+        const effectiveUnitPrice =
+          hasIgv && rawUnitPriceIgv > 0
+            ? roundTo8(rawUnitPriceIgv / taxMultiplier)
+            : hasIgv && detail.is_igv
+              ? roundTo8(rawUnitPrice / taxMultiplier)
+              : hasIgv
+                ? roundTo8(rawUnitPrice)
+                : roundTo8(effectiveUnitPriceIgv);
+        const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: hasIgv && detail.is_igv,
-          quantity: parseFloat(detail.quantity),
-          unit_price: roundTo8(rawUnitPrice),
-          unit_price_igv: hasIgv ? roundTo8(effectiveUnitPriceIgv) : roundTo8(rawUnitPrice),
+          is_igv: hasIgv && amounts.igv > 0,
+          quantity,
+          unit_price: effectiveUnitPrice,
+          unit_price_igv: roundTo8(effectiveUnitPriceIgv),
           purchase_price: parseFloat(detail.purchase_price),
-          subtotal: hasIgv ? detail.subtotal : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
-          tax: hasIgv ? detail.tax : 0,
-          total: hasIgv ? detail.total : roundTo4(rawUnitPrice * parseFloat(detail.quantity)),
+          subtotal: amounts.subtotal,
+          tax: amounts.igv,
+          total: amounts.total,
           description: detail.description || "",
         };
       }),

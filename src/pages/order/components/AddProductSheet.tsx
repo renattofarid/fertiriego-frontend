@@ -36,7 +36,7 @@ export interface ProductDetail {
   product_name: string;
   is_igv: boolean;
   quantity: string;
-  unit_price: string; // CON IGV si is_igv=true, SIN IGV si is_igv=false
+  unit_price: string; // Siempre precio SIN IGV
   unit_price_igv: string; // Siempre precio CON IGV
   purchase_price: string;
   description?: string;
@@ -221,7 +221,7 @@ export const AddProductSheet = ({
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: hasIgv && formData.is_igv,
+      is_igv: hasIgv && calculatedValues.tax > 0,
       quantity: formData.quantity,
       unit_price: sentUnitPrice,
       unit_price_igv: sentUnitPriceIgv,
