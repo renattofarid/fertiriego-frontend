@@ -439,7 +439,10 @@ export const QuotationForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "",
-            is_igv: hasIgv && amounts.igv > 0,
+            // Se preserva el is_igv real del detalle guardado, no se deriva
+            // de amounts.igv > 0 (eso siempre da true si el documento tiene
+            // IGV, sin importar si el producto se cargó como "sin IGV").
+            is_igv: hasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity.toString(),
             unit_price: effectiveUnitPrice.toString(),
             unit_price_igv: effectiveUnitPriceIgv.toString(),
@@ -564,7 +567,9 @@ export const QuotationForm = ({
         const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: hasIgv && amounts.igv > 0,
+          // Se manda el is_igv que ya traía el detalle, no uno derivado de
+          // amounts.igv > 0.
+          is_igv: hasIgv && Boolean(detail.is_igv),
           quantity,
           unit_price: effectiveUnitPrice,
           unit_price_igv: roundTo8(effectiveUnitPriceIgv),
