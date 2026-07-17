@@ -32,7 +32,6 @@ export interface ProductionOrderResource {
   currency: string;
   estimated_component_cost: number;
   labor_cost: number;
-  overhead_cost: number;
   estimated_total_cost: number;
   observations: string | null;
   rejection_reason: string | null;
@@ -65,8 +64,6 @@ export interface ProductionOrderComponentResource {
   quantity_required: number;
   unit_cost: number;
   total_cost: number;
-  waste_quantity: number;
-  waste_percentage: number;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -141,8 +138,6 @@ export interface ProductionOrderComponentRequest {
   component_id: number;
   quantity_required: number;
   unit_cost?: number;
-  waste_quantity?: number;
-  waste_percentage?: number;
   notes?: string;
 }
 
@@ -155,7 +150,6 @@ export interface CreateProductionOrderRequest {
   quantity_requested: number;
   currency?: string;
   labor_cost?: number;
-  overhead_cost?: number;
   observations?: string;
   components: ProductionOrderComponentRequest[];
 }
@@ -169,7 +163,6 @@ export interface UpdateProductionOrderRequest {
   quantity_requested?: number;
   currency?: string;
   labor_cost?: number;
-  overhead_cost?: number;
   observations?: string;
   components?: ProductionOrderComponentRequest[];
 }

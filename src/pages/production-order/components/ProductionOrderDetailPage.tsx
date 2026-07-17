@@ -83,16 +83,6 @@ const componentColumns: ColumnDef<ProductionOrderComponentResource>[] = [
     ),
   },
   {
-    accessorKey: "waste_quantity",
-    header: "Merma Cant.",
-    cell: ({ row }) => <span>{row.original.waste_quantity}</span>,
-  },
-  {
-    accessorKey: "waste_percentage",
-    header: "Merma %",
-    cell: ({ row }) => <span>{row.original.waste_percentage}%</span>,
-  },
-  {
     accessorKey: "notes",
     header: "Notas",
     cell: ({ row }) => (
@@ -393,7 +383,7 @@ export default function ProductionOrderDetailPage() {
         </GroupFormSection>
 
         {/* Costos */}
-        <GroupFormSection title="Detalles de Costos" icon={DollarSign} cols={{ sm: 2, md: 4 }}>
+        <GroupFormSection title="Detalles de Costos" icon={DollarSign} cols={{ sm: 2, md: 3 }}>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Costo de Componentes</p>
             <p className="text-lg font-bold">S/ {order.estimated_component_cost.toFixed(2)}</p>
@@ -401,10 +391,6 @@ export default function ProductionOrderDetailPage() {
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Costo Laboral</p>
             <p className="text-lg font-bold">S/ {order.labor_cost.toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Indirecto</p>
-            <p className="text-lg font-bold">S/ {order.overhead_cost.toFixed(2)}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Costo Total Estimado</p>

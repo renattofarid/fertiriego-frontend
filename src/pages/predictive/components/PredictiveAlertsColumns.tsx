@@ -46,17 +46,17 @@ export const PredictiveAlertsColumns: ColumnDef<PredictiveAlert>[] = [
     },
   },
   {
-    accessorKey: "product_name",
+    accessorKey: "product.name",
     header: "Producto",
     cell: ({ getValue }) => (
       <span className="font-medium">{getValue() as string}</span>
     ),
   },
-  {
-    accessorKey: "warehouse_name",
-    header: "Almacén",
-    cell: ({ getValue }) => getValue() as string,
-  },
+  // {
+  //   accessorKey: "warehouse_name",
+  //   header: "Almacén",
+  //   cell: ({ getValue }) => getValue() as string,
+  // },
   {
     accessorKey: "current_stock",
     header: "Stock Actual",
