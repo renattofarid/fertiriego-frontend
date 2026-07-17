@@ -238,7 +238,7 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "Producto",
-            is_igv: hasIgv && amounts.igv > 0,
+            is_igv: hasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
             unit_price_igv: effectiveUnitPriceIgv.toString(),
@@ -351,7 +351,7 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product.name,
-            is_igv: quotationHasIgv && amounts.igv > 0,
+            is_igv: quotationHasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
             unit_price_igv: effectiveUnitPriceIgv.toString(),
@@ -486,7 +486,7 @@ export const OrderForm = ({
         const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: hasIgv && amounts.igv > 0,
+          is_igv: hasIgv && Boolean(detail.is_igv),
           quantity,
           unit_price: effectiveUnitPrice,
           unit_price_igv: roundTo8(effectiveUnitPriceIgv),
