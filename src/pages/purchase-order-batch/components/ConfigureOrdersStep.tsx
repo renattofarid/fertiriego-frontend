@@ -107,8 +107,8 @@ const LotItemsTable = memo(function LotItemsTable({
                 <td className="px-3 py-2">
                   <Input
                     type="number"
-                    min={0.01}
-                    step={0.01}
+                    min={item.min_quantity ?? 1}
+                    step={1}
                     className="ml-auto h-7 w-24 text-right text-sm"
                     {...form.register(
                       `orders.${lotIndex}.items.${i}.quantity_requested`
@@ -179,8 +179,8 @@ const LotItemsTable = memo(function LotItemsTable({
                   <Label className="text-xs">Cantidad</Label>
                   <Input
                     type="number"
-                    min={0.01}
-                    step={0.01}
+                    min={item.min_quantity ?? 1}
+                    step={1}
                     className="h-7 text-right text-sm"
                     {...form.register(
                       `orders.${lotIndex}.items.${i}.quantity_requested`
@@ -283,6 +283,22 @@ export default function ConfigureOrdersStep({
       if (!cfg.items.filter((i) => i.selected).length) {
         errorToast(`El lote de ${cfg.supplier_name} no tiene ítems activos.`);
         return;
+      }
+      if (!cfg.expected_date) {
+        errorToast(
+          `Selecciona la fecha esperada para el lote: ${cfg.supplier_name}`
+        );
+        return;
+      }
+      for (const item of cfg.items) {
+        if (!item.selected) continue;
+        const qty = Number(item.quantity_requested);
+        if (!Number.isInteger(qty) || qty < item.min_quantity) {
+          errorToast(
+            `La cantidad de "${item.product_name}" debe ser un entero mayor o igual a ${item.min_quantity}.`
+          );
+          return;
+        }
       }
     }
 
@@ -427,8 +443,8 @@ export default function ConfigureOrdersStep({
                   <DatePickerFormField
                     control={form.control}
                     name={`orders.${lotIndex}.expected_date` as any}
-                    label="Fecha esperada"
-                    placeholder="Sin fecha"
+                    label="Fecha esperada *"
+                    placeholder="Selecciona una fecha"
                   />
                 </div>
 

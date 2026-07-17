@@ -8,6 +8,19 @@ import type {
 import type { CreditNoteSchema } from "./credit-note.schema";
 import type { AxiosRequestConfig } from "axios";
 
+export interface GetCreditNotesParams {
+  page?: number;
+  per_page?: number;
+  full_document_number?: string;
+  issue_date?: string[];
+  credit_note_motive_id?: number;
+  status?: string;
+  customer_id?: number;
+  sale_id?: number;
+  affects_stock?: string;
+  created_at?: string[];
+}
+
 export const getCreditNotes = async ({
   params,
 }: getCreditNoteProps = {}): Promise<CreditNoteResponse> => {

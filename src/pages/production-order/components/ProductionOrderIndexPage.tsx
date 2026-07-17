@@ -23,10 +23,27 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 export default function ProductionOrderIndexPage() {
   const { ROUTE_ADD, ROUTE, ROUTE_UPDATE, MODEL, ICON } = PRODUCTION_ORDER;
   const navigate = useNavigate();
+  const { access, user } = useAuthStore();
+
+  const canApproveOrder =
+    user?.rol_id === 1 ||
+    !!access?.find((perm) =>
+      perm.permissions.some((p) =>
+        p.routes.some((r) => r === "aprobar-orden-produccion"),
+      ),
+    );
+  const canRejectOrder =
+    user?.rol_id === 1 ||
+    !!access?.find((perm) =>
+      perm.permissions.some((p) =>
+        p.routes.some((r) => r === "rechazar-orden-produccion"),
+      ),
+    );
 
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(15);
@@ -126,9 +143,11 @@ export default function ProductionOrderIndexPage() {
         onRejectClick: (id) => setRejectingId(id),
         onCancel: handleCancel,
         onDelete: handleDelete,
+        canApprove: canApproveOrder,
+        canReject: canRejectOrder,
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navigate, ROUTE, ROUTE_UPDATE, page, perPage],
+    [navigate, ROUTE, ROUTE_UPDATE, page, perPage, canApproveOrder, canRejectOrder],
   );
 
   const handlePageChange = (newPage: number) => {

@@ -40,15 +40,12 @@ export type ProductionOrderFormValues = {
   quantity_requested: string;
   currency: string;
   labor_cost: string;
-  overhead_cost: string;
   observations?: string;
   components: {
     component_id: string;
     component_name?: string;
     quantity_required: string;
     unit_cost: string;
-    waste_quantity: string;
-    waste_percentage: string;
     notes?: string;
   }[];
 };
@@ -66,8 +63,6 @@ type ComponentRow = {
   component_name: string;
   quantity_required: number;
   unit_cost: number;
-  waste_quantity: number;
-  waste_percentage: number;
   notes: string;
 };
 
@@ -95,19 +90,18 @@ export function ProductionOrderForm({
     quantity_requested: "",
     currency: "PEN",
     labor_cost: "0",
-    overhead_cost: "0",
     observations: "",
     components: [],
   };
 
   const [components, setComponents] = useState<ComponentRow[]>([]);
-  const [currentComponent, setCurrentComponent] = useState<Partial<ComponentRow>>({
+  const [currentComponent, setCurrentComponent] = useState<
+    Partial<ComponentRow>
+  >({
     component_id: "",
     component_name: "",
     quantity_required: 0,
     unit_cost: 0,
-    waste_quantity: 0,
-    waste_percentage: 0,
     notes: "",
   });
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -120,13 +114,17 @@ export function ProductionOrderForm({
   const todayStr = today.toISOString().split("T")[0];
 
   const form = useForm<ProductionOrderFormValues>({
-    resolver: zodResolver(productionOrderSchema) as Resolver<ProductionOrderFormValues>,
-    defaultValues: initialValues ?? { ...defaultValues, requested_date: todayStr },
+    resolver: zodResolver(
+      productionOrderSchema,
+    ) as Resolver<ProductionOrderFormValues>,
+    defaultValues: initialValues ?? {
+      ...defaultValues,
+      requested_date: todayStr,
+    },
   });
 
   const warehouseOriginId = form.watch("warehouse_origin_id");
   const warehouseDestId = form.watch("warehouse_dest_id");
-
 
   useEffect(() => {
     if (initialValues?.components && initialValues.components.length > 0) {
@@ -135,8 +133,6 @@ export function ProductionOrderForm({
         component_name: c.component_name || "Componente",
         quantity_required: parseFloat(c.quantity_required) || 0,
         unit_cost: parseFloat(c.unit_cost) || 0,
-        waste_quantity: parseFloat(c.waste_quantity) || 0,
-        waste_percentage: parseFloat(c.waste_percentage) || 0,
         notes: c.notes || "",
       }));
       setComponents(mapped);
@@ -149,8 +145,6 @@ export function ProductionOrderForm({
       component_name: c.component_name,
       quantity_required: c.quantity_required.toString(),
       unit_cost: c.unit_cost.toString(),
-      waste_quantity: c.waste_quantity.toString(),
-      waste_percentage: c.waste_percentage.toString(),
       notes: c.notes,
     }));
     form.setValue("components", formatted);
@@ -161,7 +155,10 @@ export function ProductionOrderForm({
       toast.error("Debe seleccionar un componente");
       return;
     }
-    if (!currentComponent.quantity_required || currentComponent.quantity_required <= 0) {
+    if (
+      !currentComponent.quantity_required ||
+      currentComponent.quantity_required <= 0
+    ) {
       toast.error("La cantidad requerida debe ser mayor a 0");
       return;
     }
@@ -171,8 +168,6 @@ export function ProductionOrderForm({
       component_name: currentComponent.component_name!,
       quantity_required: currentComponent.quantity_required ?? 0,
       unit_cost: currentComponent.unit_cost ?? 0,
-      waste_quantity: currentComponent.waste_quantity ?? 0,
-      waste_percentage: currentComponent.waste_percentage ?? 0,
       notes: currentComponent.notes ?? "",
     };
 
@@ -191,8 +186,6 @@ export function ProductionOrderForm({
       component_name: "",
       quantity_required: 0,
       unit_cost: 0,
-      waste_quantity: 0,
-      waste_percentage: 0,
       notes: "",
     });
   };
@@ -212,7 +205,9 @@ export function ProductionOrderForm({
     {
       accessorKey: "component_name",
       header: "Componente",
-      cell: ({ row }) => <span className="font-medium">{row.original.component_name}</span>,
+      cell: ({ row }) => (
+        <span className="font-medium">{row.original.component_name}</span>
+      ),
     },
     {
       accessorKey: "quantity_required",
@@ -225,20 +220,12 @@ export function ProductionOrderForm({
       cell: ({ row }) => <span>S/ {row.original.unit_cost.toFixed(2)}</span>,
     },
     {
-      accessorKey: "waste_quantity",
-      header: "Merma Cant.",
-      cell: ({ row }) => <span>{row.original.waste_quantity}</span>,
-    },
-    {
-      accessorKey: "waste_percentage",
-      header: "Merma %",
-      cell: ({ row }) => <span>{row.original.waste_percentage}%</span>,
-    },
-    {
       accessorKey: "notes",
       header: "Notas",
       cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.notes || "-"}</span>
+        <span className="text-sm text-muted-foreground">
+          {row.original.notes || "-"}
+        </span>
       ),
     },
     {
@@ -246,10 +233,18 @@ export function ProductionOrderForm({
       header: "Acciones",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          <Button type="button" variant="ghost" onClick={() => handleEdit(row.index)}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => handleEdit(row.index)}
+          >
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button type="button" variant="ghost" onClick={() => handleDelete(row.index)}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => handleDelete(row.index)}
+          >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -269,8 +264,6 @@ export function ProductionOrderForm({
         component_name: c.component_name,
         quantity_required: c.quantity_required.toString(),
         unit_cost: c.unit_cost.toString(),
-        waste_quantity: c.waste_quantity.toString(),
-        waste_percentage: c.waste_percentage.toString(),
         notes: c.notes,
       })),
     };
@@ -280,7 +273,12 @@ export function ProductionOrderForm({
   return (
     <FormWrapper>
       <div className="mb-6">
-        <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} backRoute={ROUTE} />
+        <TitleFormComponent
+          title={MODEL.name}
+          mode={mode}
+          icon={ICON}
+          backRoute={ROUTE}
+        />
       </div>
 
       <Form {...form}>
@@ -332,6 +330,7 @@ export function ProductionOrderForm({
                 label: p.name,
                 description: p.unit_name,
               })}
+              // additionalParams={{ search: "(C)" }}
               withValue
             />
 
@@ -356,7 +355,6 @@ export function ProductionOrderForm({
               name="requested_date"
               label="Fecha Solicitada"
               placeholder="Seleccione fecha"
-              disabledRange={{ after: today }}
             />
 
             <FormField
@@ -366,7 +364,13 @@ export function ProductionOrderForm({
                 <FormItem>
                   <FormLabel>Cantidad Solicitada</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="0.01" placeholder="0.00" {...field} />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      placeholder="0.00"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -389,21 +393,13 @@ export function ProductionOrderForm({
                 <FormItem>
                   <FormLabel>Costo Laboral (S/)</FormLabel>
                   <FormControl>
-                    <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="overhead_cost"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Costo Indirecto (S/)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" min="0" placeholder="0.00" {...field} />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -418,7 +414,11 @@ export function ProductionOrderForm({
                   <FormItem>
                     <FormLabel>Observaciones</FormLabel>
                     <FormControl>
-                      <Textarea rows={3} placeholder="Observaciones adicionales..." {...field} />
+                      <Textarea
+                        rows={3}
+                        placeholder="Observaciones adicionales..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -428,10 +428,14 @@ export function ProductionOrderForm({
           </GroupFormSection>
 
           {/* Componentes */}
-          <GroupFormSection icon={ClipboardList} title="Componentes" cols={{ sm: 1 }}>
+          <GroupFormSection
+            icon={ClipboardList}
+            title="Componentes"
+            cols={{ sm: 1 }}
+          >
             <div className="space-y-4">
               {/* Formulario inline de componentes */}
-              <div className="grid grid-cols-1 md:grid-cols-7 gap-3 items-end border p-3 rounded-lg bg-muted/30">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end border p-3 rounded-lg bg-muted/30">
                 <div className="md:col-span-2">
                   <FormSelectAsync
                     control={componentForm.control}
@@ -444,6 +448,9 @@ export function ProductionOrderForm({
                       label: p.name,
                       description: p.unit_name,
                     })}
+                    additionalParams={{
+                      only_components: 1,
+                    }}
                     onValueChange={(value, item) =>
                       setCurrentComponent((prev) => ({
                         ...prev,
@@ -463,7 +470,10 @@ export function ProductionOrderForm({
                     min="0"
                     value={currentComponent.quantity_required || ""}
                     onChange={(e) =>
-                      setCurrentComponent({ ...currentComponent, quantity_required: parseFloat(e.target.value) || 0 })
+                      setCurrentComponent({
+                        ...currentComponent,
+                        quantity_required: parseFloat(e.target.value) || 0,
+                      })
                     }
                     placeholder="0.00"
                   />
@@ -477,38 +487,12 @@ export function ProductionOrderForm({
                     min="0"
                     value={currentComponent.unit_cost || ""}
                     onChange={(e) =>
-                      setCurrentComponent({ ...currentComponent, unit_cost: parseFloat(e.target.value) || 0 })
+                      setCurrentComponent({
+                        ...currentComponent,
+                        unit_cost: parseFloat(e.target.value) || 0,
+                      })
                     }
                     placeholder="0.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Merma Cant.</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={currentComponent.waste_quantity || ""}
-                    onChange={(e) =>
-                      setCurrentComponent({ ...currentComponent, waste_quantity: parseFloat(e.target.value) || 0 })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Merma %</label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    value={currentComponent.waste_percentage || ""}
-                    onChange={(e) =>
-                      setCurrentComponent({ ...currentComponent, waste_percentage: parseFloat(e.target.value) || 0 })
-                    }
-                    placeholder="0"
                   />
                 </div>
 
@@ -521,11 +505,16 @@ export function ProductionOrderForm({
               {/* Tabla de notas inline cuando hay un componente seleccionado */}
               {currentComponent.component_id && (
                 <div className="px-3">
-                  <label className="text-sm font-medium">Notas del componente</label>
+                  <label className="text-sm font-medium">
+                    Notas del componente
+                  </label>
                   <Input
                     value={currentComponent.notes || ""}
                     onChange={(e) =>
-                      setCurrentComponent({ ...currentComponent, notes: e.target.value })
+                      setCurrentComponent({
+                        ...currentComponent,
+                        notes: e.target.value,
+                      })
                     }
                     placeholder="Notas opcionales..."
                     className="mt-1"
@@ -547,7 +536,11 @@ export function ProductionOrderForm({
           </GroupFormSection>
 
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate(ROUTE)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(ROUTE)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>

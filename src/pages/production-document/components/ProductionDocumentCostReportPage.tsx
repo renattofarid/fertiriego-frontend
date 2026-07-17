@@ -40,14 +40,26 @@ export default function ProductionDocumentCostReportPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const buildParams = useCallback((): CostReportParams => ({
-    ...(dateFrom && { date_from: format(dateFrom, "yyyy-MM-dd") }),
-    ...(dateTo && { date_to: format(dateTo, "yyyy-MM-dd") }),
-    ...(productId && { product_id: Number(productId) }),
-    ...(responsibleId && { responsible_id: Number(responsibleId) }),
-    ...(warehouseOriginId && { warehouse_origin_id: Number(warehouseOriginId) }),
-    ...(warehouseDestId && { warehouse_dest_id: Number(warehouseDestId) }),
-  }), [dateFrom, dateTo, productId, responsibleId, warehouseOriginId, warehouseDestId]);
+  const buildParams = useCallback(
+    (): CostReportParams => ({
+      ...(dateFrom && { date_from: format(dateFrom, "yyyy-MM-dd") }),
+      ...(dateTo && { date_to: format(dateTo, "yyyy-MM-dd") }),
+      ...(productId && { product_id: Number(productId) }),
+      ...(responsibleId && { responsible_id: Number(responsibleId) }),
+      ...(warehouseOriginId && {
+        warehouse_origin_id: Number(warehouseOriginId),
+      }),
+      ...(warehouseDestId && { warehouse_dest_id: Number(warehouseDestId) }),
+    }),
+    [
+      dateFrom,
+      dateTo,
+      productId,
+      responsibleId,
+      warehouseOriginId,
+      warehouseDestId,
+    ],
+  );
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -62,7 +74,8 @@ export default function ProductionDocumentCostReportPage() {
     }
   };
 
-  const { summary, cost_trend, top_components, document_costs } = reportData ?? {};
+  const { summary, cost_trend, top_components, document_costs } =
+    reportData ?? {};
 
   return (
     <FormWrapper>
@@ -106,7 +119,9 @@ export default function ProductionDocumentCostReportPage() {
             useQueryHook={useWorkers}
             mapOptionFn={(w: PersonResource) => ({
               value: w.id.toString(),
-              label: [w.names, w.father_surname, w.mother_surname].filter(Boolean).join(" "),
+              label: [w.names, w.father_surname, w.mother_surname]
+                .filter(Boolean)
+                .join(" "),
             })}
           />
           <SearchableSelectAsync
@@ -128,7 +143,11 @@ export default function ProductionDocumentCostReportPage() {
         </div>
 
         <div className="flex justify-end">
-          <Button onClick={handleGenerate} disabled={isLoading} className="gap-2">
+          <Button
+            onClick={handleGenerate}
+            disabled={isLoading}
+            className="gap-2"
+          >
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -172,7 +191,7 @@ export default function ProductionDocumentCostReportPage() {
               icon={<Percent className="size-4" />}
               label="% Insumos"
               value={`${summary.component_cost_pct.toFixed(2)}%`}
-              subLabel={`M.O. ${summary.labor_cost_pct.toFixed(2)}% · G.G. ${summary.overhead_cost_pct.toFixed(2)}%`}
+              subLabel={`Mano de Obra: ${summary.labor_cost_pct.toFixed(2)}% · Gastos Generales: ${summary.overhead_cost_pct.toFixed(2)}%`}
               color="violet"
             />
           </div>
@@ -195,7 +214,9 @@ export default function ProductionDocumentCostReportPage() {
       {!reportData && !isLoading && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
           <BarChart2 className="size-12 opacity-30" />
-          <p className="text-sm">Aplica filtros y genera el reporte para ver los resultados.</p>
+          <p className="text-sm">
+            Aplica filtros y genera el reporte para ver los resultados.
+          </p>
         </div>
       )}
     </FormWrapper>

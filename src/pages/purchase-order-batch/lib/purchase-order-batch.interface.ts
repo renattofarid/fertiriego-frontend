@@ -131,6 +131,7 @@ export interface LotOrderItemConfig {
   product_id: number;
   product_name: string;
   quantity_requested: string;
+  min_quantity: number;
   unit_price_estimated: string;
   suggestion_reason: string | null;
   urgency_at_creation: string | null;

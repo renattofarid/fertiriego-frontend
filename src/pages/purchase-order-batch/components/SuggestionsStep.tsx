@@ -148,15 +148,19 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
         days: "",
         expected_date: "",
         observations: "",
-        items: lot.items.map((item) => ({
-          product_id: item.product_id,
-          product_name: item.product_name,
-          quantity_requested: String(item.quantity_suggested ?? 1),
-          unit_price_estimated: String(item.unit_price_estimated ?? 0),
-          suggestion_reason: item.suggestion_reason,
-          urgency_at_creation: item.urgency,
-          selected: !!selectedItems[`${lot.supplier_id}-${item.product_id}`],
-        })),
+        items: lot.items.map((item) => {
+          const roundedQuantity = Math.round(item.quantity_suggested ?? 1);
+          return {
+            product_id: item.product_id,
+            product_name: item.product_name,
+            quantity_requested: String(roundedQuantity),
+            min_quantity: roundedQuantity,
+            unit_price_estimated: String(item.unit_price_estimated ?? 0),
+            suggestion_reason: item.suggestion_reason,
+            urgency_at_creation: item.urgency,
+            selected: !!selectedItems[`${lot.supplier_id}-${item.product_id}`],
+          };
+        }),
       }))
       .filter((cfg) => cfg.items.some((i) => i.selected));
 
@@ -341,7 +345,9 @@ export default function SuggestionsStep({ onNext }: SuggestionsStepProps) {
                             </div>
                             <div className="shrink-0 text-right text-sm tabular-nums">
                               <span className="font-medium text-primary">
-                                {item.quantity_suggested ?? "—"}
+                                {item.quantity_suggested != null
+                                  ? Math.round(item.quantity_suggested)
+                                  : "—"}
                               </span>
                               <span className="ml-1 text-xs text-muted-foreground">
                                 und

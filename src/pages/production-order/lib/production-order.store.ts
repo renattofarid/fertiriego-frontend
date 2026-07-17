@@ -88,14 +88,11 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
         quantity_requested: Number(data.quantity_requested),
         currency: data.currency || "PEN",
         labor_cost: data.labor_cost ? Number(data.labor_cost) : 0,
-        overhead_cost: data.overhead_cost ? Number(data.overhead_cost) : 0,
         observations: data.observations || undefined,
         components: data.components.map((c) => ({
           component_id: Number(c.component_id),
           quantity_required: Number(c.quantity_required),
           unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
-          waste_quantity: c.waste_quantity ? Number(c.waste_quantity) : undefined,
-          waste_percentage: c.waste_percentage ? Number(c.waste_percentage) : undefined,
           notes: c.notes || undefined,
         })),
       };
@@ -119,15 +116,12 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
         ...(data.quantity_requested && { quantity_requested: Number(data.quantity_requested) }),
         ...(data.currency !== undefined && { currency: data.currency || "PEN" }),
         ...(data.labor_cost !== undefined && { labor_cost: Number(data.labor_cost) || 0 }),
-        ...(data.overhead_cost !== undefined && { overhead_cost: Number(data.overhead_cost) || 0 }),
         ...(data.observations !== undefined && { observations: data.observations || undefined }),
         ...(data.components && {
           components: data.components.map((c) => ({
             component_id: Number(c.component_id),
             quantity_required: Number(c.quantity_required),
             unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
-            waste_quantity: c.waste_quantity ? Number(c.waste_quantity) : undefined,
-            waste_percentage: c.waste_percentage ? Number(c.waste_percentage) : undefined,
             notes: c.notes || undefined,
           })),
         }),

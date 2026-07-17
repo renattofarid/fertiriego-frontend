@@ -47,15 +47,12 @@ export default function ProductionOrderEditPage() {
     quantity_requested: order.quantity_requested.toString(),
     currency: order.currency || "PEN",
     labor_cost: order.labor_cost.toString(),
-    overhead_cost: order.overhead_cost.toString(),
     observations: order.observations || "",
     components: order.components.map((c) => ({
       component_id: c.component_id.toString(),
       component_name: c.component.name,
       quantity_required: c.quantity_required.toString(),
       unit_cost: c.unit_cost.toString(),
-      waste_quantity: c.waste_quantity.toString(),
-      waste_percentage: c.waste_percentage.toString(),
       notes: c.notes || "",
     })),
   };

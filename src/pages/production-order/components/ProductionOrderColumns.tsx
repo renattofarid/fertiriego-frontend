@@ -68,6 +68,8 @@ export type ProductionOrderColumnCallbacks = {
   onRejectClick?: (id: number) => void;
   onCancel?: (id: number) => void;
   onDelete?: (id: number) => void;
+  canApprove?: boolean;
+  canReject?: boolean;
 };
 
 export const createProductionOrderColumns = (
@@ -141,8 +143,10 @@ export const createProductionOrderColumns = (
       const { id, status, production_document_id } = row.original;
       const canEdit = status === "BORRADOR" || status === "RECHAZADO";
       const canSubmit = status === "BORRADOR" || status === "RECHAZADO";
-      const canApprove = status === "PENDIENTE";
-      const canReject = status === "PENDIENTE";
+      const canApprove =
+        status === "PENDIENTE" && callbacks.canApprove !== false;
+      const canReject =
+        status === "PENDIENTE" && callbacks.canReject !== false;
       const canCancel = status !== "PROCESADO" && status !== "ANULADO";
       const canDelete = status === "BORRADOR" || status === "RECHAZADO";
 

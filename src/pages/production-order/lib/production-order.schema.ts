@@ -16,20 +16,6 @@ export const productionOrderComponentSchema = z.object({
   }, {
     message: "El costo unitario debe ser un número válido",
   }).optional().or(z.literal("")),
-  waste_quantity: z.string().refine((val) => {
-    if (!val) return true;
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed >= 0;
-  }, {
-    message: "La cantidad de merma debe ser un número válido",
-  }).optional().or(z.literal("")),
-  waste_percentage: z.string().refine((val) => {
-    if (!val) return true;
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed >= 0 && parsed <= 100;
-  }, {
-    message: "El porcentaje de merma debe estar entre 0 y 100",
-  }).optional().or(z.literal("")),
   notes: z.string().max(500).optional(),
 });
 
@@ -52,13 +38,6 @@ export const productionOrderSchema = z.object({
     return !isNaN(parsed) && parsed >= 0;
   }, {
     message: "El costo laboral debe ser un número válido",
-  }).optional().or(z.literal("")),
-  overhead_cost: z.string().refine((val) => {
-    if (!val) return true;
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed >= 0;
-  }, {
-    message: "El costo indirecto debe ser un número válido",
   }).optional().or(z.literal("")),
   observations: z.string().max(1000).optional(),
   components: z

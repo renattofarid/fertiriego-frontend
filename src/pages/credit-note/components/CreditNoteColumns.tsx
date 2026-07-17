@@ -130,7 +130,12 @@ export const CreditNoteColumns = ({
       accessorKey: "affects_stock",
       header: "Afecta Stock",
       cell: ({ getValue }) => {
-        const affects = getValue() as boolean;
+        const value = getValue();
+        const affects =
+          value === true ||
+          value === 1 ||
+          value === "1" ||
+          String(value).toLowerCase() === "true";
         return (
           <Badge variant={affects ? "default" : "secondary"}>
             {affects ? "Sí" : "No"}

@@ -21,7 +21,7 @@ import WarehouseProductModal from "@/pages/warehouse-product/components/Warehous
 import AssignClassificationModal from "./AssignClassificationModal";
 import ProductClassificationModal from "./ProductClassificationModal";
 import ProductMetricsModal from "./ProductMetricsModal";
-import type { RowSelectionState } from "@tanstack/react-table";
+import { useProductSelectionStore } from "../lib/productSelection.store";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -35,14 +35,11 @@ export default function ProductPage() {
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [assignStockProductId, setAssignStockProductId] = useState<number | null>(null);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const { rowSelection, setRowSelection, selectedProductIds, clearSelection } =
+    useProductSelectionStore();
   const [assignClassificationOpen, setAssignClassificationOpen] = useState(false);
   const [viewClassificationProductId, setViewClassificationProductId] = useState<number | null>(null);
   const [metricsProductId, setMetricsProductId] = useState<number | null>(null);
-
-  const selectedProductIds = Object.keys(rowSelection)
-    .filter((k) => rowSelection[k])
-    .map(Number);
 
   const { data, isLoading, refetch } = useProduct({
     page,
@@ -55,15 +52,10 @@ export default function ProductPage() {
 
   useEffect(() => {
     setPage(1);
-    setRowSelection({});
-  }, [
-    search,
-    per_page,
-    selectedCategory,
-    selectedBrand,
-    selectedType,
-    refetch,
-  ]);
+    clearSelection();
+  }, [search, per_page, selectedCategory, selectedBrand, selectedType, clearSelection]);
+
+  useEffect(() => clearSelection, [clearSelection]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -170,7 +162,7 @@ export default function ProductPage() {
           onClose={() => setAssignClassificationOpen(false)}
           onSuccess={() => {
             setAssignClassificationOpen(false);
-            setRowSelection({});
+            clearSelection();
             refetch();
           }}
         />

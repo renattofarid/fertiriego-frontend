@@ -8,7 +8,13 @@ import type {
 } from "../lib/production-document-cost-report.interface";
 import { formatCurrency } from "../lib/performance-report.utils";
 
-function ComponentsSubTable({ components, totalCost }: { components: DocumentCostComponent[]; totalCost: number }) {
+function ComponentsSubTable({
+  components,
+  totalCost,
+}: {
+  components: DocumentCostComponent[];
+  totalCost: number;
+}) {
   return (
     <tr>
       <td colSpan={9} className="bg-muted/30 px-6 py-3">
@@ -29,22 +35,38 @@ function ComponentsSubTable({ components, totalCost }: { components: DocumentCos
           </thead>
           <tbody>
             {components.map((comp) => (
-              <tr key={comp.component_id} className="border-b border-muted last:border-0">
+              <tr
+                key={comp.component_id}
+                className="border-b border-muted last:border-0"
+              >
                 <td className="py-1">{comp.component_name}</td>
                 <td className="py-1 text-right">{comp.quantity_used}</td>
                 <td className="py-1 text-right">{comp.unit}</td>
-                <td className="py-1 text-right">S/ {formatCurrency(comp.unit_cost)}</td>
-                <td className="py-1 text-right font-medium">S/ {formatCurrency(comp.total_cost)}</td>
-                <td className="py-1 text-right">{comp.share_of_component_cost.toFixed(2)}%</td>
-                <td className="py-1 text-right">{comp.share_of_total_cost.toFixed(2)}%</td>
+                <td className="py-1 text-right">
+                  S/ {formatCurrency(comp.unit_cost)}
+                </td>
+                <td className="py-1 text-right font-medium">
+                  S/ {formatCurrency(comp.total_cost)}
+                </td>
+                <td className="py-1 text-right">
+                  {comp.share_of_component_cost.toFixed(2)}%
+                </td>
+                <td className="py-1 text-right">
+                  {comp.share_of_total_cost.toFixed(2)}%
+                </td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr className="border-t font-semibold text-muted-foreground">
-              <td colSpan={4} className="pt-1">Total insumos</td>
+              <td colSpan={4} className="pt-1">
+                Total insumos
+              </td>
               <td className="pt-1 text-right">
-                S/ {formatCurrency(components.reduce((s, c) => s + c.total_cost, 0))}
+                S/{" "}
+                {formatCurrency(
+                  components.reduce((s, c) => s + c.total_cost, 0),
+                )}
               </td>
               <td colSpan={2} className="pt-1 text-right text-xs">
                 de S/ {formatCurrency(totalCost)} totales
@@ -78,22 +100,36 @@ function DocumentCostRow({ doc }: { doc: DocumentCost }) {
           </button>
         </td>
         <td className="py-2 px-3 text-sm">{doc.production_date}</td>
-        <td className="py-2 px-3 text-sm max-w-[160px] truncate" title={doc.product.name}>
+        <td
+          className="py-2 px-3 text-sm max-w-[160px] truncate"
+          title={doc.product.name}
+        >
           {doc.product.name}
         </td>
         <td className="py-2 px-3 text-sm text-right">
           {doc.quantity_produced} {doc.product.unit}
         </td>
-        <td className="py-2 px-3 text-sm text-right">S/ {formatCurrency(cb.component_cost)}</td>
-        <td className="py-2 px-3 text-sm text-right">S/ {formatCurrency(cb.labor_cost)}</td>
-        <td className="py-2 px-3 text-sm text-right">S/ {formatCurrency(cb.overhead_cost)}</td>
+        <td className="py-2 px-3 text-sm text-right">
+          S/ {formatCurrency(cb.component_cost)}
+        </td>
+        <td className="py-2 px-3 text-sm text-right">
+          S/ {formatCurrency(cb.labor_cost)}
+        </td>
+        <td className="py-2 px-3 text-sm text-right">
+          S/ {formatCurrency(cb.overhead_cost)}
+        </td>
         <td className="py-2 px-3 text-sm text-right font-semibold">
           S/ {formatCurrency(cb.total_cost)}
         </td>
-        <td className="py-2 px-3 text-sm text-right">S/ {formatCurrency(cb.unit_cost)}</td>
+        <td className="py-2 px-3 text-sm text-right">
+          S/ {formatCurrency(cb.unit_cost)}
+        </td>
       </tr>
       {expanded && doc.components.length > 0 && (
-        <ComponentsSubTable components={doc.components} totalCost={cb.total_cost} />
+        <ComponentsSubTable
+          components={doc.components}
+          totalCost={cb.total_cost}
+        />
       )}
     </>
   );
@@ -103,7 +139,9 @@ interface CostDocumentDetailsTableProps {
   data: DocumentCost[];
 }
 
-export function CostDocumentDetailsTable({ data }: CostDocumentDetailsTableProps) {
+export function CostDocumentDetailsTable({
+  data,
+}: CostDocumentDetailsTableProps) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -120,13 +158,19 @@ export function CostDocumentDetailsTable({ data }: CostDocumentDetailsTableProps
           <table className="w-full text-sm">
             <thead>
               <tr className="text-muted-foreground border-b text-xs bg-muted/30">
-                <th className="text-left py-2 px-3 font-medium">N° Documento</th>
+                <th className="text-left py-2 px-3 font-medium">
+                  N° Documento
+                </th>
                 <th className="text-left py-2 px-3 font-medium">Fecha</th>
                 <th className="text-left py-2 px-3 font-medium">Producto</th>
                 <th className="text-right py-2 px-3 font-medium">Producido</th>
                 <th className="text-right py-2 px-3 font-medium">Insumos</th>
-                <th className="text-right py-2 px-3 font-medium">M.O.</th>
-                <th className="text-right py-2 px-3 font-medium">G.G.</th>
+                <th className="text-right py-2 px-3 font-medium">
+                  Mano de Obra
+                </th>
+                <th className="text-right py-2 px-3 font-medium">
+                  Gastos Generales
+                </th>
                 <th className="text-right py-2 px-3 font-medium">Total</th>
                 <th className="text-right py-2 px-3 font-medium">C. Unit.</th>
               </tr>

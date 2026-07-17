@@ -419,7 +419,6 @@ export function ProductionDocumentForm({
                     form.setValue("responsible_id", order.responsible_id.toString());
                     form.setValue("quantity_produced", order.quantity_requested.toString());
                     form.setValue("labor_cost", order.labor_cost.toString());
-                    form.setValue("overhead_cost", order.overhead_cost.toString());
                     const mapped = order.components.map((c) => ({
                       component_id: c.component_id.toString(),
                       component_name: c.component.name,
