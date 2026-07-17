@@ -164,7 +164,7 @@ export default function ProductionDocumentPerformanceReportPage() {
             <SummaryCard
               icon={<DollarSign className="size-4" />}
               label="Costo Promedio Unitario"
-              value={`S/ ${formatCurrency(summary.avg_unit_production_cost)}`}
+              value={`S/ ${summary.avg_unit_production_cost}`}
               subLabel={`Total: S/ ${formatCurrency(summary.total_production_cost)}`}
               color="amber"
             />

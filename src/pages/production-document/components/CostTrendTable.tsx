@@ -15,7 +15,7 @@ const columns: ColumnDef<CostTrend>[] = [
   },
   {
     accessorKey: "documents_count",
-    header: "Docs",
+    header: "# Documentos",
   },
   {
     accessorKey: "total_qty_produced",
@@ -28,19 +28,21 @@ const columns: ColumnDef<CostTrend>[] = [
   },
   {
     accessorKey: "total_labor_cost",
-    header: "M.O.",
+    header: "Mano de Obra",
     cell: ({ getValue }) => `S/ ${formatCurrency(getValue() as number)}`,
   },
   {
     accessorKey: "total_overhead_cost",
-    header: "G.G.",
+    header: "Gastos Generales",
     cell: ({ getValue }) => `S/ ${formatCurrency(getValue() as number)}`,
   },
   {
     accessorKey: "total_production_cost",
     header: "Total",
     cell: ({ getValue }) => (
-      <span className="font-semibold">S/ {formatCurrency(getValue() as number)}</span>
+      <span className="font-semibold">
+        S/ {formatCurrency(getValue() as number)}
+      </span>
     ),
   },
   {

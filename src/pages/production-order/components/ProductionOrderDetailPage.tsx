@@ -39,6 +39,7 @@ import type {
   ProductionOrderStatus,
 } from "../lib/production-order.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
 
 const statusConfig: Record<
   ProductionOrderStatus,
@@ -105,6 +106,22 @@ export default function ProductionOrderDetailPage() {
     cancelOrder,
     isFinding,
   } = useProductionOrderStore();
+  const { access, user } = useAuthStore();
+
+  const canApprovePermission =
+    user?.rol_id === 1 ||
+    !!access?.find((perm) =>
+      perm.permissions.some((p) =>
+        p.routes.some((r) => r === "aprobar-orden-produccion"),
+      ),
+    );
+  const canRejectPermission =
+    user?.rol_id === 1 ||
+    !!access?.find((perm) =>
+      perm.permissions.some((p) =>
+        p.routes.some((r) => r === "rechazar-orden-produccion"),
+      ),
+    );
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -184,8 +201,8 @@ export default function ProductionOrderDetailPage() {
   const canEdit = order.status === "BORRADOR" || order.status === "RECHAZADO";
   const canDelete = order.status === "BORRADOR" || order.status === "RECHAZADO";
   const canSubmit = order.status === "BORRADOR" || order.status === "RECHAZADO";
-  const canApprove = order.status === "PENDIENTE";
-  const canReject = order.status === "PENDIENTE";
+  const canApprove = order.status === "PENDIENTE" && canApprovePermission;
+  const canReject = order.status === "PENDIENTE" && canRejectPermission;
   const canCancel = order.status !== "PROCESADO" && order.status !== "ANULADO";
 
   const editRoute = ROUTE_UPDATE.replace(":id", id!);
