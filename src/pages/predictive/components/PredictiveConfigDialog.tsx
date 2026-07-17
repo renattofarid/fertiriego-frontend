@@ -13,26 +13,13 @@ import { Loader2, Save } from "lucide-react";
 
 const configSchema = z.object({
   product_id: z.string().optional(),
-  safety_stock_days: z
-    .number({ error: "Requerido" })
-    .int()
-    .min(0)
-    .max(365, "Máximo 365 días"),
+  safety_stock_days: z.number({ error: "Requerido" }).int().min(0),
   sales_velocity_window_days: z
     .number({ error: "Requerido" })
     .int()
-    .min(1, "Mínimo 1 día")
-    .max(365, "Máximo 365 días"),
-  critical_stock_days: z
-    .number({ error: "Requerido" })
-    .int()
-    .min(0)
-    .max(365, "Máximo 365 días"),
-  warning_stock_days: z
-    .number({ error: "Requerido" })
-    .int()
-    .min(0)
-    .max(365, "Máximo 365 días"),
+    .min(1, "Mínimo 1 día"),
+  critical_stock_days: z.number({ error: "Requerido" }).int().min(0),
+  warning_stock_days: z.number({ error: "Requerido" }).int().min(0),
   alerts_enabled: z.boolean(),
 });
 
@@ -106,7 +93,7 @@ export default function PredictiveConfigDialog({ open, onClose }: Props) {
                 label="Días de Stock de Seguridad"
                 type="number"
                 required
-                description="Días mínimos de inventario como colchón de seguridad (0–365)"
+                description="Días mínimos de inventario como colchón de seguridad"
               />
               <FormInput
                 control={form.control}
@@ -114,7 +101,7 @@ export default function PredictiveConfigDialog({ open, onClose }: Props) {
                 label="Ventana de Velocidad de Ventas"
                 type="number"
                 required
-                description="Días históricos para calcular la velocidad de ventas (1–365)"
+                description="Días históricos para calcular la velocidad de ventas"
               />
               <FormInput
                 control={form.control}
@@ -122,7 +109,7 @@ export default function PredictiveConfigDialog({ open, onClose }: Props) {
                 label="Días para Estado Crítico"
                 type="number"
                 required
-                description="Umbral de días restantes para clasificar como crítico (0–365)"
+                description="Umbral de días restantes para clasificar como crítico"
               />
               <FormInput
                 control={form.control}
@@ -130,7 +117,7 @@ export default function PredictiveConfigDialog({ open, onClose }: Props) {
                 label="Días para Advertencia"
                 type="number"
                 required
-                description="Umbral de días restantes para clasificar como advertencia (0–365)"
+                description="Umbral de días restantes para clasificar como advertencia"
               />
             </div>
           </div>

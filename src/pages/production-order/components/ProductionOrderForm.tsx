@@ -448,6 +448,9 @@ export function ProductionOrderForm({
                       label: p.name,
                       description: p.unit_name,
                     })}
+                    additionalParams={{
+                      only_components: 1,
+                    }}
                     onValueChange={(value, item) =>
                       setCurrentComponent((prev) => ({
                         ...prev,
