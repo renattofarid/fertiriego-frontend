@@ -5,8 +5,6 @@ import type { PredictiveAlert, UrgencyLevel } from "../lib/predictive.interface"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BarChart2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { PREDICTIVE_METRICS_ROUTE } from "../lib/predictive.interface";
 import { ColumnActions } from "@/components/SelectActions";
 
 const urgencyConfig: Record<
@@ -18,8 +16,13 @@ const urgencyConfig: Record<
   NORMAL: { label: "Normal", variant: "secondary" },
 };
 
-const MetricsButton = ({ productId }: { productId: number }) => {
-  const navigate = useNavigate();
+const MetricsButton = ({
+  productId,
+  onViewMetrics,
+}: {
+  productId: number;
+  onViewMetrics: (id: number) => void;
+}) => {
   return (
     <ColumnActions>
       <Button
@@ -27,7 +30,7 @@ const MetricsButton = ({ productId }: { productId: number }) => {
         size="icon"
         className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
         title="Ver métricas"
-        onClick={() => navigate(`${PREDICTIVE_METRICS_ROUTE}/${productId}`)}
+        onClick={() => onViewMetrics(productId)}
       >
         <BarChart2 className="h-4 w-4" />
       </Button>
@@ -35,7 +38,9 @@ const MetricsButton = ({ productId }: { productId: number }) => {
   );
 };
 
-export const PredictiveAlertsColumns: ColumnDef<PredictiveAlert>[] = [
+export const PredictiveAlertsColumns = (
+  onViewMetrics: (id: number) => void,
+): ColumnDef<PredictiveAlert>[] => [
   {
     accessorKey: "urgency",
     header: "Urgencia",
@@ -95,6 +100,8 @@ export const PredictiveAlertsColumns: ColumnDef<PredictiveAlert>[] = [
   {
     id: "actions",
     header: "Acciones",
-    cell: ({ row }) => <MetricsButton productId={row.original.product_id} />,
+    cell: ({ row }) => (
+      <MetricsButton productId={row.original.product.id} onViewMetrics={onViewMetrics} />
+    ),
   },
 ];

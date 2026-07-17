@@ -8,6 +8,7 @@ import { PredictiveAlertsColumns } from "./PredictiveAlertsColumns";
 import PredictiveAlertsOptions from "./PredictiveAlertsOptions";
 import PredictiveCalcDialog from "./PredictiveCalcDialog";
 import PredictiveConfigDialog from "./PredictiveConfigDialog";
+import ProductMetricsModal from "@/pages/product/components/ProductMetricsModal";
 import { PREDICTIVE_META } from "../lib/predictive.interface";
 import type { AlertsFilters } from "../lib/predictive.interface";
 import { Play, Settings } from "lucide-react";
@@ -18,6 +19,7 @@ export default function PredictivePage() {
   const [filters, setFilters] = useState<AlertsFilters>({});
   const [showCalc, setShowCalc] = useState(false);
   const [showConfig, setShowConfig] = useState(false);
+  const [metricsProductId, setMetricsProductId] = useState<number | null>(null);
 
   const { data, isLoading } = usePredictiveAlerts(filters);
   const { data: warehouses = [] } = useAllWarehouses();
@@ -53,7 +55,7 @@ export default function PredictivePage() {
       </div>
 
       <DataTable
-        columns={PredictiveAlertsColumns}
+        columns={PredictiveAlertsColumns(setMetricsProductId)}
         data={data?.data ?? []}
         isLoading={isLoading}
       >
@@ -79,6 +81,14 @@ export default function PredictivePage() {
         open={showConfig}
         onClose={() => setShowConfig(false)}
       />
+
+      {metricsProductId !== null && (
+        <ProductMetricsModal
+          open={true}
+          productId={metricsProductId}
+          onClose={() => setMetricsProductId(null)}
+        />
+      )}
     </div>
   );
 }

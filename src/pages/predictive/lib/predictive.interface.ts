@@ -20,20 +20,24 @@ export const PREDICTIVE_META = {
 export type UrgencyLevel = "CRITICO" | "ADVERTENCIA" | "NORMAL";
 
 export interface PredictiveAlert {
-  id: number;
-  product_id: number;
-  product_name: string;
-  supplier_id?: number | null;
-  supplier_name?: string | null;
-  warehouse_id: number;
-  warehouse_name: string;
-  urgency: UrgencyLevel;
-  message?: string;
-  days_of_inventory_remaining: number;
+  product: {
+    id: number;
+    name: string;
+  };
   current_stock: number;
+  incoming_stock: number;
+  sales_velocity_daily: number;
+  sales_velocity_window_days: number;
+  lead_time_days: number;
+  safety_stock_units: number;
+  days_of_inventory_remaining: number;
   reorder_point: number;
   suggested_purchase_qty: number;
-  created_at?: string;
+  urgency: UrgencyLevel;
+  preferred_supplier?: {
+    id: number;
+    name: string;
+  } | null;
 }
 
 export interface AlertsResponse {
