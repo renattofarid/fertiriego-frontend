@@ -20,6 +20,7 @@ import type {
   SalePaymentResourceById,
   CreateSalePaymentRequest,
   UpdateSalePaymentRequest,
+  SaleStatisticsResponse,
 } from "./sale.interface";
 import {
   SALE_ENDPOINT,
@@ -67,6 +68,27 @@ export const getAllSales = async (): Promise<SaleResource[]> => {
   const response = await api.get<SaleResource[]>(SALE_ENDPOINT, {
     params: { all: true },
   });
+  return response.data;
+};
+
+export const getSalesInRange = async (
+  from: string,
+  to: string,
+): Promise<SaleResource[]> => {
+  const response = await api.get<SaleResource[]>(SALE_ENDPOINT, {
+    params: { all: true, from, to },
+  });
+  return response.data;
+};
+
+export const getSaleStatistics = async (
+  from: string,
+  to: string,
+): Promise<SaleStatisticsResponse> => {
+  const response = await api.get<SaleStatisticsResponse>(
+    `${SALE_ENDPOINT}/statistics`,
+    { params: { from, to } },
+  );
   return response.data;
 };
 

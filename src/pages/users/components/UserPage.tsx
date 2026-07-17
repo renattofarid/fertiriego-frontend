@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PageSkeleton from "@/components/PageSkeleton";
 import TitleComponent from "@/components/TitleComponent";
 import UserOptions from "./UserOptions";
 import UserTable from "./UserTable";
@@ -38,7 +37,12 @@ export default function UserPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [search, per_page]);
+  }, [search]);
+
+  const handlePerPageChange = (newPerPage: number) => {
+    setPage(1);
+    setPerPage(newPerPage);
+  };
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -56,9 +60,13 @@ export default function UserPage() {
     }
   };
 
+  const handleCloseModal = () => {
+    setEditId(null);
+    refetch();
+  };
+
   // make pagination of 10 in data
 
-  if (isLoading) return <PageSkeleton />;
   // if (!checkRouteExists("Users")) notFound();
   // if (!data) NotFound();
 
@@ -86,7 +94,7 @@ export default function UserPage() {
         totalPages={data?.meta?.last_page || 1}
         onPageChange={setPage}
         per_page={per_page}
-        setPerPage={setPerPage}
+        setPerPage={handlePerPageChange}
         totalData={data?.meta?.total || 0}
       />
 
@@ -95,7 +103,7 @@ export default function UserPage() {
         <UserModal
           id={editId}
           open={true}
-          onClose={() => setEditId(null)}
+          onClose={() => handleCloseModal()}
           title={MODEL.name}
           mode="edit"
         />

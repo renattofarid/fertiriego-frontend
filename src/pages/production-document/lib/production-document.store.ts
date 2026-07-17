@@ -115,6 +115,9 @@ export const useProductionDocumentStore = create<ProductionDocumentStore>(
           product_id: Number(data.product_id),
           user_id: Number(data.user_id),
           responsible_id: Number(data.responsible_id),
+          ...(data.production_order_id && {
+            production_order_id: Number(data.production_order_id),
+          }),
           production_date: data.production_date,
           quantity_produced: Number(data.quantity_produced),
           labor_cost: Number(data.labor_cost),

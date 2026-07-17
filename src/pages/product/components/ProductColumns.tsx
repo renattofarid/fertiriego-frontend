@@ -2,20 +2,44 @@ import type { ProductResource } from "../lib/product.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
-import { Eye, FileText, Image, Pencil, ShoppingCart } from "lucide-react";
+import { BrainCircuit, Eye, FileText, Image, Pencil, ShoppingCart, Tags } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const ProductColumns = ({
   onEdit,
   onDelete,
   onView,
   onAssignStock,
+  onViewClassification,
+  onViewMetrics,
 }: {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onView: (id: number) => void;
   onAssignStock?: (id: number) => void;
+  onViewClassification?: (id: number) => void;
+  onViewMetrics?: (id: number) => void;
 }): ColumnDef<ProductResource>[] => [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected()}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Seleccionar todo"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Seleccionar fila"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "name",
     header: "Nombre",
@@ -135,6 +159,18 @@ export const ProductColumns = ({
             icon={ShoppingCart}
             tooltip="Asignar Stock"
             canRender={!!onAssignStock}
+          />
+          <ButtonAction
+            onClick={() => onViewClassification?.(id)}
+            icon={Tags}
+            tooltip="Ver Clasificación"
+            canRender={!!onViewClassification}
+          />
+          <ButtonAction
+            onClick={() => onViewMetrics?.(id)}
+            icon={BrainCircuit}
+            tooltip="Ver Métricas Predictivas"
+            canRender={!!onViewMetrics}
           />
           <DeleteButton onClick={() => onDelete(id)} />
         </div>
