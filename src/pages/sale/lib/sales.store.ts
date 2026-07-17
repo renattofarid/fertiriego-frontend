@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { roundTo8 } from "@/lib/saleCalculations";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { useWarehouseStore } from "@/pages/warehouse/lib/warehouse.store";
 import type {
   SaleResource,
   CreateSaleRequest,
@@ -31,6 +32,18 @@ const getAuthenticatedBranchHasIgv = () =>
   useAuthStore
     .getState()
     .user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
+
+const getWarehouseHasIgv = (warehouseId?: number) => {
+  if (warehouseId) {
+    const warehouse = useWarehouseStore
+      .getState()
+      .allWarehouses?.find((w) => w.id === warehouseId);
+    if (warehouse?.branch?.has_igv !== undefined) {
+      return Number(warehouse.branch.has_igv) === 1;
+    }
+  }
+  return getAuthenticatedBranchHasIgv();
+};
 
 interface SaleStore {
   // State
@@ -107,7 +120,7 @@ export const useSaleStore = create<SaleStore>((set) => ({
   createSale: async (data: SaleSchema) => {
     set({ isSubmitting: true, error: undefined });
     try {
-      const hasIgv = getAuthenticatedBranchHasIgv();
+      const hasIgv = getWarehouseHasIgv(Number(data.warehouse_id));
       const taxMultiplier = hasIgv ? 1.18 : 1;
       const request: CreateSaleRequest = {
         customer_id: Number(data.customer_id),
@@ -155,7 +168,9 @@ export const useSaleStore = create<SaleStore>((set) => ({
   updateSale: async (id: number, data: Partial<SaleUpdateSchema>) => {
     set({ isSubmitting: true, error: undefined });
     try {
-      const hasIgv = getAuthenticatedBranchHasIgv();
+      const hasIgv = getWarehouseHasIgv(
+        data.warehouse_id ? Number(data.warehouse_id) : undefined,
+      );
       const taxMultiplier = hasIgv ? 1.18 : 1;
       const request: UpdateSaleRequest = {
         ...(data.customer_id && { customer_id: Number(data.customer_id) }),

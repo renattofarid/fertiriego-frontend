@@ -315,10 +315,16 @@ export const OrderForm = ({
       }
       form.setValue("observations", quotation.observations || "");
 
-      const quotationWarehouseHasIgvValue = quotation.warehouse?.branch?.has_igv;
+      
+      const quotationWarehouseFromList = warehousesList.find(
+        (warehouse) => warehouse.id.toString() === quotation.warehouse_id?.toString(),
+      );
+      const quotationWarehouseHasIgvValue =
+        quotationWarehouseFromList?.branch?.has_igv ??
+        quotation.warehouse?.branch?.has_igv;
       const quotationHasIgv =
         quotationWarehouseHasIgvValue === undefined
-          ? hasIgv
+          ? true
           : quotationWarehouseHasIgvValue === true ||
             Number(quotationWarehouseHasIgvValue) === 1 ||
             String(quotationWarehouseHasIgvValue).toLowerCase() === "true";
