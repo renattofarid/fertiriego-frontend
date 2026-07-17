@@ -33,6 +33,7 @@ interface OrderSummaryProps {
   calculateDetailsTotal: () => number;
   onCancel?: () => void;
   tipoCambio?: string;
+  hasIgv?: boolean;
 }
 
 export function OrderSummary({
@@ -47,6 +48,7 @@ export function OrderSummary({
   calculateDetailsTotal,
   onCancel,
   tipoCambio,
+  hasIgv = true,
 }: OrderSummaryProps) {
   const customerWatch = form.watch("customer_id");
   const warehouseWatch = form.watch("warehouse_id");
@@ -219,12 +221,14 @@ export function OrderSummary({
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">IGV (18%)</span>
-              <span className="font-medium">
-                {currencySymbol} {formatNumber(calculateTaxTotal())}
-              </span>
-            </div>
+            {hasIgv && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">IGV (18%)</span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(calculateTaxTotal())}
+                </span>
+              </div>
+            )}
 
             <Separator className="bg-primary/20" />
 

@@ -28,6 +28,7 @@ interface AddProductSheetProps {
   editingIndex?: number;
   onEdit?: (detail: ProductDetail, index: number) => void;
   currency?: string;
+  hasIgv?: boolean;
 }
 
 export interface ProductDetail {
@@ -35,7 +36,7 @@ export interface ProductDetail {
   product_name: string;
   is_igv: boolean;
   quantity: string;
-  unit_price: string; // CON IGV si is_igv=true, SIN IGV si is_igv=false
+  unit_price: string; // Siempre precio SIN IGV
   unit_price_igv: string; // Siempre precio CON IGV
   purchase_price: string;
   description?: string;
@@ -53,8 +54,10 @@ export const AddProductSheet = ({
   editingIndex,
   onEdit,
   currency = "PEN",
+  hasIgv = true,
 }: AddProductSheetProps) => {
   const isEditMode = editingDetail !== null;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
   const form = useForm({
     defaultValues: {
       product_id: "",
@@ -121,9 +124,9 @@ export const AddProductSheet = ({
         }
 
         if (priceValue.toString() !== lastSetPrice) {
-          fullPrecisionUnitValue.current = priceValue / 1.18;
+          fullPrecisionUnitValue.current = priceValue / taxMultiplier;
           form.setValue("unit_price", formatNumber(priceValue));
-          form.setValue("unit_value", formatNumber(priceValue / 1.18));
+          form.setValue("unit_value", formatNumber(priceValue / taxMultiplier));
           setLastSetPrice(priceValue.toString());
         }
       }
@@ -143,16 +146,16 @@ export const AddProductSheet = ({
         let igvPrice = parseFloat(editingDetail.unit_price_igv) || 0;
         if (igvPrice === 0) {
           const basePrice = parseFloat(editingDetail.unit_price) || 0;
-          igvPrice = editingDetail.is_igv ? basePrice : roundTo8(basePrice * 1.18);
+          igvPrice = editingDetail.is_igv ? basePrice : roundTo8(basePrice * taxMultiplier);
         }
         const unitPriceField = igvPrice > 0 ? String(igvPrice) : "";
-        const unitValueField = igvPrice > 0 ? formatNumber(igvPrice / 1.18) : "";
-        fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / 1.18 : null;
+        const unitValueField = igvPrice > 0 ? formatNumber(igvPrice / taxMultiplier) : "";
+        fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / taxMultiplier : null;
 
         form.reset({
           product_id: editingDetail.product_id,
           price_category_id: "",
-          is_igv: editingDetail.is_igv,
+          is_igv: hasIgv && editingDetail.is_igv,
           quantity: editingDetail.quantity,
           unit_value: unitValueField,
           unit_price: unitPriceField,
@@ -188,8 +191,8 @@ export const AddProductSheet = ({
 
     if (qty > 0 && price > 0) {
       // Usar precisión completa (sin roundTo8) para evitar errores de redondeo en el total
-      const vUnit = price / 1.18;
-      const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit);
+      const vUnit = price / taxMultiplier;
+      const { total, subtotal, igv: tax } = calcItemAmounts(qty, vUnit, hasIgv);
       setCalculatedValues({ subtotal, tax, total });
     } else {
       setCalculatedValues({ subtotal: 0, tax: 0, total: 0 });
@@ -218,7 +221,7 @@ export const AddProductSheet = ({
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: formData.is_igv,
+      is_igv: hasIgv && isIgv,
       quantity: formData.quantity,
       unit_price: sentUnitPrice,
       unit_price_igv: sentUnitPriceIgv,
@@ -353,28 +356,30 @@ export const AddProductSheet = ({
           />
         </div>
 
-        <FormSwitch
-          control={form.control}
-          name="is_igv"
-          text="Precio incluye IGV"
-          textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
-          autoHeight
-        />
+        {hasIgv && (
+          <FormSwitch
+            control={form.control}
+            name="is_igv"
+            text="Precio incluye IGV"
+            textDescription="Activo: el valor ingresado es el precio con IGV. Inactivo: es el valor sin IGV."
+            autoHeight
+          />
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <FormInput
             control={form.control}
             name="unit_value"
-            label="Valor Unitario (sin IGV)"
+            label={hasIgv ? "Valor Unitario (sin IGV)" : "Valor Unitario"}
             type="number"
             step="0.0001"
             placeholder="0.00"
-            className={isIgv ? "border-dashed opacity-60" : "border-primary"}
+            className={hasIgv && isIgv ? "border-dashed opacity-60" : "border-primary"}
             onAfterChange={(val) => {
               const v = parseFloat(String(val));
               if (!isNaN(v) && v > 0) {
                 fullPrecisionUnitValue.current = v;
-                form.setValue("unit_price", formatNumber(v * 1.18));
+                form.setValue("unit_price", formatNumber(v * taxMultiplier));
               } else if (val === "") {
                 fullPrecisionUnitValue.current = null;
                 form.setValue("unit_price", "");
@@ -385,16 +390,16 @@ export const AddProductSheet = ({
           <FormInput
             control={form.control}
             name="unit_price"
-            label="Precio Unitario (con IGV)"
+            label={hasIgv ? "Precio Unitario (con IGV)" : "Precio Unitario"}
             type="number"
             step="0.0001"
             placeholder="0.00"
-            className={!isIgv ? "border-dashed opacity-60" : "border-primary"}
+            className={hasIgv && !isIgv ? "border-dashed opacity-60" : "border-primary"}
             onAfterChange={(val) => {
               const p = parseFloat(String(val));
               if (!isNaN(p) && p > 0) {
-                fullPrecisionUnitValue.current = p / 1.18;
-                form.setValue("unit_value", formatNumber(p / 1.18));
+                fullPrecisionUnitValue.current = p / taxMultiplier;
+                form.setValue("unit_value", formatNumber(p / taxMultiplier));
               } else if (val === "") {
                 fullPrecisionUnitValue.current = null;
                 form.setValue("unit_value", "");
@@ -419,13 +424,15 @@ export const AddProductSheet = ({
                 {calculatedValues.subtotal.toFixed(4)}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>IGV (18%):</span>
-              <span className="font-medium">
-                {currency === "USD" ? "$" : currency === "EUR" ? "€" : "S/"}{" "}
-                {calculatedValues.tax.toFixed(4)}
-              </span>
-            </div>
+            {hasIgv && (
+              <div className="flex justify-between text-sm">
+                <span>IGV (18%):</span>
+                <span className="font-medium">
+                  {currency === "USD" ? "$" : currency === "EUR" ? "â‚¬" : "S/"}{" "}
+                  {calculatedValues.tax.toFixed(4)}
+                </span>
+              </div>
+            )}
             <div className="flex justify-between text-base font-bold pt-2 border-t">
               <span>Total:</span>
               <span>

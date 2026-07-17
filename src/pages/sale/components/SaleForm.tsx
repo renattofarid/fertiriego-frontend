@@ -105,6 +105,8 @@ interface DetailRow {
   subtotal: number;
   igv: number;
   total: number;
+  stock?: number;
+  is_stock?: boolean;
 }
 
 interface InstallmentRow {
@@ -130,7 +132,7 @@ const useRemissionGuidesByNumber = (params: GetGuidesParams = {}) => {
 
   return useGuides({
     ...rest,
-    ...(numberSearch ? { numero: numberSearch } : {}),
+    ...(numberSearch ? { full_guide_number: numberSearch } : {}),
   });
 };
 
@@ -141,7 +143,7 @@ const useCarrierGuidesByNumber = (
   const numberSearch = search?.trim();
   const { data, meta, isLoading, error, refetch } = useShippingGuideCarriers({
     ...rest,
-    ...(numberSearch ? { numero: numberSearch } : {}),
+    ...(numberSearch ? { full_guide_number: numberSearch } : {}),
   });
 
   return {
@@ -660,6 +662,8 @@ export const SaleForm = ({
                 subtotal,
                 igv,
                 total,
+                stock: detail.stock,
+                is_stock: detail.is_stock,
               };
             },
           );
@@ -1614,7 +1618,21 @@ export const SaleForm = ({
                     {details.map((detail, index) => (
                       <TableRow key={index}>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{detail.product_name}</TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div>{detail.product_name}</div>
+                            {typeof detail.is_stock === "boolean" && (
+                              <Badge
+                                variant={detail.is_stock ? "green" : "red"}
+                                className="text-xs"
+                              >
+                                {detail.is_stock
+                                  ? "Stock: " + formatNumber(detail.stock ?? 0, 0)
+                                  : "Sin stock"}
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           {formatQuantityWithUnit(
                             Number(detail.quantity),

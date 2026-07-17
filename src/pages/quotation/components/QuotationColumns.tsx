@@ -103,7 +103,15 @@ export const getQuotationColumns = ({
     cell: ({ row }) => (
       <Badge variant="outline">
         {row.original.quotation_details
-          .reduce((sum, detail) => sum + parseFloat(detail.total), 0)
+          .reduce((sum, detail) => {
+            const quantity = parseFloat(detail.quantity || "0");
+            const unitPriceIgv = parseFloat(detail.unit_price_igv || "0");
+            const detailTotal =
+              unitPriceIgv > 0
+                ? quantity * unitPriceIgv
+                : parseFloat(detail.total || "0");
+            return sum + detailTotal;
+          }, 0)
           .toFixed(2)}
       </Badge>
     ),

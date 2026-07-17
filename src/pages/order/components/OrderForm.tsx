@@ -9,7 +9,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { roundTo4, roundTo8 } from "@/lib/saleCalculations";
+import { calcItemAmounts, roundTo4, roundTo8 } from "@/lib/saleCalculations";
 import { formatQuantityWithUnit, getDetailQuantityUnit } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,6 +89,8 @@ export const OrderForm = ({
   order,
 }: OrderFormProps) => {
   const { user } = useAuthStore();
+  const authenticatedBranchHasIgv =
+    user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
   const [details, setDetails] = useState<DetailRow[]>([]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editingDetail, setEditingDetail] = useState<ProductDetail | null>(
@@ -133,6 +135,18 @@ export const OrderForm = ({
       tipo_cambio: "",
     },
   });
+
+  const selectedWarehouseId = form.watch("warehouse_id");
+  const selectedWarehouse = selectedWarehouseId
+    ? warehousesList.find((warehouse) => warehouse.id.toString() === selectedWarehouseId)
+    : undefined;
+  const hasIgv =
+    selectedWarehouse?.branch?.has_igv !== undefined
+      ? Number(selectedWarehouse.branch.has_igv) === 1
+      : selectedWarehouseId
+        ? true
+        : authenticatedBranchHasIgv;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
 
   const watchedOrderDate = form.watch("order_date");
   const [tipoCambioError, setTipoCambioError] = useState<string>("");
@@ -203,18 +217,37 @@ export const OrderForm = ({
   useEffect(() => {
     if (mode === "edit" && order && order.order_details) {
       const orderDetails: DetailRow[] = order.order_details.map(
-        (detail: any) => ({
-          product_id: detail.product_id.toString(),
-          product_name: detail.product?.name || "Producto",
-          is_igv: detail.is_igv,
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
-          unit_price_igv: detail.unit_price_igv,
-          purchase_price: detail.purchase_price,
-          subtotal: parseFloat(detail.subtotal),
-          tax: parseFloat(detail.tax),
-          total: parseFloat(detail.total),
-        }),
+        (detail: any) => {
+          const quantity = parseFloat(detail.quantity);
+          const rawUnitPrice = parseFloat(detail.unit_price) || 0;
+          const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+          const effectiveUnitPrice =
+            hasIgv && rawUnitPriceIgv > rawUnitPrice
+              ? rawUnitPrice
+              : hasIgv && rawUnitPriceIgv > 0
+                ? roundTo8(rawUnitPriceIgv / taxMultiplier)
+                : hasIgv && detail.is_igv
+                  ? roundTo8(rawUnitPrice / taxMultiplier)
+                  : rawUnitPrice;
+          const effectiveUnitPriceIgv = hasIgv
+            ? rawUnitPriceIgv > 0
+              ? rawUnitPriceIgv
+              : roundTo8(effectiveUnitPrice * taxMultiplier)
+            : effectiveUnitPrice;
+          const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product?.name || "Producto",
+            is_igv: hasIgv && amounts.igv > 0,
+            quantity: detail.quantity,
+            unit_price: effectiveUnitPrice.toString(),
+            unit_price_igv: effectiveUnitPriceIgv.toString(),
+            purchase_price: detail.purchase_price,
+            subtotal: amounts.subtotal,
+            tax: amounts.igv,
+            total: amounts.total,
+          };
+        },
       );
       setDetails(orderDetails);
 
@@ -246,7 +279,7 @@ export const OrderForm = ({
         setPreloadCustomerId(order.customer_id.toString());
       }
     }
-  }, [mode, order, form]);
+  }, [mode, order, form, hasIgv, taxMultiplier]);
 
   const handleQuotationChange = (
     _value: string,
@@ -282,19 +315,46 @@ export const OrderForm = ({
       }
       form.setValue("observations", quotation.observations || "");
 
+      const quotationWarehouseHasIgvValue = quotation.warehouse?.branch?.has_igv;
+      const quotationHasIgv =
+        quotationWarehouseHasIgvValue === undefined
+          ? hasIgv
+          : quotationWarehouseHasIgvValue === true ||
+            Number(quotationWarehouseHasIgvValue) === 1 ||
+            String(quotationWarehouseHasIgvValue).toLowerCase() === "true";
+      const quotationTaxMultiplier = quotationHasIgv ? 1.18 : 1;
       const quotationDetails: DetailRow[] = quotation.quotation_details.map(
-        (detail) => ({
-          product_id: detail.product_id.toString(),
-          product_name: detail.product.name,
-          is_igv: detail.is_igv,
-          quantity: detail.quantity,
-          unit_price: detail.unit_price,
-          unit_price_igv: detail.unit_price_igv,
-          purchase_price: detail.purchase_price,
-          subtotal: parseFloat(detail.subtotal),
-          tax: parseFloat(detail.tax),
-          total: parseFloat(detail.total),
-        }),
+        (detail) => {
+          const quantity = parseFloat(detail.quantity);
+          const rawUnitPrice = parseFloat(detail.unit_price) || 0;
+          const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+          const effectiveUnitPrice =
+            quotationHasIgv && rawUnitPriceIgv > rawUnitPrice
+              ? rawUnitPrice
+              : quotationHasIgv && rawUnitPriceIgv > 0
+                ? roundTo8(rawUnitPriceIgv / quotationTaxMultiplier)
+                : quotationHasIgv && detail.is_igv
+                  ? roundTo8(rawUnitPrice / quotationTaxMultiplier)
+                  : rawUnitPrice;
+          const effectiveUnitPriceIgv = quotationHasIgv
+            ? rawUnitPriceIgv > 0
+              ? rawUnitPriceIgv
+              : roundTo8(effectiveUnitPrice * quotationTaxMultiplier)
+            : effectiveUnitPrice;
+          const amounts = calcItemAmounts(quantity, effectiveUnitPrice, quotationHasIgv);
+          return {
+            product_id: detail.product_id.toString(),
+            product_name: detail.product.name,
+            is_igv: quotationHasIgv && amounts.igv > 0,
+            quantity: detail.quantity,
+            unit_price: effectiveUnitPrice.toString(),
+            unit_price_igv: effectiveUnitPriceIgv.toString(),
+            purchase_price: detail.purchase_price,
+            subtotal: amounts.subtotal,
+            tax: amounts.igv,
+            total: amounts.total,
+          };
+        },
       );
 
       setDetails(quotationDetails);
@@ -305,7 +365,7 @@ export const OrderForm = ({
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -327,7 +387,7 @@ export const OrderForm = ({
     const productDetail: ProductDetail = {
       product_id: detail.product_id,
       product_name: detail.product_name || "",
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -345,7 +405,7 @@ export const OrderForm = ({
     const newDetail: DetailRow = {
       product_id: detail.product_id,
       product_name: detail.product_name,
-      is_igv: detail.is_igv,
+      is_igv: hasIgv && detail.is_igv,
       quantity: detail.quantity,
       unit_price: detail.unit_price,
       unit_price_igv: detail.unit_price_igv,
@@ -400,19 +460,34 @@ export const OrderForm = ({
       order_details: details.map((detail) => {
         const rawUnitPrice = parseFloat(detail.unit_price) || 0;
         const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+        const quantity = parseFloat(detail.quantity);
         const effectiveUnitPriceIgv =
-          rawUnitPriceIgv > 0
+          hasIgv && rawUnitPriceIgv > 0
             ? rawUnitPriceIgv
-            : detail.is_igv
+            : hasIgv && detail.is_igv
               ? rawUnitPrice
-              : roundTo8(rawUnitPrice * 1.18);
+              : hasIgv
+                ? roundTo8(rawUnitPrice * taxMultiplier)
+                : rawUnitPrice;
+        const effectiveUnitPrice =
+          hasIgv && rawUnitPriceIgv > 0
+            ? roundTo8(rawUnitPriceIgv / taxMultiplier)
+            : hasIgv && detail.is_igv
+              ? roundTo8(rawUnitPrice / taxMultiplier)
+              : hasIgv
+                ? roundTo8(rawUnitPrice)
+                : roundTo8(effectiveUnitPriceIgv);
+        const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          is_igv: detail.is_igv,
-          quantity: parseFloat(detail.quantity),
-          unit_price: roundTo8(rawUnitPrice),
+          is_igv: hasIgv && amounts.igv > 0,
+          quantity,
+          unit_price: effectiveUnitPrice,
           unit_price_igv: roundTo8(effectiveUnitPriceIgv),
           purchase_price: parseFloat(detail.purchase_price),
+          subtotal: amounts.subtotal,
+          tax: amounts.igv,
+          total: amounts.total,
         };
       }),
     };
@@ -421,7 +496,7 @@ export const OrderForm = ({
   };
 
   const getTotalAmount = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+    return roundTo4(details.reduce((sum, detail) => sum + (hasIgv ? detail.total : detail.subtotal), 0));
   };
 
   const calculateSubtotalTotal = () => {
@@ -429,11 +504,11 @@ export const OrderForm = ({
   };
 
   const calculateTaxTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0));
+    return hasIgv ? roundTo4(details.reduce((sum, detail) => sum + detail.tax, 0)) : 0;
   };
 
   const calculateDetailsTotal = () => {
-    return roundTo4(details.reduce((sum, detail) => sum + detail.total, 0));
+    return roundTo4(details.reduce((sum, detail) => sum + (hasIgv ? detail.total : detail.subtotal), 0));
   };
 
   // Obtener precio CON IGV efectivo para mostrar en tabla (fallback a unit_price cuando unit_price_igv=0)
@@ -441,7 +516,7 @@ export const OrderForm = ({
     const priceIgv = parseFloat(detail.unit_price_igv) || 0;
     if (priceIgv > 0) return priceIgv;
     const basePrice = parseFloat(detail.unit_price) || 0;
-    return detail.is_igv ? basePrice : basePrice * 1.18;
+    return detail.is_igv ? basePrice : basePrice * taxMultiplier;
   };
 
   return (
@@ -666,9 +741,9 @@ export const OrderForm = ({
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead className="text-right">V. Unitario</TableHead>
                     <TableHead className="text-right">P. Unitario</TableHead>
-                    <TableHead className="text-center">IGV</TableHead>
+                    {hasIgv && <TableHead className="text-center">IGV</TableHead>}
                     <TableHead className="text-right">Subtotal</TableHead>
-                    <TableHead className="text-right">IGV</TableHead>
+                    {hasIgv && <TableHead className="text-right">IGV</TableHead>}
                     <TableHead className="text-right">Total</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
@@ -685,26 +760,30 @@ export const OrderForm = ({
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {(getDisplayPriceIgv(detail) / 1.18).toFixed(4)}
+                        {(getDisplayPriceIgv(detail) / taxMultiplier).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-right">
                         {getDisplayPriceIgv(detail).toFixed(4)}
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Badge
-                          variant={detail.is_igv ? "default" : "secondary"}
-                        >
-                          {detail.is_igv ? "Sí" : "No"}
-                        </Badge>
-                      </TableCell>
+                      {hasIgv && (
+                        <TableCell className="text-center">
+                          <Badge
+                            variant={detail.is_igv ? "default" : "secondary"}
+                          >
+                            {detail.is_igv ? "Si" : "No"}
+                          </Badge>
+                        </TableCell>
+                      )}
                       <TableCell className="text-right">
                         {detail.subtotal.toFixed(4)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        {detail.tax.toFixed(4)}
-                      </TableCell>
+                      {hasIgv && (
+                        <TableCell className="text-right">
+                          {detail.tax.toFixed(4)}
+                        </TableCell>
+                      )}
                       <TableCell className="text-right font-semibold">
-                        {detail.total.toFixed(4)}
+                        {(hasIgv ? detail.total : detail.subtotal).toFixed(4)}
                       </TableCell>
                       <TableCell className="text-center">
                         <div className="flex gap-1 justify-center">
@@ -727,7 +806,7 @@ export const OrderForm = ({
                     </TableRow>
                   ))}
                   <TableRow>
-                    <TableCell colSpan={7} className="text-right font-bold">
+                    <TableCell colSpan={hasIgv ? 7 : 5} className="text-right font-bold">
                       Total General:
                     </TableCell>
                     <TableCell className="text-right font-bold text-lg">
@@ -748,6 +827,7 @@ export const OrderForm = ({
             editingDetail={editingDetail}
             editingIndex={editingIndex}
             currency={form.watch("currency")}
+            hasIgv={hasIgv}
           />
         </div>
 
@@ -761,6 +841,7 @@ export const OrderForm = ({
           calculateSubtotalTotal={calculateSubtotalTotal}
           calculateTaxTotal={calculateTaxTotal}
           calculateDetailsTotal={calculateDetailsTotal}
+          hasIgv={hasIgv}
           onCancel={onCancel}
           tipoCambio={form.watch("tipo_cambio") || ""}
         />
@@ -782,3 +863,4 @@ export const OrderForm = ({
     </Form>
   );
 };
+

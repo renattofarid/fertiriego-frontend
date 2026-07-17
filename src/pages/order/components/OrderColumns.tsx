@@ -119,7 +119,15 @@ export const getOrderColumns = ({
     header: "Total",
     cell: ({ row }) => {
       const total = row.original.order_details.reduce(
-        (sum, detail) => sum + parseFloat(detail.total || "0"),
+        (sum, detail) => {
+          const quantity = parseFloat(detail.quantity || "0");
+          const unitPriceIgv = parseFloat(detail.unit_price_igv || "0");
+          const detailTotal =
+            unitPriceIgv > 0
+              ? quantity * unitPriceIgv
+              : parseFloat(detail.total || "0");
+          return sum + detailTotal;
+        },
         0,
       );
       return (
