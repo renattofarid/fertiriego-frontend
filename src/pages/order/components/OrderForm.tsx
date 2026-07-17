@@ -238,10 +238,6 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "Producto",
-            // Se preserva el is_igv real del detalle (qué campo se usó como
-            // fuente al cargarlo), no se deriva de amounts.igv > 0 — eso
-            // siempre da true cuando el documento tiene IGV, sin importar si
-            // el producto se cargó como "sin IGV" o "con IGV".
             is_igv: hasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
@@ -355,8 +351,6 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product.name,
-            // Igual formato que en la cotización: se conserva el is_igv del
-            // detalle original en vez de forzarlo por amounts.igv > 0.
             is_igv: quotationHasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
@@ -492,8 +486,6 @@ export const OrderForm = ({
         const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          // Se manda el is_igv que ya traía el detalle (seteado por el sheet
-          // de agregar/editar producto), no uno derivado de amounts.igv > 0.
           is_igv: hasIgv && Boolean(detail.is_igv),
           quantity,
           unit_price: effectiveUnitPrice,

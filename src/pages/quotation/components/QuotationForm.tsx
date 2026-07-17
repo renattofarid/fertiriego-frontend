@@ -439,9 +439,6 @@ export const QuotationForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "",
-            // Se preserva el is_igv real del detalle guardado, no se deriva
-            // de amounts.igv > 0 (eso siempre da true si el documento tiene
-            // IGV, sin importar si el producto se cargó como "sin IGV").
             is_igv: hasIgv && Boolean(detail.is_igv),
             quantity: detail.quantity.toString(),
             unit_price: effectiveUnitPrice.toString(),
@@ -567,8 +564,6 @@ export const QuotationForm = ({
         const amounts = calcItemAmounts(quantity, effectiveUnitPrice, hasIgv);
         return {
           product_id: parseInt(detail.product_id),
-          // Se manda el is_igv que ya traía el detalle, no uno derivado de
-          // amounts.igv > 0.
           is_igv: hasIgv && Boolean(detail.is_igv),
           quantity,
           unit_price: effectiveUnitPrice,
@@ -587,10 +582,6 @@ export const QuotationForm = ({
   const [selectedCustomer, setSelectedCustomer] = useState<
     PersonResource | undefined
   >(undefined);
-
-  // const getTotalAmount = () => {
-  //   return details.reduce((sum, detail) => sum + detail.total, 0);
-  // };
 
   const calculateSubtotalTotal = () => {
     return roundTo4(details.reduce((sum, detail) => sum + detail.subtotal, 0));
