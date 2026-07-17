@@ -255,7 +255,7 @@
       const detail: ProductDetail = {
         product_id: formData.product_id,
         product_name: productName,
-        is_igv: hasIgv && calculatedValues.tax > 0,
+        is_igv: hasIgv && isIgv,
         quantity: Number(formData.quantity).toString(),
         unit_price: sentUnitPrice,
         unit_price_igv: sentUnitPriceIgv,

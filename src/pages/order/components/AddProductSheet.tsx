@@ -221,7 +221,7 @@ export const AddProductSheet = ({
     const detail: ProductDetail = {
       product_id: formData.product_id,
       product_name: productName,
-      is_igv: hasIgv && calculatedValues.tax > 0,
+      is_igv: hasIgv && isIgv,
       quantity: formData.quantity,
       unit_price: sentUnitPrice,
       unit_price_igv: sentUnitPriceIgv,
