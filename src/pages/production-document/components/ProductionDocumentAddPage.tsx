@@ -49,7 +49,7 @@ export default function ProductionDocumentAddPage() {
           production_date: "",
           quantity_produced: order.quantity_requested.toString(),
           labor_cost: order.labor_cost.toString(),
-          overhead_cost: "0",
+          overhead_cost: "",
           observations: order.observations || "",
           components: order.components.map((c) => ({
             component_id: c.component_id.toString(),
