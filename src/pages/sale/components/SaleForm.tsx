@@ -653,8 +653,7 @@ export const SaleForm = ({
           setDetails(quotationDetails);
           form.setValue("details", quotationDetails);
         } else if (sourceType === "order") {
-          // Auto-completar detalles desde orden — usar unit_price_igv (siempre CON IGV)
-          const orderDetails: DetailRow[] = sourceData.order_details.map(
+          const orderDetails: DetailRow[] = (sourceData.order_details ?? []).map(
             (detail: any) => {
               const quantity = parseFloat(detail.quantity);
               const valorUnitario = roundTo8(
