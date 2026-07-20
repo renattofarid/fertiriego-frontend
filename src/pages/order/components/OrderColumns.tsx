@@ -5,7 +5,7 @@ import type { OrderResource } from "../lib/order.interface";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
-import { parse } from "date-fns";
+import { formatDateSafe } from "@/lib/utils";
 
 interface OrderColumnsProps {
   onEdit: (order: OrderResource) => void;
@@ -56,58 +56,29 @@ export const getOrderColumns = ({
   {
     accessorKey: "order_date",
     header: "Fecha Pedido",
-    cell: ({ row }) => {
-      const date = parse(row.original.order_date, "yyyy-MM-dd", new Date());
-      return (
-        <Badge variant="outline">
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {formatDateSafe(row.original.order_date)}
+      </Badge>
+    ),
   },
   {
     accessorKey: "order_delivery_date",
     header: "Fecha Entrega",
-    cell: ({ row }) => {
-      const date = parse(
-        row.original.order_delivery_date,
-        "yyyy-MM-dd",
-        new Date(),
-      );
-      return (
-        <Badge variant="secondary">
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="secondary">
+        {formatDateSafe(row.original.order_delivery_date)}
+      </Badge>
+    ),
   },
   {
     accessorKey: "order_expiry_date",
     header: "Fecha Vencimiento",
-    cell: ({ row }) => {
-      const date = parse(
-        row.original.order_expiry_date,
-        "yyyy-MM-dd",
-        new Date(),
-      );
-      return (
-        <Badge variant="outline">
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="outline">
+        {formatDateSafe(row.original.order_expiry_date)}
+      </Badge>
+    ),
   },
   {
     accessorKey: "currency",

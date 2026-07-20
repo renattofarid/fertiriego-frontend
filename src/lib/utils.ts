@@ -1,8 +1,23 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { parse } from "date-fns";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export function formatDateSafe(
+  value?: string | null,
+  fallback = "N/A",
+): string {
+  if (!value) return fallback;
+  const date = parse(value, "yyyy-MM-dd", new Date());
+  if (isNaN(date.getTime())) return fallback;
+  return date.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 /**

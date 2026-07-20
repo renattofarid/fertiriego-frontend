@@ -29,6 +29,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import type { SaleResource } from "../lib/sale.interface";
 import { parse } from "date-fns";
+import { formatDateSafe } from "@/lib/utils";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
@@ -97,27 +98,30 @@ export const getSaleColumns = ({
   {
     accessorKey: "issue_date",
     header: "Emisión",
-    cell: ({ row }) => {
-      const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
-      return (
-        <span className="text-sm">
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <span className="text-sm">
+        {formatDateSafe(row.original.issue_date)}
+      </span>
+    ),
   },
   {
     id: "due_date",
     header: "Vencimiento",
     cell: ({ row }) => {
+      // Blindado contra issue_date nulo/ inválido e installments ausentes:
+      // date-fns parse revienta con null y tumbaba el listado completo.
+      if (!row.original.issue_date) {
+        return <span className="text-sm">N/A</span>;
+      }
       const issueDate = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
-      const lastInstallmentDate = row.original.installments.reduce(
+      if (isNaN(issueDate.getTime())) {
+        return <span className="text-sm">N/A</span>;
+      }
+      const lastInstallmentDate = (row.original.installments ?? []).reduce(
         (latest, inst) => {
+          if (!inst.due_date) return latest;
           const instDate = parse(inst.due_date, "yyyy-MM-dd", new Date());
+          if (isNaN(instDate.getTime())) return latest;
           return instDate > latest ? instDate : latest;
         },
         issueDate,
@@ -396,17 +400,18 @@ export const getSaleColumns = ({
       const isEnviado = row.original.status_facturado === "ACEPTADO";
       const isRechazado = row.original.status_facturado === "RECHAZADO";
 
-      // Anular solo permitido dentro de los 3 días posteriores a la emisión
-      const issueDate = parse(
-        row.original.issue_date,
-        "yyyy-MM-dd",
-        new Date(),
-      );
-      const daysSinceIssue = Math.floor(
-        (new Date().setHours(0, 0, 0, 0) - issueDate.setHours(0, 0, 0, 0)) /
-          (1000 * 60 * 60 * 24),
-      );
-      const canAnular = daysSinceIssue <= 3;
+      // Anular solo permitido dentro de los 3 días posteriores a la emisión.
+      // Si issue_date viene nulo/inválido no se puede determinar → no permitir.
+      const issueDate = row.original.issue_date
+        ? parse(row.original.issue_date, "yyyy-MM-dd", new Date())
+        : null;
+      const canAnular =
+        issueDate !== null &&
+        !isNaN(issueDate.getTime()) &&
+        Math.floor(
+          (new Date().setHours(0, 0, 0, 0) - issueDate.setHours(0, 0, 0, 0)) /
+            (1000 * 60 * 60 * 24),
+        ) <= 3;
 
       return (
         <div className="flex items-center gap-1">

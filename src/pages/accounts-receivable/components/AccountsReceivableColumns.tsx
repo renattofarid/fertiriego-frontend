@@ -7,8 +7,10 @@ import { parse } from "date-fns";
 import formatCurrency from "@/lib/formatCurrency";
 import { matchCurrency } from "@/lib/core.function";
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString?: string | null) => {
+  if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -85,13 +87,17 @@ export const getAccountsReceivableColumns = (
               {(() => {
                 if (isVoided) return "Anulada";
                 if (row.original.status === "PAGADA" || row.original.status === "PAGADO") return "Pagado";
+                if (!row.original.due_date) return "Sin fecha";
+
+                const dueDateParsed = parse(
+                  row.original.due_date,
+                  "yyyy-MM-dd",
+                  new Date()
+                );
+                if (isNaN(dueDateParsed.getTime())) return "Sin fecha";
 
                 const daysUntilDue = Math.ceil(
-                  (parse(
-                    row.original.due_date,
-                    "yyyy-MM-dd",
-                    new Date()
-                  ).getTime() -
+                  (dueDateParsed.getTime() -
                     new Date().getTime()) /
                     (1000 * 60 * 60 * 24)
                 );

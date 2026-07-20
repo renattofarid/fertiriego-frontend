@@ -30,8 +30,7 @@ import { ColumnActions } from "@/components/SelectActions";
 import ExportButtons from "@/components/ExportButtons";
 import { api } from "@/lib/config";
 import { toast } from "sonner";
-import { parse } from "date-fns";
-import { formatQuantityWithUnit } from "@/lib/utils";
+import { formatDateSafe, formatQuantityWithUnit } from "@/lib/utils";
 
 const downloadXml = async (endpoint: string, fileName: string) => {
   try {
@@ -81,38 +80,18 @@ export const GuideColumns = ({
   {
     accessorKey: "dates",
     header: "Fechas",
-    cell: ({ row }) => {
-      const issueDate = parse(
-        row.original.issue_date,
-        "yyyy-MM-dd",
-        new Date(),
-      );
-      const transferDate = parse(
-        row.original.transfer_date,
-        "yyyy-MM-dd",
-        new Date(),
-      );
-      return (
-        <div className="flex flex-col text-xs">
-          <span>
-            <strong>F. Emisión:</strong>{" "}
-            {issueDate.toLocaleDateString("es-PE", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-          <span>
-            <strong>F. Traslado:</strong>{" "}
-            {transferDate.toLocaleDateString("es-PE", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <div className="flex flex-col text-xs">
+        <span>
+          <strong>F. Emisión:</strong>{" "}
+          {formatDateSafe(row.original.issue_date)}
+        </span>
+        <span>
+          <strong>F. Traslado:</strong>{" "}
+          {formatDateSafe(row.original.transfer_date)}
+        </span>
+      </div>
+    ),
   },
   {
     accessorKey: "recipient",
