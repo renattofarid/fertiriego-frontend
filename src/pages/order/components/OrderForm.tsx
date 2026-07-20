@@ -66,6 +66,16 @@ interface OrderFormProps {
   order?: any;
 }
 
+const toBoolIgv = (value: unknown): boolean => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value === 1;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true";
+  }
+  return Boolean(value);
+};
+
 interface DetailRow {
   product_id: string;
   product_name?: string;
@@ -221,12 +231,13 @@ export const OrderForm = ({
           const quantity = parseFloat(detail.quantity);
           const rawUnitPrice = parseFloat(detail.unit_price) || 0;
           const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+          const detailIsIgv = toBoolIgv(detail.is_igv);
           const effectiveUnitPrice =
             hasIgv && rawUnitPriceIgv > rawUnitPrice
               ? rawUnitPrice
               : hasIgv && rawUnitPriceIgv > 0
                 ? roundTo8(rawUnitPriceIgv / taxMultiplier)
-                : hasIgv && detail.is_igv
+                : hasIgv && detailIsIgv
                   ? roundTo8(rawUnitPrice / taxMultiplier)
                   : rawUnitPrice;
           const effectiveUnitPriceIgv = hasIgv
@@ -238,7 +249,7 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product?.name || "Producto",
-            is_igv: hasIgv && Boolean(detail.is_igv),
+            is_igv: hasIgv && detailIsIgv,
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
             unit_price_igv: effectiveUnitPriceIgv.toString(),
@@ -334,12 +345,13 @@ export const OrderForm = ({
           const quantity = parseFloat(detail.quantity);
           const rawUnitPrice = parseFloat(detail.unit_price) || 0;
           const rawUnitPriceIgv = parseFloat(detail.unit_price_igv) || 0;
+          const detailIsIgv = toBoolIgv(detail.is_igv);
           const effectiveUnitPrice =
             quotationHasIgv && rawUnitPriceIgv > rawUnitPrice
               ? rawUnitPrice
               : quotationHasIgv && rawUnitPriceIgv > 0
                 ? roundTo8(rawUnitPriceIgv / quotationTaxMultiplier)
-                : quotationHasIgv && detail.is_igv
+                : quotationHasIgv && detailIsIgv
                   ? roundTo8(rawUnitPrice / quotationTaxMultiplier)
                   : rawUnitPrice;
           const effectiveUnitPriceIgv = quotationHasIgv
@@ -351,7 +363,7 @@ export const OrderForm = ({
           return {
             product_id: detail.product_id.toString(),
             product_name: detail.product.name,
-            is_igv: quotationHasIgv && Boolean(detail.is_igv),
+            is_igv: quotationHasIgv && detailIsIgv,
             quantity: detail.quantity,
             unit_price: effectiveUnitPrice.toString(),
             unit_price_igv: effectiveUnitPriceIgv.toString(),
