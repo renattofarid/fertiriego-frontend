@@ -75,6 +75,11 @@ import { SCHEDULE } from "@/pages/hr-schedule/lib/schedule.interface";
 import { ATTENDANCE_META } from "@/pages/hr-attendance/lib/attendance.interface";
 import { JUSTIFICATION_META } from "@/pages/hr-justification/lib/justification.interface";
 import { PUNCTUALITY_META } from "@/pages/hr-report/lib/report.interface";
+import {
+  VACATION_META,
+  VACATION_CONTROL_META,
+} from "@/pages/hr-vacation/lib/vacation.interface";
+import { VACATION_REPORT_META } from "@/pages/hr-vacation-report/lib/vacation-report.interface";
 import { SALARY } from "@/pages/payroll-salary/lib/salary.interface";
 import { INCOME } from "@/pages/payroll-income/lib/income.interface";
 import { DEDUCTION } from "@/pages/payroll-deduction/lib/deduction.interface";
@@ -327,6 +332,24 @@ const {
 } = PUNCTUALITY_META;
 
 const {
+  ICON_REACT: VacationIcon,
+  ROUTE: VacationRoute,
+  MODEL: { name: VacationTitle },
+} = VACATION_META;
+
+const {
+  ICON_REACT: VacationControlIcon,
+  ROUTE: VacationControlRoute,
+  MODEL: { name: VacationControlTitle },
+} = VACATION_CONTROL_META;
+
+const {
+  ICON_REACT: VacationReportIcon,
+  ROUTE: VacationReportRoute,
+  MODEL: { name: VacationReportTitle },
+} = VACATION_REPORT_META;
+
+const {
   ICON_REACT: SalaryIcon,
   ROUTE: SalaryRoute,
   MODEL: { plural: SalaryTitle },
@@ -549,6 +572,21 @@ const data = {
           title: PunctualityTitle,
           url: PunctualityRoute,
           icon: PunctualityIcon,
+        },
+        {
+          title: VacationTitle,
+          url: VacationRoute,
+          icon: VacationIcon,
+        },
+        {
+          title: VacationControlTitle,
+          url: VacationControlRoute,
+          icon: VacationControlIcon,
+        },
+        {
+          title: VacationReportTitle,
+          url: VacationReportRoute,
+          icon: VacationReportIcon,
         },
       ],
     },

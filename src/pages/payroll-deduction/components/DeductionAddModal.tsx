@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { FormSelect } from "@/components/FormSelect";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
@@ -35,7 +34,6 @@ const deductionFormSchema = z.object({
     .max(200, "El concepto no puede exceder 200 caracteres"),
   type: z.string().min(1, "Seleccione un tipo"),
   amount: z.coerce.number().min(0, "El monto debe ser mayor o igual a 0"),
-  is_active: z.boolean(),
 });
 
 type DeductionFormValues = z.infer<typeof deductionFormSchema>;
@@ -64,7 +62,6 @@ export default function DeductionAddModal({
       concept: "",
       type: "PRESTAMO",
       amount: 0,
-      is_active: true,
     },
   });
 
@@ -82,7 +79,7 @@ export default function DeductionAddModal({
         concept: values.concept,
         type: values.type as DeductionType,
         amount: values.amount,
-        is_active: values.is_active,
+        is_active: true,
       });
       successToast("Descuento registrado exitosamente");
       form.reset();
@@ -159,22 +156,6 @@ export default function DeductionAddModal({
                   <Input type="number" step="0.01" min="0" {...field} />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="is_active"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mb-0 font-normal">Activo</FormLabel>
               </FormItem>
             )}
           />

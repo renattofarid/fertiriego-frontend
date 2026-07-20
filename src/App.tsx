@@ -165,6 +165,14 @@ import { JUSTIFICATION_ROUTE } from "./pages/hr-justification/lib/justification.
 import PunctualityReportPage from "./pages/hr-report/components/PunctualityReportPage";
 import WorkerAttendanceReportPage from "./pages/hr-report/components/WorkerAttendanceReportPage";
 import { PUNCTUALITY_ROUTE } from "./pages/hr-report/lib/report.interface";
+import VacationPage from "./pages/hr-vacation/components/VacationPage";
+import VacationControlPage from "./pages/hr-vacation/components/VacationControlPage";
+import {
+  VACATION_ROUTE,
+  VACATION_CONTROL_ROUTE,
+} from "./pages/hr-vacation/lib/vacation.interface";
+import VacationReportPage from "./pages/hr-vacation-report/components/VacationReportPage";
+import { VACATION_REPORT_ROUTE } from "./pages/hr-vacation-report/lib/vacation-report.interface";
 import SalaryPage from "./pages/payroll-salary/components/SalaryPage";
 import { SALARY } from "./pages/payroll-salary/lib/salary.interface";
 import IncomePage from "./pages/payroll-income/components/IncomePage";
@@ -611,6 +619,33 @@ export default function App() {
             element={
               <ProtectedRoute path={PUNCTUALITY_ROUTE}>
                 <PunctualityReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_ROUTE}>
+                <VacationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_CONTROL_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_CONTROL_ROUTE}>
+                <VacationControlPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_REPORT_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_REPORT_ROUTE}>
+                <VacationReportPage />
               </ProtectedRoute>
             }
           />

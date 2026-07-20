@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSwitch } from "@/components/FormSwitch";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { storeIncome } from "../lib/income.actions";
@@ -33,7 +33,6 @@ const incomeFormSchema = z.object({
   type: z.string().min(1, "Seleccione un tipo"),
   amount: z.coerce.number().min(0, "El monto debe ser mayor o igual a 0"),
   is_taxable: z.boolean(),
-  is_active: z.boolean(),
 });
 
 type IncomeFormValues = z.infer<typeof incomeFormSchema>;
@@ -63,7 +62,6 @@ export default function IncomeAddModal({
       type: "FIJO",
       amount: 0,
       is_taxable: true,
-      is_active: true,
     },
   });
 
@@ -82,7 +80,7 @@ export default function IncomeAddModal({
         type: values.type as IncomeType,
         amount: values.amount,
         is_taxable: values.is_taxable,
-        is_active: values.is_active,
+        is_active: true,
       });
       successToast("Ingreso registrado exitosamente");
       form.reset();
@@ -163,38 +161,10 @@ export default function IncomeAddModal({
             )}
           />
 
-          <FormField
+          <FormSwitch
             control={form.control}
             name="is_taxable"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mb-0 font-normal">
-                  Afecto a impuestos
-                </FormLabel>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="is_active"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="!mb-0 font-normal">Activo</FormLabel>
-              </FormItem>
-            )}
+            text="Afecto a impuestos"
           />
 
           <div className="flex gap-4 w-full justify-end">
