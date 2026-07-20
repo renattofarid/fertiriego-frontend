@@ -5,7 +5,7 @@ import type { QuotationResource } from "../lib/quotation.interface";
 import ExportButtons from "@/components/ExportButtons";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
-import { parse } from "date-fns";
+import { formatDateSafe } from "@/lib/utils";
 
 interface QuotationColumnsProps {
   onEdit: (quotation: QuotationResource) => void;
@@ -56,18 +56,9 @@ export const getQuotationColumns = ({
   {
     accessorKey: "fecha_emision",
     header: "Fecha Emisión",
-    cell: ({ row }) => {
-      const date = parse(row.original.fecha_emision, "yyyy-MM-dd", new Date());
-      return (
-        <Badge variant="outline">
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge variant="outline">{formatDateSafe(row.original.fecha_emision)}</Badge>
+    ),
   },
   {
     accessorKey: "payment_type",
