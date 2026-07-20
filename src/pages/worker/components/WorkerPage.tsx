@@ -25,8 +25,15 @@ import { WORKER, WORKER_ROLE_ID } from "../lib/worker.interface";
 import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssignment";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import AssignScheduleModal from "@/pages/hr-schedule/components/AssignScheduleModal";
 
 const { MODEL, ICON } = WORKER;
+
+function getPersonDisplayName(person: PersonResource) {
+  return person.type_document === "RUC"
+    ? person.business_name
+    : `${person.names} ${person.father_surname} ${person.mother_surname}`.trim();
+}
 
 export default function WorkerPage() {
   const navigate = useNavigate();
@@ -35,6 +42,8 @@ export default function WorkerPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
+    useState<PersonResource | null>(null);
+  const [assignSchedulePerson, setAssignSchedulePerson] =
     useState<PersonResource | null>(null);
   const { data, isLoading, refetch } = useWorkers({
     search,
@@ -87,6 +96,10 @@ export default function WorkerPage() {
         columns={PersonColumns({
           onEdit: (person) => navigate(`/trabajadores/editar/${person}`),
           onDelete: setDeleteId,
+          onAssignSchedule: setAssignSchedulePerson,
+          onViewReport: (person) => navigate(`/trabajadores/reporte/${person.id}`),
+          onViewPayrollReport: (person) =>
+            navigate(`/trabajadores/planilla/${person.id}`),
           // onManageRoles: handleManageRoles,
         })}
         data={data?.data || []}
@@ -130,6 +143,15 @@ export default function WorkerPage() {
           onConfirm={handleDelete}
           // title={`Eliminar ${MODEL.name}`}
           // description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
+        />
+      )}
+
+      {assignSchedulePerson && (
+        <AssignScheduleModal
+          open={true}
+          onClose={() => setAssignSchedulePerson(null)}
+          presetPersonId={assignSchedulePerson.id}
+          presetPersonName={getPersonDisplayName(assignSchedulePerson)}
         />
       )}
     </div>

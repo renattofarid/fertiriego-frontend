@@ -4,7 +4,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ColumnActions } from "@/components/SelectActions";
-import { Pencil, MapPin } from "lucide-react";
+import { Pencil, MapPin, CalendarClock, FileClock, Receipt } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { PersonAddressSheet } from "./PersonAddressSheet";
 
@@ -35,10 +35,16 @@ function AddressButton({ person }: { person: PersonResource }) {
 export const PersonColumns = ({
   onEdit,
   onDelete,
+  onAssignSchedule,
+  onViewReport,
+  onViewPayrollReport,
 }: // onManageRoles,
 {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
+  onAssignSchedule?: (person: PersonResource) => void;
+  onViewReport?: (person: PersonResource) => void;
+  onViewPayrollReport?: (person: PersonResource) => void;
   // onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
@@ -141,6 +147,27 @@ export const PersonColumns = ({
       return (
         <ColumnActions>
           <AddressButton person={row.original} />
+          {onAssignSchedule && (
+            <ButtonAction
+              icon={CalendarClock}
+              tooltip="Asignar horario"
+              onClick={() => onAssignSchedule(row.original)}
+            />
+          )}
+          {onViewReport && (
+            <ButtonAction
+              icon={FileClock}
+              tooltip="Reporte de asistencia"
+              onClick={() => onViewReport(row.original)}
+            />
+          )}
+          {onViewPayrollReport && (
+            <ButtonAction
+              icon={Receipt}
+              tooltip="Reporte de planilla"
+              onClick={() => onViewPayrollReport(row.original)}
+            />
+          )}
           <ButtonAction
             icon={Pencil}
             tooltip="Editar"
