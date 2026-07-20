@@ -4,7 +4,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ColumnActions } from "@/components/SelectActions";
-import { Pencil, MapPin, CalendarClock, FileClock, Receipt } from "lucide-react";
+import {
+  Pencil,
+  MapPin,
+  CalendarClock,
+  FileClock,
+  Receipt,
+  CalendarCog,
+} from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { PersonAddressSheet } from "./PersonAddressSheet";
 
@@ -38,6 +45,7 @@ export const PersonColumns = ({
   onAssignSchedule,
   onViewReport,
   onViewPayrollReport,
+  onConfigureVacation,
 }: // onManageRoles,
 {
   onEdit: (id: number) => void;
@@ -45,6 +53,7 @@ export const PersonColumns = ({
   onAssignSchedule?: (person: PersonResource) => void;
   onViewReport?: (person: PersonResource) => void;
   onViewPayrollReport?: (person: PersonResource) => void;
+  onConfigureVacation?: (person: PersonResource) => void;
   // onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
@@ -166,6 +175,13 @@ export const PersonColumns = ({
               icon={Receipt}
               tooltip="Reporte de planilla"
               onClick={() => onViewPayrollReport(row.original)}
+            />
+          )}
+          {onConfigureVacation && (
+            <ButtonAction
+              icon={CalendarCog}
+              tooltip="Configurar control de vacaciones"
+              onClick={() => onConfigureVacation(row.original)}
             />
           )}
           <ButtonAction

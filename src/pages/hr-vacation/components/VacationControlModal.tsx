@@ -49,7 +49,7 @@ export default function VacationControlModal({
       maxWidth="!max-w-lg"
     >
       <VacationControlForm
-        defaultValues={{ hire_date: "", vacation_days_per_year: undefined }}
+        defaultValues={{ hire_date: "", vacation_days_per_year: 30 }}
         onSubmit={handleSubmit}
         isSubmitting={isConfiguringControl}
         onCancel={onClose}

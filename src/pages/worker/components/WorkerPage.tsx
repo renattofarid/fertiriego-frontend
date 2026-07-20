@@ -26,6 +26,7 @@ import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssign
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import AssignScheduleModal from "@/pages/hr-schedule/components/AssignScheduleModal";
+import VacationControlModal from "@/pages/hr-vacation/components/VacationControlModal";
 
 const { MODEL, ICON } = WORKER;
 
@@ -44,6 +45,8 @@ export default function WorkerPage() {
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
     useState<PersonResource | null>(null);
   const [assignSchedulePerson, setAssignSchedulePerson] =
+    useState<PersonResource | null>(null);
+  const [vacationControlPerson, setVacationControlPerson] =
     useState<PersonResource | null>(null);
   const { data, isLoading, refetch } = useWorkers({
     search,
@@ -100,6 +103,7 @@ export default function WorkerPage() {
           onViewReport: (person) => navigate(`/trabajadores/reporte/${person.id}`),
           onViewPayrollReport: (person) =>
             navigate(`/trabajadores/planilla/${person.id}`),
+          onConfigureVacation: setVacationControlPerson,
           // onManageRoles: handleManageRoles,
         })}
         data={data?.data || []}
@@ -152,6 +156,14 @@ export default function WorkerPage() {
           onClose={() => setAssignSchedulePerson(null)}
           presetPersonId={assignSchedulePerson.id}
           presetPersonName={getPersonDisplayName(assignSchedulePerson)}
+        />
+      )}
+
+      {vacationControlPerson && (
+        <VacationControlModal
+          personId={vacationControlPerson.id}
+          open={true}
+          onClose={() => setVacationControlPerson(null)}
         />
       )}
     </div>
