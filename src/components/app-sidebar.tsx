@@ -10,6 +10,7 @@ import {
   Activity,
   TrendingUp,
   DollarSign,
+  CalendarClock,
 } from "lucide-react";
 import {
   Sidebar,
@@ -70,6 +71,19 @@ import {
   DASHBOARD_META,
   DASHBOARD_MONITORING_ROUTE,
 } from "@/pages/dashboard/lib/dashboard.interface";
+import { SCHEDULE } from "@/pages/hr-schedule/lib/schedule.interface";
+import { ATTENDANCE_META } from "@/pages/hr-attendance/lib/attendance.interface";
+import { JUSTIFICATION_META } from "@/pages/hr-justification/lib/justification.interface";
+import { PUNCTUALITY_META } from "@/pages/hr-report/lib/report.interface";
+import {
+  VACATION_META,
+  VACATION_CONTROL_META,
+} from "@/pages/hr-vacation/lib/vacation.interface";
+import { VACATION_REPORT_META } from "@/pages/hr-vacation-report/lib/vacation-report.interface";
+import { SALARY } from "@/pages/payroll-salary/lib/salary.interface";
+import { INCOME } from "@/pages/payroll-income/lib/income.interface";
+import { DEDUCTION } from "@/pages/payroll-deduction/lib/deduction.interface";
+import { PAYROLL } from "@/pages/payroll/lib/payroll.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -294,6 +308,72 @@ const {
 } = PRODUCT_TAG;
 
 const {
+  ICON_REACT: ScheduleIcon,
+  ROUTE: ScheduleRoute,
+  MODEL: { name: ScheduleTitle },
+} = SCHEDULE;
+
+const {
+  ICON_REACT: AttendanceIcon,
+  ROUTE: AttendanceRoute,
+  MODEL: { name: AttendanceTitle },
+} = ATTENDANCE_META;
+
+const {
+  ICON_REACT: JustificationIcon,
+  ROUTE: JustificationRoute,
+  MODEL: { name: JustificationTitle },
+} = JUSTIFICATION_META;
+
+const {
+  ICON_REACT: PunctualityIcon,
+  ROUTE: PunctualityRoute,
+  MODEL: { name: PunctualityTitle },
+} = PUNCTUALITY_META;
+
+const {
+  ICON_REACT: VacationIcon,
+  ROUTE: VacationRoute,
+  MODEL: { name: VacationTitle },
+} = VACATION_META;
+
+const {
+  ICON_REACT: VacationControlIcon,
+  ROUTE: VacationControlRoute,
+  MODEL: { name: VacationControlTitle },
+} = VACATION_CONTROL_META;
+
+const {
+  ICON_REACT: VacationReportIcon,
+  ROUTE: VacationReportRoute,
+  MODEL: { name: VacationReportTitle },
+} = VACATION_REPORT_META;
+
+const {
+  ICON_REACT: SalaryIcon,
+  ROUTE: SalaryRoute,
+  MODEL: { plural: SalaryTitle },
+} = SALARY;
+
+const {
+  ICON_REACT: IncomeIcon,
+  ROUTE: IncomeRoute,
+  MODEL: { plural: IncomeTitle },
+} = INCOME;
+
+const {
+  ICON_REACT: DeductionIcon,
+  ROUTE: DeductionRoute,
+  MODEL: { plural: DeductionTitle },
+} = DEDUCTION;
+
+const {
+  ICON_REACT: PayrollIcon,
+  ROUTE: PayrollRoute,
+  MODEL: { plural: PayrollTitle },
+} = PAYROLL;
+
+const {
   ICON_REACT: PredictiveIcon,
   MODEL: { name: PredictiveTitle },
 } = PREDICTIVE_META;
@@ -465,6 +545,75 @@ const data = {
           title: CarrierTitle,
           url: CarrierRoute,
           icon: CarrierIcon,
+        },
+      ],
+    },
+    {
+      title: "Personal",
+      url: "#",
+      icon: CalendarClock,
+      items: [
+        {
+          title: ScheduleTitle,
+          url: ScheduleRoute,
+          icon: ScheduleIcon,
+        },
+        {
+          title: AttendanceTitle,
+          url: AttendanceRoute,
+          icon: AttendanceIcon,
+        },
+        {
+          title: JustificationTitle,
+          url: JustificationRoute,
+          icon: JustificationIcon,
+        },
+        {
+          title: PunctualityTitle,
+          url: PunctualityRoute,
+          icon: PunctualityIcon,
+        },
+        {
+          title: VacationTitle,
+          url: VacationRoute,
+          icon: VacationIcon,
+        },
+        {
+          title: VacationControlTitle,
+          url: VacationControlRoute,
+          icon: VacationControlIcon,
+        },
+        {
+          title: VacationReportTitle,
+          url: VacationReportRoute,
+          icon: VacationReportIcon,
+        },
+      ],
+    },
+    {
+      title: "Planillas",
+      url: "#",
+      icon: PayrollIcon,
+      items: [
+        {
+          title: PayrollTitle,
+          url: PayrollRoute,
+          icon: PayrollIcon,
+        },
+        {
+          title: SalaryTitle,
+          url: SalaryRoute,
+          icon: SalaryIcon,
+        },
+        {
+          title: IncomeTitle,
+          url: IncomeRoute,
+          icon: IncomeIcon,
+        },
+        {
+          title: DeductionTitle,
+          url: DeductionRoute,
+          icon: DeductionIcon,
         },
       ],
     },

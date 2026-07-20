@@ -156,6 +156,33 @@ import {
 } from "./pages/predictive/lib/predictive.interface";
 import { DashboardMonitoringPage } from "./pages/dashboard/components";
 import { DASHBOARD_MONITORING_ROUTE } from "./pages/dashboard/lib/dashboard.interface";
+import SchedulePage from "./pages/hr-schedule/components/SchedulePage";
+import { SCHEDULE } from "./pages/hr-schedule/lib/schedule.interface";
+import AttendanceLogPage from "./pages/hr-attendance/components/AttendanceLogPage";
+import { ATTENDANCE_ROUTE } from "./pages/hr-attendance/lib/attendance.interface";
+import JustificationPage from "./pages/hr-justification/components/JustificationPage";
+import { JUSTIFICATION_ROUTE } from "./pages/hr-justification/lib/justification.interface";
+import PunctualityReportPage from "./pages/hr-report/components/PunctualityReportPage";
+import WorkerAttendanceReportPage from "./pages/hr-report/components/WorkerAttendanceReportPage";
+import { PUNCTUALITY_ROUTE } from "./pages/hr-report/lib/report.interface";
+import VacationPage from "./pages/hr-vacation/components/VacationPage";
+import VacationControlPage from "./pages/hr-vacation/components/VacationControlPage";
+import {
+  VACATION_ROUTE,
+  VACATION_CONTROL_ROUTE,
+} from "./pages/hr-vacation/lib/vacation.interface";
+import VacationReportPage from "./pages/hr-vacation-report/components/VacationReportPage";
+import { VACATION_REPORT_ROUTE } from "./pages/hr-vacation-report/lib/vacation-report.interface";
+import SalaryPage from "./pages/payroll-salary/components/SalaryPage";
+import { SALARY } from "./pages/payroll-salary/lib/salary.interface";
+import IncomePage from "./pages/payroll-income/components/IncomePage";
+import { INCOME } from "./pages/payroll-income/lib/income.interface";
+import DeductionPage from "./pages/payroll-deduction/components/DeductionPage";
+import { DEDUCTION } from "./pages/payroll-deduction/lib/deduction.interface";
+import PayrollPage from "./pages/payroll/components/PayrollPage";
+import PayrollDetailPage from "./pages/payroll/components/PayrollDetailPage";
+import { PAYROLL } from "./pages/payroll/lib/payroll.interface";
+import WorkerPayrollReportPage from "./pages/payroll-report/components/WorkerPayrollReportPage";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -199,6 +226,11 @@ const { ROUTE_ADD: ProductionOrderAddRoute } = PRODUCTION_ORDER;
 const { ROUTE_UPDATE: ProductionOrderUpdateRoute } = PRODUCTION_ORDER;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
 const { ROUTE: ProductTagRoute } = PRODUCT_TAG;
+const { ROUTE: ScheduleRoute } = SCHEDULE;
+const { ROUTE: SalaryRoute } = SALARY;
+const { ROUTE: IncomeRoute } = INCOME;
+const { ROUTE: DeductionRoute } = DEDUCTION;
+const { ROUTE: PayrollRoute } = PAYROLL;
 
 function ProtectedRoute({
   children,
@@ -487,6 +519,133 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/reporte/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerAttendanceReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ScheduleRoute}
+            element={
+              <ProtectedRoute path={ScheduleRoute}>
+                <SchedulePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Planillas */}
+          <Route
+            path={SalaryRoute}
+            element={
+              <ProtectedRoute path={SalaryRoute}>
+                <SalaryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={IncomeRoute}
+            element={
+              <ProtectedRoute path={IncomeRoute}>
+                <IncomePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={DeductionRoute}
+            element={
+              <ProtectedRoute path={DeductionRoute}>
+                <DeductionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PayrollRoute}
+            element={
+              <ProtectedRoute path={PayrollRoute}>
+                <PayrollPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={`${PayrollRoute}/:id`}
+            element={
+              <ProtectedRoute path={PayrollRoute}>
+                <PayrollDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/planilla/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerPayrollReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ATTENDANCE_ROUTE}
+            element={
+              <ProtectedRoute path={ATTENDANCE_ROUTE}>
+                <AttendanceLogPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={JUSTIFICATION_ROUTE}
+            element={
+              <ProtectedRoute path={JUSTIFICATION_ROUTE}>
+                <JustificationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PUNCTUALITY_ROUTE}
+            element={
+              <ProtectedRoute path={PUNCTUALITY_ROUTE}>
+                <PunctualityReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_ROUTE}>
+                <VacationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_CONTROL_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_CONTROL_ROUTE}>
+                <VacationControlPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_REPORT_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_REPORT_ROUTE}>
+                <VacationReportPage />
               </ProtectedRoute>
             }
           />

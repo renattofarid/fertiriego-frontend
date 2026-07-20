@@ -33,8 +33,8 @@ export function useAllWarehouses() {
     useWarehouseStore();
 
   useEffect(() => {
-    if (!allWarehouses) fetchAllWarehouses();
-  }, [allWarehouses, fetchAllWarehouses]);
+    fetchAllWarehouses();
+  }, []);
 
   return {
     data: allWarehouses,

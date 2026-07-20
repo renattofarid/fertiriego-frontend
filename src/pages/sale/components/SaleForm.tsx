@@ -119,8 +119,7 @@ interface GuideRow {
   correlative: string;
 }
 
-// Adapter: adapta usePersonById al contrato (id: string) => { data, isLoading }
-// que requiere useQueryByIdHook en FormSelectAsync
+
 const useClientByIdForSelect = (id: string) => {
   const { data, isFinding } = usePersonById(id ? Number(id) : 0);
   return { data, isLoading: isFinding };
@@ -166,10 +165,9 @@ export const SaleForm = ({
   sale,
 }: SaleFormProps) => {
   const { user } = useAuthStore();
-  const hasIgv =
+
+  const authenticatedBranchHasIgv =
     user?.boxes?.some((box) => Number(box.branch?.has_igv) === 1) ?? true;
-  const taxMultiplier = hasIgv ? 1.18 : 1;
-  const igvPercentage = hasIgv ? 18 : 0;
 
   // Estados para detalles
   const [details, setDetails] = useState<DetailRow[]>([]);
@@ -495,6 +493,20 @@ export const SaleForm = ({
       setSelectedWarehouseId(watchedWarehouseId);
     }
   }, [watchedWarehouseId, selectedWarehouseId]);
+
+  const selectedWarehouse = watchedWarehouseId
+    ? warehousesList.find(
+        (warehouse) => warehouse.id.toString() === watchedWarehouseId,
+      )
+    : undefined;
+  const hasIgv =
+    selectedWarehouse?.branch?.has_igv !== undefined
+      ? Number(selectedWarehouse.branch.has_igv) === 1
+      : watchedWarehouseId
+        ? true
+        : authenticatedBranchHasIgv;
+  const taxMultiplier = hasIgv ? 1.18 : 1;
+  const igvPercentage = hasIgv ? 18 : 0;
 
   // Watch para la moneda seleccionada
   const selectedCurrency = form.watch("currency");
