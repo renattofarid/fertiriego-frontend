@@ -8,7 +8,7 @@ import { Factory } from "lucide-react";
 
 // ===== API RESOURCES =====
 
-export type ProductionDocumentStatus = "BORRADOR" | "PROCESADO" | "CANCELADO";
+export type ProductionDocumentStatus = "PROCESADO" | "CANCELADO";
 
 export interface ProductionDocumentComponentResource {
   id: number;
@@ -45,7 +45,6 @@ export interface ProductionDocumentComponentResource {
 export interface ProductionDocumentResource {
   id: number;
   company_id: number;
-  production_order_id?: number | null;
   warehouse_origin_id: number;
   warehouse_dest_id: number;
   product_id: number;
@@ -129,7 +128,6 @@ export interface CreateProductionDocumentComponentRequest {
 export interface CreateProductionDocumentRequest {
   warehouse_origin_id: number;
   warehouse_dest_id: number;
-  production_order_id?: number | null;
   product_id: number;
   user_id: number;
   responsible_id: number;
@@ -160,17 +158,13 @@ export interface UpdateProductionDocumentRequest {
 export interface GetProductionDocumentsParams {
   page?: number;
   per_page?: number;
-  created_at?: string | null;
-  date_from?: string | null;
-  date_to?: string | null;
-  document_number?: string | null;
-  product_id?: number | null;
-  production_date?: string | null;
-  responsible_id?: number | null;
-  status?: string | null;
-  user_id?: number | null;
-  warehouse_dest_id?: number | null;
-  warehouse_origin_id?: number | null;
+  company_id?: number;
+  warehouse_origin_id?: number;
+  product_id?: number;
+  responsible_id?: number;
+  document_number?: string;
+  from?: string;
+  to?: string;
 }
 
 // ===== CONSTANTS =====
@@ -188,7 +182,6 @@ export const ProductionDocumentDetailRoute = "/documentos-produccion/:id";
 // ===== STATUS OPTIONS =====
 
 export const PRODUCTION_DOCUMENT_STATUSES = [
-  { value: "BORRADOR", label: "Borrador" },
   { value: "PROCESADO", label: "Procesado" },
   { value: "CANCELADO", label: "Cancelado" },
 ] as const;
