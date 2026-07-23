@@ -18,10 +18,6 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { PRODUCT } from "../lib/product.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import WarehouseProductModal from "@/pages/warehouse-product/components/WarehouseProductModal";
-import AssignClassificationModal from "./AssignClassificationModal";
-import ProductClassificationModal from "./ProductClassificationModal";
-import ProductMetricsModal from "./ProductMetricsModal";
-import { useProductSelectionStore } from "../lib/productSelection.store";
 
 const { MODEL, ICON } = PRODUCT;
 
@@ -34,12 +30,9 @@ export default function ProductPage() {
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [assignStockProductId, setAssignStockProductId] = useState<number | null>(null);
-  const { rowSelection, setRowSelection, selectedProductIds, clearSelection } =
-    useProductSelectionStore();
-  const [assignClassificationOpen, setAssignClassificationOpen] = useState(false);
-  const [viewClassificationProductId, setViewClassificationProductId] = useState<number | null>(null);
-  const [metricsProductId, setMetricsProductId] = useState<number | null>(null);
+  const [assignStockProductId, setAssignStockProductId] = useState<
+    number | null
+  >(null);
 
   const { data, isLoading, refetch } = useProduct({
     page,
@@ -52,10 +45,14 @@ export default function ProductPage() {
 
   useEffect(() => {
     setPage(1);
-    clearSelection();
-  }, [search, per_page, selectedCategory, selectedBrand, selectedType, clearSelection]);
-
-  useEffect(() => clearSelection, [clearSelection]);
+  }, [
+    search,
+    per_page,
+    selectedCategory,
+    selectedBrand,
+    selectedType,
+    refetch,
+  ]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -94,11 +91,7 @@ export default function ProductPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <ProductActions
-          onCreateProduct={handleCreateProduct}
-          selectedCount={selectedProductIds.length}
-          onAssignClassification={() => setAssignClassificationOpen(true)}
-        />
+        <ProductActions onCreateProduct={handleCreateProduct} />
       </div>
 
       <ProductTable
@@ -108,13 +101,8 @@ export default function ProductPage() {
           onDelete: setDeleteId,
           onView: handleViewProduct,
           onAssignStock: setAssignStockProductId,
-          onViewClassification: setViewClassificationProductId,
-          onViewMetrics: setMetricsProductId,
         })}
         data={data?.data || []}
-        enableRowSelection={true}
-        rowSelection={rowSelection}
-        onRowSelectionChange={setRowSelection}
       >
         <ProductOptions
           search={search}
@@ -152,35 +140,6 @@ export default function ProductPage() {
           title="Asignar Producto a Almacén"
           mode="create"
           preselectedProductId={assignStockProductId}
-        />
-      )}
-
-      {assignClassificationOpen && (
-        <AssignClassificationModal
-          open={true}
-          productIds={selectedProductIds}
-          onClose={() => setAssignClassificationOpen(false)}
-          onSuccess={() => {
-            setAssignClassificationOpen(false);
-            clearSelection();
-            refetch();
-          }}
-        />
-      )}
-
-      {viewClassificationProductId !== null && (
-        <ProductClassificationModal
-          open={true}
-          productId={viewClassificationProductId}
-          onClose={() => setViewClassificationProductId(null)}
-        />
-      )}
-
-      {metricsProductId !== null && (
-        <ProductMetricsModal
-          open={true}
-          productId={metricsProductId}
-          onClose={() => setMetricsProductId(null)}
         />
       )}
     </div>

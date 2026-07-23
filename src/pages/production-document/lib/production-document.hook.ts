@@ -11,12 +11,13 @@ export function useProductionDocuments(params?: GetProductionDocumentsParams) {
     fetchDocuments,
   } = useProductionDocumentStore();
 
-  const paramsKey = JSON.stringify(params);
+  const page = params?.page;
+  const per_page = params?.per_page;
 
   useEffect(() => {
     fetchDocuments(params);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paramsKey, fetchDocuments]);
+    // Solo reagendar cuando cambian primitivos relevantes
+  }, [page, per_page, fetchDocuments]);
 
   return {
     data: documents,

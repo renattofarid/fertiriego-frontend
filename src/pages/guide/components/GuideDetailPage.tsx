@@ -574,29 +574,6 @@ export default function GuideDetailPage() {
                             {detail.description}
                           </p>
                         )}
-                      {detail.components && detail.components.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          <p className="text-xs text-muted-foreground font-semibold">
-                            Componentes
-                          </p>
-                          <div className="space-y-1">
-                            {detail.components.map((component) => (
-                              <div
-                                key={component.component_id}
-                                className="flex items-center justify-between gap-2 text-xs bg-background/60 rounded px-2 py-1 border"
-                              >
-                                <span className="truncate">
-                                  {component.component_name}
-                                </span>
-                                <span className="font-mono text-muted-foreground shrink-0">
-                                  {component.quantity_used}/
-                                  {component.quantity_required}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     <div className="text-right shrink-0 space-y-1">
                       <p className="font-bold text-2xl text-primary">
