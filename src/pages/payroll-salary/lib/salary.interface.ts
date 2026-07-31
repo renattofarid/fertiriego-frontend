@@ -61,17 +61,28 @@ export interface SalaryResponse {
 }
 
 export interface CreateSalaryRequest {
-  person_id: number;
+  pension_system_id: number;
   base_salary: number;
   valid_from: string;
   valid_until: string | null;
+  person_ids: number[];
 }
 
 export interface CreateSalaryResponse {
   message: string;
-  data: SalaryResource;
+  data: SalaryResource[];
 }
 
 export interface GetSalariesProps {
+  params?: Record<string, unknown>;
+}
+
+export interface PensionSystemResponse {
+  data: PensionSystemResource[];
+  links: Links;
+  meta: Meta;
+}
+
+export interface GetPensionSystemsProps {
   params?: Record<string, unknown>;
 }

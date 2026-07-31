@@ -76,7 +76,7 @@ export interface GetScheduleProps {
 }
 
 export interface AssignScheduleRequest {
-  person_id: number;
+  person_ids: number[];
   work_schedule_id: number;
   valid_from: string;
   valid_until: string | null;
@@ -94,5 +94,5 @@ export interface AssignScheduleResource {
 
 export interface AssignScheduleResponse {
   message: string;
-  data: AssignScheduleResource;
+  data: AssignScheduleResource[] | AssignScheduleResource;
 }

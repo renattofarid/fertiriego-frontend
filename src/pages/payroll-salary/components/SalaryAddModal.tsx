@@ -18,14 +18,20 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormMultiSelectAsync } from "@/components/FormMultiSelectAsync";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { storeSalary } from "../lib/salary.actions";
+import { usePensionSystems } from "../lib/salary.hook";
+import type { PensionSystemResource } from "../lib/salary.interface";
 import { errorToast, successToast } from "@/lib/core.function";
 import { requiredNumberId, dateStringSchemaRequired } from "@/lib/core.schema";
 
 const salaryFormSchema = z.object({
-  person_id: requiredNumberId("Seleccione un trabajador"),
+  person_ids: z
+    .array(z.string())
+    .min(1, "Seleccione al menos un trabajador"),
+  pension_system_id: requiredNumberId("Seleccione un sistema de pensión"),
   base_salary: z.coerce.number().min(0, "El salario debe ser mayor o igual a 0"),
   valid_from: dateStringSchemaRequired("Vigente desde"),
   no_end_date: z.boolean(),
@@ -54,7 +60,8 @@ export default function SalaryAddModal({
   const form = useForm<SalaryFormValues>({
     resolver: zodResolver(salaryFormSchema) as any,
     defaultValues: {
-      person_id: undefined,
+      person_ids: [],
+      pension_system_id: undefined,
       base_salary: 0,
       valid_from: format(new Date(), "yyyy-MM-dd"),
       no_end_date: true,
@@ -73,7 +80,8 @@ export default function SalaryAddModal({
   const onSubmit = async (values: SalaryFormValues) => {
     try {
       await storeSalary({
-        person_id: Number(values.person_id),
+        person_ids: values.person_ids.map(Number),
+        pension_system_id: Number(values.pension_system_id),
         base_salary: values.base_salary,
         valid_from: values.valid_from,
         valid_until: values.no_end_date ? null : values.valid_until || null,
@@ -104,17 +112,31 @@ export default function SalaryAddModal({
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-4 w-full"
         >
-          <FormSelectAsync
+          <FormMultiSelectAsync
             control={form.control}
-            name="person_id"
-            label="Trabajador"
-            placeholder="Seleccione un trabajador"
+            name="person_ids"
+            label="Trabajadores"
+            placeholder="Seleccione uno o más trabajadores"
             required
             useQueryHook={useWorkers}
             mapOptionFn={(person: PersonResource) => ({
               value: person.id.toString(),
               label: getPersonDisplayName(person),
               description: person.number_document,
+            })}
+          />
+
+          <FormSelectAsync
+            control={form.control}
+            name="pension_system_id"
+            label="Sistema de Pensión"
+            placeholder="Seleccione un sistema de pensión"
+            required
+            useQueryHook={usePensionSystems}
+            mapOptionFn={(pensionSystem: PensionSystemResource) => ({
+              value: pensionSystem.id.toString(),
+              label: pensionSystem.name,
+              description: pensionSystem.type,
             })}
           />
 

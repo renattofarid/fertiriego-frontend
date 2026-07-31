@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "lucide-react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
+import { FormMultiSelectAsync } from "@/components/FormMultiSelectAsync";
 import {
   assignScheduleSchema,
   type AssignScheduleSchema,
@@ -59,7 +60,7 @@ export default function AssignScheduleModal({
   const form = useForm<AssignScheduleSchema>({
     resolver: zodResolver(assignScheduleSchema),
     defaultValues: {
-      person_id: presetPersonId ? presetPersonId.toString() : "",
+      person_ids: presetPersonId ? [presetPersonId.toString()] : [],
       work_schedule_id: presetScheduleId ? presetScheduleId.toString() : "",
       valid_from: format(new Date(), "yyyy-MM-dd"),
       no_end_date: true,
@@ -72,7 +73,7 @@ export default function AssignScheduleModal({
 
   const handleSubmit = async (data: AssignScheduleSchema) => {
     await assignSchedule({
-      person_id: Number(data.person_id),
+      person_ids: data.person_ids.map(Number),
       work_schedule_id: Number(data.work_schedule_id),
       valid_from: data.valid_from,
       valid_until: data.no_end_date ? null : data.valid_until || null,
@@ -132,11 +133,11 @@ export default function AssignScheduleModal({
                 <span className="font-semibold">{presetPersonName}</span>
               </div>
             ) : (
-              <FormSelectAsync
+              <FormMultiSelectAsync
                 control={form.control}
-                name="person_id"
-                label="Trabajador"
-                placeholder="Seleccione un trabajador"
+                name="person_ids"
+                label="Trabajadores"
+                placeholder="Seleccione uno o más trabajadores"
                 required
                 useQueryHook={useWorkers}
                 mapOptionFn={(person: PersonResource) => ({
