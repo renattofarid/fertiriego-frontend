@@ -20,6 +20,7 @@ import {
   Building2,
   Mail,
   MapPin,
+  Briefcase,
 } from "lucide-react";
 import { personCreateSchema, type PersonSchema } from "../lib/person.schema";
 import { FormSelect } from "@/components/FormSelect";
@@ -81,6 +82,11 @@ export const PersonForm = ({
       phone: initialData?.phone || "",
       email: initialData?.email || "",
       driver_license: (initialData as any)?.driver_license || "",
+      hire_date: (initialData as any)?.hire_date || "",
+      vacation_days_per_year:
+        (initialData as any)?.vacation_days_per_year != null
+          ? String((initialData as any).vacation_days_per_year)
+          : "",
       role_id: roleId.toString(),
     },
     mode: "onChange", // Validate on change for immediate feedback
@@ -847,6 +853,58 @@ export const PersonForm = ({
             )}
           />
         </GroupFormSection>
+
+        {/* Labor Information - only for workers */}
+        {isWorker && (
+          <GroupFormSection
+            title="Datos Laborales"
+            icon={Briefcase}
+            cols={{ sm: 1, md: 2 }}
+          >
+            <DatePickerFormField
+              control={form.control}
+              name="hire_date"
+              label="Fecha de Contratación"
+              placeholder="Seleccione fecha"
+              captionLayout="dropdown"
+              disabledRange={{ after: new Date() }}
+            />
+
+            <FormField
+              control={form.control}
+              name="vacation_days_per_year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel
+                    className={
+                      errors.vacation_days_per_year ? "text-destructive" : ""
+                    }
+                  >
+                    Días de Vacaciones por Año
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={365}
+                      placeholder="Ej: 30"
+                      {...field}
+                      className={
+                        errors.vacation_days_per_year
+                          ? "border-destructive focus-visible:ring-destructive"
+                          : ""
+                      }
+                      onChange={(e) =>
+                        field.onChange(e.target.value.replace(/\D/g, ""))
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </GroupFormSection>
+        )}
 
         {/* Addresses mini CRUD - only shown when creating */}
         {!isEditing && (
