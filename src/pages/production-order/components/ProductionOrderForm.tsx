@@ -124,12 +124,14 @@ function AsyncProductPicker({
   defaultLabel,
   onSelect,
   additionalParams,
+  className,
 }: {
   label?: string;
   placeholder: string;
   defaultLabel?: string;
   onSelect: (value: string, item: ProductResource | undefined) => void;
   additionalParams?: Record<string, any>;
+  className?: string;
 }) {
   const localForm = useForm<{ value: string }>({
     defaultValues: { value: "" },
@@ -154,6 +156,7 @@ function AsyncProductPicker({
         onSelect(value, item as ProductResource | undefined)
       }
       withValue={false}
+      className={className}
     />
   );
 }
@@ -192,6 +195,14 @@ function ComboToggle({
   );
 }
 
+// Estilos "tipo Excel" para las celdas editables de la grilla de
+// componentes: sin bordes/radio propios ni fondo — la celda de la tabla
+// dibuja la cuadrícula y el input/selector solo rellena su espacio.
+const cellInputClass =
+  "h-9 w-full rounded-none border-0 bg-transparent px-2 shadow-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary";
+const cellPickerClass =
+  "h-9 w-full rounded-none border-0 bg-transparent! px-2 shadow-none justify-between focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary";
+
 /**
  * Fila de la grilla de componentes manuales, definida como componente
  * propio y estable (no una función creada en cada render) para que React
@@ -204,12 +215,15 @@ function ComponentRow({
   itemIndex,
   componentIndex,
   component,
+  otherComponentIds,
   onChange,
   onDelete,
 }: {
   itemIndex: number;
   componentIndex: number;
   component: ProductionOrderComponentFormValues;
+  /** ids de componentes ya elegidos en otras filas del mismo ítem, para evitar duplicados */
+  otherComponentIds: string[];
   onChange: (
     itemIndex: number,
     componentIndex: number,
@@ -219,28 +233,35 @@ function ComponentRow({
 }) {
   return (
     <TableRow>
-      <TableCell className="text-muted-foreground">
-        <CornerDownRight className="h-4 w-4" />
+      <TableCell className="border-r p-0 text-center text-muted-foreground">
+        <CornerDownRight className="mx-auto h-4 w-4" />
       </TableCell>
-      <TableCell>
+      <TableCell className="border-r p-0">
         <AsyncProductPicker
           placeholder="Buscar componente..."
           defaultLabel={component.component_name}
           additionalParams={{ only_components: 1 }}
-          onSelect={(value, prod) =>
+          className={cellPickerClass}
+          onSelect={(value, prod) => {
+            if (value && otherComponentIds.includes(value)) {
+              toast.error(
+                `"${prod?.name ?? "Este componente"}" ya fue agregado en otra fila`,
+              );
+              return;
+            }
             onChange(itemIndex, componentIndex, {
               component_id: value,
               component_name: prod?.name ?? "",
-            })
-          }
+            });
+          }}
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="border-r p-0">
         <Input
           type="number"
           step="0.01"
           min="0.01"
-          className="h-8 w-24"
+          className={cellInputClass}
           value={component.quantity_required}
           onChange={(e) =>
             onChange(itemIndex, componentIndex, {
@@ -250,12 +271,12 @@ function ComponentRow({
           placeholder="0.00"
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="border-r p-0">
         <Input
           type="number"
           step="0.01"
           min="0"
-          className="h-8 w-24"
+          className={cellInputClass}
           value={component.unit_cost}
           onChange={(e) =>
             onChange(itemIndex, componentIndex, {
@@ -265,9 +286,9 @@ function ComponentRow({
           placeholder="0.00"
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="border-r p-0">
         <Input
-          className="h-8"
+          className={cellInputClass}
           value={component.notes}
           onChange={(e) =>
             onChange(itemIndex, componentIndex, { notes: e.target.value })
@@ -276,7 +297,7 @@ function ComponentRow({
           maxLength={500}
         />
       </TableCell>
-      <TableCell>
+      <TableCell className="p-0 text-center">
         <Button
           type="button"
           variant="ghost"
@@ -419,11 +440,20 @@ export function ProductionOrderForm({
       toast.error("Debe agregar al menos un producto a producir");
       return;
     }
+    // Un mismo producto no puede repetirse como dos ítems distintos de la orden.
+    const seenProductIds = new Set<string>();
     for (const item of items) {
       if (!item.product_id) {
         toast.error("Todos los productos deben estar seleccionados");
         return;
       }
+      if (seenProductIds.has(item.product_id)) {
+        toast.error(
+          `"${item.product_name || "Un producto"}" está repetido en la orden`,
+        );
+        return;
+      }
+      seenProductIds.add(item.product_id);
       if (!item.quantity_requested || Number(item.quantity_requested) <= 0) {
         toast.error(
           "La cantidad solicitada debe ser mayor a 0 en todos los productos",
@@ -437,6 +467,8 @@ export function ProductionOrderForm({
           );
           return;
         }
+        // Un mismo componente no puede repetirse dentro del mismo producto.
+        const seenComponentIds = new Set<string>();
         for (const c of item.components) {
           if (!c.component_id) {
             toast.error(
@@ -444,6 +476,13 @@ export function ProductionOrderForm({
             );
             return;
           }
+          if (seenComponentIds.has(c.component_id)) {
+            toast.error(
+              `"${c.component_name || "Un componente"}" está repetido en "${item.product_name || "el producto"}"`,
+            );
+            return;
+          }
+          seenComponentIds.add(c.component_id);
           if (!c.quantity_required || Number(c.quantity_required) <= 0) {
             toast.error(
               `La cantidad requerida debe ser mayor a 0 en los componentes de "${item.product_name || "el producto"}"`,
@@ -615,12 +654,24 @@ export function ProductionOrderForm({
                             <AsyncProductPicker
                               placeholder="Buscar producto..."
                               defaultLabel={item.product_name}
-                              onSelect={(value, prod) =>
+                              onSelect={(value, prod) => {
+                                const usedByOtherItem = items.some(
+                                  (it, i) =>
+                                    i !== itemIndex &&
+                                    value &&
+                                    it.product_id === value,
+                                );
+                                if (usedByOtherItem) {
+                                  toast.error(
+                                    `"${prod?.name ?? "Este producto"}" ya fue agregado en otro producto de la orden`,
+                                  );
+                                  return;
+                                }
                                 updateItem(itemIndex, {
                                   product_id: value,
                                   product_name: prod?.name ?? "",
-                                })
-                              }
+                                });
+                              }}
                             />
                           </div>
 
@@ -722,66 +773,75 @@ export function ProductionOrderForm({
                           </div>
                         )}
 
-                        {/* Componentes manuales del ítem: sin card aparte,
-                            la grilla se edita directamente aquí mismo — cada
-                            fila representa un subcomponente del producto
-                            (de allí el ícono de árbol en la primera columna). */}
+                        {/* Componentes manuales del ítem: la grilla se
+                            muestra directa, sin subtítulo ni botón aparte
+                            arriba — el nombre va en el encabezado de columna
+                            y "Agregar fila" queda pegado a la última fila
+                            (dentro de la tabla) para no tener que subir a
+                            buscarlo cuando hay muchos componentes. */}
                         {!item.use_combo && (
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                Componentes manuales
-                              </p>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                className="h-7"
-                                onClick={() => addComponentRow(itemIndex)}
-                              >
-                                <Plus className="h-3.5 w-3.5 mr-1" />
-                                Agregar fila
-                              </Button>
-                            </div>
-
-                            {item.components.length > 0 ? (
-                              <div className="overflow-hidden rounded-lg border">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead className="w-8" />
-                                      <TableHead>Componente</TableHead>
-                                      <TableHead className="w-28">
-                                        Cant. Req.
-                                      </TableHead>
-                                      <TableHead className="w-28">
-                                        Costo Unit.
-                                      </TableHead>
-                                      <TableHead>Notas</TableHead>
-                                      <TableHead className="w-10" />
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {item.components.map(
-                                      (component, componentIndex) => (
-                                        <ComponentRow
-                                          key={componentIndex}
-                                          itemIndex={itemIndex}
-                                          componentIndex={componentIndex}
-                                          component={component}
-                                          onChange={updateComponentRow}
-                                          onDelete={handleDeleteComponent}
-                                        />
-                                      ),
-                                    )}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            ) : (
-                              <p className="text-sm text-muted-foreground text-center py-2">
-                                Sin componentes. Agrega una fila para empezar.
-                              </p>
-                            )}
+                          <div className="overflow-hidden rounded-lg border">
+                            <Table className="border-separate border-spacing-0">
+                              <TableHeader>
+                                <TableRow className="hover:bg-transparent">
+                                  <TableHead className="w-8 border-r" />
+                                  <TableHead className="border-r">
+                                    Componentes manuales
+                                  </TableHead>
+                                  <TableHead className="w-28 border-r">
+                                    Cant. Req.
+                                  </TableHead>
+                                  <TableHead className="w-28 border-r">
+                                    Costo Unit.
+                                  </TableHead>
+                                  <TableHead className="border-r">Notas</TableHead>
+                                  <TableHead className="w-10" />
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {item.components.length > 0 ? (
+                                  item.components.map(
+                                    (component, componentIndex) => (
+                                      <ComponentRow
+                                        key={componentIndex}
+                                        itemIndex={itemIndex}
+                                        componentIndex={componentIndex}
+                                        component={component}
+                                        otherComponentIds={item.components
+                                          .filter((_, ci) => ci !== componentIndex)
+                                          .map((c) => c.component_id)
+                                          .filter(Boolean)}
+                                        onChange={updateComponentRow}
+                                        onDelete={handleDeleteComponent}
+                                      />
+                                    ),
+                                  )
+                                ) : (
+                                  <TableRow>
+                                    <TableCell
+                                      colSpan={6}
+                                      className="text-center text-sm text-muted-foreground"
+                                    >
+                                      Sin componentes.
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                                <TableRow className="hover:bg-transparent">
+                                  <TableCell colSpan={6} className="p-1">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 w-full justify-start text-muted-foreground"
+                                      onClick={() => addComponentRow(itemIndex)}
+                                    >
+                                      <Plus className="h-3.5 w-3.5 mr-1" />
+                                      Agregar fila
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
                           </div>
                         )}
                       </div>
