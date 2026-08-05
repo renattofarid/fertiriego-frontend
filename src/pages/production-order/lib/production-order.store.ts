@@ -46,8 +46,8 @@ const buildItemsRequest = (items: ProductionOrderSchema["items"]) =>
             component_id: Number(c.component_id),
             quantity_required: Number(c.quantity_required),
             unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
-            waste_quantity: c.waste_quantity ? Number(c.waste_quantity) : undefined,
-            waste_percentage: c.waste_percentage ? Number(c.waste_percentage) : undefined,
+            // ⚠️ waste_quantity/waste_percentage NO se envían: el backend
+            // los calcula automáticamente, igual que overhead_cost.
             notes: c.notes || undefined,
           }))
         : undefined,

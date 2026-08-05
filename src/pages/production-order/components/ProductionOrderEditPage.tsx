@@ -64,8 +64,8 @@ export default function ProductionOrderEditPage() {
           component_name: c.component.name,
           quantity_required: c.quantity_required.toString(),
           unit_cost: c.unit_cost.toString(),
-          waste_quantity: c.waste_quantity?.toString() ?? "",
-          waste_percentage: c.waste_percentage?.toString() ?? "",
+          // waste_quantity/waste_percentage no se editan: los calcula el
+          // backend automáticamente, solo se muestran en el detalle.
           notes: c.notes || "",
         })),
       },

@@ -2,9 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
 import TitleFormComponent from "@/components/TitleFormComponent";
-import FormWrapper from "@/components/FormWrapper";
+import PageWrapper from "@/components/PageWrapper";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import { productionOrderSchema } from "../lib/production-order.schema";
 import { Button } from "@/components/ui/button";
@@ -18,20 +17,28 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 import {
   Plus,
   Trash2,
   Loader,
   ClipboardList,
-  Pencil,
   Package,
-  Sparkles,
+  MessageSquarePlus,
+  X,
+  CornerDownRight,
 } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSwitch } from "@/components/FormSwitch";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { DataTable } from "@/components/DataTable";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { ProductResource } from "@/pages/product/lib/product.interface";
@@ -45,8 +52,9 @@ export type ProductionOrderComponentFormValues = {
   component_name?: string;
   quantity_required: string;
   unit_cost: string;
-  waste_quantity: string;
-  waste_percentage: string;
+  // ⚠️ waste_quantity/waste_percentage NO se capturan aquí: el backend los
+  // calcula automáticamente y se muestran solo como dato de solo lectura en
+  // el detalle (igual que overhead_cost a nivel de ítem).
   notes?: string;
 };
 
@@ -92,8 +100,6 @@ const emptyComponent: ProductionOrderComponentFormValues = {
   component_name: "",
   quantity_required: "",
   unit_cost: "",
-  waste_quantity: "",
-  waste_percentage: "",
   notes: "",
 };
 
@@ -125,7 +131,9 @@ function AsyncProductPicker({
   onSelect: (value: string, item: ProductResource | undefined) => void;
   additionalParams?: Record<string, any>;
 }) {
-  const localForm = useForm<{ value: string }>({ defaultValues: { value: "" } });
+  const localForm = useForm<{ value: string }>({
+    defaultValues: { value: "" },
+  });
   return (
     <FormSelectAsync
       control={localForm.control}
@@ -139,10 +147,147 @@ function AsyncProductPicker({
         description: p.unit_name,
       })}
       additionalParams={additionalParams}
-      defaultOption={defaultLabel ? { value: "", label: defaultLabel } : undefined}
-      onValueChange={(value, item) => onSelect(value, item as ProductResource | undefined)}
+      defaultOption={
+        defaultLabel ? { value: "", label: defaultLabel } : undefined
+      }
+      onValueChange={(value, item) =>
+        onSelect(value, item as ProductResource | undefined)
+      }
       withValue={false}
     />
+  );
+}
+
+/**
+ * Switch aislado con su propio react-hook-form interno (mismo motivo que
+ * AsyncProductPicker): permite usar FormSwitch dentro de un array dinámico de
+ * ítems, notificando el cambio hacia arriba vía onChange en vez de compartir
+ * el control del formulario principal.
+ */
+function ComboToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  const localForm = useForm<{ use_combo: boolean }>({
+    defaultValues: { use_combo: checked },
+  });
+  const value = localForm.watch("use_combo");
+
+  useEffect(() => {
+    onChange(value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <FormSwitch
+      control={localForm.control}
+      name="use_combo"
+      label="Componentes"
+      text={value ? "Automático" : "Manual"}
+      size="sm"
+    />
+  );
+}
+
+/**
+ * Fila de la grilla de componentes manuales, definida como componente
+ * propio y estable (no una función creada en cada render) para que React
+ * la reconcilie por posición en vez de remontarla — evita que el
+ * AsyncProductPicker pierda el foco/reinicie su búsqueda en cada tecleo.
+ * El ícono de la primera columna indica que es un subcomponente (árbol)
+ * del producto final de la fila superior.
+ */
+function ComponentRow({
+  itemIndex,
+  componentIndex,
+  component,
+  onChange,
+  onDelete,
+}: {
+  itemIndex: number;
+  componentIndex: number;
+  component: ProductionOrderComponentFormValues;
+  onChange: (
+    itemIndex: number,
+    componentIndex: number,
+    patch: Partial<ProductionOrderComponentFormValues>,
+  ) => void;
+  onDelete: (itemIndex: number, componentIndex: number) => void;
+}) {
+  return (
+    <TableRow>
+      <TableCell className="text-muted-foreground">
+        <CornerDownRight className="h-4 w-4" />
+      </TableCell>
+      <TableCell>
+        <AsyncProductPicker
+          placeholder="Buscar componente..."
+          defaultLabel={component.component_name}
+          additionalParams={{ only_components: 1 }}
+          onSelect={(value, prod) =>
+            onChange(itemIndex, componentIndex, {
+              component_id: value,
+              component_name: prod?.name ?? "",
+            })
+          }
+        />
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          step="0.01"
+          min="0.01"
+          className="h-8 w-24"
+          value={component.quantity_required}
+          onChange={(e) =>
+            onChange(itemIndex, componentIndex, {
+              quantity_required: e.target.value,
+            })
+          }
+          placeholder="0.00"
+        />
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          className="h-8 w-24"
+          value={component.unit_cost}
+          onChange={(e) =>
+            onChange(itemIndex, componentIndex, {
+              unit_cost: e.target.value,
+            })
+          }
+          placeholder="0.00"
+        />
+      </TableCell>
+      <TableCell>
+        <Input
+          className="h-8"
+          value={component.notes}
+          onChange={(e) =>
+            onChange(itemIndex, componentIndex, { notes: e.target.value })
+          }
+          placeholder="Notas..."
+          maxLength={500}
+        />
+      </TableCell>
+      <TableCell>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          className="text-muted-foreground hover:text-destructive"
+          onClick={() => onDelete(itemIndex, componentIndex)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -171,7 +316,9 @@ export function ProductionOrderForm({
   };
 
   const form = useForm<ProductionOrderFormValues>({
-    resolver: zodResolver(productionOrderSchema) as Resolver<ProductionOrderFormValues>,
+    resolver: zodResolver(
+      productionOrderSchema,
+    ) as Resolver<ProductionOrderFormValues>,
     defaultValues: initialValues ?? defaultValues,
   });
 
@@ -179,13 +326,19 @@ export function ProductionOrderForm({
     initialValues?.items?.length ? initialValues.items : [emptyItem()],
   );
 
-  // Formulario inline para agregar un componente manual dentro de un ítem
-  const [componentDraft, setComponentDraft] = useState<ProductionOrderComponentFormValues>(emptyComponent);
-  const [componentTargetItem, setComponentTargetItem] = useState<number | null>(null);
-  const [editingComponentIndex, setEditingComponentIndex] = useState<number | null>(null);
-  // Se incrementa para forzar el remount del AsyncProductPicker del componente
-  // (y así limpiar/precargar su label) cada vez que se abre para editar/agregar.
-  const [componentPickerKey, setComponentPickerKey] = useState(0);
+  // Índices de ítems cuyo campo de notas está expandido (se abre al hacer clic en "Agregar nota")
+  const [notesExpanded, setNotesExpanded] = useState<Set<number>>(
+    () =>
+      new Set(items.map((it, i) => (it.notes ? i : -1)).filter((i) => i >= 0)),
+  );
+  const toggleNotes = (itemIndex: number) => {
+    setNotesExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemIndex)) next.delete(itemIndex);
+      else next.add(itemIndex);
+      return next;
+    });
+  };
 
   const warehouseOriginId = form.watch("warehouse_origin_id");
   const warehouseDestId = form.watch("warehouse_dest_id");
@@ -195,8 +348,13 @@ export function ProductionOrderForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
-  const updateItem = (index: number, patch: Partial<ProductionOrderItemFormValues>) => {
-    setItems((prev) => prev.map((it, i) => (i === index ? { ...it, ...patch } : it)));
+  const updateItem = (
+    index: number,
+    patch: Partial<ProductionOrderItemFormValues>,
+  ) => {
+    setItems((prev) =>
+      prev.map((it, i) => (i === index ? { ...it, ...patch } : it)),
+    );
   };
 
   const handleAddItem = () => {
@@ -211,97 +369,50 @@ export function ProductionOrderForm({
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const openComponentForm = (itemIndex: number, componentIndex: number | null = null) => {
-    setComponentTargetItem(itemIndex);
-    setEditingComponentIndex(componentIndex);
-    setComponentDraft(
-      componentIndex !== null ? { ...items[itemIndex].components[componentIndex] } : emptyComponent,
+  // Agrega una fila de componente vacía directamente a la grilla del ítem,
+  // para editarla en línea sin un paso separado de "agregar/actualizar".
+  const addComponentRow = (itemIndex: number) => {
+    setItems((prev) =>
+      prev.map((it, i) =>
+        i === itemIndex
+          ? { ...it, components: [...it.components, { ...emptyComponent }] }
+          : it,
+      ),
     );
-    setComponentPickerKey((k) => k + 1);
   };
 
-  const handleAddOrUpdateComponent = () => {
-    if (componentTargetItem === null) return;
-    if (!componentDraft.component_id || !componentDraft.component_name) {
-      toast.error("Debe seleccionar un componente");
-      return;
-    }
-    if (!componentDraft.quantity_required || Number(componentDraft.quantity_required) <= 0) {
-      toast.error("La cantidad requerida debe ser mayor a 0");
-      return;
-    }
-
+  const updateComponentRow = (
+    itemIndex: number,
+    componentIndex: number,
+    patch: Partial<ProductionOrderComponentFormValues>,
+  ) => {
     setItems((prev) =>
       prev.map((it, i) => {
-        if (i !== componentTargetItem) return it;
-        const nextComponents = [...it.components];
-        if (editingComponentIndex !== null) {
-          nextComponents[editingComponentIndex] = componentDraft;
-        } else {
-          nextComponents.push(componentDraft);
-        }
-        return { ...it, components: nextComponents };
+        if (i !== itemIndex) return it;
+        return {
+          ...it,
+          components: it.components.map((c, ci) =>
+            ci === componentIndex ? { ...c, ...patch } : c,
+          ),
+        };
       }),
     );
-
-    setComponentDraft(emptyComponent);
-    setEditingComponentIndex(null);
-    setComponentPickerKey((k) => k + 1);
   };
 
   const handleDeleteComponent = (itemIndex: number, componentIndex: number) => {
     setItems((prev) =>
       prev.map((it, i) =>
         i === itemIndex
-          ? { ...it, components: it.components.filter((_, ci) => ci !== componentIndex) }
+          ? {
+              ...it,
+              components: it.components.filter(
+                (_, ci) => ci !== componentIndex,
+              ),
+            }
           : it,
       ),
     );
   };
-
-  const makeComponentColumns = (itemIndex: number): ColumnDef<ProductionOrderComponentFormValues>[] => [
-    {
-      accessorKey: "component_name",
-      header: "Componente",
-      cell: ({ row }) => <span className="font-medium">{row.original.component_name}</span>,
-    },
-    {
-      accessorKey: "quantity_required",
-      header: "Cant. Req.",
-      cell: ({ row }) => <span>{row.original.quantity_required}</span>,
-    },
-    {
-      accessorKey: "unit_cost",
-      header: "Costo Unit.",
-      cell: ({ row }) => <span>S/ {Number(row.original.unit_cost || 0).toFixed(2)}</span>,
-    },
-    {
-      accessorKey: "waste_percentage",
-      header: "Merma %",
-      cell: ({ row }) => <span>{row.original.waste_percentage || 0}%</span>,
-    },
-    {
-      accessorKey: "notes",
-      header: "Notas",
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground">{row.original.notes || "-"}</span>
-      ),
-    },
-    {
-      id: "actions",
-      header: "Acciones",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button type="button" variant="ghost" onClick={() => openComponentForm(itemIndex, row.index)}>
-            <Pencil className="h-4 w-4" />
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => handleDeleteComponent(itemIndex, row.index)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
 
   const handleFormSubmit = form.handleSubmit(() => {
     if (items.length === 0) {
@@ -314,14 +425,32 @@ export function ProductionOrderForm({
         return;
       }
       if (!item.quantity_requested || Number(item.quantity_requested) <= 0) {
-        toast.error("La cantidad solicitada debe ser mayor a 0 en todos los productos");
-        return;
-      }
-      if (!item.use_combo && item.components.length === 0) {
         toast.error(
-          `Debe agregar al menos un componente manual para "${item.product_name || "el producto"}", o active "usar combo (BOM)"`,
+          "La cantidad solicitada debe ser mayor a 0 en todos los productos",
         );
         return;
+      }
+      if (!item.use_combo) {
+        if (item.components.length === 0) {
+          toast.error(
+            `Debe agregar al menos un componente manual para "${item.product_name || "el producto"}", o active "Automático"`,
+          );
+          return;
+        }
+        for (const c of item.components) {
+          if (!c.component_id) {
+            toast.error(
+              `Debe seleccionar todos los componentes de "${item.product_name || "el producto"}"`,
+            );
+            return;
+          }
+          if (!c.quantity_required || Number(c.quantity_required) <= 0) {
+            toast.error(
+              `La cantidad requerida debe ser mayor a 0 en los componentes de "${item.product_name || "el producto"}"`,
+            );
+            return;
+          }
+        }
       }
     }
     const payload: ProductionOrderFormValues = {
@@ -335,284 +464,356 @@ export function ProductionOrderForm({
   });
 
   return (
-    <FormWrapper>
+    <PageWrapper>
       <div className="mb-6">
-        <TitleFormComponent title={MODEL.name} mode={mode} icon={ICON} backRoute={ROUTE} />
+        <TitleFormComponent
+          title={MODEL.name}
+          mode={mode}
+          icon={ICON}
+          backRoute={ROUTE}
+        />
       </div>
 
       {editSingleItemWarning && (
         <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Esta orden fue creada con un solo producto o el backend aún no expone el detalle por
-          múltiples ítems al editar. Si la orden tiene más de un producto, edítala con cuidado:
-          solo se muestra el primero.
+          Esta orden fue creada con un solo producto o el backend aún no expone
+          el detalle por múltiples ítems al editar. Si la orden tiene más de un
+          producto, edítala con cuidado: solo se muestra el primero.
         </div>
       )}
 
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          {/* Información General */}
-          <GroupFormSection icon={ClipboardList} title="Información General" cols={{ sm: 1, md: 2, lg: 3 }}>
-            <FormSelect
-              control={form.control}
-              name="warehouse_origin_id"
-              label="Almacén Origen"
-              placeholder="Seleccione almacén de origen"
-              options={warehouses
-                .filter((w) => w.id.toString() !== warehouseDestId)
-                .map((w) => ({ value: w.id.toString(), label: w.name, description: w.address }))}
-              withValue
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            {/* Información General */}
+            <div className="lg:col-span-1 lg:sticky lg:top-4">
+              <GroupFormSection
+                icon={ClipboardList}
+                title="Información General"
+                cols={{ sm: 1 }}
+              >
+                <FormSelect
+                  control={form.control}
+                  name="warehouse_origin_id"
+                  label="Almacén Origen"
+                  placeholder="Seleccione almacén de origen"
+                  options={warehouses
+                    .filter((w) => w.id.toString() !== warehouseDestId)
+                    .map((w) => ({
+                      value: w.id.toString(),
+                      label: w.name,
+                      description: w.address,
+                    }))}
+                  withValue
+                />
 
-            <FormSelect
-              control={form.control}
-              name="warehouse_dest_id"
-              label="Almacén Destino"
-              placeholder="Seleccione almacén de destino"
-              options={warehouses
-                .filter((w) => w.id.toString() !== warehouseOriginId)
-                .map((w) => ({ value: w.id.toString(), label: w.name, description: w.address }))}
-              withValue
-            />
+                <FormSelect
+                  control={form.control}
+                  name="warehouse_dest_id"
+                  label="Almacén Destino"
+                  placeholder="Seleccione almacén de destino"
+                  options={warehouses
+                    .filter((w) => w.id.toString() !== warehouseOriginId)
+                    .map((w) => ({
+                      value: w.id.toString(),
+                      label: w.name,
+                      description: w.address,
+                    }))}
+                  withValue
+                />
 
-            <FormSelectAsync
-              control={form.control}
-              name="responsible_id"
-              label="Responsable"
-              placeholder="Buscar responsable..."
-              useQueryHook={useWorkers}
-              mapOptionFn={(w: PersonResource) => ({
-                value: w.id.toString(),
-                label: w.business_name || `${w.names} ${w.father_surname} ${w.mother_surname}`,
-                description: w.number_document,
-              })}
-              withValue
-            />
+                <FormSelectAsync
+                  control={form.control}
+                  name="responsible_id"
+                  label="Responsable"
+                  placeholder="Buscar responsable..."
+                  useQueryHook={useWorkers}
+                  mapOptionFn={(w: PersonResource) => ({
+                    value: w.id.toString(),
+                    label:
+                      w.business_name ||
+                      `${w.names} ${w.father_surname} ${w.mother_surname}`,
+                    description: w.number_document,
+                  })}
+                  withValue
+                />
 
-            <DatePickerFormField
-              control={form.control}
-              name="requested_date"
-              label="Fecha Solicitada"
-              placeholder="Seleccione fecha"
-            />
+                <DatePickerFormField
+                  control={form.control}
+                  name="requested_date"
+                  label="Fecha Solicitada"
+                  placeholder="Seleccione fecha"
+                />
 
-            <FormSelect
-              control={form.control}
-              name="currency"
-              label="Moneda"
-              placeholder="Seleccione moneda"
-              options={CURRENCY_OPTIONS}
-              withValue
-            />
+                <FormSelect
+                  control={form.control}
+                  name="currency"
+                  label="Moneda"
+                  placeholder="Seleccione moneda"
+                  options={CURRENCY_OPTIONS}
+                  withValue
+                />
 
-            <div className="col-span-full">
-              <FormField
-                control={form.control}
-                name="observations"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Observaciones</FormLabel>
-                    <FormControl>
-                      <Textarea rows={3} placeholder="Observaciones adicionales..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="observations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Observaciones</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          rows={3}
+                          placeholder="Observaciones adicionales..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </GroupFormSection>
             </div>
-          </GroupFormSection>
 
-          {/* Productos a producir (ítems anidados) */}
-          <GroupFormSection icon={Package} title="Productos a Producir" cols={{ sm: 1 }}>
-            <div className="space-y-4">
-              {items.map((item, itemIndex) => (
-                <div key={itemIndex} className="rounded-lg border p-4 space-y-4 bg-muted/20">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-muted-foreground">
-                      Producto #{itemIndex + 1}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveItem(itemIndex)}
+            {/* Productos a producir (ítems anidados) */}
+            <div className="lg:col-span-3">
+              <GroupFormSection
+                icon={Package}
+                title="Productos a Producir"
+                cols={{ sm: 1 }}
+              >
+                <div className="space-y-3 w-full">
+                  {items.map((item, itemIndex) => (
+                    <div
+                      key={itemIndex}
+                      className="rounded-xl border bg-card shadow-sm overflow-hidden"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Quitar
-                    </Button>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div className="md:col-span-2">
-                      <label className="text-sm font-medium">Producto Final</label>
-                      <AsyncProductPicker
-                        placeholder="Buscar producto..."
-                        defaultLabel={item.product_name}
-                        onSelect={(value, prod) =>
-                          updateItem(itemIndex, {
-                            product_id: value,
-                            product_name: prod?.name ?? "",
-                          })
-                        }
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Cant. Solicitada</label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={item.quantity_requested}
-                        onChange={(e) => updateItem(itemIndex, { quantity_requested: e.target.value })}
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium">Costo Laboral (S/)</label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={item.labor_cost}
-                        onChange={(e) => updateItem(itemIndex, { labor_cost: e.target.value })}
-                        placeholder="0.00"
-                      />
-                    </div>
-
-                    <div className="md:col-span-4">
-                      <label className="text-sm font-medium">Notas del producto</label>
-                      <Input
-                        value={item.notes}
-                        onChange={(e) => updateItem(itemIndex, { notes: e.target.value })}
-                        placeholder="Notas opcionales..."
-                        maxLength={500}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Toggle combo (BOM) vs componentes manuales */}
-                  <div className="flex items-center gap-3 rounded-md border bg-background px-3 py-2">
-                    <Switch
-                      checked={item.use_combo}
-                      onCheckedChange={(checked) => updateItem(itemIndex, { use_combo: checked })}
-                    />
-                    <div>
-                      <p className="text-sm font-medium flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5 text-primary" />
-                        Usar combo automático (BOM) del producto
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.use_combo
-                          ? "No se enviarán componentes: el backend los autocompletará según la receta configurada del producto."
-                          : "Deberá agregar manualmente los componentes y cantidades para este producto."}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Componentes manuales del ítem */}
-                  {!item.use_combo && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end border p-3 rounded-lg bg-background">
-                        <div className="md:col-span-2">
-                          <AsyncProductPicker
-                            key={componentTargetItem === itemIndex ? componentPickerKey : `idle-${itemIndex}`}
-                            label="Componente"
-                            placeholder="Buscar componente..."
-                            defaultLabel={
-                              componentTargetItem === itemIndex ? componentDraft.component_name : undefined
-                            }
-                            additionalParams={{ only_components: 1 }}
-                            onSelect={(value, prod) => {
-                              setComponentTargetItem(itemIndex);
-                              setComponentDraft((prev) => ({
-                                ...prev,
-                                component_id: value,
-                                component_name: prod?.name ?? "",
-                              }));
-                            }}
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Cant. Req.</label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={componentTargetItem === itemIndex ? componentDraft.quantity_required : ""}
-                            onChange={(e) => {
-                              setComponentTargetItem(itemIndex);
-                              setComponentDraft((prev) => ({ ...prev, quantity_required: e.target.value }));
-                            }}
-                            placeholder="0.00"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Costo Unit.</label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={componentTargetItem === itemIndex ? componentDraft.unit_cost : ""}
-                            onChange={(e) => {
-                              setComponentTargetItem(itemIndex);
-                              setComponentDraft((prev) => ({ ...prev, unit_cost: e.target.value }));
-                            }}
-                            placeholder="0.00"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium">Merma %</label>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            max="100"
-                            value={componentTargetItem === itemIndex ? componentDraft.waste_percentage : ""}
-                            onChange={(e) => {
-                              setComponentTargetItem(itemIndex);
-                              setComponentDraft((prev) => ({ ...prev, waste_percentage: e.target.value }));
-                            }}
-                            placeholder="0"
-                          />
-                        </div>
+                      <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-primary text-xs">
+                            {itemIndex + 1}
+                          </span>
+                          {item.product_name || `Producto #${itemIndex + 1}`}
+                        </span>
                         <Button
                           type="button"
-                          onClick={() => {
-                            setComponentTargetItem(itemIndex);
-                            handleAddOrUpdateComponent();
-                          }}
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveItem(itemIndex)}
                         >
-                          <Plus className="h-4 w-4 mr-1" />
-                          {editingComponentIndex !== null && componentTargetItem === itemIndex
-                            ? "Actualizar"
-                            : "Agregar"}
+                          <Trash2 className="h-3.5 w-3.5 mr-1" />
+                          Quitar
                         </Button>
                       </div>
 
-                      {item.components.length > 0 && (
-                        <DataTable columns={makeComponentColumns(itemIndex)} data={item.components} />
-                      )}
+                      <div className="p-3 space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                          <div className="md:col-span-4">
+                            <label className="text-sm font-medium">
+                              Producto Final
+                            </label>
+                            <AsyncProductPicker
+                              placeholder="Buscar producto..."
+                              defaultLabel={item.product_name}
+                              onSelect={(value, prod) =>
+                                updateItem(itemIndex, {
+                                  product_id: value,
+                                  product_name: prod?.name ?? "",
+                                })
+                              }
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium">
+                              Cant. Solicitada
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0.01"
+                              value={item.quantity_requested}
+                              onChange={(e) =>
+                                updateItem(itemIndex, {
+                                  quantity_requested: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <label className="text-sm font-medium">
+                              Costo Laboral (S/)
+                            </label>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={item.labor_cost}
+                              onChange={(e) =>
+                                updateItem(itemIndex, {
+                                  labor_cost: e.target.value,
+                                })
+                              }
+                              placeholder="0.00"
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            <ComboToggle
+                              checked={item.use_combo}
+                              onChange={(checked) =>
+                                updateItem(itemIndex, { use_combo: checked })
+                              }
+                            />
+                          </div>
+
+                          <div className="md:col-span-2">
+                            {!notesExpanded.has(itemIndex) && (
+                              <>
+                                <label className="text-sm font-medium invisible hidden md:block">
+                                  Notas
+                                </label>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="w-full h-8 text-muted-foreground"
+                                  onClick={() => toggleNotes(itemIndex)}
+                                >
+                                  <MessageSquarePlus className="h-3.5 w-3.5 mr-1" />
+                                  Agregar nota
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        {notesExpanded.has(itemIndex) && (
+                          <div className="flex items-end gap-2">
+                            <div className="flex-1">
+                              <label className="text-sm font-medium">
+                                Notas del producto
+                              </label>
+                              <Input
+                                autoFocus
+                                value={item.notes}
+                                onChange={(e) =>
+                                  updateItem(itemIndex, {
+                                    notes: e.target.value,
+                                  })
+                                }
+                                placeholder="Notas opcionales..."
+                                maxLength={500}
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="shrink-0 text-muted-foreground"
+                              onClick={() => {
+                                updateItem(itemIndex, { notes: "" });
+                                toggleNotes(itemIndex);
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Componentes manuales del ítem: sin card aparte,
+                            la grilla se edita directamente aquí mismo — cada
+                            fila representa un subcomponente del producto
+                            (de allí el ícono de árbol en la primera columna). */}
+                        {!item.use_combo && (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                Componentes manuales
+                              </p>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7"
+                                onClick={() => addComponentRow(itemIndex)}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" />
+                                Agregar fila
+                              </Button>
+                            </div>
+
+                            {item.components.length > 0 ? (
+                              <div className="overflow-hidden rounded-lg border">
+                                <Table>
+                                  <TableHeader>
+                                    <TableRow>
+                                      <TableHead className="w-8" />
+                                      <TableHead>Componente</TableHead>
+                                      <TableHead className="w-28">
+                                        Cant. Req.
+                                      </TableHead>
+                                      <TableHead className="w-28">
+                                        Costo Unit.
+                                      </TableHead>
+                                      <TableHead>Notas</TableHead>
+                                      <TableHead className="w-10" />
+                                    </TableRow>
+                                  </TableHeader>
+                                  <TableBody>
+                                    {item.components.map(
+                                      (component, componentIndex) => (
+                                        <ComponentRow
+                                          key={componentIndex}
+                                          itemIndex={itemIndex}
+                                          componentIndex={componentIndex}
+                                          component={component}
+                                          onChange={updateComponentRow}
+                                          onDelete={handleDeleteComponent}
+                                        />
+                                      ),
+                                    )}
+                                  </TableBody>
+                                </Table>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground text-center py-2">
+                                Sin componentes. Agrega una fila para empezar.
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleAddItem}
+                    className="w-full border-dashed"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Agregar otro producto
+                  </Button>
+
+                  {form.formState.errors.items && (
+                    <p className="text-sm text-destructive">
+                      {(form.formState.errors.items as any)?.message}
+                    </p>
                   )}
                 </div>
-              ))}
-
-              <Button type="button" variant="outline" onClick={handleAddItem}>
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar otro producto
-              </Button>
-
-              {form.formState.errors.items && (
-                <p className="text-sm text-destructive">
-                  {(form.formState.errors.items as any)?.message}
-                </p>
-              )}
+              </GroupFormSection>
             </div>
-          </GroupFormSection>
+          </div>
 
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate(ROUTE)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate(ROUTE)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={isSubmitting}>
@@ -627,6 +828,6 @@ export function ProductionOrderForm({
           </div>
         </form>
       </Form>
-    </FormWrapper>
+    </PageWrapper>
   );
 }

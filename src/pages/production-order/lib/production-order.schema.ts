@@ -20,12 +20,9 @@ export const productionOrderComponentSchema = z.object({
   component_name: z.string().optional(),
   quantity_required: numericString("La cantidad requerida debe ser un número mayor a 0", 0.01),
   unit_cost: optionalNumericString("El costo unitario debe ser un número válido"),
-  waste_quantity: optionalNumericString("La merma en cantidad debe ser un número válido"),
-  waste_percentage: z.string().refine((val) => {
-    if (!val) return true;
-    const parsed = Number(val);
-    return !isNaN(parsed) && parsed >= 0 && parsed <= 100;
-  }, { message: "El porcentaje de merma debe estar entre 0 y 100" }).optional().or(z.literal("")),
+  // ⚠️ waste_quantity/waste_percentage NO se capturan en el formulario: el
+  // backend los calcula automáticamente y solo se muestran como dato de
+  // solo lectura en el detalle (igual que overhead_cost a nivel de ítem).
   notes: z.string().max(500).optional(),
 });
 

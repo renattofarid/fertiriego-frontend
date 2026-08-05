@@ -156,8 +156,8 @@ export interface ProductionOrderComponentRequest {
   component_id: number;
   quantity_required: number;
   unit_cost?: number;
-  waste_quantity?: number;
-  waste_percentage?: number;
+  // ⚠️ waste_quantity/waste_percentage NO se envían en la request: el
+  // backend los calcula automáticamente, igual que overhead_cost.
   notes?: string;
 }
 
@@ -290,13 +290,13 @@ export const PRODUCTION_ORDER_STATUSES = [
 
 import type { ProductionOrderSchema } from "./production-order.schema";
 
-const NAME = "Orden de Producción";
+const NAME = "Orden Pedido de Producción";
 
 export const PRODUCTION_ORDER: ModelComplete<ProductionOrderSchema> = {
   MODEL: {
     name: NAME,
     description: "Gestión de órdenes de producción del sistema.",
-    plural: "Órdenes de Producción",
+    plural: "Órdenes Pedido Producción",
     gender: true,
   },
   ICON: "ClipboardList",
