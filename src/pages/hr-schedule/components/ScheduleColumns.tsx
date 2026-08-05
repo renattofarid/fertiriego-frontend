@@ -3,12 +3,14 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Percent } from "lucide-react";
 
 export const ScheduleColumns = ({
   onAssign,
+  onSetOvertimeRate,
 }: {
   onAssign: (schedule: ScheduleResource) => void;
+  onSetOvertimeRate?: (schedule: ScheduleResource) => void;
 }): ColumnDef<ScheduleResource>[] => [
   {
     accessorKey: "name",
@@ -42,6 +44,13 @@ export const ScheduleColumns = ({
     cell: ({ getValue }) => <span>{getValue() as number} h</span>,
   },
   {
+    accessorKey: "overtime_rate",
+    header: "Tasa H. Extra",
+    cell: ({ getValue }) => (
+      <Badge variant="outline">x{(getValue() as number) ?? 1}</Badge>
+    ),
+  },
+  {
     accessorKey: "is_active",
     header: "Estado",
     cell: ({ getValue }) => {
@@ -63,6 +72,13 @@ export const ScheduleColumns = ({
           tooltip="Asignar a trabajador"
           onClick={() => onAssign(row.original)}
         />
+        {onSetOvertimeRate && (
+          <ButtonAction
+            icon={Percent}
+            tooltip="Tasa de horas extras"
+            onClick={() => onSetOvertimeRate(row.original)}
+          />
+        )}
       </ColumnActions>
     ),
   },

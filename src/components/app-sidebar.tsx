@@ -11,6 +11,7 @@ import {
   TrendingUp,
   DollarSign,
   CalendarClock,
+  ListChecks,
 } from "lucide-react";
 import {
   Sidebar,
@@ -59,7 +60,10 @@ import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 import { GUIDE } from "@/pages/guide/lib/guide.interface";
 import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
-import { PRODUCTION_ORDER } from "@/pages/production-order/lib/production-order.interface";
+import {
+  PRODUCTION_ORDER,
+  ProductionOrderPendingRoute,
+} from "@/pages/production-order/lib/production-order.interface";
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
 import { PRODUCT_TAG } from "@/pages/product-tag/lib/product-tag.interface";
 import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
@@ -73,6 +77,7 @@ import {
 } from "@/pages/dashboard/lib/dashboard.interface";
 import { SCHEDULE } from "@/pages/hr-schedule/lib/schedule.interface";
 import { ATTENDANCE_META } from "@/pages/hr-attendance/lib/attendance.interface";
+import { OVERTIME_META } from "@/pages/hr-overtime/lib/overtime.interface";
 import { JUSTIFICATION_META } from "@/pages/hr-justification/lib/justification.interface";
 import { PUNCTUALITY_META } from "@/pages/hr-report/lib/report.interface";
 import {
@@ -320,6 +325,12 @@ const {
 } = ATTENDANCE_META;
 
 const {
+  ICON_REACT: OvertimeIcon,
+  ROUTE: OvertimeRoute,
+  MODEL: { name: OvertimeTitle },
+} = OVERTIME_META;
+
+const {
   ICON_REACT: JustificationIcon,
   ROUTE: JustificationRoute,
   MODEL: { name: JustificationTitle },
@@ -564,6 +575,11 @@ const data = {
           icon: AttendanceIcon,
         },
         {
+          title: OvertimeTitle,
+          url: OvertimeRoute,
+          icon: OvertimeIcon,
+        },
+        {
           title: JustificationTitle,
           url: JustificationRoute,
           icon: JustificationIcon,
@@ -658,6 +674,11 @@ const data = {
           title: ProductionOrderTitle,
           url: ProductionOrderRoute,
           icon: ProductionOrderIcon,
+        },
+        {
+          title: "Pendientes a Producir",
+          url: ProductionOrderPendingRoute,
+          icon: ListChecks,
         },
         {
           title: "Reporte de Rendimiento",

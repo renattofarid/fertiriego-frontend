@@ -2,8 +2,21 @@ import { useState } from "react";
 import type { PersonResource } from "../lib/person.interface";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ButtonAction } from "@/components/ButtonAction";
 import { ColumnActions } from "@/components/SelectActions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Pencil,
   MapPin,
@@ -11,6 +24,9 @@ import {
   FileClock,
   Receipt,
   CalendarCog,
+  Timer,
+  Percent,
+  MoreHorizontal,
 } from "lucide-react";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
 import { PersonAddressSheet } from "./PersonAddressSheet";
@@ -46,6 +62,8 @@ export const PersonColumns = ({
   onViewReport,
   onViewPayrollReport,
   onConfigureVacation,
+  onViewOvertimeHistory,
+  onSetOvertimeRate,
 }: // onManageRoles,
 {
   onEdit: (id: number) => void;
@@ -54,6 +72,8 @@ export const PersonColumns = ({
   onViewReport?: (person: PersonResource) => void;
   onViewPayrollReport?: (person: PersonResource) => void;
   onConfigureVacation?: (person: PersonResource) => void;
+  onViewOvertimeHistory?: (person: PersonResource) => void;
+  onSetOvertimeRate?: (person: PersonResource) => void;
   // onManageRoles: (person: PersonResource) => void;
 }): ColumnDef<PersonResource>[] => [
   {
@@ -153,42 +173,92 @@ export const PersonColumns = ({
     cell: ({ row }) => {
       const id = row.original.id;
 
+      const hasWorkerActions =
+        onViewPayrollReport ||
+        onConfigureVacation ||
+        onViewOvertimeHistory ||
+        onSetOvertimeRate;
+
       return (
         <ColumnActions>
           <AddressButton person={row.original} />
-          {onAssignSchedule && (
-            <ButtonAction
-              icon={CalendarClock}
-              tooltip="Asignar horario"
-              onClick={() => onAssignSchedule(row.original)}
-            />
-          )}
-          {onViewReport && (
-            <ButtonAction
-              icon={FileClock}
-              tooltip="Reporte de asistencia"
-              onClick={() => onViewReport(row.original)}
-            />
-          )}
-          {onViewPayrollReport && (
-            <ButtonAction
-              icon={Receipt}
-              tooltip="Reporte de planilla"
-              onClick={() => onViewPayrollReport(row.original)}
-            />
-          )}
-          {onConfigureVacation && (
-            <ButtonAction
-              icon={CalendarCog}
-              tooltip="Configurar control de vacaciones"
-              onClick={() => onConfigureVacation(row.original)}
-            />
-          )}
+
           <ButtonAction
             icon={Pencil}
             tooltip="Editar"
             onClick={() => onEdit(id)}
           />
+          {hasWorkerActions && (
+            <DropdownMenu>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        color="muted"
+                        size="icon"
+                      >
+                        <MoreHorizontal />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Más opciones</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenuContent align="end">
+                {onAssignSchedule && (
+                  <ButtonAction
+                    icon={CalendarClock}
+                    tooltip="Asignar horario"
+                    onClick={() => onAssignSchedule(row.original)}
+                  />
+                )}
+                {onViewReport && (
+                  <ButtonAction
+                    icon={FileClock}
+                    tooltip="Reporte de asistencia"
+                    onClick={() => onViewReport(row.original)}
+                  />
+                )}
+                {onViewPayrollReport && (
+                  <DropdownMenuItem
+                    onClick={() => onViewPayrollReport(row.original)}
+                  >
+                    <Receipt className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Reporte de planilla
+                  </DropdownMenuItem>
+                )}
+                {onConfigureVacation && (
+                  <DropdownMenuItem
+                    onClick={() => onConfigureVacation(row.original)}
+                  >
+                    <CalendarCog className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Configurar vacaciones
+                  </DropdownMenuItem>
+                )}
+                {onViewOvertimeHistory && (
+                  <DropdownMenuItem
+                    onClick={() => onViewOvertimeHistory(row.original)}
+                  >
+                    <Timer className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Historial de horas extras
+                  </DropdownMenuItem>
+                )}
+                {onSetOvertimeRate && (
+                  <DropdownMenuItem
+                    onClick={() => onSetOvertimeRate(row.original)}
+                  >
+                    <Percent className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Tasa de horas extras
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <DeleteButton onClick={() => onDelete(id)} />
         </ColumnActions>
       );

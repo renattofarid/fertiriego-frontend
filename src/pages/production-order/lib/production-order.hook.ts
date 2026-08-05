@@ -48,3 +48,43 @@ export function useProductionOrderById(id: number) {
     refetch: () => fetchOrder(id),
   };
 }
+
+export function useProductionOrdersSummary() {
+  const { summary, isLoadingSummary, fetchSummary } = useProductionOrderStore();
+
+  useEffect(() => {
+    fetchSummary();
+  }, [fetchSummary]);
+
+  return { data: summary, isLoading: isLoadingSummary, refetch: fetchSummary };
+}
+
+export function useProductionOrdersPending() {
+  const { pending, isLoadingPending, fetchPending } = useProductionOrderStore();
+
+  useEffect(() => {
+    fetchPending();
+  }, [fetchPending]);
+
+  return { data: pending, isLoading: isLoadingPending, refetch: fetchPending };
+}
+
+export function useProductionOrderItemHistory(itemId: number | null) {
+  const { itemHistory, isLoadingItemHistory, fetchItemHistory, resetItemHistory } =
+    useProductionOrderStore();
+
+  useEffect(() => {
+    if (itemId) {
+      fetchItemHistory(itemId);
+    } else {
+      resetItemHistory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemId]);
+
+  return {
+    data: itemHistory,
+    isLoading: isLoadingItemHistory,
+    refetch: () => (itemId ? fetchItemHistory(itemId) : undefined),
+  };
+}

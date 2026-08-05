@@ -1,15 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { useProductionOrders } from "../lib/production-order.hook";
+import { useProductionOrders, useProductionOrdersSummary } from "../lib/production-order.hook";
 import { useProductionOrderStore } from "../lib/production-order.store";
-import { PRODUCTION_ORDER } from "../lib/production-order.interface";
+import { PRODUCTION_ORDER, ProductionOrderPendingRoute } from "../lib/production-order.interface";
 import type { GetProductionOrdersParams } from "../lib/production-order.interface";
 import { createProductionOrderColumns } from "./ProductionOrderColumns";
 import PageWrapper from "@/components/PageWrapper";
 import PageSkeleton from "@/components/PageSkeleton";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/DataTable";
-import { Plus, XCircle, Loader } from "lucide-react";
+import { SummaryCard } from "@/components/SummaryCard";
+import {
+  Plus,
+  XCircle,
+  Loader,
+  ClipboardList,
+  FileClock,
+  ThumbsUp,
+  ThumbsDown,
+  PackageCheck,
+  Ban,
+  ListChecks,
+} from "lucide-react";
 import TitleComponent from "@/components/TitleComponent";
 import DataTablePagination from "@/components/DataTablePagination";
 import { successToast, errorToast } from "@/lib/core.function";
@@ -61,6 +73,7 @@ export default function ProductionOrderIndexPage() {
   } = useProductionOrders(params);
   const { submitOrder, approveOrder, rejectOrder, cancelOrder, removeOrder } =
     useProductionOrderStore();
+  const { data: summary, isLoading: isLoadingSummary } = useProductionOrdersSummary();
 
   // Reject dialog state
   const [rejectingId, setRejectingId] = useState<number | null>(null);
@@ -166,11 +179,64 @@ export default function ProductionOrderIndexPage() {
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <Button onClick={() => navigate(ROUTE_ADD)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nueva Orden
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => navigate(ProductionOrderPendingRoute)}>
+            <ListChecks className="h-4 w-4 mr-2" />
+            Pendientes a Producir
+          </Button>
+          <Button onClick={() => navigate(ROUTE_ADD)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nueva Orden
+          </Button>
+        </div>
       </div>
+
+      {!isLoadingSummary && summary && (
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          <SummaryCard
+            icon={<ClipboardList className="h-4 w-4" />}
+            label="Total"
+            value={summary.total.toString()}
+            color="primary"
+          />
+          <SummaryCard
+            icon={<FileClock className="h-4 w-4" />}
+            label="Borrador"
+            value={summary.borrador.toString()}
+            color="slate"
+          />
+          <SummaryCard
+            icon={<FileClock className="h-4 w-4" />}
+            label="Pendiente"
+            value={summary.pendiente.toString()}
+            color="amber"
+          />
+          <SummaryCard
+            icon={<ThumbsUp className="h-4 w-4" />}
+            label="Aprobado"
+            value={summary.aprobado.toString()}
+            color="green"
+          />
+          <SummaryCard
+            icon={<ThumbsDown className="h-4 w-4" />}
+            label="Rechazado"
+            value={summary.rechazado.toString()}
+            color="red"
+          />
+          <SummaryCard
+            icon={<PackageCheck className="h-4 w-4" />}
+            label="Procesado"
+            value={summary.procesado.toString()}
+            color="blue"
+          />
+          <SummaryCard
+            icon={<Ban className="h-4 w-4" />}
+            label="Anulado"
+            value={summary.anulado.toString()}
+            color="zinc"
+          />
+        </div>
+      )}
 
       <div className="space-y-4">
         <DataTable columns={columns} data={orders ?? []} />

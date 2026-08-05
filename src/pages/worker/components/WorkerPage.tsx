@@ -27,6 +27,7 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import AssignScheduleModal from "@/pages/hr-schedule/components/AssignScheduleModal";
 import VacationControlModal from "@/pages/hr-vacation/components/VacationControlModal";
+import WorkerOvertimeRateModal from "@/pages/hr-overtime/components/WorkerOvertimeRateModal";
 
 const { MODEL, ICON } = WORKER;
 
@@ -47,6 +48,8 @@ export default function WorkerPage() {
   const [assignSchedulePerson, setAssignSchedulePerson] =
     useState<PersonResource | null>(null);
   const [vacationControlPerson, setVacationControlPerson] =
+    useState<PersonResource | null>(null);
+  const [overtimeRatePerson, setOvertimeRatePerson] =
     useState<PersonResource | null>(null);
   const { data, isLoading, refetch } = useWorkers({
     search,
@@ -104,6 +107,9 @@ export default function WorkerPage() {
           onViewPayrollReport: (person) =>
             navigate(`/trabajadores/planilla/${person.id}`),
           onConfigureVacation: setVacationControlPerson,
+          onViewOvertimeHistory: (person) =>
+            navigate(`/trabajadores/horas-extras/${person.id}`),
+          onSetOvertimeRate: setOvertimeRatePerson,
           // onManageRoles: handleManageRoles,
         })}
         data={data?.data || []}
@@ -164,6 +170,16 @@ export default function WorkerPage() {
           personId={vacationControlPerson.id}
           open={true}
           onClose={() => setVacationControlPerson(null)}
+        />
+      )}
+
+      {overtimeRatePerson && (
+        <WorkerOvertimeRateModal
+          personId={overtimeRatePerson.id}
+          personName={getPersonDisplayName(overtimeRatePerson)}
+          currentRate={overtimeRatePerson.overtime_rate_override}
+          open={true}
+          onClose={() => setOvertimeRatePerson(null)}
         />
       )}
     </div>

@@ -131,11 +131,12 @@ import ProductionDocumentEditPage from "./pages/production-document/components/P
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
 import ProductionDocumentPerformanceReportPage from "./pages/production-document/components/ProductionDocumentPerformanceReportPage";
 import ProductionDocumentCostReportPage from "./pages/production-document/components/ProductionDocumentCostReportPage";
-import { PRODUCTION_ORDER } from "./pages/production-order/lib/production-order.interface";
+import { PRODUCTION_ORDER, ProductionOrderPendingRoute } from "./pages/production-order/lib/production-order.interface";
 import ProductionOrderPage from "./pages/production-order/components/ProductionOrderPage";
 import ProductionOrderAddPage from "./pages/production-order/components/ProductionOrderAddPage";
 import ProductionOrderEditPage from "./pages/production-order/components/ProductionOrderEditPage";
 import ProductionOrderDetailPage from "./pages/production-order/components/ProductionOrderDetailPage";
+import ProductionOrderPendingPage from "./pages/production-order/components/ProductionOrderPendingPage";
 import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
 import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
 import { CARRIER } from "./pages/carrier/lib/carrier.interface";
@@ -183,6 +184,9 @@ import PayrollPage from "./pages/payroll/components/PayrollPage";
 import PayrollDetailPage from "./pages/payroll/components/PayrollDetailPage";
 import { PAYROLL } from "./pages/payroll/lib/payroll.interface";
 import WorkerPayrollReportPage from "./pages/payroll-report/components/WorkerPayrollReportPage";
+import OvertimePage from "./pages/hr-overtime/components/OvertimePage";
+import OvertimeByPersonPage from "./pages/hr-overtime/components/OvertimeByPersonPage";
+import { OVERTIME_META } from "./pages/hr-overtime/lib/overtime.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -231,6 +235,7 @@ const { ROUTE: SalaryRoute } = SALARY;
 const { ROUTE: IncomeRoute } = INCOME;
 const { ROUTE: DeductionRoute } = DEDUCTION;
 const { ROUTE: PayrollRoute } = PAYROLL;
+const { ROUTE: OvertimeRoute } = OVERTIME_META;
 
 function ProtectedRoute({
   children,
@@ -592,6 +597,24 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerPayrollReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/horas-extras/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <OvertimeByPersonPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={OvertimeRoute}
+            element={
+              <ProtectedRoute path={OvertimeRoute}>
+                <OvertimePage />
               </ProtectedRoute>
             }
           />
@@ -1240,6 +1263,15 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductionOrderRoute}>
                 <ProductionOrderEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderPendingRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderPendingPage />
               </ProtectedRoute>
             }
           />

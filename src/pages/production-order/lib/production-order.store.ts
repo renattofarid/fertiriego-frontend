@@ -5,6 +5,9 @@ import type {
   CreateProductionOrderRequest,
   UpdateProductionOrderRequest,
   GetProductionOrdersParams,
+  ProductionOrderSummary,
+  ProductionOrderPendingItem,
+  ProductionOrderItemHistoryEntry,
 } from "./production-order.interface";
 import {
   getProductionOrders,
@@ -16,6 +19,9 @@ import {
   approveProductionOrder,
   rejectProductionOrder,
   cancelProductionOrder,
+  getProductionOrdersSummary,
+  getProductionOrdersPending,
+  getProductionOrderItemHistory,
 } from "./production-order.actions";
 import type { ProductionOrderSchema } from "./production-order.schema";
 import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
@@ -23,6 +29,29 @@ import { PRODUCTION_ORDER } from "./production-order.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = PRODUCTION_ORDER;
+
+const buildItemsRequest = (items: ProductionOrderSchema["items"]) =>
+  items.map((item) => ({
+    product_id: Number(item.product_id),
+    quantity_requested: Number(item.quantity_requested),
+    labor_cost: item.labor_cost ? Number(item.labor_cost) : 0,
+    // ⚠️ overhead_cost NO se envía: el backend lo calcula automáticamente,
+    // no es un campo que el usuario ingrese manualmente.
+    notes: item.notes || undefined,
+    // ✅ Si el usuario no agregó componentes manualmente, no se envía el
+    // arreglo y el backend autocompleta desde el combo (BOM) del producto.
+    components:
+      item.components && item.components.length > 0
+        ? item.components.map((c) => ({
+            component_id: Number(c.component_id),
+            quantity_required: Number(c.quantity_required),
+            unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
+            waste_quantity: c.waste_quantity ? Number(c.waste_quantity) : undefined,
+            waste_percentage: c.waste_percentage ? Number(c.waste_percentage) : undefined,
+            notes: c.notes || undefined,
+          }))
+        : undefined,
+  }));
 
 interface ProductionOrderStore {
   orders: ProductionOrderResource[] | null;
@@ -32,6 +61,15 @@ interface ProductionOrderStore {
   isFinding: boolean;
   isSubmitting: boolean;
   error: string | null;
+
+  summary: ProductionOrderSummary | null;
+  isLoadingSummary: boolean;
+
+  pending: ProductionOrderPendingItem[] | null;
+  isLoadingPending: boolean;
+
+  itemHistory: ProductionOrderItemHistoryEntry[] | null;
+  isLoadingItemHistory: boolean;
 
   fetchOrders: (params?: GetProductionOrdersParams) => Promise<void>;
   fetchOrder: (id: number) => Promise<void>;
@@ -43,6 +81,11 @@ interface ProductionOrderStore {
   rejectOrder: (id: number, rejection_reason: string) => Promise<void>;
   cancelOrder: (id: number) => Promise<void>;
   resetOrder: () => void;
+
+  fetchSummary: () => Promise<void>;
+  fetchPending: () => Promise<void>;
+  fetchItemHistory: (itemId: number) => Promise<void>;
+  resetItemHistory: () => void;
 }
 
 export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
@@ -53,6 +96,15 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
   isFinding: false,
   isSubmitting: false,
   error: null,
+
+  summary: null,
+  isLoadingSummary: false,
+
+  pending: null,
+  isLoadingPending: false,
+
+  itemHistory: null,
+  isLoadingItemHistory: false,
 
   fetchOrders: async (params?: GetProductionOrdersParams) => {
     set({ isLoading: true, error: null });
@@ -82,19 +134,11 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
       const request: CreateProductionOrderRequest = {
         warehouse_origin_id: Number(data.warehouse_origin_id),
         warehouse_dest_id: Number(data.warehouse_dest_id),
-        product_id: Number(data.product_id),
         responsible_id: Number(data.responsible_id),
         requested_date: data.requested_date,
-        quantity_requested: Number(data.quantity_requested),
         currency: data.currency || "PEN",
-        labor_cost: data.labor_cost ? Number(data.labor_cost) : 0,
         observations: data.observations || undefined,
-        components: data.components.map((c) => ({
-          component_id: Number(c.component_id),
-          quantity_required: Number(c.quantity_required),
-          unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
-          notes: c.notes || undefined,
-        })),
+        items: buildItemsRequest(data.items),
       };
       await storeProductionOrder(request);
       set({ isSubmitting: false });
@@ -110,21 +154,11 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
       const request: UpdateProductionOrderRequest = {
         ...(data.warehouse_origin_id && { warehouse_origin_id: Number(data.warehouse_origin_id) }),
         ...(data.warehouse_dest_id && { warehouse_dest_id: Number(data.warehouse_dest_id) }),
-        ...(data.product_id && { product_id: Number(data.product_id) }),
         ...(data.responsible_id && { responsible_id: Number(data.responsible_id) }),
         ...(data.requested_date && { requested_date: data.requested_date }),
-        ...(data.quantity_requested && { quantity_requested: Number(data.quantity_requested) }),
         ...(data.currency !== undefined && { currency: data.currency || "PEN" }),
-        ...(data.labor_cost !== undefined && { labor_cost: Number(data.labor_cost) || 0 }),
         ...(data.observations !== undefined && { observations: data.observations || undefined }),
-        ...(data.components && {
-          components: data.components.map((c) => ({
-            component_id: Number(c.component_id),
-            quantity_required: Number(c.quantity_required),
-            unit_cost: c.unit_cost ? Number(c.unit_cost) : undefined,
-            notes: c.notes || undefined,
-          })),
-        }),
+        ...(data.items && { items: buildItemsRequest(data.items) }),
       };
       await updateProductionOrder(id, request);
       set({ isSubmitting: false });
@@ -191,5 +225,42 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
 
   resetOrder: () => {
     set({ order: null, error: null });
+  },
+
+  fetchSummary: async () => {
+    set({ isLoadingSummary: true });
+    try {
+      const response = await getProductionOrdersSummary();
+      set({ summary: response.data.data, isLoadingSummary: false });
+    } catch {
+      set({ isLoadingSummary: false });
+      errorToast("Error al cargar el resumen de órdenes de producción");
+    }
+  },
+
+  fetchPending: async () => {
+    set({ isLoadingPending: true });
+    try {
+      const response = await getProductionOrdersPending();
+      set({ pending: response.data.data, isLoadingPending: false });
+    } catch {
+      set({ isLoadingPending: false });
+      errorToast("Error al cargar el reporte de pendientes a producir");
+    }
+  },
+
+  fetchItemHistory: async (itemId: number) => {
+    set({ isLoadingItemHistory: true });
+    try {
+      const response = await getProductionOrderItemHistory(itemId);
+      set({ itemHistory: response.data.data, isLoadingItemHistory: false });
+    } catch {
+      set({ itemHistory: [], isLoadingItemHistory: false });
+      errorToast("Error al cargar el historial de producción del ítem");
+    }
+  },
+
+  resetItemHistory: () => {
+    set({ itemHistory: null });
   },
 }));

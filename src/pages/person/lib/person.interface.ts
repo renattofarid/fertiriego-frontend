@@ -127,6 +127,7 @@ export interface PersonResource {
   driver_license?: string;
   hire_date?: string;
   vacation_days_per_year?: number;
+  overtime_rate_override?: number | null;
 }
 
 interface Role {

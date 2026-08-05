@@ -53,6 +53,7 @@ export interface ScheduleResource {
   tolerance_minutes: number;
   min_hours: number;
   is_active: boolean;
+  overtime_rate?: number;
   created_at: string;
 }
 
