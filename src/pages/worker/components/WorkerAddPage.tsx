@@ -44,6 +44,10 @@ export default function WorkerAddPage() {
         email: data.email || "",
         status: "Activo",
         role_id: Number(data.role_id),
+        hire_date: data.hire_date || undefined,
+        vacation_days_per_year: data.vacation_days_per_year
+          ? Number(data.vacation_days_per_year)
+          : undefined,
       };
 
       await createPersonWithRole(createPersonData, Number(data.role_id));

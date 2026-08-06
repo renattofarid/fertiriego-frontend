@@ -29,7 +29,9 @@ export const scheduleSchemaCreate = z.object({
 export type ScheduleSchema = z.infer<typeof scheduleSchemaCreate>;
 
 export const assignScheduleSchema = z.object({
-  person_id: requiredStringId("Debe seleccionar un trabajador"),
+  person_ids: z
+    .array(z.string())
+    .min(1, { message: "Debe seleccionar al menos un trabajador" }),
   work_schedule_id: requiredStringId("Debe seleccionar un horario"),
   valid_from: dateStringSchemaRequired("La fecha de inicio"),
   no_end_date: z.boolean(),

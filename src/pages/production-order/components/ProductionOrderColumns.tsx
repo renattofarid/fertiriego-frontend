@@ -112,6 +112,11 @@ export const createProductionOrderColumns = (
     cell: ({ row }) => <span>S/ {row.original.labor_cost.toFixed(2)}</span>,
   },
   {
+    accessorKey: "overhead_cost",
+    header: "C. Indirecto",
+    cell: ({ row }) => <span>S/ {(row.original.overhead_cost ?? 0).toFixed(2)}</span>,
+  },
+  {
     accessorKey: "estimated_total_cost",
     header: "Costo Total",
     cell: ({ row }) => (

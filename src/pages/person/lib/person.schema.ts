@@ -91,6 +91,26 @@ export const personCreateSchema = z
       .optional()
       .or(z.literal("")),
 
+    hire_date: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || !isNaN(Date.parse(val)),
+        "Ingrese una fecha válida"
+      ),
+
+    vacation_days_per_year: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || /^[0-9]+$/.test(val),
+        "Ingrese solo números"
+      )
+      .refine(
+        (val) => !val || (Number(val) >= 0 && Number(val) <= 365),
+        "Debe estar entre 0 y 365 días"
+      ),
+
     role_id: requiredStringId("Debe seleccionar un rol válido"),
   })
   .superRefine((data, ctx) => {

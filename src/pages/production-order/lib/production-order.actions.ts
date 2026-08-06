@@ -6,8 +6,16 @@ import type {
   CreateProductionOrderRequest,
   UpdateProductionOrderRequest,
   GetProductionOrdersParams,
+  ProductionOrderSummaryResponse,
+  ProductionOrderPendingResponse,
+  ProductionOrderItemHistoryResponse,
 } from "./production-order.interface";
-import { PRODUCTION_ORDER_ENDPOINT } from "./production-order.interface";
+import {
+  PRODUCTION_ORDER_ENDPOINT,
+  PRODUCTION_ORDER_SUMMARY_ENDPOINT,
+  PRODUCTION_ORDER_PENDING_ENDPOINT,
+  PRODUCTION_ORDER_ITEM_HISTORY_ENDPOINT,
+} from "./production-order.interface";
 
 export async function getProductionOrders(params?: GetProductionOrdersParams) {
   const { page = 1, per_page = 15 } = params || {};
@@ -88,6 +96,30 @@ export async function rejectProductionOrder(
 export async function cancelProductionOrder(id: number) {
   const response = await api.post<ProductionOrderResourceById>(
     `${PRODUCTION_ORDER_ENDPOINT}/${id}/cancel`
+  );
+  return response;
+}
+
+// ✅ Resumen de órdenes por estado (tarjetas de dashboard)
+export async function getProductionOrdersSummary() {
+  const response = await api.get<ProductionOrderSummaryResponse>(
+    PRODUCTION_ORDER_SUMMARY_ENDPOINT
+  );
+  return response;
+}
+
+// ✅ Reporte de órdenes/ítems pendientes a producir
+export async function getProductionOrdersPending() {
+  const response = await api.get<ProductionOrderPendingResponse>(
+    PRODUCTION_ORDER_PENDING_ENDPOINT
+  );
+  return response;
+}
+
+// ✅ Historial de producción parcial de un ítem (para continuar produciendo)
+export async function getProductionOrderItemHistory(itemId: number) {
+  const response = await api.get<ProductionOrderItemHistoryResponse>(
+    PRODUCTION_ORDER_ITEM_HISTORY_ENDPOINT(itemId)
   );
   return response;
 }

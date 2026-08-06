@@ -125,6 +125,9 @@ export interface PersonResource {
   created_at: string;
   roles: Role[];
   driver_license?: string;
+  hire_date?: string;
+  vacation_days_per_year?: number;
+  overtime_rate_override?: number | null;
 }
 
 interface Role {
@@ -156,6 +159,8 @@ export interface CreatePersonRequest {
   status: string;
   role_id: number;
   number_document: string;
+  hire_date?: string;
+  vacation_days_per_year?: number;
 }
 
 export interface UpdatePersonRequest {
@@ -173,6 +178,8 @@ export interface UpdatePersonRequest {
   driver_license?: string;
   rol_id?: number;
   number_document?: string;
+  hire_date?: string;
+  vacation_days_per_year?: number;
 }
 
 export interface GetPersonsProps {

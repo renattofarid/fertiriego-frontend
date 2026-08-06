@@ -10,6 +10,36 @@ import { useAttendanceLogs } from "../lib/attendance.hook";
 import { AttendanceColumns } from "./AttendanceColumns";
 import AttendanceOptions from "./AttendanceOptions";
 import { ATTENDANCE_META } from "../lib/attendance.interface";
+import AttendanceStatusLegendDialog from "./AttendanceStatusLegendDialog";
+
+// ============================================================================
+// DOCUMENTACIÓN DE ESTADOS DE ASISTENCIA
+// ============================================================================
+/*
+| Estado      | Cuándo se asigna
+|-------------|------------------------------------------------------------------
+| PRESENTE    | El trabajador marcó entrada dentro del margen de tolerancia
+|             | (ej. tolerancia 10 min → llega hasta 08:10 y es PRESENTE).
+|
+| TARDANZA    | Marcó entrada pero superó los minutos de tolerancia configurados
+|             | en el turno. Ej: turno 08:00, tolerancia 10 min, llegó 08:20 = TARDANZA.
+|
+| FALTA       | No existe ninguna marcación de ENTRADA para ese día.
+|             | Es el estado por defecto hasta que marque.
+|
+| JUSTIFICADO | Existe una justificación APROBADA que cubre esa fecha
+|             | (permiso, vacaciones, enfermedad). Tiene prioridad sobre todo.
+|
+| MEDIO_DIA   | Marcó entrada pero los minutos trabajados (entre entrada y salida)
+|             | son menos de la mitad del mínimo configurado en el turno.
+|             | Ej: turno con min_hours=8 → trabajó menos de 4h = MEDIO_DIA.
+|             | Aplica también cuando solo hay marcación de entrada sin salida
+|             | y han pasado pocas horas.
+|
+| DESCANSO    | Día libre, feriado o día de descanso programado.
+|             | Se asigna manualmente o puede extenderse en el futuro
+|             | desde un calendario de feriados.
+*/
 
 export default function AttendanceLogPage() {
   const [page, setPage] = useState(1);
@@ -46,16 +76,19 @@ export default function AttendanceLogPage() {
           subtitle={ATTENDANCE_META.MODEL.description}
           icon={ATTENDANCE_META.ICON}
         />
-        <Button
-          variant="outline"
-          onClick={() => refetch()}
-          disabled={isFetching}
-        >
-          <RefreshCw
-            className={`size-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
-          />
-          Actualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <AttendanceStatusLegendDialog />
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
+            <RefreshCw
+              className={`size-4 mr-2 ${isFetching ? "animate-spin" : ""}`}
+            />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       <div className="border-none text-muted-foreground max-w-full">

@@ -38,23 +38,38 @@ export default function ProductionOrderEditPage() {
     return <PageSkeleton />;
   }
 
+  // ⚠️ El GET /production-orders/{id} todavía no expone "items[]" por
+  // separado: sigue devolviendo un único "product" y un arreglo plano
+  // "components" a nivel de orden. Se reconstruye como un solo ítem —
+  // si la orden real tiene varios productos, esta edición solo mostrará
+  // el primero hasta que el backend exponga el detalle por ítems.
   const initialValues: ProductionOrderFormValues = {
     warehouse_origin_id: order.warehouse_origin_id.toString(),
     warehouse_dest_id: order.warehouse_dest_id.toString(),
-    product_id: order.product_id.toString(),
     responsible_id: order.responsible_id.toString(),
     requested_date: order.requested_date,
-    quantity_requested: order.quantity_requested.toString(),
     currency: order.currency || "PEN",
-    labor_cost: order.labor_cost.toString(),
     observations: order.observations || "",
-    components: order.components.map((c) => ({
-      component_id: c.component_id.toString(),
-      component_name: c.component.name,
-      quantity_required: c.quantity_required.toString(),
-      unit_cost: c.unit_cost.toString(),
-      notes: c.notes || "",
-    })),
+    items: [
+      {
+        product_id: order.product_id.toString(),
+        product_name: order.product.name,
+        quantity_requested: order.quantity_requested.toString(),
+        labor_cost: order.labor_cost.toString(),
+        // overhead_cost no se edita: lo calcula el backend automáticamente.
+        notes: "",
+        use_combo: order.components.length === 0,
+        components: order.components.map((c) => ({
+          component_id: c.component_id.toString(),
+          component_name: c.component.name,
+          quantity_required: c.quantity_required.toString(),
+          unit_cost: c.unit_cost.toString(),
+          // waste_quantity/waste_percentage no se editan: los calcula el
+          // backend automáticamente, solo se muestran en el detalle.
+          notes: c.notes || "",
+        })),
+      },
+    ],
   };
 
   return (
@@ -64,6 +79,7 @@ export default function ProductionOrderEditPage() {
       isSubmitting={isSubmitting}
       initialValues={initialValues}
       warehouses={warehouses || []}
+      editSingleItemWarning
     />
   );
 }
