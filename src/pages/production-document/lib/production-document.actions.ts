@@ -4,11 +4,14 @@ import type {
   ProductionDocumentResourceById,
   ProductionDocumentResponse,
   CreateProductionDocumentRequest,
+  CreateProductionDocumentBatchRequest,
+  ProductionDocumentBatchResponse,
   UpdateProductionDocumentRequest,
   GetProductionDocumentsParams,
 } from "./production-document.interface";
 import {
   PRODUCTION_DOCUMENT_ENDPOINT,
+  PRODUCTION_DOCUMENT_BATCH_ENDPOINT,
 } from "./production-document.interface";
 
 export async function getProductionDocuments(
@@ -39,6 +42,14 @@ export async function findProductionDocumentById(id: number) {
 export async function storeProductionDocument(data: CreateProductionDocumentRequest) {
   const response = await api.post<ProductionDocumentResourceById>(
     PRODUCTION_DOCUMENT_ENDPOINT,
+    data
+  );
+  return response;
+}
+
+export async function storeProductionDocumentBatch(data: CreateProductionDocumentBatchRequest) {
+  const response = await api.post<ProductionDocumentBatchResponse>(
+    PRODUCTION_DOCUMENT_BATCH_ENDPOINT,
     data
   );
   return response;

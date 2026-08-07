@@ -29,7 +29,6 @@ import {
   Package,
   ClipboardList,
   AlertCircle,
-  DollarSign,
   Users,
   Pencil,
   Send,
@@ -42,6 +41,7 @@ import {
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import type {
   ProductionOrderComponentResource,
+  ProductionOrderDetailItem,
   ProductionOrderStatus,
 } from "../lib/production-order.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
@@ -58,6 +58,71 @@ const statusConfig: Record<
   PROCESADO: { label: "Procesado", dot: "bg-blue-500",   text: "text-blue-700",   bg: "bg-blue-100"   },
   ANULADO:   { label: "Anulado",   dot: "bg-zinc-400",   text: "text-zinc-600",   bg: "bg-zinc-100"   },
 };
+
+const itemStatusColor: Record<string, string> = {
+  PENDIENTE: "bg-amber-100 text-amber-700",
+  EN_PROCESO: "bg-blue-100 text-blue-700",
+  PROCESADO: "bg-green-100 text-green-700",
+};
+
+const itemColumns: ColumnDef<ProductionOrderDetailItem>[] = [
+  {
+    accessorKey: "product",
+    header: "Producto",
+    cell: ({ row }) => (
+      <div>
+        <div className="font-medium">{row.original.product.name}</div>
+        <div className="text-sm text-muted-foreground">
+          {row.original.product.category_name} · {row.original.product.unit_name}
+        </div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "quantity_requested",
+    header: "Solicitada",
+    cell: ({ row }) => <span>{row.original.quantity_requested}</span>,
+  },
+  {
+    accessorKey: "quantity_produced",
+    header: "Producida",
+    cell: ({ row }) => <span>{row.original.quantity_produced}</span>,
+  },
+  {
+    accessorKey: "quantity_pending",
+    header: "Pendiente",
+    cell: ({ row }) => (
+      <span className="font-semibold">{row.original.quantity_pending}</span>
+    ),
+  },
+  {
+    accessorKey: "progress_percentage",
+    header: "Avance",
+    cell: ({ row }) => <span>{row.original.progress_percentage}%</span>,
+  },
+  {
+    accessorKey: "estimated_total_cost",
+    header: "Costo Estimado",
+    cell: ({ row }) => (
+      <span className="font-semibold">
+        S/ {row.original.estimated_total_cost.toFixed(2)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Estado",
+    cell: ({ row }) => (
+      <span
+        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          itemStatusColor[row.original.status] ?? "bg-slate-100 text-slate-700"
+        }`}
+      >
+        {row.original.status}
+      </span>
+    ),
+  },
+];
 
 const componentColumns: ColumnDef<ProductionOrderComponentResource>[] = [
   {
@@ -280,30 +345,19 @@ export default function ProductionOrderDetailPage() {
             <p className="font-mono font-bold text-lg">{order.order_number}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Cantidad Solicitada</p>
-            <p className="text-lg font-bold">{order.quantity_requested}</p>
+            <p className="text-xs text-muted-foreground">Cant. Solicitada / Producida</p>
+            <p className="text-lg font-bold">
+              {order.total_requested} / {order.total_produced}
+            </p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Total Estimado</p>
-            <p className="text-lg font-bold">S/ {order.estimated_total_cost.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Cantidad Pendiente</p>
+            <p className="text-lg font-bold">{order.total_pending}</p>
           </div>
         </GroupFormSection>
 
-        {/* Producto y Fechas */}
-        <GroupFormSection title="Producto y Fechas" icon={Package} cols={{ sm: 1, md: 2, lg: 3 }}>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Producto</p>
-            {order.product ? (
-              <>
-                <p className="font-semibold">{order.product.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {order.product.category_name} · {order.product.unit_name}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Sin producto asociado</p>
-            )}
-          </div>
+        {/* Fechas y Moneda */}
+        <GroupFormSection title="Fechas y Moneda" icon={Package} cols={{ sm: 1, md: 2, lg: 3 }}>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Fecha Solicitada</p>
             <p className="font-medium">{order.requested_date}</p>
@@ -355,12 +409,12 @@ export default function ProductionOrderDetailPage() {
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Responsable</p>
-            <p className="font-semibold">{order.responsible.name || "-"}</p>
-            {order.responsible.person && (
-              <p className="text-sm text-muted-foreground">
-                {order.responsible.person.full_name}
-              </p>
-            )}
+            <p className="font-semibold">
+              {[order.responsible.names, order.responsible.father_surname, order.responsible.mother_surname]
+                .filter(Boolean)
+                .join(" ") || "-"}
+            </p>
+            <p className="text-sm text-muted-foreground">{order.responsible.number_document}</p>
           </div>
           {order.approved_by && (
             <div className="space-y-1">
@@ -373,28 +427,6 @@ export default function ProductionOrderDetailPage() {
               )}
             </div>
           )}
-        </GroupFormSection>
-
-        {/* Costos */}
-        <GroupFormSection title="Detalles de Costos" icon={DollarSign} cols={{ sm: 2, md: 4 }}>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo de Componentes</p>
-            <p className="text-lg font-bold">S/ {order.estimated_component_cost.toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Laboral</p>
-            <p className="text-lg font-bold">S/ {order.labor_cost.toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Indirecto</p>
-            <p className="text-lg font-bold">S/ {(order.overhead_cost ?? 0).toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Total Estimado</p>
-            <p className="text-lg font-bold text-primary">
-              S/ {order.estimated_total_cost.toFixed(2)}
-            </p>
-          </div>
         </GroupFormSection>
 
         {/* Razón de rechazo */}
@@ -411,9 +443,30 @@ export default function ProductionOrderDetailPage() {
           </GroupFormSection>
         )}
 
-        {/* Componentes */}
-        <GroupFormSection title="Componentes" icon={Package} cols={{ sm: 1 }}>
-          <DataTable columns={componentColumns} data={order.components || []} />
+        {/* Productos a producir (ítems) */}
+        <GroupFormSection title="Productos a Producir" icon={Package} cols={{ sm: 1 }}>
+          <DataTable columns={itemColumns} data={order.items} />
+        </GroupFormSection>
+
+        {/* Componentes por producto */}
+        <GroupFormSection title="Componentes por Producto" icon={Package} cols={{ sm: 1 }}>
+          <div className="space-y-4">
+            {order.items.map((item) => (
+              <div key={item.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b">
+                  <span className="text-sm font-semibold">{item.product.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Costo componentes: S/ {item.estimated_component_cost.toFixed(2)} · Laboral: S/{" "}
+                    {item.labor_cost.toFixed(2)} · Indirecto: S/ {item.overhead_cost.toFixed(2)} · Total: S/{" "}
+                    {item.estimated_total_cost.toFixed(2)}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <DataTable columns={componentColumns} data={item.components || []} />
+                </div>
+              </div>
+            ))}
+          </div>
         </GroupFormSection>
       </div>
 

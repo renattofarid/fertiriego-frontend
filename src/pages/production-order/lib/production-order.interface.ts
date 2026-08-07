@@ -70,7 +70,9 @@ export interface ProductionOrderResource {
 
 export interface ProductionOrderComponentResource {
   id: number;
-  production_order_id: number;
+  // ⚠️ Confirmado con respuesta real: a nivel de ítem viene null (el
+  // componente pertenece al ítem, no directo a la orden).
+  production_order_id: number | null;
   component_id: number;
   component: {
     id: number;
@@ -133,17 +135,69 @@ export interface ProductionOrderUser {
   rol_name: string | null;
 }
 
-// ⚠️ IMPORTANTE — desalineación confirmada con el backend:
-// El POST/PUT de /production-orders acepta "items[]" (varios productos por
-// orden, cada uno con sus propios componentes/BOM). Sin embargo, el
-// GET /production-orders/{id} (confirmado con respuesta real) TODAVÍA NO
-// devuelve esa agrupación por ítem: sigue entregando un único "product" y un
-// solo arreglo plano "components" a nivel de orden (como en el modelo viejo
-// de 1 producto por orden), solo que ahora con waste_quantity/waste_percentage
-// por componente y overhead_cost a nivel de orden.
-// Mientras el backend no exponga "items" en el show, el detalle/edición solo
-// puede reconstruir correctamente órdenes de 1 solo ítem — con varios ítems
-// se perderá la agrupación (se verá todo como si fuera un único producto).
+// ✅ Confirmado con respuesta real (GET /production-orders/{id}): el detalle
+// YA agrupa por ítems igual que el listado — cada producto de la orden viene
+// en "items[]" con sus propias cantidades, costos, estado y su propio BOM
+// ("components"). Ya no hay un "product"/"components" plano a nivel de orden
+// (eso quedó reemplazado por items[]); los totales de cantidad siguen
+// agregados en total_requested/total_produced/total_pending, pero ya no hay
+// un costo total agregado a nivel de orden — los costos viven por ítem
+// (estimated_component_cost/labor_cost/overhead_cost/estimated_total_cost).
+export interface ProductionOrderItemProduct extends ProductionOrderProduct {
+  product_type_id?: number;
+  product_type_name?: string;
+  weight?: number | null;
+}
+
+export interface ProductionOrderDetailItem {
+  id: number;
+  production_order_id: number;
+  product: ProductionOrderItemProduct;
+  product_id: number;
+  quantity_requested: number;
+  quantity_produced: number;
+  quantity_pending: number;
+  progress_percentage: number;
+  estimated_component_cost: number;
+  labor_cost: number;
+  overhead_cost: number;
+  estimated_total_cost: number;
+  status: string;
+  notes: string | null;
+  components: ProductionOrderComponentResource[];
+  // ⚠️ Documentos de producción ya generados para este ítem (batch). Forma
+  // exacta no confirmada aún con datos reales; se deja como desconocida.
+  production_documents: unknown[];
+  created_at: string;
+}
+
+// ⚠️ Confirmado con respuesta real: "responsible" en el detalle viene como
+// la persona plana (mismo shape que un Worker/Person), no envuelta en
+// {name, person: {...}} como "user"/"approved_by". No trae "full_name"
+// armado: hay que componerlo en la UI con names + father_surname + mother_surname.
+export interface ProductionOrderResponsiblePerson {
+  id: number;
+  type_document: string;
+  type_person?: string;
+  number_document: string;
+  names: string;
+  father_surname: string;
+  mother_surname: string;
+  gender?: string | null;
+  birth_date?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  business_name?: string | null;
+  commercial_name?: string | null;
+  driver_license?: string | null;
+  user_id?: number | null;
+  created_at?: string;
+  roles?: unknown[];
+  hire_date?: string | null;
+  vacation_days_per_year?: number | null;
+}
+
 export interface ProductionOrderDetailResource {
   id: number;
   order_number: string;
@@ -154,33 +208,23 @@ export interface ProductionOrderDetailResource {
   processed_at: string | null;
   created_at: string;
   updated_at: string;
-  quantity_requested: number;
   currency: string;
-  estimated_component_cost: number;
-  labor_cost: number;
-  overhead_cost: number;
-  estimated_total_cost: number;
   observations: string | null;
   rejection_reason: string | null;
+  total_requested: number;
+  total_produced: number;
+  total_pending: number;
+  items: ProductionOrderDetailItem[];
   company_id: number;
   warehouse_origin_id: number;
   warehouse_dest_id: number;
-  product_id: number | null;
   user_id: number;
   responsible_id: number;
-  production_document_id: number | null;
-  // ⚠️ Confirmado con respuesta real: cuando la orden no tiene ítem/producto
-  // asociado (product_id null), el backend responde "product": null (y
-  // puede omitir "components" por completo). Ambos deben tratarse como
-  // opcionales/nulos en la UI.
-  product: ProductionOrderProduct | null;
   warehouse_origin: ProductionOrderWarehouse;
   warehouse_dest: ProductionOrderWarehouse;
   user: ProductionOrderUser;
-  responsible: ProductionOrderUser;
+  responsible: ProductionOrderResponsiblePerson;
   approved_by: ProductionOrderUser | null;
-  components?: ProductionOrderComponentResource[];
-  production_document?: null | object;
 }
 
 // ===== API RESPONSES =====
@@ -255,32 +299,70 @@ export interface ProductionOrderSummaryResponse {
 }
 
 // ===== REPORTE: ÓRDENES/ÍTEMS PENDIENTES A PRODUCIR =====
-// NOTA: al momento de documentar, /production-orders/pending devolvía
-// "data": [] (sin órdenes aprobadas pendientes de producir en ese momento),
-// por lo que la forma exacta de cada fila no está confirmada por el backend.
-// Se modela con los campos más probables (orden + ítem + saldo pendiente)
-// y se debe ajustar cuando el backend entregue un ejemplo con datos reales.
-export interface ProductionOrderPendingItem {
+// ⚠️ Confirmado con respuesta real (GET /production-orders/pending): "data"
+// NO es un arreglo, es un objeto agrupado por order_id (las claves son el
+// order_id como string). Cada grupo trae los datos de la orden y un arreglo
+// "items" con los ítems pendientes de esa orden (cantidades como string,
+// salvo quantity_pending que llega numérico).
+export interface ProductionOrderPendingReportItem {
+  item_id: number;
+  product: string;
+  quantity_requested: string;
+  quantity_produced: string;
+  quantity_pending: number;
+  status: string;
+}
+
+export interface ProductionOrderPendingReportOrder {
   order_id: number;
   order_number: string;
   status: ProductionOrderStatus;
   requested_date: string;
-  approved_at: string | null;
-  item_id: number;
-  product_id: number;
-  product_name: string;
-  quantity_requested: number;
-  quantity_produced: number;
-  quantity_pending: number;
-  warehouse_origin_id?: number;
-  warehouse_dest_id?: number;
-  responsible_id?: number;
-  [key: string]: unknown;
+  warehouse: string;
+  responsible: string;
+  items: ProductionOrderPendingReportItem[];
 }
 
 export interface ProductionOrderPendingResponse {
   message: string;
-  data: ProductionOrderPendingItem[];
+  data: Record<string, ProductionOrderPendingReportOrder>;
+}
+
+// Fila aplanada (una por ítem pendiente) que consume la tabla de la UI.
+export interface ProductionOrderPendingItem {
+  order_id: number;
+  order_number: string;
+  requested_date: string;
+  warehouse: string;
+  responsible: string;
+  item_id: number;
+  product_name: string;
+  quantity_requested: number;
+  quantity_produced: number;
+  quantity_pending: number;
+  status: string;
+}
+
+// El backend agrupa por orden; la tabla necesita una fila por ítem, así que
+// se aplana aquí una sola vez y lo reutilizan el hook y el store.
+export function flattenPendingReport(
+  data: Record<string, ProductionOrderPendingReportOrder>
+): ProductionOrderPendingItem[] {
+  return Object.values(data).flatMap((order) =>
+    order.items.map((item) => ({
+      order_id: order.order_id,
+      order_number: order.order_number,
+      requested_date: order.requested_date,
+      warehouse: order.warehouse,
+      responsible: order.responsible,
+      item_id: item.item_id,
+      product_name: item.product,
+      quantity_requested: Number(item.quantity_requested),
+      quantity_produced: Number(item.quantity_produced),
+      quantity_pending: item.quantity_pending,
+      status: item.status,
+    }))
+  );
 }
 
 // ===== HISTORIAL DE PRODUCCIÓN PARCIAL POR ÍTEM =====

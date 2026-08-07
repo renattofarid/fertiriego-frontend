@@ -413,21 +413,15 @@ export function ProductionDocumentForm({
                   try {
                     const res = await findProductionOrderById(Number(value));
                     const order = res.data.data;
+                    // ⚠️ La orden ahora agrupa varios productos (items[]),
+                    // cada uno con su propio producto/componentes/costos —
+                    // ya no hay un único producto a nivel de orden para
+                    // autocompletar aquí. Solo se rellenan los datos
+                    // comunes a la orden; el producto y sus componentes se
+                    // completan manualmente más abajo.
                     form.setValue("warehouse_origin_id", order.warehouse_origin_id.toString());
                     form.setValue("warehouse_dest_id", order.warehouse_dest_id.toString());
-                    form.setValue("product_id", order.product_id ? order.product_id.toString() : "");
                     form.setValue("responsible_id", order.responsible_id.toString());
-                    form.setValue("quantity_produced", order.quantity_requested.toString());
-                    form.setValue("labor_cost", order.labor_cost.toString());
-                    const mapped = (order.components ?? []).map((c) => ({
-                      component_id: c.component_id.toString(),
-                      component_name: c.component.name,
-                      quantity_required: c.quantity_required,
-                      quantity_used: c.quantity_required,
-                      unit_cost: c.unit_cost,
-                      notes: c.notes || "",
-                    }));
-                    setComponents(mapped);
                     toast.success("Datos de la orden cargados correctamente");
                   } catch {
                     toast.error("Error al cargar los datos de la orden");

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type {
   ProductionDocumentResource,
   CreateProductionDocumentRequest,
+  CreateProductionDocumentBatchRequest,
   UpdateProductionDocumentRequest,
   GetProductionDocumentsParams,
 } from "./production-document.interface";
@@ -10,6 +11,7 @@ import {
   getAllProductionDocuments,
   findProductionDocumentById,
   storeProductionDocument,
+  storeProductionDocumentBatch,
   updateProductionDocument,
   cancelProductionDocument,
   deleteProductionDocument,
@@ -38,6 +40,9 @@ interface ProductionDocumentStore {
   fetchDocuments: (params?: GetProductionDocumentsParams) => Promise<void>;
   fetchDocument: (id: number) => Promise<void>;
   createDocument: (data: ProductionDocumentSchema) => Promise<void>;
+  createDocumentBatch: (
+    data: CreateProductionDocumentBatchRequest
+  ) => Promise<ProductionDocumentResource[]>;
   updateDocument: (
     id: number,
     data: Partial<ProductionDocumentSchema>
@@ -134,6 +139,20 @@ export const useProductionDocumentStore = create<ProductionDocumentStore>(
 
         await storeProductionDocument(request);
         set({ isSubmitting: false });
+      } catch (error) {
+        set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
+        throw error;
+      }
+    },
+
+    // Crear varios documentos de producción a la vez (uno por ítem de una
+    // orden), en una sola request al endpoint /productiondocument/batch.
+    createDocumentBatch: async (data: CreateProductionDocumentBatchRequest) => {
+      set({ isSubmitting: true, error: null });
+      try {
+        const response = await storeProductionDocumentBatch(data);
+        set({ isSubmitting: false });
+        return response.data.data;
       } catch (error) {
         set({ error: ERROR_MESSAGE(MODEL, "create"), isSubmitting: false });
         throw error;

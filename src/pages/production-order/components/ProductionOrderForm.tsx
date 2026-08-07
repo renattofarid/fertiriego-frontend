@@ -86,8 +86,6 @@ interface ProductionOrderFormProps {
   isSubmitting?: boolean;
   initialValues?: ProductionOrderFormValues;
   warehouses: WarehouseResource[];
-  /** El GET por id todavía no expone items[] por separado: en edición solo se puede reconstruir 1 ítem */
-  editSingleItemWarning?: boolean;
 }
 
 const CURRENCY_OPTIONS = [
@@ -318,7 +316,6 @@ export function ProductionOrderForm({
   isSubmitting = false,
   initialValues,
   warehouses,
-  editSingleItemWarning = false,
 }: ProductionOrderFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_ORDER;
   const navigate = useNavigate();
@@ -512,14 +509,6 @@ export function ProductionOrderForm({
           backRoute={ROUTE}
         />
       </div>
-
-      {editSingleItemWarning && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Esta orden fue creada con un solo producto o el backend aún no expone
-          el detalle por múltiples ítems al editar. Si la orden tiene más de un
-          producto, edítala con cuidado: solo se muestra el primero.
-        </div>
-      )}
 
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">

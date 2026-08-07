@@ -14,7 +14,7 @@ import {
   getProductionOrdersPending,
   getProductionOrderItemHistory,
 } from "./production-order.actions";
-import { PRODUCTION_ORDER, PRODUCTION_ORDER_QUERY_KEY } from "./production-order.interface";
+import { PRODUCTION_ORDER, PRODUCTION_ORDER_QUERY_KEY, flattenPendingReport } from "./production-order.interface";
 import type {
   GetProductionOrdersParams,
   CreateProductionOrderRequest,
@@ -120,7 +120,7 @@ export function useProductionOrdersPending() {
   });
 
   return {
-    data: query.data?.data.data ?? null,
+    data: query.data?.data.data ? flattenPendingReport(query.data.data.data) : null,
     isLoading: query.isLoading,
     refetch: query.refetch,
   };

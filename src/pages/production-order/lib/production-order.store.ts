@@ -25,7 +25,7 @@ import {
 } from "./production-order.actions";
 import type { ProductionOrderSchema } from "./production-order.schema";
 import { ERROR_MESSAGE, errorToast } from "@/lib/core.function";
-import { PRODUCTION_ORDER } from "./production-order.interface";
+import { PRODUCTION_ORDER, flattenPendingReport } from "./production-order.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
 const { MODEL } = PRODUCTION_ORDER;
@@ -242,7 +242,7 @@ export const useProductionOrderStore = create<ProductionOrderStore>((set) => ({
     set({ isLoadingPending: true });
     try {
       const response = await getProductionOrdersPending();
-      set({ pending: response.data.data, isLoadingPending: false });
+      set({ pending: flattenPendingReport(response.data.data), isLoadingPending: false });
     } catch {
       set({ isLoadingPending: false });
       errorToast("Error al cargar el reporte de pendientes a producir");
