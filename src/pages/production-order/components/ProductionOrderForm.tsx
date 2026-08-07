@@ -523,13 +523,13 @@ export function ProductionOrderForm({
 
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
             {/* Información General */}
-            <div className="lg:col-span-1 lg:sticky lg:top-4">
+            <div className="lg:col-span-1 lg:sticky lg:top-4 gap-6">
               <GroupFormSection
                 icon={ClipboardList}
                 title="Información General"
-                cols={{ sm: 1 }}
+                cols={{ sm: 1, md: 2, xl: 1 }}
               >
                 <FormSelect
                   control={form.control}
@@ -794,7 +794,9 @@ export function ProductionOrderForm({
                                   <TableHead className="w-28 border-r">
                                     Costo Unit.
                                   </TableHead>
-                                  <TableHead className="border-r">Notas</TableHead>
+                                  <TableHead className="border-r">
+                                    Notas
+                                  </TableHead>
                                   <TableHead className="w-10" />
                                 </TableRow>
                               </TableHeader>
@@ -808,7 +810,9 @@ export function ProductionOrderForm({
                                         componentIndex={componentIndex}
                                         component={component}
                                         otherComponentIds={item.components
-                                          .filter((_, ci) => ci !== componentIndex)
+                                          .filter(
+                                            (_, ci) => ci !== componentIndex,
+                                          )
                                           .map((c) => c.component_id)
                                           .filter(Boolean)}
                                         onChange={updateComponentRow}

@@ -17,10 +17,30 @@ export type ProductionOrderStatus =
   | "ANULADO";
 
 // ===== API RESOURCES (LIST) =====
-// NOTA: el endpoint de listado (GET /production-orders) todavía devuelve
-// campos agregados a nivel de orden (product_id/quantity_requested únicos),
-// aunque la orden ya admita varios ítems al crearse/editarse. Se deja tal
-// cual responde hoy el backend.
+// ⚠️ Confirmado con respuesta real (GET /production-orders): el listado YA
+// agrupa por ítems (varios productos por orden), a diferencia del detalle
+// (show, más abajo) que todavía entrega producto/componentes planos a nivel
+// de orden. El listado ya no trae product_id/quantity_requested/costos a
+// nivel de orden ni production_document_id: los costos y cantidades ahora
+// viven por ítem, y los totales de cantidad se agregan en total_requested/
+// total_produced/total_pending.
+
+export interface ProductionOrderListItem {
+  id: number;
+  production_order_id: number;
+  product_id: number;
+  quantity_requested: number;
+  quantity_produced: number;
+  quantity_pending: number;
+  progress_percentage: number;
+  estimated_component_cost: number;
+  labor_cost: number;
+  overhead_cost: number;
+  estimated_total_cost: number;
+  status: string;
+  notes: string | null;
+  created_at: string;
+}
 
 export interface ProductionOrderResource {
   id: number;
@@ -32,21 +52,18 @@ export interface ProductionOrderResource {
   processed_at: string | null;
   created_at: string;
   updated_at: string;
-  quantity_requested: number;
   currency: string;
-  estimated_component_cost: number;
-  labor_cost: number;
-  overhead_cost: number;
-  estimated_total_cost: number;
   observations: string | null;
   rejection_reason: string | null;
+  total_requested: number;
+  total_produced: number;
+  total_pending: number;
+  items: ProductionOrderListItem[];
   company_id: number;
   warehouse_origin_id: number;
   warehouse_dest_id: number;
-  product_id: number;
   user_id: number;
   responsible_id: number;
-  production_document_id: number | null;
 }
 
 // ===== API RESOURCES (DETAIL - SHOW) =====
@@ -127,15 +144,43 @@ export interface ProductionOrderUser {
 // Mientras el backend no exponga "items" en el show, el detalle/edición solo
 // puede reconstruir correctamente órdenes de 1 solo ítem — con varios ítems
 // se perderá la agrupación (se verá todo como si fuera un único producto).
-export interface ProductionOrderDetailResource extends ProductionOrderResource {
-  product: ProductionOrderProduct;
+export interface ProductionOrderDetailResource {
+  id: number;
+  order_number: string;
+  status: ProductionOrderStatus;
+  status_badge: string;
+  requested_date: string;
+  approved_at: string | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  quantity_requested: number;
+  currency: string;
+  estimated_component_cost: number;
+  labor_cost: number;
+  overhead_cost: number;
+  estimated_total_cost: number;
+  observations: string | null;
+  rejection_reason: string | null;
+  company_id: number;
+  warehouse_origin_id: number;
+  warehouse_dest_id: number;
+  product_id: number | null;
+  user_id: number;
+  responsible_id: number;
+  production_document_id: number | null;
+  // ⚠️ Confirmado con respuesta real: cuando la orden no tiene ítem/producto
+  // asociado (product_id null), el backend responde "product": null (y
+  // puede omitir "components" por completo). Ambos deben tratarse como
+  // opcionales/nulos en la UI.
+  product: ProductionOrderProduct | null;
   warehouse_origin: ProductionOrderWarehouse;
   warehouse_dest: ProductionOrderWarehouse;
   user: ProductionOrderUser;
   responsible: ProductionOrderUser;
   approved_by: ProductionOrderUser | null;
-  components: ProductionOrderComponentResource[];
-  production_document: null | object;
+  components?: ProductionOrderComponentResource[];
+  production_document?: null | object;
 }
 
 // ===== API RESPONSES =====

@@ -406,7 +406,7 @@ export function ProductionDocumentForm({
                 mapOptionFn={(o: ProductionOrderResource) => ({
                   value: o.id.toString(),
                   label: o.order_number,
-                  description: `Cant: ${o.quantity_requested} · ${o.requested_date}`,
+                  description: `Cant: ${o.total_requested} · ${o.requested_date}`,
                 })}
                 onValueChange={async (value) => {
                   if (!value) return;
@@ -415,11 +415,11 @@ export function ProductionDocumentForm({
                     const order = res.data.data;
                     form.setValue("warehouse_origin_id", order.warehouse_origin_id.toString());
                     form.setValue("warehouse_dest_id", order.warehouse_dest_id.toString());
-                    form.setValue("product_id", order.product_id.toString());
+                    form.setValue("product_id", order.product_id ? order.product_id.toString() : "");
                     form.setValue("responsible_id", order.responsible_id.toString());
                     form.setValue("quantity_produced", order.quantity_requested.toString());
                     form.setValue("labor_cost", order.labor_cost.toString());
-                    const mapped = order.components.map((c) => ({
+                    const mapped = (order.components ?? []).map((c) => ({
                       component_id: c.component_id.toString(),
                       component_name: c.component.name,
                       quantity_required: c.quantity_required,

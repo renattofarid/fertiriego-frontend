@@ -1,7 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { useProductionOrders, useProductionOrdersSummary } from "../lib/production-order.hook";
-import { useProductionOrderStore } from "../lib/production-order.store";
+import {
+  useProductionOrders,
+  useProductionOrdersSummary,
+  useSubmitProductionOrder,
+  useApproveProductionOrder,
+  useRejectProductionOrder,
+  useCancelProductionOrder,
+  useDeleteProductionOrder,
+} from "../lib/production-order.hook";
 import { PRODUCTION_ORDER, ProductionOrderPendingRoute } from "../lib/production-order.interface";
 import type { GetProductionOrdersParams } from "../lib/production-order.interface";
 import { createProductionOrderColumns } from "./ProductionOrderColumns";
@@ -24,7 +31,6 @@ import {
 } from "lucide-react";
 import TitleComponent from "@/components/TitleComponent";
 import DataTablePagination from "@/components/DataTablePagination";
-import { successToast, errorToast } from "@/lib/core.function";
 import {
   Dialog,
   DialogContent,
@@ -65,82 +71,45 @@ export default function ProductionOrderIndexPage() {
     [page, perPage],
   );
 
-  const {
-    data: orders,
-    meta,
-    isLoading,
-    refetch,
-  } = useProductionOrders(params);
-  const { submitOrder, approveOrder, rejectOrder, cancelOrder, removeOrder } =
-    useProductionOrderStore();
+  const { data: orders, meta, isLoading } = useProductionOrders(params);
   const { data: summary, isLoading: isLoadingSummary } = useProductionOrdersSummary();
+
+  const submitOrder = useSubmitProductionOrder();
+  const approveOrder = useApproveProductionOrder();
+  const rejectOrder = useRejectProductionOrder();
+  const cancelOrder = useCancelProductionOrder();
+  const removeOrder = useDeleteProductionOrder();
 
   // Reject dialog state
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionReasonError, setRejectionReasonError] = useState("");
-  const [isRejectLoading, setIsRejectLoading] = useState(false);
 
-  const handleSubmit = async (id: number) => {
-    try {
-      await submitOrder(id);
-      successToast("Orden enviada a revisión correctamente");
-      refetch(params);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al enviar la orden");
-    }
-  };
+  const handleSubmit = (id: number) => submitOrder.mutate(id);
 
-  const handleApprove = async (id: number) => {
-    try {
-      await approveOrder(id);
-      successToast("Orden aprobada correctamente");
-      refetch(params);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al aprobar la orden");
-    }
-  };
+  const handleApprove = (id: number) => approveOrder.mutate(id);
 
-  const handleReject = async () => {
+  const handleReject = () => {
     if (rejectionReason.trim().length < 4) {
       setRejectionReasonError("El motivo debe tener al menos 4 caracteres");
       return;
     }
     if (!rejectingId) return;
-    setIsRejectLoading(true);
-    try {
-      await rejectOrder(rejectingId, rejectionReason.trim());
-      successToast("Orden rechazada correctamente");
-      setRejectingId(null);
-      setRejectionReason("");
-      setRejectionReasonError("");
-      refetch(params);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al rechazar la orden");
-    } finally {
-      setIsRejectLoading(false);
-    }
+    rejectOrder.mutate(
+      { id: rejectingId, rejection_reason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          setRejectingId(null);
+          setRejectionReason("");
+          setRejectionReasonError("");
+        },
+      },
+    );
   };
 
-  const handleCancel = async (id: number) => {
-    try {
-      await cancelOrder(id);
-      successToast("Orden anulada correctamente");
-      refetch(params);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al anular la orden");
-    }
-  };
+  const handleCancel = (id: number) => cancelOrder.mutate(id);
 
-  const handleDelete = async (id: number) => {
-    try {
-      await removeOrder(id);
-      successToast("Orden eliminada correctamente");
-      refetch(params);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al eliminar la orden");
-    }
-  };
+  const handleDelete = (id: number) => removeOrder.mutate(id);
 
   const columns = useMemo(
     () =>
@@ -297,16 +266,16 @@ export default function ProductionOrderIndexPage() {
             <Button
               variant="outline"
               onClick={() => setRejectingId(null)}
-              disabled={isRejectLoading}
+              disabled={rejectOrder.isPending}
             >
               Cancelar
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
-              disabled={isRejectLoading}
+              disabled={rejectOrder.isPending}
             >
-              {isRejectLoading ? (
+              {rejectOrder.isPending ? (
                 <Loader className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <XCircle className="h-4 w-4 mr-2" />

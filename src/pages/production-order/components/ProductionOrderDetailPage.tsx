@@ -1,6 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useProductionOrderStore } from "../lib/production-order.store";
+import { useState } from "react";
+import {
+  useProductionOrderById,
+  useDeleteProductionOrder,
+  useSubmitProductionOrder,
+  useApproveProductionOrder,
+  useRejectProductionOrder,
+  useCancelProductionOrder,
+} from "../lib/production-order.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Button } from "@/components/ui/button";
@@ -32,7 +39,6 @@ import {
   Trash2,
   Loader,
 } from "lucide-react";
-import { successToast, errorToast } from "@/lib/core.function";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import type {
   ProductionOrderComponentResource,
@@ -105,16 +111,13 @@ export default function ProductionOrderDetailPage() {
   const { ROUTE, ROUTE_UPDATE, ICON } = PRODUCTION_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    order,
-    fetchOrder,
-    removeOrder,
-    submitOrder,
-    approveOrder,
-    rejectOrder,
-    cancelOrder,
-    isFinding,
-  } = useProductionOrderStore();
+  const numId = Number(id);
+  const { data: order, isLoading: isFinding } = useProductionOrderById(numId);
+  const removeOrder = useDeleteProductionOrder();
+  const submitOrder = useSubmitProductionOrder();
+  const approveOrder = useApproveProductionOrder();
+  const rejectOrder = useRejectProductionOrder();
+  const cancelOrder = useCancelProductionOrder();
   const { access, user } = useAuthStore();
 
   const canApprovePermission =
@@ -135,72 +138,30 @@ export default function ProductionOrderDetailPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionReasonError, setRejectionReasonError] = useState("");
-  const [isActionLoading, setIsActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (id) fetchOrder(parseInt(id));
-  }, [id, fetchOrder]);
+  const handleSubmit = () => submitOrder.mutate(numId);
 
-  const numId = () => parseInt(id!);
+  const handleApprove = () => approveOrder.mutate(numId);
 
-  const handleSubmit = async () => {
-    try {
-      await submitOrder(numId());
-      successToast("Orden enviada a revisión correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al enviar la orden");
-    }
-  };
+  const handleCancel = () => cancelOrder.mutate(numId);
 
-  const handleApprove = async () => {
-    try {
-      await approveOrder(numId());
-      successToast("Orden aprobada correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al aprobar la orden");
-    }
-  };
+  const handleDelete = () => removeOrder.mutate(numId, { onSuccess: () => navigate(ROUTE) });
 
-  const handleCancel = async () => {
-    try {
-      await cancelOrder(numId());
-      successToast("Orden anulada correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al anular la orden");
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await removeOrder(numId());
-      successToast("Orden eliminada correctamente");
-      navigate(ROUTE);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al eliminar la orden");
-    }
-  };
-
-  const handleReject = async () => {
+  const handleReject = () => {
     if (rejectionReason.trim().length < 4) {
       setRejectionReasonError("El motivo debe tener al menos 4 caracteres");
       return;
     }
-    setIsActionLoading(true);
-    try {
-      await rejectOrder(numId(), rejectionReason.trim());
-      successToast("Orden rechazada correctamente");
-      setRejectDialogOpen(false);
-      setRejectionReason("");
-      setRejectionReasonError("");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al rechazar la orden");
-    } finally {
-      setIsActionLoading(false);
-    }
+    rejectOrder.mutate(
+      { id: numId, rejection_reason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          setRejectDialogOpen(false);
+          setRejectionReason("");
+          setRejectionReasonError("");
+        },
+      },
+    );
   };
 
   if (isFinding || !order) {
@@ -332,10 +293,16 @@ export default function ProductionOrderDetailPage() {
         <GroupFormSection title="Producto y Fechas" icon={Package} cols={{ sm: 1, md: 2, lg: 3 }}>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Producto</p>
-            <p className="font-semibold">{order.product.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {order.product.category_name} · {order.product.unit_name}
-            </p>
+            {order.product ? (
+              <>
+                <p className="font-semibold">{order.product.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {order.product.category_name} · {order.product.unit_name}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Sin producto asociado</p>
+            )}
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Fecha Solicitada</p>
@@ -493,16 +460,16 @@ export default function ProductionOrderDetailPage() {
             <Button
               variant="outline"
               onClick={() => setRejectDialogOpen(false)}
-              disabled={isActionLoading}
+              disabled={rejectOrder.isPending}
             >
               Cancelar
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
-              disabled={isActionLoading}
+              disabled={rejectOrder.isPending}
             >
-              {isActionLoading ? (
+              {rejectOrder.isPending ? (
                 <Loader className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <XCircle className="h-4 w-4 mr-2" />

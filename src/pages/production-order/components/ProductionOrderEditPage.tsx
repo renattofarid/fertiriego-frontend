@@ -1,37 +1,29 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
-import { useProductionOrderStore } from "../lib/production-order.store";
-import { ERROR_MESSAGE, SUCCESS_MESSAGE, errorToast, successToast } from "@/lib/core.function";
+import { useProductionOrderById, useUpdateProductionOrder } from "../lib/production-order.hook";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import { ProductionOrderForm, type ProductionOrderFormValues } from "./ProductionOrderForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
 export default function ProductionOrderEditPage() {
-  const { ROUTE, MODEL } = PRODUCTION_ORDER;
+  const { ROUTE } = PRODUCTION_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { order, fetchOrder, updateOrder, isSubmitting, isFinding } = useProductionOrderStore();
+  const numId = Number(id);
+
+  const { data: order, isLoading: isFinding } = useProductionOrderById(numId);
+  const updateOrder = useUpdateProductionOrder();
 
   const { data: warehouses = [], isLoading: loadingWarehouses } = useAllWarehouses();
 
-  useEffect(() => {
-    if (id) {
-      fetchOrder(parseInt(id));
-    }
-  }, [id, fetchOrder]);
-
   const isLoading = loadingWarehouses || isFinding;
 
-  const onSubmit = async (values: ProductionOrderFormValues) => {
+  const onSubmit = (values: ProductionOrderFormValues) => {
     if (!id) return;
-    try {
-      await updateOrder(parseInt(id), values as any);
-      successToast(SUCCESS_MESSAGE(MODEL, "edit"));
-      navigate(ROUTE);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"));
-    }
+    updateOrder.mutate(
+      { id: numId, data: values as any },
+      { onSuccess: () => navigate(ROUTE) },
+    );
   };
 
   if (isLoading || !order) {
@@ -52,14 +44,14 @@ export default function ProductionOrderEditPage() {
     observations: order.observations || "",
     items: [
       {
-        product_id: order.product_id.toString(),
-        product_name: order.product.name,
+        product_id: order.product_id ? order.product_id.toString() : "",
+        product_name: order.product?.name ?? "",
         quantity_requested: order.quantity_requested.toString(),
         labor_cost: order.labor_cost.toString(),
         // overhead_cost no se edita: lo calcula el backend automáticamente.
         notes: "",
-        use_combo: order.components.length === 0,
-        components: order.components.map((c) => ({
+        use_combo: (order.components?.length ?? 0) === 0,
+        components: (order.components ?? []).map((c) => ({
           component_id: c.component_id.toString(),
           component_name: c.component.name,
           quantity_required: c.quantity_required.toString(),
@@ -76,7 +68,7 @@ export default function ProductionOrderEditPage() {
     <ProductionOrderForm
       mode="edit"
       onSubmit={onSubmit}
-      isSubmitting={isSubmitting}
+      isSubmitting={updateOrder.isPending}
       initialValues={initialValues}
       warehouses={warehouses || []}
       editSingleItemWarning

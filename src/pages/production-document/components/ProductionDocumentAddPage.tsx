@@ -42,7 +42,7 @@ export default function ProductionDocumentAddPage() {
         setOrderInitialValues({
           warehouse_origin_id: order.warehouse_origin_id.toString(),
           warehouse_dest_id: order.warehouse_dest_id.toString(),
-          product_id: order.product_id.toString(),
+          product_id: order.product_id ? order.product_id.toString() : "",
           user_id: user?.id.toString() || "",
           responsible_id: order.responsible_id.toString(),
           production_order_id: order.id.toString(),
@@ -51,7 +51,7 @@ export default function ProductionDocumentAddPage() {
           labor_cost: order.labor_cost.toString(),
           overhead_cost: "",
           observations: order.observations || "",
-          components: order.components.map((c) => ({
+          components: (order.components ?? []).map((c) => ({
             component_id: c.component_id.toString(),
             component_name: c.component.name,
             quantity_required: c.quantity_required.toString(),

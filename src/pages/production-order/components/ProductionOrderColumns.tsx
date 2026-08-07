@@ -88,11 +88,18 @@ export const createProductionOrderColumns = (
     ),
   },
   {
-    accessorKey: "quantity_requested",
+    id: "items_count",
+    header: "Ítems",
+    cell: ({ row }) => (
+      <span className="text-sm">{row.original.items?.length ?? 0}</span>
+    ),
+  },
+  {
+    accessorKey: "total_requested",
     header: "Cant. Solicitada",
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">{row.original.quantity_requested}</div>
+        <div className="font-medium">{row.original.total_requested}</div>
         <div className="text-sm text-muted-foreground">
           {row.original.currency}
         </div>
@@ -100,30 +107,29 @@ export const createProductionOrderColumns = (
     ),
   },
   {
-    accessorKey: "estimated_component_cost",
-    header: "Costo Componentes",
+    accessorKey: "total_produced",
+    header: "Cant. Producida",
+    cell: ({ row }) => <span>{row.original.total_produced}</span>,
+  },
+  {
+    accessorKey: "total_pending",
+    header: "Cant. Pendiente",
     cell: ({ row }) => (
-      <span>S/ {row.original.estimated_component_cost.toFixed(2)}</span>
-    ),
-  },
-  {
-    accessorKey: "labor_cost",
-    header: "C. Laboral",
-    cell: ({ row }) => <span>S/ {row.original.labor_cost.toFixed(2)}</span>,
-  },
-  {
-    accessorKey: "overhead_cost",
-    header: "C. Indirecto",
-    cell: ({ row }) => <span>S/ {(row.original.overhead_cost ?? 0).toFixed(2)}</span>,
-  },
-  {
-    accessorKey: "estimated_total_cost",
-    header: "Costo Total",
-    cell: ({ row }) => (
-      <span className="font-semibold">
-        S/ {row.original.estimated_total_cost.toFixed(2)}
+      <span className="font-semibold text-amber-600">
+        {row.original.total_pending}
       </span>
     ),
+  },
+  {
+    id: "estimated_total_cost",
+    header: "Costo Total",
+    cell: ({ row }) => {
+      const total = (row.original.items ?? []).reduce(
+        (sum, item) => sum + (item.estimated_total_cost ?? 0),
+        0,
+      );
+      return <span className="font-semibold">S/ {total.toFixed(2)}</span>;
+    },
   },
   {
     accessorKey: "status",
@@ -145,7 +151,7 @@ export const createProductionOrderColumns = (
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => {
-      const { id, status, production_document_id } = row.original;
+      const { id, status, total_pending } = row.original;
       const canEdit = status === "BORRADOR" || status === "RECHAZADO";
       const canSubmit = status === "BORRADOR" || status === "RECHAZADO";
       const canApprove =
@@ -154,6 +160,11 @@ export const createProductionOrderColumns = (
         status === "PENDIENTE" && callbacks.canReject !== false;
       const canCancel = status !== "PROCESADO" && status !== "ANULADO";
       const canDelete = status === "BORRADOR" || status === "RECHAZADO";
+      // ⚠️ El listado ya no trae "production_document_id" a nivel de orden
+      // (ese campo era del modelo viejo de 1 solo ítem). Con items[], la
+      // señal de "todavía se puede generar documento" es que quede cantidad
+      // pendiente de producir en la orden aprobada.
+      const canGenerateDocument = status === "APROBADO" && total_pending > 0;
 
       return (
         <ColumnActions>
@@ -211,16 +222,14 @@ export const createProductionOrderColumns = (
             onClick={() => callbacks.onRejectClick!(id)}
           />
 
-          {callbacks.onGenerateDocument &&
-            status === "APROBADO" &&
-            production_document_id === null && (
-              <ButtonAction
-                icon={FilePlus}
-                color="indigo"
-                tooltip="Generar Documento de Producción"
-                onClick={() => callbacks.onGenerateDocument!(id)}
-              />
-            )}
+          {callbacks.onGenerateDocument && canGenerateDocument && (
+            <ButtonAction
+              icon={FilePlus}
+              color="indigo"
+              tooltip="Generar Documento de Producción"
+              onClick={() => callbacks.onGenerateDocument!(id)}
+            />
+          )}
 
           {canCancel && callbacks.onCancel && (
             <ConfirmationDialog
