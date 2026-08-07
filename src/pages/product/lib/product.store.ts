@@ -41,6 +41,7 @@ const createFormData = (data: ProductSchema): FormData => {
 
   formData.append("name", data.name);
   formData.append("is_igv", data.is_igv ? "1" : "0");
+  formData.append("weight", (data.weight ?? 0).toString());
 
   if(data.category_id){
       formData.append("category_id", data.category_id.toString());

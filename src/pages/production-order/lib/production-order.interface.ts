@@ -366,18 +366,15 @@ export function flattenPendingReport(
 }
 
 // ===== HISTORIAL DE PRODUCCIÓN PARCIAL POR ÍTEM =====
-// NOTA: endpoint pendiente de crear/confirmar por el backend
-// (GET /production-order-items/{itemId}/history). Forma asumida en base al
-// flujo de "producción parcial + continuar" descrito por el negocio.
+// ✅ Confirmado con respuesta real (GET /production-order-items/{itemId}/history):
+// una fila por documento de producción generado para el ítem. Las cantidades
+// llegan como string (igual que en el reporte de pendientes) y "produced_by"
+// es el nombre plano del usuario, no un objeto.
 export interface ProductionOrderItemHistoryEntry {
-  id: number;
-  production_order_item_id: number;
-  quantity_produced: number;
-  production_document_id: number | null;
-  produced_by?: ProductionOrderUser | null;
-  observations: string | null;
-  created_at: string;
-  [key: string]: unknown;
+  document_number: string;
+  production_date: string;
+  quantity_produced: string;
+  produced_by: string;
 }
 
 export interface ProductionOrderItemHistoryResponse {

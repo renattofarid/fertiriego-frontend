@@ -37,6 +37,7 @@ import {
   Ban,
   Trash2,
   Loader,
+  History,
 } from "lucide-react";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import type {
@@ -46,6 +47,7 @@ import type {
 } from "../lib/production-order.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { ProductionOrderItemHistoryDialog } from "./ProductionOrderItemHistoryDialog";
 
 const statusConfig: Record<
   ProductionOrderStatus,
@@ -203,6 +205,16 @@ export default function ProductionOrderDetailPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionReasonError, setRejectionReasonError] = useState("");
+
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyItemId, setHistoryItemId] = useState<number | null>(null);
+  const [historyProductName, setHistoryProductName] = useState<string>("");
+
+  const handleViewHistory = (item: ProductionOrderDetailItem) => {
+    setHistoryItemId(item.id);
+    setHistoryProductName(item.product.name);
+    setHistoryDialogOpen(true);
+  };
 
   const handleSubmit = () => submitOrder.mutate(numId);
 
@@ -455,11 +467,22 @@ export default function ProductionOrderDetailPage() {
               <div key={item.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b">
                   <span className="text-sm font-semibold">{item.product.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    Costo componentes: S/ {item.estimated_component_cost.toFixed(2)} · Laboral: S/{" "}
-                    {item.labor_cost.toFixed(2)} · Indirecto: S/ {item.overhead_cost.toFixed(2)} · Total: S/{" "}
-                    {item.estimated_total_cost.toFixed(2)}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      Costo componentes: S/ {item.estimated_component_cost.toFixed(2)} · Laboral: S/{" "}
+                      {item.labor_cost.toFixed(2)} · Indirecto: S/ {item.overhead_cost.toFixed(2)} · Total: S/{" "}
+                      {item.estimated_total_cost.toFixed(2)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7"
+                      onClick={() => handleViewHistory(item)}
+                    >
+                      <History className="h-3.5 w-3.5 mr-1.5" />
+                      Historial
+                    </Button>
+                  </div>
                 </div>
                 <div className="p-3">
                   <DataTable columns={componentColumns} data={item.components || []} />
@@ -532,6 +555,14 @@ export default function ProductionOrderDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Historial de Producción del Ítem */}
+      <ProductionOrderItemHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        itemId={historyItemId}
+        productName={historyProductName}
+      />
     </FormWrapper>
   );
 }
