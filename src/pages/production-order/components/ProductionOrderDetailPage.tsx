@@ -1,6 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useProductionOrderStore } from "../lib/production-order.store";
+import { useState } from "react";
+import {
+  useProductionOrderById,
+  useDeleteProductionOrder,
+  useSubmitProductionOrder,
+  useApproveProductionOrder,
+  useRejectProductionOrder,
+  useCancelProductionOrder,
+} from "../lib/production-order.hook";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { Button } from "@/components/ui/button";
@@ -22,7 +29,6 @@ import {
   Package,
   ClipboardList,
   AlertCircle,
-  DollarSign,
   Users,
   Pencil,
   Send,
@@ -31,15 +37,17 @@ import {
   Ban,
   Trash2,
   Loader,
+  History,
 } from "lucide-react";
-import { successToast, errorToast } from "@/lib/core.function";
 import { PRODUCTION_ORDER } from "../lib/production-order.interface";
 import type {
   ProductionOrderComponentResource,
+  ProductionOrderDetailItem,
   ProductionOrderStatus,
 } from "../lib/production-order.interface";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { ProductionOrderItemHistoryDialog } from "./ProductionOrderItemHistoryDialog";
 
 const statusConfig: Record<
   ProductionOrderStatus,
@@ -52,6 +60,71 @@ const statusConfig: Record<
   PROCESADO: { label: "Procesado", dot: "bg-blue-500",   text: "text-blue-700",   bg: "bg-blue-100"   },
   ANULADO:   { label: "Anulado",   dot: "bg-zinc-400",   text: "text-zinc-600",   bg: "bg-zinc-100"   },
 };
+
+const itemStatusColor: Record<string, string> = {
+  PENDIENTE: "bg-amber-100 text-amber-700",
+  EN_PROCESO: "bg-blue-100 text-blue-700",
+  PROCESADO: "bg-green-100 text-green-700",
+};
+
+const itemColumns: ColumnDef<ProductionOrderDetailItem>[] = [
+  {
+    accessorKey: "product",
+    header: "Producto",
+    cell: ({ row }) => (
+      <div>
+        <div className="font-medium">{row.original.product.name}</div>
+        <div className="text-sm text-muted-foreground">
+          {row.original.product.category_name} · {row.original.product.unit_name}
+        </div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: "quantity_requested",
+    header: "Solicitada",
+    cell: ({ row }) => <span>{row.original.quantity_requested}</span>,
+  },
+  {
+    accessorKey: "quantity_produced",
+    header: "Producida",
+    cell: ({ row }) => <span>{row.original.quantity_produced}</span>,
+  },
+  {
+    accessorKey: "quantity_pending",
+    header: "Pendiente",
+    cell: ({ row }) => (
+      <span className="font-semibold">{row.original.quantity_pending}</span>
+    ),
+  },
+  {
+    accessorKey: "progress_percentage",
+    header: "Avance",
+    cell: ({ row }) => <span>{row.original.progress_percentage}%</span>,
+  },
+  {
+    accessorKey: "estimated_total_cost",
+    header: "Costo Estimado",
+    cell: ({ row }) => (
+      <span className="font-semibold">
+        S/ {row.original.estimated_total_cost.toFixed(2)}
+      </span>
+    ),
+  },
+  {
+    accessorKey: "status",
+    header: "Estado",
+    cell: ({ row }) => (
+      <span
+        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          itemStatusColor[row.original.status] ?? "bg-slate-100 text-slate-700"
+        }`}
+      >
+        {row.original.status}
+      </span>
+    ),
+  },
+];
 
 const componentColumns: ColumnDef<ProductionOrderComponentResource>[] = [
   {
@@ -105,16 +178,13 @@ export default function ProductionOrderDetailPage() {
   const { ROUTE, ROUTE_UPDATE, ICON } = PRODUCTION_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const {
-    order,
-    fetchOrder,
-    removeOrder,
-    submitOrder,
-    approveOrder,
-    rejectOrder,
-    cancelOrder,
-    isFinding,
-  } = useProductionOrderStore();
+  const numId = Number(id);
+  const { data: order, isLoading: isFinding } = useProductionOrderById(numId);
+  const removeOrder = useDeleteProductionOrder();
+  const submitOrder = useSubmitProductionOrder();
+  const approveOrder = useApproveProductionOrder();
+  const rejectOrder = useRejectProductionOrder();
+  const cancelOrder = useCancelProductionOrder();
   const { access, user } = useAuthStore();
 
   const canApprovePermission =
@@ -135,72 +205,40 @@ export default function ProductionOrderDetailPage() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionReasonError, setRejectionReasonError] = useState("");
-  const [isActionLoading, setIsActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (id) fetchOrder(parseInt(id));
-  }, [id, fetchOrder]);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyItemId, setHistoryItemId] = useState<number | null>(null);
+  const [historyProductName, setHistoryProductName] = useState<string>("");
 
-  const numId = () => parseInt(id!);
-
-  const handleSubmit = async () => {
-    try {
-      await submitOrder(numId());
-      successToast("Orden enviada a revisión correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al enviar la orden");
-    }
+  const handleViewHistory = (item: ProductionOrderDetailItem) => {
+    setHistoryItemId(item.id);
+    setHistoryProductName(item.product.name);
+    setHistoryDialogOpen(true);
   };
 
-  const handleApprove = async () => {
-    try {
-      await approveOrder(numId());
-      successToast("Orden aprobada correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al aprobar la orden");
-    }
-  };
+  const handleSubmit = () => submitOrder.mutate(numId);
 
-  const handleCancel = async () => {
-    try {
-      await cancelOrder(numId());
-      successToast("Orden anulada correctamente");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al anular la orden");
-    }
-  };
+  const handleApprove = () => approveOrder.mutate(numId);
 
-  const handleDelete = async () => {
-    try {
-      await removeOrder(numId());
-      successToast("Orden eliminada correctamente");
-      navigate(ROUTE);
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al eliminar la orden");
-    }
-  };
+  const handleCancel = () => cancelOrder.mutate(numId);
 
-  const handleReject = async () => {
+  const handleDelete = () => removeOrder.mutate(numId, { onSuccess: () => navigate(ROUTE) });
+
+  const handleReject = () => {
     if (rejectionReason.trim().length < 4) {
       setRejectionReasonError("El motivo debe tener al menos 4 caracteres");
       return;
     }
-    setIsActionLoading(true);
-    try {
-      await rejectOrder(numId(), rejectionReason.trim());
-      successToast("Orden rechazada correctamente");
-      setRejectDialogOpen(false);
-      setRejectionReason("");
-      setRejectionReasonError("");
-      fetchOrder(numId());
-    } catch (error: any) {
-      errorToast(error.response?.data?.message || "Error al rechazar la orden");
-    } finally {
-      setIsActionLoading(false);
-    }
+    rejectOrder.mutate(
+      { id: numId, rejection_reason: rejectionReason.trim() },
+      {
+        onSuccess: () => {
+          setRejectDialogOpen(false);
+          setRejectionReason("");
+          setRejectionReasonError("");
+        },
+      },
+    );
   };
 
   if (isFinding || !order) {
@@ -319,24 +357,19 @@ export default function ProductionOrderDetailPage() {
             <p className="font-mono font-bold text-lg">{order.order_number}</p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Cantidad Solicitada</p>
-            <p className="text-lg font-bold">{order.quantity_requested}</p>
+            <p className="text-xs text-muted-foreground">Cant. Solicitada / Producida</p>
+            <p className="text-lg font-bold">
+              {order.total_requested} / {order.total_produced}
+            </p>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Total Estimado</p>
-            <p className="text-lg font-bold">S/ {order.estimated_total_cost.toFixed(2)}</p>
+            <p className="text-xs text-muted-foreground">Cantidad Pendiente</p>
+            <p className="text-lg font-bold">{order.total_pending}</p>
           </div>
         </GroupFormSection>
 
-        {/* Producto y Fechas */}
-        <GroupFormSection title="Producto y Fechas" icon={Package} cols={{ sm: 1, md: 2, lg: 3 }}>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Producto</p>
-            <p className="font-semibold">{order.product.name}</p>
-            <p className="text-sm text-muted-foreground">
-              {order.product.category_name} · {order.product.unit_name}
-            </p>
-          </div>
+        {/* Fechas y Moneda */}
+        <GroupFormSection title="Fechas y Moneda" icon={Package} cols={{ sm: 1, md: 2, lg: 3 }}>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Fecha Solicitada</p>
             <p className="font-medium">{order.requested_date}</p>
@@ -388,12 +421,12 @@ export default function ProductionOrderDetailPage() {
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Responsable</p>
-            <p className="font-semibold">{order.responsible.name || "-"}</p>
-            {order.responsible.person && (
-              <p className="text-sm text-muted-foreground">
-                {order.responsible.person.full_name}
-              </p>
-            )}
+            <p className="font-semibold">
+              {[order.responsible.names, order.responsible.father_surname, order.responsible.mother_surname]
+                .filter(Boolean)
+                .join(" ") || "-"}
+            </p>
+            <p className="text-sm text-muted-foreground">{order.responsible.number_document}</p>
           </div>
           {order.approved_by && (
             <div className="space-y-1">
@@ -406,28 +439,6 @@ export default function ProductionOrderDetailPage() {
               )}
             </div>
           )}
-        </GroupFormSection>
-
-        {/* Costos */}
-        <GroupFormSection title="Detalles de Costos" icon={DollarSign} cols={{ sm: 2, md: 4 }}>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo de Componentes</p>
-            <p className="text-lg font-bold">S/ {order.estimated_component_cost.toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Laboral</p>
-            <p className="text-lg font-bold">S/ {order.labor_cost.toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Indirecto</p>
-            <p className="text-lg font-bold">S/ {(order.overhead_cost ?? 0).toFixed(2)}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Costo Total Estimado</p>
-            <p className="text-lg font-bold text-primary">
-              S/ {order.estimated_total_cost.toFixed(2)}
-            </p>
-          </div>
         </GroupFormSection>
 
         {/* Razón de rechazo */}
@@ -444,9 +455,41 @@ export default function ProductionOrderDetailPage() {
           </GroupFormSection>
         )}
 
-        {/* Componentes */}
-        <GroupFormSection title="Componentes" icon={Package} cols={{ sm: 1 }}>
-          <DataTable columns={componentColumns} data={order.components || []} />
+        {/* Productos a producir (ítems) */}
+        <GroupFormSection title="Productos a Producir" icon={Package} cols={{ sm: 1 }}>
+          <DataTable columns={itemColumns} data={order.items} />
+        </GroupFormSection>
+
+        {/* Componentes por producto */}
+        <GroupFormSection title="Componentes por Producto" icon={Package} cols={{ sm: 1 }}>
+          <div className="space-y-4">
+            {order.items.map((item) => (
+              <div key={item.id} className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-2 bg-muted/40 border-b">
+                  <span className="text-sm font-semibold">{item.product.name}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-muted-foreground">
+                      Costo componentes: S/ {item.estimated_component_cost.toFixed(2)} · Laboral: S/{" "}
+                      {item.labor_cost.toFixed(2)} · Indirecto: S/ {item.overhead_cost.toFixed(2)} · Total: S/{" "}
+                      {item.estimated_total_cost.toFixed(2)}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7"
+                      onClick={() => handleViewHistory(item)}
+                    >
+                      <History className="h-3.5 w-3.5 mr-1.5" />
+                      Historial
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-3">
+                  <DataTable columns={componentColumns} data={item.components || []} />
+                </div>
+              </div>
+            ))}
+          </div>
         </GroupFormSection>
       </div>
 
@@ -493,16 +536,16 @@ export default function ProductionOrderDetailPage() {
             <Button
               variant="outline"
               onClick={() => setRejectDialogOpen(false)}
-              disabled={isActionLoading}
+              disabled={rejectOrder.isPending}
             >
               Cancelar
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
-              disabled={isActionLoading}
+              disabled={rejectOrder.isPending}
             >
-              {isActionLoading ? (
+              {rejectOrder.isPending ? (
                 <Loader className="h-4 w-4 animate-spin mr-2" />
               ) : (
                 <XCircle className="h-4 w-4 mr-2" />
@@ -512,6 +555,14 @@ export default function ProductionOrderDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Historial de Producción del Ítem */}
+      <ProductionOrderItemHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        itemId={historyItemId}
+        productName={historyProductName}
+      />
     </FormWrapper>
   );
 }

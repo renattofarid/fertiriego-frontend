@@ -41,6 +41,7 @@ export const PRODUCT: ModelComplete<ProductSchema> = {
     unit_id: "",
     product_type_id: "",
     is_igv: false,
+    weight: 0,
     observations: "",
     technical_sheet: [],
   },
@@ -63,6 +64,7 @@ export interface ProductResource {
   unit_name: string;
   observations?: string;
   is_igv: number;
+  weight: number | null;
   technical_sheet?: string[];
   product_images: string[];
   components: Component[];

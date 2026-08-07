@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { FormInput } from "@/components/FormInput";
 import {
   productSchemaCreate,
   productSchemaUpdate,
@@ -197,6 +198,7 @@ export const ProductForm = ({
                 mapOptionFn={(productType: ProductTypeResource) => ({
                   value: productType.id.toString(),
                   label: productType.name,
+                  description: productType.code,
                 })}
               />
             </div>
@@ -256,6 +258,15 @@ export const ProductForm = ({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
+
+          <FormInput
+            control={form.control}
+            name="weight"
+            label="Peso"
+            placeholder="Ingrese el peso"
+            type="number"
+            step="0.001"
+          />
 
           <FormSwitch
             control={form.control}

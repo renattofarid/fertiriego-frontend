@@ -86,8 +86,6 @@ interface ProductionOrderFormProps {
   isSubmitting?: boolean;
   initialValues?: ProductionOrderFormValues;
   warehouses: WarehouseResource[];
-  /** El GET por id todavía no expone items[] por separado: en edición solo se puede reconstruir 1 ítem */
-  editSingleItemWarning?: boolean;
 }
 
 const CURRENCY_OPTIONS = [
@@ -318,7 +316,6 @@ export function ProductionOrderForm({
   isSubmitting = false,
   initialValues,
   warehouses,
-  editSingleItemWarning = false,
 }: ProductionOrderFormProps) {
   const { ROUTE, MODEL, ICON } = PRODUCTION_ORDER;
   const navigate = useNavigate();
@@ -513,23 +510,15 @@ export function ProductionOrderForm({
         />
       </div>
 
-      {editSingleItemWarning && (
-        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Esta orden fue creada con un solo producto o el backend aún no expone
-          el detalle por múltiples ítems al editar. Si la orden tiene más de un
-          producto, edítala con cuidado: solo se muestra el primero.
-        </div>
-      )}
-
       <Form {...form}>
         <form onSubmit={handleFormSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+          <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 items-start">
             {/* Información General */}
-            <div className="lg:col-span-1 lg:sticky lg:top-4">
+            <div className="lg:col-span-1 lg:sticky lg:top-4 gap-6">
               <GroupFormSection
                 icon={ClipboardList}
                 title="Información General"
-                cols={{ sm: 1 }}
+                cols={{ sm: 1, md: 2, xl: 1 }}
               >
                 <FormSelect
                   control={form.control}
@@ -794,7 +783,9 @@ export function ProductionOrderForm({
                                   <TableHead className="w-28 border-r">
                                     Costo Unit.
                                   </TableHead>
-                                  <TableHead className="border-r">Notas</TableHead>
+                                  <TableHead className="border-r">
+                                    Notas
+                                  </TableHead>
                                   <TableHead className="w-10" />
                                 </TableRow>
                               </TableHeader>
@@ -808,7 +799,9 @@ export function ProductionOrderForm({
                                         componentIndex={componentIndex}
                                         component={component}
                                         otherComponentIds={item.components
-                                          .filter((_, ci) => ci !== componentIndex)
+                                          .filter(
+                                            (_, ci) => ci !== componentIndex,
+                                          )
                                           .map((c) => c.component_id)
                                           .filter(Boolean)}
                                         onChange={updateComponentRow}

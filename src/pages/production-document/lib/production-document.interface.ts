@@ -141,6 +141,37 @@ export interface CreateProductionDocumentRequest {
   components: CreateProductionDocumentComponentRequest[];
 }
 
+// ===== CREATE BATCH (varios documentos desde una orden de producción) =====
+// ✅ Endpoint confirmado por backend: POST /productiondocument/batch. Genera
+// un documento de producción independiente por cada ítem enviado, todos
+// compartiendo almacén origen/destino y fecha de producción. Cada ítem se
+// referencia por "production_order_item_id" (el id del ítem de la orden, NO
+// el product_id), que es lo que permite al backend descontar el pendiente de
+// ese ítem puntual aunque la orden tenga varios productos.
+export interface CreateProductionDocumentBatchItemRequest {
+  production_order_item_id: number;
+  quantity_produced: number;
+  responsible_id?: number | null;
+  labor_cost?: number | null;
+  overhead_cost?: number | null;
+  observations?: string | null;
+  // ⚠️ Opcional: solo se envía si se quiere sobrescribir el BOM del ítem.
+  // Si se omite, el backend usa los componentes ya definidos en la orden.
+  components?: CreateProductionDocumentComponentRequest[] | null;
+}
+
+export interface CreateProductionDocumentBatchRequest {
+  warehouse_origin_id: number;
+  warehouse_dest_id: number;
+  production_date?: string | null;
+  items: CreateProductionDocumentBatchItemRequest[];
+}
+
+export interface ProductionDocumentBatchResponse {
+  message?: string;
+  data: ProductionDocumentResource[];
+}
+
 export interface UpdateProductionDocumentRequest {
   warehouse_origin_id?: number;
   warehouse_dest_id?: number;
@@ -176,6 +207,7 @@ export interface GetProductionDocumentsParams {
 // ===== CONSTANTS =====
 
 export const PRODUCTION_DOCUMENT_ENDPOINT = "/productiondocument";
+export const PRODUCTION_DOCUMENT_BATCH_ENDPOINT = "/productiondocument/batch";
 export const PRODUCTION_DOCUMENT_QUERY_KEY = "production-documents";
 
 // ===== ROUTES =====

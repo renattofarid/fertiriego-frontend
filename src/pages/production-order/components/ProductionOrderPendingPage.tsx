@@ -52,6 +52,16 @@ export default function ProductionOrderPendingPage() {
         ),
       },
       {
+        accessorKey: "warehouse",
+        header: "Almacén",
+        cell: ({ row }) => <span>{row.original.warehouse}</span>,
+      },
+      {
+        accessorKey: "responsible",
+        header: "Responsable",
+        cell: ({ row }) => <span>{row.original.responsible}</span>,
+      },
+      {
         accessorKey: "status",
         header: "Estado",
         cell: ({ row }) => <span>{row.original.status}</span>,
