@@ -23,6 +23,9 @@ import {
 } from "../lib/guide.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useQueryClient } from "@tanstack/react-query";
+import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 const { MODEL, ICON } = GUIDE;
 
 export default function GuidePage() {
@@ -42,6 +45,15 @@ export default function GuidePage() {
     per_page,
   });
   const { removeGuide, changeStatus } = useGuideStore();
+  const queryClient = useQueryClient();
+
+  // Anular una guía (o eliminarla) puede devolver stock en el backend;
+  // invalidamos las queries de stock para que cualquier formulario ya
+  // montado (ej. crear venta) refleje el stock actualizado de inmediato.
+  const invalidateStockQueries = () => {
+    queryClient.invalidateQueries({ queryKey: [WAREHOUSE_PRODUCT.QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
+  };
 
   useEffect(() => {
     setOpen(true);
@@ -57,6 +69,7 @@ export default function GuidePage() {
     try {
       await removeGuide(deleteId);
       await refetch();
+      invalidateStockQueries();
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       errorToast(error.response?.data?.message, ERROR_MESSAGE(MODEL, "delete"));
@@ -89,6 +102,7 @@ export default function GuidePage() {
     try {
       await changeStatus(statusChangeData.id, newStatus);
       await refetch();
+      invalidateStockQueries();
       successToast("Guía anulada correctamente");
     } catch (error: any) {
       errorToast(
