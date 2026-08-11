@@ -161,7 +161,7 @@
           fullPrecisionUnitValue.current = igvPrice > 0 ? igvPrice / taxMultiplier : null;
 
           form.reset({
-            product_id: editingDetail.product_id,
+            product_id: String(editingDetail.product_id),
             price_category_id: "",
             is_igv: hasIgv && editingDetail.is_igv,
             convert_currency: false,
@@ -328,12 +328,12 @@
                   setSelectedProduct(item ?? null);
                 }}
                 preloadItemId={
-                  editingDetail ? editingDetail.product_id : undefined
+                  editingDetail ? String(editingDetail.product_id) : undefined
                 }
                 defaultOption={
                   editingDetail
                     ? {
-                        value: editingDetail.product_id,
+                        value: String(editingDetail.product_id),
                         label: editingDetail.product_name,
                       }
                     : undefined
