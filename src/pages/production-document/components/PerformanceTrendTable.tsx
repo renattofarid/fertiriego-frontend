@@ -22,10 +22,6 @@ const columns: ColumnDef<PerformanceTrend>[] = [
     header: "Producido",
   },
   {
-    accessorKey: "total_waste_qty",
-    header: "Merma",
-  },
-  {
     accessorKey: "efficiency_rate",
     header: "Eficiencia",
     cell: ({ getValue }) => formatPct(getValue() as number),

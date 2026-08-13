@@ -149,15 +149,15 @@ const componentColumns: ColumnDef<ProductionOrderComponentResource>[] = [
     header: "Costo Unitario",
     cell: ({ row }) => <span>S/ {row.original.unit_cost.toFixed(2)}</span>,
   },
-  {
-    accessorKey: "waste_percentage",
-    header: "Merma",
-    cell: ({ row }) => (
-      <span>
-        {row.original.waste_quantity ?? 0} ({row.original.waste_percentage ?? 0}%)
-      </span>
-    ),
-  },
+  // {
+  //   accessorKey: "waste_percentage",
+  //   header: "Merma",
+  //   cell: ({ row }) => (
+  //     <span>
+  //       {row.original.waste_quantity ?? 0} ({row.original.waste_percentage ?? 0}%)
+  //     </span>
+  //   ),
+  // },
   {
     accessorKey: "total_cost",
     header: "Costo Total",
