@@ -21,8 +21,8 @@ function ComponentsSubTable({ components }: { components: PerformanceDocumentCom
               <th className="text-left pb-1 font-medium">Componente</th>
               <th className="text-right pb-1 font-medium">Requerido</th>
               <th className="text-right pb-1 font-medium">Usado</th>
-              <th className="text-right pb-1 font-medium">Merma</th>
-              <th className="text-right pb-1 font-medium">% Merma</th>
+              {/* <th className="text-right pb-1 font-medium">Merma</th>
+              <th className="text-right pb-1 font-medium">% Merma</th> */}
               <th className="text-right pb-1 font-medium">Unidad</th>
               <th className="text-right pb-1 font-medium">Costo unit.</th>
               <th className="text-right pb-1 font-medium">Costo total</th>
@@ -34,8 +34,8 @@ function ComponentsSubTable({ components }: { components: PerformanceDocumentCom
                 <td className="py-1">{comp.component_name}</td>
                 <td className="py-1 text-right">{comp.quantity_required}</td>
                 <td className="py-1 text-right">{comp.quantity_used}</td>
-                <td className="py-1 text-right">{comp.waste_quantity}</td>
-                <td className="py-1 text-right">{formatPct(comp.waste_percentage)}</td>
+                {/* <td className="py-1 text-right">{comp.waste_quantity}</td>
+                <td className="py-1 text-right">{formatPct(comp.waste_percentage)}</td> */}
                 <td className="py-1 text-right">{comp.unit}</td>
                 <td className="py-1 text-right">S/ {formatCurrency(comp.unit_cost)}</td>
                 <td className="py-1 text-right font-medium">S/ {formatCurrency(comp.total_cost)}</td>
@@ -75,7 +75,7 @@ function DocumentRow({ doc }: { doc: PerformanceDocumentDetail }) {
           {doc.quantity_produced} {doc.product.unit}
         </td>
         <td className="py-2 px-3 text-sm text-right">{doc.total_used_qty}</td>
-        <td className="py-2 px-3 text-sm text-right">{doc.total_waste_qty}</td>
+        {/* <td className="py-2 px-3 text-sm text-right">{doc.total_waste_qty}</td> */}
         <td className="py-2 px-3 text-sm text-right">
           <Badge
             variant={doc.efficiency_rate >= 90 ? "default" : "secondary"}
@@ -139,7 +139,7 @@ export function PerformanceDocumentDetailsTable({ data }: PerformanceDocumentDet
                 <th className="text-left py-2 px-3 font-medium">Producto</th>
                 <th className="text-right py-2 px-3 font-medium">Producido</th>
                 <th className="text-right py-2 px-3 font-medium">Usado</th>
-                <th className="text-right py-2 px-3 font-medium">Merma</th>
+                {/* <th className="text-right py-2 px-3 font-medium">Merma</th> */}
                 <th className="text-right py-2 px-3 font-medium">Eficiencia</th>
                 <th className="text-right py-2 px-3 font-medium">Costo Total</th>
                 <th className="text-right py-2 px-3 font-medium">C. Unit.</th>

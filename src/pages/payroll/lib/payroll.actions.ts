@@ -11,6 +11,8 @@ import {
   type CalculatePayslipResponse,
   type SendPayslipsRequest,
   type SendPayslipsResponse,
+  type GetPayslipsProps,
+  type PayslipResponse,
 } from "./payroll.interface";
 
 const { ENDPOINT } = PAYROLL;
@@ -26,6 +28,23 @@ export async function getPayrolls({
     },
   };
   const { data } = await api.get<PayrollResponse>(ENDPOINT, config);
+  return data;
+}
+
+export async function getPayslips({
+  payrollId,
+  params,
+}: GetPayslipsProps): Promise<PayslipResponse> {
+  const config: AxiosRequestConfig = {
+    params: {
+      per_page: DEFAULT_PER_PAGE,
+      ...params,
+    },
+  };
+  const { data } = await api.get<PayslipResponse>(
+    `/payroll/${payrollId}/payslips`,
+    config,
+  );
   return data;
 }
 

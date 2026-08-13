@@ -69,7 +69,7 @@ export default function PayslipCalculateModal({
   const form = useForm<PayslipFormValues>({
     resolver: zodResolver(payslipFormSchema) as any,
     defaultValues: {
-      person_id: presetPerson?.id,
+      person_id: presetPerson ? (String(presetPerson.id) as any) : undefined,
       extra_incomes: [],
       extra_deductions: [],
     },
@@ -88,7 +88,7 @@ export default function PayslipCalculateModal({
   useEffect(() => {
     if (open) {
       form.reset({
-        person_id: presetPerson?.id,
+        person_id: presetPerson ? (String(presetPerson.id) as any) : undefined,
         extra_incomes: [],
         extra_deductions: [],
       });
@@ -137,27 +137,34 @@ export default function PayslipCalculateModal({
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
-          <FormSelectAsync
-            control={form.control}
-            name="person_id"
-            label="Trabajador"
-            placeholder="Seleccione un trabajador"
-            required
-            useQueryHook={useWorkers}
-            mapOptionFn={(person: PersonResource) => ({
-              value: person.id.toString(),
-              label: getPersonDisplayName(person),
-              description: person.number_document,
-            })}
-            defaultOption={
-              presetPerson
-                ? {
-                    value: presetPerson.id.toString(),
-                    label: presetPerson.label,
-                  }
-                : undefined
-            }
-          />
+          {presetPerson ? (
+            <FormField
+              control={form.control}
+              name="person_id"
+              render={() => (
+                <FormItem>
+                  <FormLabel>Trabajador</FormLabel>
+                  <div className="flex h-9 items-center rounded-md border bg-muted px-3 text-sm font-medium">
+                    {presetPerson.label}
+                  </div>
+                </FormItem>
+              )}
+            />
+          ) : (
+            <FormSelectAsync
+              control={form.control}
+              name="person_id"
+              label="Trabajador"
+              placeholder="Seleccione un trabajador"
+              required
+              useQueryHook={useWorkers}
+              mapOptionFn={(person: PersonResource) => ({
+                value: person.id.toString(),
+                label: getPersonDisplayName(person),
+                description: person.number_document,
+              })}
+            />
+          )}
 
           <Separator />
 

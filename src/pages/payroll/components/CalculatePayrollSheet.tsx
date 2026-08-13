@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Form } from "@/components/ui/form";
+import { FormSelect } from "@/components/FormSelect";
 import { Trash2, UserPlus } from "lucide-react";
 import WorkerOverrideModal from "./WorkerOverrideModal";
 import { calculateMonthlyPayroll } from "../lib/payroll.actions";
 import type { WorkerOverrideInput } from "../lib/payroll.interface";
 import { errorToast, successToast } from "@/lib/core.function";
+import type { Option } from "@/lib/core.interface";
 
 const MONTHS = [
   "Enero",
@@ -28,6 +32,11 @@ const MONTHS = [
   "Diciembre",
 ];
 
+const MONTH_OPTIONS: Option[] = MONTHS.map((label, index) => ({
+  label,
+  value: String(index + 1),
+}));
+
 type OverrideRow = WorkerOverrideInput & { person_label: string };
 
 interface CalculatePayrollSheetProps {
@@ -43,14 +52,18 @@ export default function CalculatePayrollSheet({
 }: CalculatePayrollSheetProps) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
   const [openOverrideModal, setOpenOverrideModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const form = useForm<{ month: string }>({
+    defaultValues: { month: String(now.getMonth() + 1) },
+  });
+
   const handleClose = () => {
     setOverrides([]);
     setOpenOverrideModal(false);
+    form.reset({ month: String(now.getMonth() + 1) });
     onClose();
   };
 
@@ -59,7 +72,7 @@ export default function CalculatePayrollSheet({
     try {
       const response = await calculateMonthlyPayroll({
         year,
-        month,
+        month: Number(form.getValues("month")),
         worker_overrides: overrides.length
           ? overrides.map(({ person_label, ...rest }) => rest)
           : null,
@@ -110,20 +123,15 @@ export default function CalculatePayrollSheet({
                 onChange={(e) => setYear(Number(e.target.value))}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Mes</Label>
-              <select
-                className="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs"
-                value={month}
-                onChange={(e) => setMonth(Number(e.target.value))}
-              >
-                {MONTHS.map((label, index) => (
-                  <option key={label} value={index + 1}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Form {...form}>
+              <FormSelect
+                name="month"
+                label="Mes"
+                placeholder="Seleccione un mes"
+                options={MONTH_OPTIONS}
+                control={form.control}
+              />
+            </Form>
           </div>
 
           <Separator />

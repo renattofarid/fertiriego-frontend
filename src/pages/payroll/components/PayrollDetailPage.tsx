@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/lib/formatCurrency";
 import { errorToast, successToast } from "@/lib/core.function";
-import { usePayrolls } from "../lib/payroll.hook";
+import { usePayrolls, usePayslips } from "../lib/payroll.hook";
 import { downloadPayslipPdf, sendPayslips } from "../lib/payroll.actions";
 import type { PayrollResource, PayslipResource } from "../lib/payroll.interface";
 import { PAYROLL } from "../lib/payroll.interface";
@@ -52,7 +52,26 @@ export default function PayrollDetailPage() {
     payrollsData?.data.find((p) => p.id === payrollId) ??
     null;
 
-  const [payslips, setPayslips] = useState<PayslipResource[]>([]);
+  const {
+    data: payslipsData,
+    isLoading: isLoadingPayslips,
+    refetch: refetchPayslips,
+  } = usePayslips(payrollId, { per_page: 100 });
+
+  const [localPayslips, setLocalPayslips] = useState<PayslipResource[]>([]);
+  const payslips = useMemo(() => {
+    const merged = [...(payslipsData?.data ?? [])];
+    localPayslips.forEach((payslip) => {
+      const index = merged.findIndex((p) => p.person_id === payslip.person_id);
+      if (index >= 0) {
+        merged[index] = payslip;
+      } else {
+        merged.unshift(payslip);
+      }
+    });
+    return merged;
+  }, [payslipsData, localPayslips]);
+
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [openCalculate, setOpenCalculate] = useState(false);
   const [recalculatePerson, setRecalculatePerson] = useState<{
@@ -66,7 +85,7 @@ export default function PayrollDetailPage() {
   const [isSending, setIsSending] = useState(false);
 
   const upsertPayslip = (payslip: PayslipResource) => {
-    setPayslips((prev) => {
+    setLocalPayslips((prev) => {
       const exists = prev.some((p) => p.person_id === payslip.person_id);
       if (exists) {
         return prev.map((p) =>
@@ -75,6 +94,7 @@ export default function PayrollDetailPage() {
       }
       return [...prev, payslip];
     });
+    void refetchPayslips();
   };
 
   const toggleSelect = (personId: number) => {
@@ -112,6 +132,7 @@ export default function PayrollDetailPage() {
         });
       }
       setSelectedIds([]);
+      void refetchPayslips();
     } catch (error: any) {
       errorToast(
         error?.response?.data?.message ?? "Error al enviar las boletas",
@@ -196,13 +217,13 @@ export default function PayrollDetailPage() {
 
       <div>
         <p className="text-sm text-muted-foreground mb-2">
-          Las boletas calculadas en esta sesión se listan a continuación.
-          Seleccione trabajadores para enviarles su boleta o deje la
-          selección vacía para enviar a todos los calculados.
+          Boletas de esta planilla. Seleccione trabajadores para enviarles
+          su boleta o deje la selección vacía para enviar a todos.
         </p>
         <DataTable
           columns={columns}
           data={payslips}
+          isLoading={isLoadingPayslips}
           initialColumnVisibility={{}}
         />
       </div>

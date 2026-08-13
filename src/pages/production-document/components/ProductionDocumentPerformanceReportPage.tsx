@@ -158,7 +158,7 @@ export default function ProductionDocumentPerformanceReportPage() {
               icon={<Activity className="size-4" />}
               label="Eficiencia Global"
               value={formatPct(summary.global_efficiency_rate)}
-              subLabel={`Merma: ${formatPct(summary.global_waste_percentage)}`}
+              // subLabel={`Merma: ${formatPct(summary.global_waste_percentage)}`}
               color="violet"
             />
             <SummaryCard
