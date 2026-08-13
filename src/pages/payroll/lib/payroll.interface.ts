@@ -110,7 +110,7 @@ export interface PayslipResource {
   payroll_id: number;
   person_id: number;
   person_name: string;
-  pension_system: { id: number; name: string; type: string } | null;
+  pension_system: { id: number; name: string; type: string } | string | null;
   base_salary: string;
   other_incomes: string;
   gross_salary: string;
@@ -121,14 +121,25 @@ export interface PayslipResource {
   net_salary: string;
   status: string;
   sent_at: string | null;
-  income_lines: PayslipLine[];
-  deduction_lines: PayslipLine[];
+  income_lines?: PayslipLine[];
+  deduction_lines?: PayslipLine[];
   created_at: string;
 }
 
 export interface CalculatePayslipResponse {
   message: string;
   data: PayslipResource;
+}
+
+export interface GetPayslipsProps {
+  payrollId: number;
+  params?: Record<string, unknown>;
+}
+
+export interface PayslipResponse {
+  data: PayslipResource[];
+  links: Links;
+  meta: Meta;
 }
 
 export interface SendPayslipsRequest {

@@ -13,6 +13,13 @@ function money(value: string | number) {
   return formatCurrency(Number(value), { currencySymbol: "S/" });
 }
 
+function pensionSystemName(
+  pensionSystem: PayslipResource["pension_system"],
+) {
+  if (!pensionSystem) return "Sin asignar";
+  return typeof pensionSystem === "string" ? pensionSystem : pensionSystem.name;
+}
+
 interface PayslipViewProps {
   payslip: PayslipResource;
   periodLabel?: string;
@@ -59,7 +66,7 @@ export default function PayslipView({
             Ingresos
           </p>
           <div className="space-y-1.5">
-            {payslip.income_lines.map((line, index) => (
+            {(payslip.income_lines ?? []).map((line, index) => (
               <div
                 key={`${line.concept}-${index}`}
                 className="flex items-center justify-between text-sm"
@@ -75,6 +82,11 @@ export default function PayslipView({
                 <span className="font-medium">{money(line.amount)}</span>
               </div>
             ))}
+            {!payslip.income_lines && (
+              <p className="text-xs text-muted-foreground">
+                Detalle de ingresos no disponible.
+              </p>
+            )}
           </div>
           <Separator className="my-2" />
           <div className="flex items-center justify-between text-sm font-semibold">
@@ -88,7 +100,7 @@ export default function PayslipView({
             Descuentos
           </p>
           <div className="space-y-1.5">
-            {payslip.deduction_lines.map((line, index) => (
+            {(payslip.deduction_lines ?? []).map((line, index) => (
               <div
                 key={`${line.concept}-${index}`}
                 className="flex items-center justify-between text-sm"
@@ -99,8 +111,13 @@ export default function PayslipView({
                 </span>
               </div>
             ))}
-            {payslip.deduction_lines.length === 0 && (
+            {payslip.deduction_lines?.length === 0 && (
               <p className="text-xs text-muted-foreground">Sin descuentos</p>
+            )}
+            {!payslip.deduction_lines && (
+              <p className="text-xs text-muted-foreground">
+                Detalle de descuentos no disponible.
+              </p>
             )}
           </div>
           <Separator className="my-2" />
@@ -117,7 +134,7 @@ export default function PayslipView({
       <div className="px-6 py-4 bg-muted/40 border-t border-dashed space-y-1">
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Sistema de Pensión</span>
-          <span>{payslip.pension_system?.name ?? "Sin asignar"}</span>
+          <span>{pensionSystemName(payslip.pension_system)}</span>
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>Boleta N°</span>

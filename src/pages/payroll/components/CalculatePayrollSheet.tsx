@@ -1,17 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Form } from "@/components/ui/form";
+import { FormSelect } from "@/components/FormSelect";
 import { Trash2, UserPlus } from "lucide-react";
 import WorkerOverrideModal from "./WorkerOverrideModal";
 import { calculateMonthlyPayroll } from "../lib/payroll.actions";
 import type { WorkerOverrideInput } from "../lib/payroll.interface";
 import { errorToast, successToast } from "@/lib/core.function";
+import type { Option } from "@/lib/core.interface";
 
 const MONTHS = [
   "Enero",
@@ -112,17 +116,21 @@ export default function CalculatePayrollSheet({
             </div>
             <div className="space-y-1.5">
               <Label>Mes</Label>
-              <select
-                className="border-input flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs"
-                value={month}
-                onChange={(e) => setMonth(Number(e.target.value))}
+              <Select
+                value={String(month)}
+                onValueChange={(value) => setMonth(Number(value))}
               >
-                {MONTHS.map((label, index) => (
-                  <option key={label} value={index + 1}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Seleccione un mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTHS.map((label, index) => (
+                    <SelectItem key={label} value={String(index + 1)}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
