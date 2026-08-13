@@ -32,6 +32,11 @@ const MONTHS = [
   "Diciembre",
 ];
 
+const MONTH_OPTIONS: Option[] = MONTHS.map((label, index) => ({
+  label,
+  value: String(index + 1),
+}));
+
 type OverrideRow = WorkerOverrideInput & { person_label: string };
 
 interface CalculatePayrollSheetProps {
@@ -47,14 +52,18 @@ export default function CalculatePayrollSheet({
 }: CalculatePayrollSheetProps) {
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
-  const [month, setMonth] = useState(now.getMonth() + 1);
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
   const [openOverrideModal, setOpenOverrideModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const form = useForm<{ month: string }>({
+    defaultValues: { month: String(now.getMonth() + 1) },
+  });
+
   const handleClose = () => {
     setOverrides([]);
     setOpenOverrideModal(false);
+    form.reset({ month: String(now.getMonth() + 1) });
     onClose();
   };
 
@@ -63,7 +72,7 @@ export default function CalculatePayrollSheet({
     try {
       const response = await calculateMonthlyPayroll({
         year,
-        month,
+        month: Number(form.getValues("month")),
         worker_overrides: overrides.length
           ? overrides.map(({ person_label, ...rest }) => rest)
           : null,
@@ -114,24 +123,15 @@ export default function CalculatePayrollSheet({
                 onChange={(e) => setYear(Number(e.target.value))}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Mes</Label>
-              <Select
-                value={String(month)}
-                onValueChange={(value) => setMonth(Number(value))}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleccione un mes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MONTHS.map((label, index) => (
-                    <SelectItem key={label} value={String(index + 1)}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Form {...form}>
+              <FormSelect
+                name="month"
+                label="Mes"
+                placeholder="Seleccione un mes"
+                options={MONTH_OPTIONS}
+                control={form.control}
+              />
+            </Form>
           </div>
 
           <Separator />

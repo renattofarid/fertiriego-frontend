@@ -12,7 +12,7 @@ import {
 } from "./salary.interface";
 
 const { ENDPOINT } = SALARY;
-const PENSION_SYSTEM_ENDPOINT = "/hr/pension-systems";
+const PENSION_SYSTEM_ENDPOINT = "/payroll/hr/pension-systems";
 
 export async function getSalaries({
   params,
