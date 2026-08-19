@@ -109,7 +109,7 @@ export function GeneralModal({
               </div>
             )}
           </DialogHeader>
-          <div>{children}</div>
+          <div className="min-w-0">{children}</div>
         </DialogContent>
       </Dialog>
     ) : (

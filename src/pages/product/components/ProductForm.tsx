@@ -34,14 +34,9 @@ import { successToast, errorToast } from "@/lib/core.function";
 import type { ProductTypeResource } from "@/pages/product-type/lib/product-type.interface";
 import UnitModal from "@/pages/unit/components/UnitModal";
 import ProductTypeModal from "@/pages/product-type/components/ProductTypeModal";
-import CategoryModal from "@/pages/category/components/CategoryModal";
-import BrandModal from "@/pages/brand/components/BrandModal";
 import { useUnit } from "@/pages/unit/lib/unit.hook";
 import { useProductType } from "@/pages/product-type/lib/product-type.hook";
-import {
-  useCategory,
-  useAllCategories,
-} from "@/pages/category/lib/category.hook";
+import { useCategory } from "@/pages/category/lib/category.hook";
 import { useBrand } from "@/pages/brand/lib/brand.hook";
 import { FormSelectAsync } from "@/components/FormSelectAsync";
 
@@ -72,16 +67,11 @@ export const ProductForm = ({
   const { deleteTechnicalSheet } = useProductStore();
 
   // Modal states
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isProductTypeModalOpen, setIsProductTypeModalOpen] = useState(false);
-  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
   const [isUnitModalOpen, setIsUnitModalOpen] = useState(false);
 
   // Refetch hooks
-  const { refetch: refetchCategories } = useCategory();
-  const { refetch: refetchAllCategories } = useAllCategories();
   const { refetch: refetchProductTypes } = useProductType();
-  const { refetch: refetchBrands } = useBrand();
   const { refetch: refetchUnits } = useUnit();
 
   const form = useForm({
@@ -134,6 +124,27 @@ export const ProductForm = ({
     fileInputRef.current?.click();
   };
 
+  // Opciones precargadas para mostrar el valor actual al editar,
+  // sin depender de que el item exista en la primera página del listado.
+  const categoryDefaultOption =
+    product?.category_id
+      ? {
+          value: product.category_id.toString(),
+          label: product.category_name,
+        }
+      : undefined;
+  const brandDefaultOption =
+    product?.brand_id
+      ? { value: product.brand_id.toString(), label: product.brand_name }
+      : undefined;
+  const productTypeDefaultOption =
+    product?.product_type_id
+      ? {
+          value: product.product_type_id.toString(),
+          label: product.product_type_name,
+        }
+      : undefined;
+
   return (
     <Form {...form}>
       <form
@@ -162,30 +173,20 @@ export const ProductForm = ({
             />
           </div>
 
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 truncate">
-              <FormSelectAsync
-                control={form.control}
-                name="category_id"
-                label="Categoría"
-                placeholder="Seleccione una categoría"
-                useQueryHook={useCategory}
-                mapOptionFn={(category: CategoryResource) => ({
-                  value: category.id.toString(),
-                  label: category.name,
-                  description: category.code,
-                })}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setIsCategoryModalOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          <FormSelectAsync
+            control={form.control}
+            name="category_id"
+            label="Categoría"
+            placeholder="Seleccione una categoría"
+            required
+            useQueryHook={useCategory}
+            mapOptionFn={(category: CategoryResource) => ({
+              value: category.id.toString(),
+              label: category.name,
+              description: category.code,
+            })}
+            defaultOption={categoryDefaultOption}
+          />
 
           <div className="flex gap-2 items-end">
             <div className="flex-1 truncate">
@@ -194,12 +195,14 @@ export const ProductForm = ({
                 name="product_type_id"
                 label="Tipo de Producto"
                 placeholder="Seleccione el tipo"
+                required
                 useQueryHook={useProductType}
                 mapOptionFn={(productType: ProductTypeResource) => ({
                   value: productType.id.toString(),
                   label: productType.name,
                   description: productType.code,
                 })}
+                defaultOption={productTypeDefaultOption}
               />
             </div>
             <Button
@@ -212,29 +215,19 @@ export const ProductForm = ({
             </Button>
           </div>
 
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 truncate">
-              <FormSelectAsync
-                control={form.control}
-                name="brand_id"
-                label="Marca"
-                placeholder="Seleccione una marca"
-                useQueryHook={useBrand}
-                mapOptionFn={(brand: BrandResource) => ({
-                  value: brand.id.toString(),
-                  label: brand.name,
-                })}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={() => setIsBrandModalOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
+          <FormSelectAsync
+            control={form.control}
+            name="brand_id"
+            label="Marca"
+            placeholder="Seleccione una marca"
+            required
+            useQueryHook={useBrand}
+            mapOptionFn={(brand: BrandResource) => ({
+              value: brand.id.toString(),
+              label: brand.name,
+            })}
+            defaultOption={brandDefaultOption}
+          />
 
           <div className="flex gap-2 items-end">
             <div className="flex-1 truncate">
@@ -404,19 +397,6 @@ export const ProductForm = ({
       </form>
 
       {/* CRUD Modals */}
-      {isCategoryModalOpen && (
-        <CategoryModal
-          open={isCategoryModalOpen}
-          onClose={() => {
-            setIsCategoryModalOpen(false);
-            refetchCategories();
-            refetchAllCategories();
-          }}
-          title="Nueva Categoría"
-          mode="create"
-        />
-      )}
-
       {isProductTypeModalOpen && (
         <ProductTypeModal
           open={isProductTypeModalOpen}
@@ -425,18 +405,6 @@ export const ProductForm = ({
             refetchProductTypes();
           }}
           title="Nuevo Tipo de Producto"
-          mode="create"
-        />
-      )}
-
-      {isBrandModalOpen && (
-        <BrandModal
-          open={isBrandModalOpen}
-          onClose={() => {
-            setIsBrandModalOpen(false);
-            refetchBrands();
-          }}
-          title="Nueva Marca"
           mode="create"
         />
       )}

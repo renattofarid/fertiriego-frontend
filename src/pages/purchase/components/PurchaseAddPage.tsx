@@ -38,6 +38,7 @@ export const PurchaseAddPage = () => {
     observations: "",
     details: [],
     installments: [],
+    purchase_cost: [],
   });
 
   useEffect(() => {

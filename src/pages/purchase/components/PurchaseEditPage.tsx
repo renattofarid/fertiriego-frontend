@@ -67,6 +67,7 @@ export const PurchaseEditPage = () => {
     observations: data.observations ?? "",
     details: [],
     installments: [],
+    purchase_cost: [],
   });
 
   const handleSubmit = async (data: Partial<PurchaseSchema>) => {

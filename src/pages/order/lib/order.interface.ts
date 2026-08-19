@@ -132,28 +132,46 @@ export interface ShippingProgress {
   is_fully_shipped: boolean;
 }
 
+export interface OrderPendingReportEntry {
+  order: {
+    id: number;
+    order_number: string;
+    order_date: string;
+    status: string;
+    customer: {
+      id: number;
+      name: string;
+      document_number: string;
+    };
+    warehouse: {
+      id: number;
+      name: string;
+    };
+  };
+  pending_details: PendingDetailResource[];
+  shipping_progress: ShippingProgress;
+  has_pending_items: boolean;
+}
+
 export interface PendingDetailsResponse {
   message: string;
-  data: {
-    order: {
-      id: number;
-      order_number: string;
-      order_date: string;
-      status: string;
-      customer: {
-        id: number;
-        name: string;
-        document_number: string;
-      };
-      warehouse: {
-        id: number;
-        name: string;
-      };
-    };
-    pending_details: PendingDetailResource[];
-    shipping_progress: ShippingProgress;
-    has_pending_items: boolean;
-  };
+  data: OrderPendingReportEntry;
+}
+
+// ===== REPORTE DE ENTREGAS PENDIENTES (rango de fechas) =====
+// GET /order/all-pending-details?startDate=&endDate=
+// Devuelve los pedidos con productos pendientes de entrega en el rango.
+// Se asume la misma forma que el detalle por pedido (PendingDetailsResponse),
+// pero como lista; ajustar si el backend responde distinto.
+
+export interface AllPendingOrderDetailsParams {
+  startDate: string;
+  endDate: string;
+}
+
+export interface AllPendingOrderDetailsResponse {
+  message: string;
+  data: OrderPendingReportEntry[];
 }
 
 // ===== API RESPONSES =====
@@ -212,6 +230,7 @@ export interface UpdateOrderRequest {
 export const ORDER_ENDPOINT = "/order";
 export const ORDER_QUERY_KEY = "orders";
 export const ORDER_DETAIL_QUERY_KEY = "order-details";
+export const ALL_PENDING_DETAILS_ENDPOINT = "/order/all-pending-details";
 
 // ===== ROUTES =====
 
@@ -219,6 +238,7 @@ export const OrderRoute = "/pedidos";
 export const OrderAddRoute = "/pedidos/agregar";
 export const OrderEditRoute = "/pedidos/actualizar/:id";
 export const OrderDetailRoute = "/pedidos/:id";
+export const OrderPendingReportRoute = "/pedidos/reporte-entregas-pendientes";
 
 // ===== STATUS & TYPE OPTIONS =====
 

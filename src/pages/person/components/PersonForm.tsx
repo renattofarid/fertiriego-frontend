@@ -18,6 +18,7 @@ import {
   UserPlus,
   User,
   Building2,
+  Globe,
   Mail,
   MapPin,
   Briefcase,
@@ -69,7 +70,8 @@ export const PersonForm = ({
     defaultValues: {
       type_document: (initialData?.type_document as "DNI" | "RUC") || "DNI",
       type_person:
-        (initialData?.type_person as "NATURAL" | "JURIDICA") || "NATURAL",
+        (initialData?.type_person as "NATURAL" | "JURIDICA" | "EXTRANJERO") ||
+        "NATURAL",
       number_document: initialData?.number_document || "",
       names: initialData?.names || "",
       gender: (initialData?.gender as "M" | "F" | "O") || "M",
@@ -112,6 +114,14 @@ export const PersonForm = ({
       form.setValue("mother_surname", "");
       form.setValue("birth_date", "");
       setFieldsFromSearch((prev) => ({ ...prev, names: false, father_surname: false, mother_surname: false }));
+    } else if (type_person === "EXTRANJERO") {
+      // Proveedor/persona extranjera: documento libre (no DNI ni RUC) y es una
+      // persona (no una empresa), así que se completan nombres/apellidos y se
+      // limpian los datos de empresa.
+      form.setValue("type_document", "PASAPORTE", { shouldValidate: true });
+      form.setValue("business_name", "");
+      form.setValue("commercial_name", "");
+      setFieldsFromSearch((prev) => ({ ...prev, business_name: false }));
     } else if (type_person === "NATURAL") {
       form.setValue("business_name", "");
       form.setValue("commercial_name", "");
@@ -239,9 +249,17 @@ export const PersonForm = ({
           title={
             type_person === "NATURAL"
               ? "Información Personal"
-              : "Información de la Empresa"
+              : type_person === "EXTRANJERO"
+                ? "Información Personal (Extranjero)"
+                : "Información de la Empresa"
           }
-          icon={type_person === "NATURAL" ? User : Building2}
+          icon={
+            type_person === "NATURAL"
+              ? User
+              : type_person === "EXTRANJERO"
+                ? Globe
+                : Building2
+          }
           cols={{ sm: 1, md: 3 }}
         >
           <FormSelect
@@ -255,6 +273,7 @@ export const PersonForm = ({
                 : [
                     { value: "NATURAL", label: "Natural" },
                     { value: "JURIDICA", label: "Jurídica" },
+                    { value: "EXTRANJERO", label: "Extranjero" },
                   ]
             }
           />
@@ -269,12 +288,17 @@ export const PersonForm = ({
                 ? [{ value: "DNI", label: "DNI" }] // Workers can only use DNI
                 : type_person === "JURIDICA"
                   ? [{ value: "RUC", label: "RUC" }]
-                  : [
-                      { value: "DNI", label: "DNI" },
-                      { value: "RUC", label: "RUC" },
-                      { value: "CE", label: "CE" },
-                      { value: "PASAPORTE", label: "PASAPORTE" },
-                    ]
+                  : type_person === "EXTRANJERO"
+                    ? [
+                        { value: "CE", label: "CE" },
+                        { value: "PASAPORTE", label: "PASAPORTE" },
+                      ]
+                    : [
+                        { value: "DNI", label: "DNI" },
+                        { value: "RUC", label: "RUC" },
+                        { value: "CE", label: "CE" },
+                        { value: "PASAPORTE", label: "PASAPORTE" },
+                      ]
             }
           />
 
@@ -292,15 +316,17 @@ export const PersonForm = ({
                   <div className="relative">
                     <Input
                       placeholder={
-                        type_document === "DNI"
-                          ? "Ingrese 8 dígitos"
-                          : type_document === "RUC"
-                            ? "Ingrese 11 dígitos"
-                            : type_document === "CE"
-                              ? "Ingrese 8-9 dígitos"
-                              : type_document === "PASAPORTE"
-                                ? "Ingrese 8-11 caracteres"
-                                : "Ingrese el número"
+                        type_person === "EXTRANJERO"
+                          ? "Ingrese el número de documento"
+                          : type_document === "DNI"
+                            ? "Ingrese 8 dígitos"
+                            : type_document === "RUC"
+                              ? "Ingrese 11 dígitos"
+                              : type_document === "CE"
+                                ? "Ingrese 8-9 dígitos"
+                                : type_document === "PASAPORTE"
+                                  ? "Ingrese 8-11 caracteres"
+                                  : "Ingrese el número"
                       }
                       {...field}
                       className={`
@@ -321,15 +347,17 @@ export const PersonForm = ({
                         }
                       `}
                       maxLength={
-                        type_document === "DNI"
-                          ? 8
-                          : type_document === "RUC"
-                            ? 11
-                            : type_document === "CE"
-                              ? 9
-                              : type_document === "PASAPORTE"
-                                ? 11
-                                : 11
+                        type_person === "EXTRANJERO"
+                          ? 20
+                          : type_document === "DNI"
+                            ? 8
+                            : type_document === "RUC"
+                              ? 11
+                              : type_document === "CE"
+                                ? 9
+                                : type_document === "PASAPORTE"
+                                  ? 11
+                                  : 11
                       }
                       onKeyDown={(e) => {
                         if (
@@ -342,12 +370,15 @@ export const PersonForm = ({
                       }}
                       onChange={(e) => {
                         let value;
-                        // For DNI, RUC, CE only allow numbers
-                        if (
+                        if (type_person === "EXTRANJERO") {
+                          // Número de documento libre: no es RUC ni DNI
+                          value = e.target.value;
+                        } else if (
                           type_document === "DNI" ||
                           type_document === "RUC" ||
                           type_document === "CE"
                         ) {
+                          // For DNI, RUC, CE only allow numbers
                           value = e.target.value.replace(/\D/g, "");
                         } else {
                           // For PASAPORTE allow alphanumeric
@@ -385,7 +416,10 @@ export const PersonForm = ({
                 <FormMessage />
                 {/* Fixed height container for feedback messages */}
                 <div className="h-4 text-xs">
-                  {field.value && !errors.number_document && (
+                  {field.value && !errors.number_document && type_person === "EXTRANJERO" && (
+                    <p className="text-primary">✓ Documento válido</p>
+                  )}
+                  {field.value && !errors.number_document && type_person !== "EXTRANJERO" && (
                     <>
                       {type_document === "DNI" && field.value.length === 8 && (
                         <p className="text-primary">✓ DNI válido (8 dígitos)</p>
@@ -435,8 +469,8 @@ export const PersonForm = ({
             )}
           />
 
-          {/* Personal Information - Natural Person */}
-          {type_person === "NATURAL" && (
+          {/* Personal Information - Natural Person or Foreign Person */}
+          {(type_person === "NATURAL" || type_person === "EXTRANJERO") && (
             <>
               <FormField
                 control={form.control}
@@ -487,10 +521,21 @@ export const PersonForm = ({
                 name="father_surname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Apellido Paterno</FormLabel>
+                    <FormLabel
+                      className={errors.father_surname ? "text-destructive" : ""}
+                    >
+                      {type_person === "EXTRANJERO"
+                        ? "Apellido"
+                        : "Apellido Paterno"}{" "}
+                      {errors.father_surname && "*"}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Ingrese apellido paterno"
+                        placeholder={
+                          type_person === "EXTRANJERO"
+                            ? "Ingrese el apellido"
+                            : "Ingrese apellido paterno"
+                        }
                         {...field}
                         className={
                           fieldsFromSearch.father_surname ? "bg-blue-50" : ""
@@ -509,10 +554,23 @@ export const PersonForm = ({
                 name="mother_surname"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Apellido Materno</FormLabel>
+                    <FormLabel>
+                      {type_person === "EXTRANJERO"
+                        ? "Segundo Apellido"
+                        : "Apellido Materno"}{" "}
+                      {type_person === "EXTRANJERO" && (
+                        <span className="text-muted-foreground font-normal">
+                          (opcional)
+                        </span>
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Ingrese apellido materno"
+                        placeholder={
+                          type_person === "EXTRANJERO"
+                            ? "Ingrese el segundo apellido (opcional)"
+                            : "Ingrese apellido materno"
+                        }
                         {...field}
                         className={
                           fieldsFromSearch.mother_surname ? "bg-blue-50" : ""

@@ -19,6 +19,6 @@ export const productSchemaCreate = z.object({
   technical_sheet: z.array(z.instanceof(File)).optional().default([]),
 });
 
-export const productSchemaUpdate = productSchemaCreate.partial();
+export const productSchemaUpdate = productSchemaCreate;
 
 export type ProductSchema = z.infer<typeof productSchemaCreate>;

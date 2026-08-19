@@ -46,7 +46,13 @@ import {
 import { errorToast } from "@/lib/core.function";
 import { format, addMonths } from "date-fns";
 import { GroupFormSection } from "@/components/GroupFormSection";
-import { FileText, Package, CalendarDays, ShoppingCart } from "lucide-react";
+import {
+  FileText,
+  Package,
+  CalendarDays,
+  ShoppingCart,
+  Receipt,
+} from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { FormSwitch } from "@/components/FormSwitch";
 import { FormInput } from "@/components/FormInput";
@@ -91,6 +97,14 @@ interface DetailRow {
 interface InstallmentRow {
   due_days: string;
   amount: string;
+}
+
+interface CostRow {
+  // Presente solo para costos ya guardados (modo edición); ausente para
+  // los costos nuevos que aún no se han enviado al backend.
+  id?: number;
+  description: string;
+  total: string;
 }
 
 export const PurchaseForm = ({
@@ -150,6 +164,18 @@ export const PurchaseForm = ({
     amount: "",
   });
 
+  // Estados para costos adicionales (flete, seguro, aduana, etc.) que el
+  // backend prorratea entre los ítems del detalle. Funciona igual en modo
+  // crear y editar, ya que viaja dentro del mismo payload de la compra.
+  const [costs, setCosts] = useState<CostRow[]>([]);
+  const [editingCostIndex, setEditingCostIndex] = useState<number | null>(
+    null,
+  );
+  const [currentCost, setCurrentCost] = useState<CostRow>({
+    description: "",
+    total: "",
+  });
+
   const form = useForm({
     resolver: zodResolver(
       mode === "create" ? purchaseSchemaCreate : purchaseSchemaUpdate,
@@ -159,9 +185,25 @@ export const PurchaseForm = ({
       user_id: currentUserId.toString(),
       details: details.length > 0 ? details : [],
       installments: installments.length > 0 ? installments : [],
+      purchase_cost: costs.length > 0 ? costs : [],
     },
     mode: "onChange",
   });
+
+  // En modo edición, precargar los costos adicionales ya guardados en la
+  // compra (llegan con su `id` real del backend).
+  useEffect(() => {
+    if (mode === "edit" && purchase?.purchase_cost) {
+      const seeded: CostRow[] = purchase.purchase_cost.map((cost) => ({
+        id: cost.id,
+        description: cost.description,
+        total: cost.total,
+      }));
+      setCosts(seeded);
+      form.setValue("purchase_cost", seeded);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, purchase?.purchase_cost]);
 
   // Formulario separado para el switch de IGV
   const igvForm = useForm({
@@ -513,6 +555,48 @@ export const PurchaseForm = ({
     return sum;
   };
 
+  // Funciones para costos adicionales
+  const handleAddCost = () => {
+    if (!currentCost.description || !currentCost.total) {
+      return;
+    }
+
+    const newCost: CostRow = { ...currentCost };
+
+    if (editingCostIndex !== null) {
+      const updatedCosts = [...costs];
+      updatedCosts[editingCostIndex] = newCost;
+      setCosts(updatedCosts);
+      form.setValue("purchase_cost", updatedCosts);
+      setEditingCostIndex(null);
+    } else {
+      const updatedCosts = [...costs, newCost];
+      setCosts(updatedCosts);
+      form.setValue("purchase_cost", updatedCosts);
+    }
+
+    setCurrentCost({ description: "", total: "" });
+  };
+
+  const handleEditCost = (index: number) => {
+    setCurrentCost(costs[index]);
+    setEditingCostIndex(index);
+  };
+
+  const handleRemoveCost = (index: number) => {
+    const updatedCosts = costs.filter((_, i) => i !== index);
+    setCosts(updatedCosts);
+    form.setValue("purchase_cost", updatedCosts);
+    if (editingCostIndex === index) {
+      setEditingCostIndex(null);
+      setCurrentCost({ description: "", total: "" });
+    }
+  };
+
+  const calculateCostsTotal = () => {
+    return costs.reduce((sum, cost) => sum + (parseFloat(cost.total) || 0), 0);
+  };
+
   // Validar si las cuotas coinciden con el total (si hay cuotas)
   const installmentsMatchTotal = () => {
     if (installments.length === 0) return true; // Si no hay cuotas, está ok
@@ -632,10 +716,16 @@ export const PurchaseForm = ({
       unit_price: String(detail.subtotal / parseFloat(detail.quantity)),
     }));
 
+    const apiCosts = costs.map((cost) => ({
+      description: cost.description,
+      total: cost.total,
+    }));
+
     onSubmit({
       ...data,
       details: apiDetails,
       installments: validInstallments,
+      purchase_cost: apiCosts,
     });
   };
 
@@ -859,6 +949,149 @@ export const PurchaseForm = ({
                   )}
                 />
               </div>
+            </GroupFormSection>
+
+            {/* Costos Adicionales (flete, seguro, aduana, etc.) - misma UI en crear y editar */}
+            <GroupFormSection
+              title="Costos Adicionales (Opcional)"
+              icon={Receipt}
+              cols={{ sm: 1 }}
+            >
+              <div className="grid grid-cols-12 gap-2 p-3 bg-muted/30 rounded-lg items-end">
+                <div className="col-span-7">
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ej: Flete internacional, Seguro, Aduana"
+                        value={currentCost.description}
+                        onChange={(e) =>
+                          setCurrentCost((prev) => ({
+                            ...prev,
+                            description: e.target.value,
+                          }))
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                </div>
+
+                <div className="col-span-3">
+                  <FormItem>
+                    <FormLabel>Monto</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={currentCost.total}
+                        onChange={(e) =>
+                          setCurrentCost((prev) => ({
+                            ...prev,
+                            total: e.target.value,
+                          }))
+                        }
+                      />
+                    </FormControl>
+                  </FormItem>
+                </div>
+
+                <div className="col-span-2 flex gap-1">
+                  <Button
+                    type="button"
+                    onClick={handleAddCost}
+                    disabled={!currentCost.description || !currentCost.total}
+                    className="h-9 flex-1 px-2"
+                  >
+                    {editingCostIndex !== null ? (
+                      <>
+                        <Pencil className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Actualizar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-3 w-3 mr-1" />
+                        <span className="text-xs">Agregar</span>
+                      </>
+                    )}
+                  </Button>
+                  {editingCostIndex !== null && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setEditingCostIndex(null);
+                        setCurrentCost({ description: "", total: "" });
+                      }}
+                      className="h-9 px-2"
+                    >
+                      <span className="text-xs">X</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {costs.length > 0 ? (
+                <div className="border rounded-lg overflow-hidden mt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>#</TableHead>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead className="w-16"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {costs.map((cost, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{index + 1}</TableCell>
+                          <TableCell>{cost.description}</TableCell>
+                          <TableCell className="text-right">
+                            {formatNumber(parseFloat(cost.total) || 0)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleEditCost(index)}
+                                className="h-7 w-7"
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleRemoveCost(index)}
+                                className="h-7 w-7"
+                              >
+                                <Trash2 className="h-3 w-3 text-red-500" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-right font-bold">
+                          TOTAL COSTOS ADICIONALES:
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-primary">
+                          {formatNumber(calculateCostsTotal())}
+                        </TableCell>
+                        <TableCell></TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Sin costos adicionales. Agregue flete, seguro, aduana u
+                  otros gastos de importación si corresponde.
+                </p>
+              )}
             </GroupFormSection>
 
             {/* Detalles */}
@@ -1262,6 +1495,7 @@ export const PurchaseForm = ({
             selectedSupplier={selectedSupplier}
             onCancel={onCancel}
             selectedPaymentType={selectedPaymentType}
+            costsTotal={calculateCostsTotal()}
           />
         </div>
       </form>

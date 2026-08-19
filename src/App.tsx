@@ -90,7 +90,7 @@ import { BOX_SHIFT } from "./pages/box-shift/lib/box-shift.interface";
 import BoxShiftPage from "./pages/box-shift/components/BoxShiftPage";
 import BoxShiftDetailPage from "./pages/box-shift/components/BoxShiftDetailPage";
 import { QUOTATION } from "./pages/quotation/lib/quotation.interface";
-import { ORDER } from "./pages/order/lib/order.interface";
+import { ORDER, OrderPendingReportRoute } from "./pages/order/lib/order.interface";
 import {
   QuotationAddPage,
   QuotationEditPage,
@@ -102,6 +102,7 @@ import {
   OrderEditPage,
   OrderDetailPage,
   OrderPage,
+  OrderPendingReportPage,
 } from "./pages/order/components";
 import { VEHICLE } from "./pages/vehicle/lib/vehicle.interface";
 import VehiclePage from "./pages/vehicle/components/VehiclePage";
@@ -1040,6 +1041,15 @@ export default function App() {
             element={
               <ProtectedRoute path={OrderRoute}>
                 <OrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={OrderPendingReportRoute}
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderPendingReportPage />
               </ProtectedRoute>
             }
           />

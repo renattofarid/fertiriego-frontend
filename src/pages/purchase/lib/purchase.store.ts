@@ -91,6 +91,10 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
           due_days: Number(installment.due_days),
           amount: Number(Number(installment.amount)),
         })),
+        purchase_cost: (data.purchase_cost || []).map((cost) => ({
+          description: cost.description,
+          total: Number(cost.total),
+        })),
       };
 
       await storePurchase(request);
@@ -121,6 +125,13 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
         ...(data.currency && { currency: data.currency }),
         ...(data.observations !== undefined && {
           observations: data.observations,
+        }),
+        ...(data.purchase_cost !== undefined && {
+          purchase_cost: data.purchase_cost.map((cost) => ({
+            ...(cost.id !== undefined && { id: cost.id }),
+            description: cost.description,
+            total: Number(cost.total),
+          })),
         }),
       };
 

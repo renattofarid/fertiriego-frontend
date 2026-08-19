@@ -218,6 +218,17 @@
     const [selectedProduct, setSelectedProduct] =
       useState<ProductResource | null>(null);
 
+    // Nombre del producto a mostrar en los diálogos de historial/stock.
+    // Si el usuario ya cambió de producto en el combo, usamos selectedProduct;
+    // si aún no lo tocó (caso "editar" un ítem existente), caemos al nombre
+    // que ya traía el detalle que se está editando.
+    const displayedProductName =
+      selectedProduct?.id?.toString() === productId
+        ? selectedProduct.name
+        : editingDetail?.product_id === productId
+          ? editingDetail.product_name
+          : undefined;
+
     const [showHistory, setShowHistory] = useState(false);
     const [showStock, setShowStock] = useState(false);
     const [showCreateProductModal, setShowCreateProductModal] = useState(false);
@@ -502,20 +513,20 @@
         </div>
 
         {/* Dialog de historial de ventas */}
-        {productId && selectedProduct && (
+        {productId && displayedProductName && (
           <>
             <ProductHistoryDialog
               open={showHistory}
               onOpenChange={setShowHistory}
               productId={parseInt(productId)}
-              productName={selectedProduct.name}
+              productName={displayedProductName}
               customerId={customerId}
             />
             <ProductStockDialog
               open={showStock}
               onOpenChange={setShowStock}
               productId={parseInt(productId)}
-              productName={selectedProduct.name}
+              productName={displayedProductName}
             />
           </>
         )}

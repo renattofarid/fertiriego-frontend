@@ -143,7 +143,7 @@ export interface CreatePersonRequest {
   username: string;
   password: string;
   type_document: "DNI" | "RUC" | "CE" | "PASAPORTE";
-  type_person: "NATURAL" | "JURIDICA";
+  type_person: "NATURAL" | "JURIDICA" | "EXTRANJERO";
   names: string;
   gender?: string;
   birth_date?: string;
@@ -167,7 +167,7 @@ export interface UpdatePersonRequest {
   username?: string;
   password?: string;
   type_document?: "DNI" | "RUC" | "CE" | "PASAPORTE";
-  type_person?: "NATURAL" | "JURIDICA";
+  type_person?: "NATURAL" | "JURIDICA" | "EXTRANJERO";
   names?: string;
   father_surname?: string;
   mother_surname?: string;

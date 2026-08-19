@@ -52,7 +52,7 @@ import { hasAccessToRoute } from "@/lib/route-access";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
-import { ORDER } from "@/pages/order/lib/order.interface";
+import { ORDER, OrderPendingReportRoute } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
@@ -447,6 +447,11 @@ const data = {
           title: OrderTitle,
           url: OrderRoute,
           icon: OrderIcon,
+        },
+        {
+          title: "Entregas Pendientes",
+          url: OrderPendingReportRoute,
+          icon: ListChecks,
         },
         {
           title: SaleTitle,
