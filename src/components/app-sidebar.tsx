@@ -8,6 +8,10 @@ import {
   ShoppingBag,
   Warehouse,
   Activity,
+  TrendingUp,
+  DollarSign,
+  CalendarClock,
+  ListChecks,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,6 +40,7 @@ import { SUPPLIER } from "@/pages/supplier/lib/supplier.interface";
 import { WORKER } from "@/pages/worker/lib/worker.interface";
 import { DRIVER } from "@/pages/driver/lib/driver.interface";
 import { PURCHASE_ORDER } from "@/pages/purchase-order/lib/purchase-order.interface";
+import { PURCHASE_ORDER_BATCH } from "@/pages/purchase-order-batch/lib/purchase-order-batch.interface";
 import { PURCHASE_SHIPPING_GUIDE } from "@/pages/purchase-shipping-guide/lib/purchase-shipping-guide.interface";
 import { SALE } from "@/pages/sale/lib/sale.interface";
 import { ACCOUNTS_RECEIVABLE } from "@/pages/accounts-receivable/lib/accounts-receivable.interface";
@@ -47,7 +52,7 @@ import { hasAccessToRoute } from "@/lib/route-access";
 import { useEffect, useState } from "react";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { QUOTATION } from "@/pages/quotation/lib/quotation.interface";
-import { ORDER } from "@/pages/order/lib/order.interface";
+import { ORDER, OrderPendingReportRoute } from "@/pages/order/lib/order.interface";
 import { PURCHASE } from "@/pages/purchase/lib/purchase.interface";
 import { VEHICLE } from "@/pages/vehicle/lib/vehicle.interface";
 import { CREDIT_NOTE } from "@/pages/credit-note/lib/credit-note.interface";
@@ -55,8 +60,35 @@ import { DEBIT_NOTE } from "@/pages/debit-note/lib/debit-note.interface";
 import { GUIDE } from "@/pages/guide/lib/guide.interface";
 import { SHIPPING_GUIDE_CARRIER } from "@/pages/shipping-guide-carrier/lib/shipping-guide-carrier.interface";
 import { PRODUCTION_DOCUMENT } from "@/pages/production-document/lib/production-document.interface";
+import {
+  PRODUCTION_ORDER,
+  ProductionOrderPendingRoute,
+} from "@/pages/production-order/lib/production-order.interface";
 import { PRODUCT_PRICE_CATEGORY } from "@/pages/product-price-category/lib/product-price-category.interface";
+import { PRODUCT_TAG } from "@/pages/product-tag/lib/product-tag.interface";
 import { CARRIER } from "@/pages/carrier/lib/carrier.interface";
+import {
+  PREDICTIVE_META,
+  PREDICTIVE_ROUTE,
+} from "@/pages/predictive/lib/predictive.interface";
+import {
+  DASHBOARD_META,
+  DASHBOARD_MONITORING_ROUTE,
+} from "@/pages/dashboard/lib/dashboard.interface";
+import { SCHEDULE } from "@/pages/hr-schedule/lib/schedule.interface";
+import { ATTENDANCE_META } from "@/pages/hr-attendance/lib/attendance.interface";
+import { OVERTIME_META } from "@/pages/hr-overtime/lib/overtime.interface";
+import { JUSTIFICATION_META } from "@/pages/hr-justification/lib/justification.interface";
+import { PUNCTUALITY_META } from "@/pages/hr-report/lib/report.interface";
+import {
+  VACATION_META,
+  VACATION_CONTROL_META,
+} from "@/pages/hr-vacation/lib/vacation.interface";
+import { VACATION_REPORT_META } from "@/pages/hr-vacation-report/lib/vacation-report.interface";
+import { SALARY } from "@/pages/payroll-salary/lib/salary.interface";
+import { INCOME } from "@/pages/payroll-income/lib/income.interface";
+import { DEDUCTION } from "@/pages/payroll-deduction/lib/deduction.interface";
+import { PAYROLL } from "@/pages/payroll/lib/payroll.interface";
 
 const {
   ICON_REACT: TypeUserIcon,
@@ -161,6 +193,12 @@ const {
 } = PURCHASE_ORDER;
 
 const {
+  ICON_REACT: PurchaseOrderBatchIcon,
+  ROUTE: PurchaseOrderBatchRoute,
+  MODEL: { name: PurchaseOrderBatchTitle },
+} = PURCHASE_ORDER_BATCH;
+
+const {
   ICON_REACT: PurchaseIcon,
   ROUTE: PurchaseRoute,
   MODEL: { name: PurchasesTitle },
@@ -257,10 +295,104 @@ const {
 } = PRODUCTION_DOCUMENT;
 
 const {
+  ICON_REACT: ProductionOrderIcon,
+  ROUTE: ProductionOrderRoute,
+  MODEL: { plural: ProductionOrderTitle },
+} = PRODUCTION_ORDER;
+
+const {
   ICON_REACT: ProductPriceCategoryIcon,
   ROUTE: ProductPriceCategoryRoute,
   MODEL: { name: ProductPriceCategoryTitle },
 } = PRODUCT_PRICE_CATEGORY;
+
+const {
+  ICON_REACT: ProductTagIcon,
+  ROUTE: ProductTagRoute,
+  MODEL: { name: ProductTagTitle },
+} = PRODUCT_TAG;
+
+const {
+  ICON_REACT: ScheduleIcon,
+  ROUTE: ScheduleRoute,
+  MODEL: { name: ScheduleTitle },
+} = SCHEDULE;
+
+const {
+  ICON_REACT: AttendanceIcon,
+  ROUTE: AttendanceRoute,
+  MODEL: { name: AttendanceTitle },
+} = ATTENDANCE_META;
+
+const {
+  ICON_REACT: OvertimeIcon,
+  ROUTE: OvertimeRoute,
+  MODEL: { name: OvertimeTitle },
+} = OVERTIME_META;
+
+const {
+  ICON_REACT: JustificationIcon,
+  ROUTE: JustificationRoute,
+  MODEL: { name: JustificationTitle },
+} = JUSTIFICATION_META;
+
+const {
+  ICON_REACT: PunctualityIcon,
+  ROUTE: PunctualityRoute,
+  MODEL: { name: PunctualityTitle },
+} = PUNCTUALITY_META;
+
+const {
+  ICON_REACT: VacationIcon,
+  ROUTE: VacationRoute,
+  MODEL: { name: VacationTitle },
+} = VACATION_META;
+
+const {
+  ICON_REACT: VacationControlIcon,
+  ROUTE: VacationControlRoute,
+  MODEL: { name: VacationControlTitle },
+} = VACATION_CONTROL_META;
+
+const {
+  ICON_REACT: VacationReportIcon,
+  ROUTE: VacationReportRoute,
+  MODEL: { name: VacationReportTitle },
+} = VACATION_REPORT_META;
+
+const {
+  ICON_REACT: SalaryIcon,
+  ROUTE: SalaryRoute,
+  MODEL: { plural: SalaryTitle },
+} = SALARY;
+
+const {
+  ICON_REACT: IncomeIcon,
+  ROUTE: IncomeRoute,
+  MODEL: { plural: IncomeTitle },
+} = INCOME;
+
+const {
+  ICON_REACT: DeductionIcon,
+  ROUTE: DeductionRoute,
+  MODEL: { plural: DeductionTitle },
+} = DEDUCTION;
+
+const {
+  ICON_REACT: PayrollIcon,
+  ROUTE: PayrollRoute,
+  MODEL: { plural: PayrollTitle },
+} = PAYROLL;
+
+const {
+  ICON_REACT: PredictiveIcon,
+  MODEL: { name: PredictiveTitle },
+} = PREDICTIVE_META;
+
+const {
+  ICON_REACT: DashboardMonitoringIcon,
+  MODEL: { name: DashboardMonitoringTitle },
+} = DASHBOARD_META;
 
 const data = {
   navMain: [
@@ -278,6 +410,11 @@ const data = {
           title: PurchaseOrderTitle,
           url: PurchaseOrderRoute,
           icon: PurchaseOrderIcon,
+        },
+        {
+          title: PurchaseOrderBatchTitle,
+          url: PurchaseOrderBatchRoute,
+          icon: PurchaseOrderBatchIcon,
         },
         {
           title: PurchasesTitle,
@@ -310,6 +447,11 @@ const data = {
           title: OrderTitle,
           url: OrderRoute,
           icon: OrderIcon,
+        },
+        {
+          title: "Entregas Pendientes",
+          url: OrderPendingReportRoute,
+          icon: ListChecks,
         },
         {
           title: SaleTitle,
@@ -369,6 +511,11 @@ const data = {
           icon: ProductPriceCategoryIcon,
         },
         {
+          title: ProductTagTitle,
+          url: ProductTagRoute,
+          icon: ProductTagIcon,
+        },
+        {
           title: WarehouseProductTitle,
           url: WarehouseProductRoute,
           icon: WarehouseProductIcon,
@@ -418,6 +565,80 @@ const data = {
       ],
     },
     {
+      title: "Personal",
+      url: "#",
+      icon: CalendarClock,
+      items: [
+        {
+          title: ScheduleTitle,
+          url: ScheduleRoute,
+          icon: ScheduleIcon,
+        },
+        {
+          title: AttendanceTitle,
+          url: AttendanceRoute,
+          icon: AttendanceIcon,
+        },
+        {
+          title: OvertimeTitle,
+          url: OvertimeRoute,
+          icon: OvertimeIcon,
+        },
+        {
+          title: JustificationTitle,
+          url: JustificationRoute,
+          icon: JustificationIcon,
+        },
+        {
+          title: PunctualityTitle,
+          url: PunctualityRoute,
+          icon: PunctualityIcon,
+        },
+        {
+          title: VacationTitle,
+          url: VacationRoute,
+          icon: VacationIcon,
+        },
+        {
+          title: VacationControlTitle,
+          url: VacationControlRoute,
+          icon: VacationControlIcon,
+        },
+        {
+          title: VacationReportTitle,
+          url: VacationReportRoute,
+          icon: VacationReportIcon,
+        },
+      ],
+    },
+    {
+      title: "Planillas",
+      url: "#",
+      icon: PayrollIcon,
+      items: [
+        {
+          title: PayrollTitle,
+          url: PayrollRoute,
+          icon: PayrollIcon,
+        },
+        {
+          title: SalaryTitle,
+          url: SalaryRoute,
+          icon: SalaryIcon,
+        },
+        {
+          title: IncomeTitle,
+          url: IncomeRoute,
+          icon: IncomeIcon,
+        },
+        {
+          title: DeductionTitle,
+          url: DeductionRoute,
+          icon: DeductionIcon,
+        },
+      ],
+    },
+    {
       title: "Organización",
       url: "#",
       icon: CompanyIcon,
@@ -455,6 +676,26 @@ const data = {
           icon: ProductionDocumentIcon,
         },
         {
+          title: ProductionOrderTitle,
+          url: ProductionOrderRoute,
+          icon: ProductionOrderIcon,
+        },
+        {
+          title: "Pendientes a Producir",
+          url: ProductionOrderPendingRoute,
+          icon: ListChecks,
+        },
+        {
+          title: "Reporte de Rendimiento",
+          url: "/documentos-produccion/reporte-rendimiento",
+          icon: TrendingUp,
+        },
+        {
+          title: "Reporte de Costos",
+          url: "/documentos-produccion/reporte-costos",
+          icon: DollarSign,
+        },
+        {
           title: "Kardex",
           url: "/kardex",
           icon: Activity,
@@ -480,6 +721,16 @@ const data = {
           icon: VehicleIcon,
         },
       ],
+    },
+    {
+      title: PredictiveTitle,
+      url: PREDICTIVE_ROUTE,
+      icon: PredictiveIcon,
+    },
+    {
+      title: DashboardMonitoringTitle,
+      url: DASHBOARD_MONITORING_ROUTE,
+      icon: DashboardMonitoringIcon,
     },
     {
       title: "Seguridad",

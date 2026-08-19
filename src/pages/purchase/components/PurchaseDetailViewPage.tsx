@@ -14,6 +14,7 @@ import {
   Wallet,
   Pencil,
   FileText,
+  Receipt,
 } from "lucide-react";
 import { PurchaseDetailTable } from "./PurchaseDetailTable";
 import { InstallmentPaymentsSheet } from "./sheets/InstallmentPaymentsSheet";
@@ -255,6 +256,40 @@ export const PurchaseDetailViewPage = () => {
             </div>
           )}
         </GroupFormSection>
+
+        {/* Costos Adicionales (flete, seguro, aduana, etc.) */}
+        {purchase.purchase_cost && purchase.purchase_cost.length > 0 && (
+          <GroupFormSection
+            title="Costos Adicionales"
+            icon={Receipt}
+            cols={{ sm: 1 }}
+          >
+            <div className="border rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-left p-2 font-medium">Descripción</th>
+                    <th className="text-right p-2 font-medium">Monto</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {purchase.purchase_cost.map((cost) => (
+                    <tr key={cost.id} className="border-t">
+                      <td className="p-2">{cost.description}</td>
+                      <td className="p-2 text-right font-mono">
+                        {parseFloat(cost.total).toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              Estos costos ya fueron prorrateados por el sistema entre los
+              productos de la compra.
+            </p>
+          </GroupFormSection>
+        )}
 
         {/* Tabs de Detalles, Cuotas y Pagos */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>

@@ -12,6 +12,7 @@ import {
   findGuideById,
   storeGuide,
   updateGuide,
+  updateGuideOrder,
   deleteGuide,
   getGuideMotives,
   changeGuideStatus,
@@ -45,6 +46,7 @@ interface GuideStore {
   fetchMotives: () => Promise<void>;
   createGuide: (data: GuideSchema) => Promise<void>;
   updateGuide: (id: number, data: Partial<GuideSchema>) => Promise<void>;
+  linkOrderToGuide: (id: number, orderId: number) => Promise<void>;
   removeGuide: (id: number) => Promise<void>;
   changeStatus: (id: number, status: GuideStatus) => Promise<void>;
   resetGuide: () => void;
@@ -304,6 +306,18 @@ export const useGuideStore = create<GuideStore>((set) => ({
       set({ isSubmitting: false });
     } catch (error) {
       set({ error: ERROR_MESSAGE(MODEL, "edit"), isSubmitting: false });
+      throw error;
+    }
+  },
+
+  // Link a pending order to a guide that doesn't have one yet
+  linkOrderToGuide: async (id: number, orderId: number) => {
+    set({ isSubmitting: true, error: null });
+    try {
+      await updateGuideOrder(id, { order_id: orderId });
+      set({ isSubmitting: false });
+    } catch (error) {
+      set({ error: "Error al vincular el pedido a la guía", isSubmitting: false });
       throw error;
     }
   },

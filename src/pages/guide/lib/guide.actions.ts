@@ -4,6 +4,7 @@ import type {
   GuideResource,
   CreateGuideRequest,
   UpdateGuideRequest,
+  UpdateGuideOrderRequest,
   GuideMotiveResponse,
   GuideResourceById,
 } from "./guide.interface";
@@ -63,6 +64,19 @@ export const updateGuide = async (
 ): Promise<{ message: string }> => {
   const response = await api.put<{ message: string }>(
     `${GUIDE_ENDPOINT}/${id}`,
+    data,
+  );
+  return response.data;
+};
+
+// Vincula un pedido a una guía que aún no tiene uno asociado, para que el
+// reporte de entregas pendientes pueda calcular lo despachado internamente.
+export const updateGuideOrder = async (
+  id: number,
+  data: UpdateGuideOrderRequest,
+): Promise<{ message: string }> => {
+  const response = await api.put<{ message: string }>(
+    `${GUIDE_ENDPOINT}/${id}/updateOrder`,
     data,
   );
   return response.data;

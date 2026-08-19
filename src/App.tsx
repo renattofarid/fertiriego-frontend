@@ -54,6 +54,8 @@ import { PURCHASE_ORDER } from "./pages/purchase-order/lib/purchase-order.interf
 import PurchaseOrderPage from "./pages/purchase-order/components/PurchaseOrderPage";
 import PurchaseOrderAddPage from "./pages/purchase-order/components/PurchaseOrderAddPage";
 import PurchaseOrderEditPage from "./pages/purchase-order/components/PurchaseOrderEditPage";
+import { PURCHASE_ORDER_BATCH } from "./pages/purchase-order-batch/lib/purchase-order-batch.interface";
+import { PurchaseOrderBatchPage } from "./pages/purchase-order-batch/components";
 import { PurchaseRoute } from "./pages/purchase/lib/purchase.interface";
 import {
   PurchasePage,
@@ -88,7 +90,7 @@ import { BOX_SHIFT } from "./pages/box-shift/lib/box-shift.interface";
 import BoxShiftPage from "./pages/box-shift/components/BoxShiftPage";
 import BoxShiftDetailPage from "./pages/box-shift/components/BoxShiftDetailPage";
 import { QUOTATION } from "./pages/quotation/lib/quotation.interface";
-import { ORDER } from "./pages/order/lib/order.interface";
+import { ORDER, OrderPendingReportRoute } from "./pages/order/lib/order.interface";
 import {
   QuotationAddPage,
   QuotationEditPage,
@@ -100,6 +102,7 @@ import {
   OrderEditPage,
   OrderDetailPage,
   OrderPage,
+  OrderPendingReportPage,
 } from "./pages/order/components";
 import { VEHICLE } from "./pages/vehicle/lib/vehicle.interface";
 import VehiclePage from "./pages/vehicle/components/VehiclePage";
@@ -127,12 +130,64 @@ import ProductionDocumentPage from "./pages/production-document/components/Produ
 import ProductionDocumentAddPage from "./pages/production-document/components/ProductionDocumentAddPage";
 import ProductionDocumentEditPage from "./pages/production-document/components/ProductionDocumentEditPage";
 import ProductionDocumentDetailPage from "./pages/production-document/components/ProductionDocumentDetailPage";
+import ProductionDocumentPerformanceReportPage from "./pages/production-document/components/ProductionDocumentPerformanceReportPage";
+import ProductionDocumentCostReportPage from "./pages/production-document/components/ProductionDocumentCostReportPage";
+import { PRODUCTION_ORDER, ProductionOrderPendingRoute } from "./pages/production-order/lib/production-order.interface";
+import ProductionOrderPage from "./pages/production-order/components/ProductionOrderPage";
+import ProductionOrderAddPage from "./pages/production-order/components/ProductionOrderAddPage";
+import ProductionOrderEditPage from "./pages/production-order/components/ProductionOrderEditPage";
+import ProductionOrderDetailPage from "./pages/production-order/components/ProductionOrderDetailPage";
+import ProductionOrderPendingPage from "./pages/production-order/components/ProductionOrderPendingPage";
 import { PRODUCT_PRICE_CATEGORY } from "./pages/product-price-category/lib/product-price-category.interface";
 import ProductPriceCategoryPage from "./pages/product-price-category/components/ProductPriceCategoryPage";
 import { CARRIER } from "./pages/carrier/lib/carrier.interface";
 import CarrierPage from "./pages/carrier/components/CarrierPage";
 import CarrierAddPage from "./pages/carrier/components/CarrierAddPage";
 import CarrierEditPage from "./pages/carrier/components/CarrierEditPage";
+import { PRODUCT_TAG } from "./pages/product-tag/lib/product-tag.interface";
+import ProductTagPage from "./pages/product-tag/components/TagPage";
+import {
+  PredictivePage,
+  PredictiveMetricsPage,
+  PredictiveConfigPage,
+} from "./pages/predictive/components";
+import {
+  PREDICTIVE_ROUTE,
+  PREDICTIVE_CONFIG_ROUTE,
+  PREDICTIVE_METRICS_ROUTE,
+} from "./pages/predictive/lib/predictive.interface";
+import { DashboardMonitoringPage } from "./pages/dashboard/components";
+import { DASHBOARD_MONITORING_ROUTE } from "./pages/dashboard/lib/dashboard.interface";
+import SchedulePage from "./pages/hr-schedule/components/SchedulePage";
+import { SCHEDULE } from "./pages/hr-schedule/lib/schedule.interface";
+import AttendanceLogPage from "./pages/hr-attendance/components/AttendanceLogPage";
+import { ATTENDANCE_ROUTE } from "./pages/hr-attendance/lib/attendance.interface";
+import JustificationPage from "./pages/hr-justification/components/JustificationPage";
+import { JUSTIFICATION_ROUTE } from "./pages/hr-justification/lib/justification.interface";
+import PunctualityReportPage from "./pages/hr-report/components/PunctualityReportPage";
+import WorkerAttendanceReportPage from "./pages/hr-report/components/WorkerAttendanceReportPage";
+import { PUNCTUALITY_ROUTE } from "./pages/hr-report/lib/report.interface";
+import VacationPage from "./pages/hr-vacation/components/VacationPage";
+import VacationControlPage from "./pages/hr-vacation/components/VacationControlPage";
+import {
+  VACATION_ROUTE,
+  VACATION_CONTROL_ROUTE,
+} from "./pages/hr-vacation/lib/vacation.interface";
+import VacationReportPage from "./pages/hr-vacation-report/components/VacationReportPage";
+import { VACATION_REPORT_ROUTE } from "./pages/hr-vacation-report/lib/vacation-report.interface";
+import SalaryPage from "./pages/payroll-salary/components/SalaryPage";
+import { SALARY } from "./pages/payroll-salary/lib/salary.interface";
+import IncomePage from "./pages/payroll-income/components/IncomePage";
+import { INCOME } from "./pages/payroll-income/lib/income.interface";
+import DeductionPage from "./pages/payroll-deduction/components/DeductionPage";
+import { DEDUCTION } from "./pages/payroll-deduction/lib/deduction.interface";
+import PayrollPage from "./pages/payroll/components/PayrollPage";
+import PayrollDetailPage from "./pages/payroll/components/PayrollDetailPage";
+import { PAYROLL } from "./pages/payroll/lib/payroll.interface";
+import WorkerPayrollReportPage from "./pages/payroll-report/components/WorkerPayrollReportPage";
+import OvertimePage from "./pages/hr-overtime/components/OvertimePage";
+import OvertimeByPersonPage from "./pages/hr-overtime/components/OvertimeByPersonPage";
+import { OVERTIME_META } from "./pages/hr-overtime/lib/overtime.interface";
 
 const { ROUTE: TypeUserRoute } = TYPE_USER;
 const { ROUTE: UserRoute } = USER;
@@ -152,6 +207,7 @@ const { ROUTE: WorkerRoute } = WORKER;
 const { ROUTE: DriverRoute } = DRIVER;
 const { ROUTE: CarrierRoute } = CARRIER;
 const { ROUTE: PurchaseOrderRoute } = PURCHASE_ORDER;
+const { ROUTE: PurchaseOrderBatchRoute } = PURCHASE_ORDER_BATCH;
 const { ROUTE: WarehouseProductRoute } = WAREHOUSE_PRODUCT;
 const { ROUTE: WarehouseDocumentRoute } = WAREHOUSE_DOCUMENT;
 const { ROUTE: BoxShiftRoute } = BOX_SHIFT;
@@ -170,8 +226,17 @@ const { ROUTE_UPDATE: ShippingGuideCarrierUpdateRoute } =
 const { ROUTE: ProductionDocumentRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_ADD: ProductionDocumentAddRoute } = PRODUCTION_DOCUMENT;
 const { ROUTE_UPDATE: ProductionDocumentUpdateRoute } = PRODUCTION_DOCUMENT;
+const { ROUTE: ProductionOrderRoute } = PRODUCTION_ORDER;
+const { ROUTE_ADD: ProductionOrderAddRoute } = PRODUCTION_ORDER;
+const { ROUTE_UPDATE: ProductionOrderUpdateRoute } = PRODUCTION_ORDER;
 const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
-
+const { ROUTE: ProductTagRoute } = PRODUCT_TAG;
+const { ROUTE: ScheduleRoute } = SCHEDULE;
+const { ROUTE: SalaryRoute } = SALARY;
+const { ROUTE: IncomeRoute } = INCOME;
+const { ROUTE: DeductionRoute } = DEDUCTION;
+const { ROUTE: PayrollRoute } = PAYROLL;
+const { ROUTE: OvertimeRoute } = OVERTIME_META;
 
 function ProtectedRoute({
   children,
@@ -429,6 +494,15 @@ export default function App() {
           />
 
           <Route
+            path={ProductTagRoute}
+            element={
+              <ProtectedRoute path={ProductTagRoute}>
+                <ProductTagPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={WorkerRoute}
             element={
               <ProtectedRoute path={WorkerRoute}>
@@ -451,6 +525,151 @@ export default function App() {
             element={
               <ProtectedRoute path={WorkerRoute}>
                 <WorkerEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/reporte/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerAttendanceReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ScheduleRoute}
+            element={
+              <ProtectedRoute path={ScheduleRoute}>
+                <SchedulePage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Planillas */}
+          <Route
+            path={SalaryRoute}
+            element={
+              <ProtectedRoute path={SalaryRoute}>
+                <SalaryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={IncomeRoute}
+            element={
+              <ProtectedRoute path={IncomeRoute}>
+                <IncomePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={DeductionRoute}
+            element={
+              <ProtectedRoute path={DeductionRoute}>
+                <DeductionPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PayrollRoute}
+            element={
+              <ProtectedRoute path={PayrollRoute}>
+                <PayrollPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={`${PayrollRoute}/:id`}
+            element={
+              <ProtectedRoute path={PayrollRoute}>
+                <PayrollDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/planilla/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <WorkerPayrollReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/trabajadores/horas-extras/:id"
+            element={
+              <ProtectedRoute path={WorkerRoute}>
+                <OvertimeByPersonPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={OvertimeRoute}
+            element={
+              <ProtectedRoute path={OvertimeRoute}>
+                <OvertimePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ATTENDANCE_ROUTE}
+            element={
+              <ProtectedRoute path={ATTENDANCE_ROUTE}>
+                <AttendanceLogPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={JUSTIFICATION_ROUTE}
+            element={
+              <ProtectedRoute path={JUSTIFICATION_ROUTE}>
+                <JustificationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PUNCTUALITY_ROUTE}
+            element={
+              <ProtectedRoute path={PUNCTUALITY_ROUTE}>
+                <PunctualityReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_ROUTE}>
+                <VacationPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_CONTROL_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_CONTROL_ROUTE}>
+                <VacationControlPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={VACATION_REPORT_ROUTE}
+            element={
+              <ProtectedRoute path={VACATION_REPORT_ROUTE}>
+                <VacationReportPage />
               </ProtectedRoute>
             }
           />
@@ -514,6 +733,15 @@ export default function App() {
             element={
               <ProtectedRoute path={PurchaseOrderRoute}>
                 <PurchaseOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PurchaseOrderBatchRoute}
+            element={
+              <ProtectedRoute path={PurchaseOrderBatchRoute}>
+                <PurchaseOrderBatchPage />
               </ProtectedRoute>
             }
           />
@@ -817,6 +1045,15 @@ export default function App() {
             }
           />
 
+          <Route
+            path={OrderPendingReportRoute}
+            element={
+              <ProtectedRoute path={OrderRoute}>
+                <OrderPendingReportPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Rutas de Vehículos */}
           <Route
             path={VehicleRoute}
@@ -990,6 +1227,108 @@ export default function App() {
             element={
               <ProtectedRoute path={ProductionDocumentRoute}>
                 <ProductionDocumentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-produccion/reporte-rendimiento"
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentPerformanceReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/documentos-produccion/reporte-costos"
+            element={
+              <ProtectedRoute path={ProductionDocumentRoute}>
+                <ProductionDocumentCostReportPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Órdenes de Producción */}
+          <Route
+            path={ProductionOrderRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderAddRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderAddPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderUpdateRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderEditPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ProductionOrderPendingRoute}
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderPendingPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/ordenes-produccion/:id"
+            element={
+              <ProtectedRoute path={ProductionOrderRoute}>
+                <ProductionOrderDetailPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Motor Predictivo */}
+          <Route
+            path={PREDICTIVE_ROUTE}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictivePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PREDICTIVE_CONFIG_ROUTE}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictiveConfigPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={`${PREDICTIVE_METRICS_ROUTE}/:id`}
+            element={
+              <ProtectedRoute path={PREDICTIVE_ROUTE}>
+                <PredictiveMetricsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Rutas de Dashboard y Monitoreo */}
+          <Route
+            path={DASHBOARD_MONITORING_ROUTE}
+            element={
+              <ProtectedRoute>
+                <DashboardMonitoringPage />
               </ProtectedRoute>
             }
           />

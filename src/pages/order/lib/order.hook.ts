@@ -1,8 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useOrderStore } from "./order.store";
-import { getOrders, type GetOrdersParams } from "./order.actions";
-import { ORDER } from "./order.interface";
+import {
+  getOrders,
+  getAllPendingOrderDetails,
+  type GetOrdersParams,
+} from "./order.actions";
+import { ORDER, type AllPendingOrderDetailsParams } from "./order.interface";
 
 const { QUERY_KEY } = ORDER;
 
@@ -25,6 +29,23 @@ export function useAllOrders() {
     isLoading: isLoadingAll,
     error,
     refetch: fetchAllOrders,
+  };
+}
+
+export function useOrderPendingReport(params: AllPendingOrderDetailsParams) {
+  const query = useQuery({
+    queryKey: [QUERY_KEY, "all-pending-details", params],
+    queryFn: () => getAllPendingOrderDetails(params),
+    enabled: Boolean(params.startDate && params.endDate),
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    data: query.data?.data ?? null,
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    error: query.error,
+    refetch: query.refetch,
   };
 }
 

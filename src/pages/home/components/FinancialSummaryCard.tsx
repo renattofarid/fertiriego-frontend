@@ -6,7 +6,7 @@ interface FinancialSummaryCardProps {
   value: string;
   description: string;
   icon: LucideIcon;
-  variant: "primary" | "destructive" | "muted";
+  variant: "primary" | "destructive" | "muted" | "orange" | "green";
 }
 
 export function FinancialSummaryCard({
@@ -20,18 +20,24 @@ export function FinancialSummaryCard({
     primary: "bg-primary/5",
     destructive: "bg-destructive/5",
     muted: "bg-muted-foreground/5",
+    orange: "bg-orange-500/5",
+    green: "bg-green-500/5",
   };
 
   const iconBgStyles = {
     primary: "bg-primary/10",
     destructive: "bg-destructive/10",
     muted: "bg-muted-foreground/10",
+    orange: "bg-orange-500/10",
+    green: "bg-green-500/10",
   };
 
   const textStyles = {
     primary: "text-primary",
     destructive: "text-destructive",
     muted: "text-muted-foreground",
+    orange: "text-orange-500 dark:text-orange-400",
+    green: "text-green-500 dark:text-green-400",
   };
 
   return (

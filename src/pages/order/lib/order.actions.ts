@@ -6,8 +6,10 @@ import type {
   CreateOrderRequest,
   UpdateOrderRequest,
   PendingDetailsResponse,
+  AllPendingOrderDetailsParams,
+  AllPendingOrderDetailsResponse,
 } from "./order.interface";
-import { ORDER_ENDPOINT } from "./order.interface";
+import { ORDER_ENDPOINT, ALL_PENDING_DETAILS_ENDPOINT } from "./order.interface";
 
 // ============================================
 // ORDER - Main CRUD Actions
@@ -84,6 +86,18 @@ export const getPendingOrderDetails = async (
 ): Promise<PendingDetailsResponse> => {
   const response = await api.get<PendingDetailsResponse>(
     `${ORDER_ENDPOINT}/${id}/pending-details`
+  );
+  return response.data;
+};
+
+// Reporte de entregas pendientes: pedidos con productos pendientes de
+// entrega dentro de un rango de fechas.
+export const getAllPendingOrderDetails = async (
+  params: AllPendingOrderDetailsParams
+): Promise<AllPendingOrderDetailsResponse> => {
+  const response = await api.get<AllPendingOrderDetailsResponse>(
+    ALL_PENDING_DETAILS_ENDPOINT,
+    { params }
   );
   return response.data;
 };

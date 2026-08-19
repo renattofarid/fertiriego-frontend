@@ -67,9 +67,7 @@ interface FormSelectAsyncProps {
   useQueryByIdHook?: (id: string) => { data?: any; isLoading: boolean }; // Hook para buscar un item por ID directamente (evita paginar)
 }
 
-const _noopByIdHook = (
-  _id: string,
-): { data: undefined; isLoading: false } => ({
+const _noopByIdHook = (_id: string): { data: undefined; isLoading: false } => ({
   data: undefined,
   isLoading: false,
 });
@@ -166,7 +164,10 @@ export function FormSelectAsync({
           // Preservar el item precargado si no está en los nuevos datos
           if (preloadItemId) {
             const preloadedOpt = prev.find((o) => o.value === preloadItemId);
-            if (preloadedOpt && !newOptions.some((n) => n.value === preloadItemId)) {
+            if (
+              preloadedOpt &&
+              !newOptions.some((n) => n.value === preloadItemId)
+            ) {
               return [preloadedOpt, ...newOptions];
             }
           }
@@ -309,22 +310,22 @@ export function FormSelectAsync({
                   </FormLabel>
                 )}
 
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-1 gap-2 items-center min-w-0">
               <Popover open={open} onOpenChange={handleOpenChange}>
-                <PopoverTrigger asChild>
+                <PopoverTrigger asChild className="min-w-0">
                   <FormControl>
                     <Button
                       variant="outline"
                       role="combobox"
                       disabled={disabled}
                       className={cn(
-                        "w-full justify-between min-h-7 flex min-w-0 truncate",
+                        "w-full justify-between flex truncate min-w-0",
                         !field.value && "text-muted-foreground",
                         field.value && "bg-muted",
                         className,
                       )}
                     >
-                      <span className="text-nowrap! line-clamp-1">
+                      <span className="truncate min-w-0 flex-1 text-left">
                         {selected
                           ? typeof selected.label === "function"
                             ? selected.label()
@@ -337,7 +338,7 @@ export function FormSelectAsync({
                 </PopoverTrigger>
 
                 <PopoverContent
-                  className="p-0 min-w-(--radix-popover-trigger-width)! w-auto"
+                  className="p-0 w-(--radix-popover-trigger-width)! max-w-[90vw]"
                   onWheel={(e) => e.stopPropagation()}
                   onWheelCapture={(e) => e.stopPropagation()}
                   onTouchMove={(e) => e.stopPropagation()}

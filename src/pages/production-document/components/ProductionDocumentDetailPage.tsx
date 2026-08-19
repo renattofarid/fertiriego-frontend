@@ -24,7 +24,7 @@ const statusVariants: Record<
 };
 
 export default function ProductionDocumentDetailPage() {
-  const { ROUTE, ICON } = PRODUCTION_DOCUMENT;
+  const { ROUTE, ROUTE_UPDATE, ICON } = PRODUCTION_DOCUMENT;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
@@ -125,23 +125,21 @@ export default function ProductionDocumentDetailPage() {
           />
         </div>
         <div className="flex gap-2">
+          {guide.status === "BORRADOR" && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTE_UPDATE.replace(":id", id!))}
+            >
+              Actualizar
+            </Button>
+          )}
           {guide.status === "PROCESADO" && (
-            <>
-              <Button
-                variant="outline"
-                onClick={() =>
-                  navigate(`${ROUTE.replace(ROUTE, "")}/actualizar/${id}`)
-                }
-              >
-                Actualizar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setShowCancelDialog(true)}
-              >
-                Cancelar Documento
-              </Button>
-            </>
+            <Button
+              variant="destructive"
+              onClick={() => setShowCancelDialog(true)}
+            >
+              Cancelar Documento
+            </Button>
           )}
         </div>
       </div>

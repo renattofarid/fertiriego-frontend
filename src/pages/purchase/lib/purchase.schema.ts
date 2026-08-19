@@ -27,6 +27,28 @@ export const purchaseDetailSchema = z.object({
 
 export type PurchaseDetailSchema = z.infer<typeof purchaseDetailSchema>;
 
+// ===== COST SCHEMA =====
+// Costo adicional de la factura de importación (flete, seguro, aduana, etc.)
+// que el backend prorratea entre los ítems del detalle.
+
+export const purchaseCostSchema = z.object({
+  // Presente solo cuando se edita un costo ya guardado; ausente para los
+  // costos nuevos que se agregan durante la edición.
+  id: z.number().optional(),
+  description: z
+    .string()
+    .min(1, { message: "La descripción es requerida" })
+    .max(255, { message: "La descripción no puede exceder 255 caracteres" }),
+  total: z.coerce
+    .string()
+    .min(1, { message: "El monto es requerido" })
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "El monto debe ser un número mayor a 0",
+    }),
+});
+
+export type PurchaseCostSchema = z.infer<typeof purchaseCostSchema>;
+
 // ===== INSTALLMENT SCHEMA =====
 
 export const purchaseInstallmentSchema = z.object({
@@ -84,11 +106,14 @@ export const purchaseSchemaCreate = z.object({
     .array(purchaseDetailSchema)
     .min(1, { message: "Debe agregar al menos un detalle" }),
   installments: z.array(purchaseInstallmentSchema).optional().default([]),
+  purchase_cost: z.array(purchaseCostSchema).optional().default([]),
 });
 
 export type PurchaseSchema = z.infer<typeof purchaseSchemaCreate>;
 
 // ===== UPDATE SCHEMA =====
+// details/installments se siguen editando vía sus propios sub-endpoints,
+// pero purchase_cost sí viaja dentro del payload principal de actualización.
 
 export const purchaseSchemaUpdate = purchaseSchemaCreate
   .omit({ details: true, installments: true })

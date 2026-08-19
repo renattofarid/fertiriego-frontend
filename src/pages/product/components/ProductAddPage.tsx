@@ -36,6 +36,7 @@ export default function ProductAddPage() {
     unit_id: "",
     product_type_id: "",
     is_igv: false,
+    weight: 0,
     observations: "",
     technical_sheet: [],
   });

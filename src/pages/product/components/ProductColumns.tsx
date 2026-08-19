@@ -47,6 +47,18 @@ export const ProductColumns = ({
     cell: ({ getValue }) => getValue() as string,
   },
   {
+    accessorKey: "weight",
+    header: "Peso",
+    cell: ({ getValue }) => {
+      const weight = getValue() as number | null;
+      return weight != null ? (
+        <span className="text-sm">{weight} kg</span>
+      ) : (
+        <span className="text-sm text-muted-foreground">-</span>
+      );
+    },
+  },
+  {
     accessorKey: "product_type_name",
     header: "Tipo",
     cell: ({ getValue }) => {

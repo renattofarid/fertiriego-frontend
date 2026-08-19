@@ -45,10 +45,13 @@ export const requiredStringId = (message: string) =>
 export const requiredNumberId = (message: string) =>
   z.preprocess(
     (val) => {
+      if (val === "" || val === undefined || val === null) return undefined;
       const parsed = Number(val);
-      return isNaN(parsed) ? val : parsed;
+      return isNaN(parsed) ? undefined : parsed;
     },
-    z.number().refine((val) => val !== undefined && !isNaN(val), { message }),
+    z
+      .number({ error: message })
+      .refine((val) => val !== undefined && !isNaN(val), { message }),
   );
 
 export const onlyLettersSchema = (field: string) =>

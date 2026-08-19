@@ -24,6 +24,7 @@ import {
   MoreHorizontal,
   Trash2,
   Ban,
+  Link2,
 } from "lucide-react";
 
 import { ColumnActions } from "@/components/SelectActions";
@@ -55,6 +56,7 @@ interface GuideColumnsProps {
   onChangeStatus: (id: number, status: GuideStatus) => void;
   onGenerateSale: (guide: GuideResource) => void;
   onDuplicate: (guide: GuideResource) => void;
+  onLinkOrder: (guide: GuideResource) => void;
 }
 
 export const GuideColumns = ({
@@ -63,6 +65,7 @@ export const GuideColumns = ({
   onChangeStatus,
   onGenerateSale,
   onDuplicate,
+  onLinkOrder,
 }: GuideColumnsProps): ColumnDef<GuideResource>[] => [
   {
     accessorKey: "full_guide_number",
@@ -302,6 +305,14 @@ export const GuideColumns = ({
             tooltip="Ver Detalle"
             onClick={() => onView(row.original.id)}
           />
+          {!row.original.order && (
+            <ButtonAction
+              icon={Link2}
+              tooltip="Vincular Pedido"
+              onClick={() => onLinkOrder(row.original)}
+              color="primary"
+            />
+          )}
           <ButtonAction
             icon={BanknoteArrowUp}
             tooltip="Generar Venta"

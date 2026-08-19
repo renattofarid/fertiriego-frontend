@@ -72,6 +72,10 @@ export default function WorkerEditPage() {
         address: data.address || "",
         phone: data.phone,
         email: data.email,
+        hire_date: data.hire_date || undefined,
+        vacation_days_per_year: data.vacation_days_per_year
+          ? Number(data.vacation_days_per_year)
+          : undefined,
       };
 
       await updatePerson(personData.id, updatePersonData);

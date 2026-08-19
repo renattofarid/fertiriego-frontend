@@ -5,7 +5,7 @@ const typeDocumentSchema = z.enum(["DNI", "RUC", "CE", "PASAPORTE"], {
   error: "Debe seleccionar un tipo de documento",
 });
 
-const typePersonSchema = z.enum(["NATURAL", "JURIDICA"], {
+const typePersonSchema = z.enum(["NATURAL", "JURIDICA", "EXTRANJERO"], {
   error: "Debe seleccionar un tipo de persona",
 });
 
@@ -23,17 +23,12 @@ export const personCreateSchema = z
 
     type_person: typePersonSchema,
 
+    // La validación de formato/longitud es condicional al tipo de documento
+    // y se resuelve en el superRefine: para proveedores/personas EXTRANJERO
+    // el número de documento es libre (no es RUC ni DNI).
     number_document: z
       .string()
-      .min(1, "El número de documento es obligatorio")
-      .refine(
-        (val) => /^[0-9]+$/.test(val),
-        "El número de documento solo puede contener números"
-      )
-      .refine(
-        (val) => val.length >= 8 && val.length <= 11,
-        "El número de documento debe tener entre 8 y 11 dígitos"
-      ),
+      .min(1, "El número de documento es obligatorio"),
 
     names: onlyLettersSchema("nombre"),
     gender: genderSchema.optional(),
@@ -91,10 +86,30 @@ export const personCreateSchema = z
       .optional()
       .or(z.literal("")),
 
+    hire_date: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || !isNaN(Date.parse(val)),
+        "Ingrese una fecha válida"
+      ),
+
+    vacation_days_per_year: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || /^[0-9]+$/.test(val),
+        "Ingrese solo números"
+      )
+      .refine(
+        (val) => !val || (Number(val) >= 0 && Number(val) <= 365),
+        "Debe estar entre 0 y 365 días"
+      ),
+
     role_id: requiredStringId("Debe seleccionar un rol válido"),
   })
   .superRefine((data, ctx) => {
-    // Validación condicional para business_name
+    // Validación condicional para business_name (solo personas jurídicas)
     if (data.type_person === "JURIDICA") {
       if (!data.business_name || data.business_name.trim() === "") {
         ctx.addIssue({
@@ -137,32 +152,82 @@ export const personCreateSchema = z
       // }
     }
 
+    // Proveedores/personas EXTRANJERO: es una persona (no una empresa), así
+    // que se completan nombres y apellidos igual que NATURAL, pero el
+    // apellido materno queda opcional (no todos los países usan ese formato).
+    if (data.type_person === "EXTRANJERO") {
+      if (!data.names || data.names.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El nombre es obligatorio",
+          path: ["names"],
+        });
+      }
+      if (!data.father_surname || data.father_surname.trim() === "") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El apellido es obligatorio",
+          path: ["father_surname"],
+        });
+      }
+    }
+
+    // Para proveedores/personas EXTRANJERO el número de documento es libre:
+    // no es RUC ni DNI, así que no se le exige formato ni longitud fija.
+    if (data.type_person === "EXTRANJERO") {
+      return;
+    }
+
     // Validaciones específicas por tipo de documento
-    if (data.type_document === "DNI" && data.number_document.length !== 8) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El DNI debe tener exactamente 8 dígitos",
-        path: ["number_document"],
-      });
+    if (data.type_document === "DNI") {
+      if (!/^[0-9]+$/.test(data.number_document)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El DNI solo puede contener números",
+          path: ["number_document"],
+        });
+      } else if (data.number_document.length !== 8) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El DNI debe tener exactamente 8 dígitos",
+          path: ["number_document"],
+        });
+      }
     }
 
-    if (data.type_document === "RUC" && data.number_document.length !== 11) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El RUC debe tener exactamente 11 dígitos",
-        path: ["number_document"],
-      });
+    if (data.type_document === "RUC") {
+      if (!/^[0-9]+$/.test(data.number_document)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El RUC solo puede contener números",
+          path: ["number_document"],
+        });
+      } else if (data.number_document.length !== 11) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El RUC debe tener exactamente 11 dígitos",
+          path: ["number_document"],
+        });
+      }
     }
 
-    if (
-      data.type_document === "CE" &&
-      (data.number_document.length < 8 || data.number_document.length > 9)
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "El Carnet de Extranjería debe tener entre 8 y 9 dígitos",
-        path: ["number_document"],
-      });
+    if (data.type_document === "CE") {
+      if (!/^[0-9]+$/.test(data.number_document)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El Carnet de Extranjería solo puede contener números",
+          path: ["number_document"],
+        });
+      } else if (
+        data.number_document.length < 8 ||
+        data.number_document.length > 9
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "El Carnet de Extranjería debe tener entre 8 y 9 dígitos",
+          path: ["number_document"],
+        });
+      }
     }
 
     if (

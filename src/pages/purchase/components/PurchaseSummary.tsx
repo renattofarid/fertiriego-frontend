@@ -37,6 +37,10 @@ interface PurchaseSummaryProps {
   selectedSupplier?: PersonResource;
   onCancel?: () => void;
   selectedPaymentType?: string;
+  // Total de costos adicionales (flete, seguro, aduana, etc.). Es solo
+  // informativo: el backend es quien prorratea estos costos entre los
+  // ítems del detalle y recalcula el total real de la compra.
+  costsTotal?: number;
 }
 
 export function PurchaseSummary({
@@ -53,6 +57,7 @@ export function PurchaseSummary({
   selectedSupplier,
   onCancel,
   selectedPaymentType,
+  costsTotal = 0,
 }: PurchaseSummaryProps) {
   const warehouseWatch = form.watch("warehouse_id");
   const documentTypeWatch = form.watch("document_type");
@@ -224,6 +229,17 @@ export function PurchaseSummary({
               </span>
             </div>
 
+            {costsTotal > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">
+                  Costos Adicionales
+                </span>
+                <span className="font-medium">
+                  {currencySymbol} {formatNumber(costsTotal)}
+                </span>
+              </div>
+            )}
+
             <Separator className="bg-primary/20" />
 
             <div className="flex justify-between items-center p-3 rounded-lg bg-primary/10 border border-primary/30">
@@ -234,6 +250,12 @@ export function PurchaseSummary({
                 {currencySymbol} {formatNumber(calculateDetailsTotal())}
               </span>
             </div>
+            {costsTotal > 0 && (
+              <p className="text-xs text-center text-muted-foreground">
+                No incluye costos adicionales: el sistema los prorratea entre
+                los productos al guardar.
+              </p>
+            )}
             {selectedPaymentType && (
               <p className="text-xs text-center text-muted-foreground">
                 Tipo de pago:{" "}

@@ -3,6 +3,7 @@ import { NavUser } from "./nav-user";
 import { Separator } from "./ui/separator";
 import { SidebarTrigger } from "./ui/sidebar";
 import { NotificationPopover } from "./NotificationPopover";
+import { AttendanceMarkWidget } from "./AttendanceMarkWidget";
 
 export default function HeaderComponent() {
   const { user } = useAuthStore();
@@ -36,6 +37,7 @@ export default function HeaderComponent() {
         </div>
       </div>
       <div className="hidden md:flex items-center gap-2">
+        <AttendanceMarkWidget />
         <NotificationPopover />
         <NavUser user={user} />
       </div>

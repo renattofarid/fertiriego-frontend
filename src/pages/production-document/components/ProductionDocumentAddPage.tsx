@@ -1,34 +1,39 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useProductionDocumentStore } from "../lib/production-document.store";
 import {
   ERROR_MESSAGE,
-  SUCCESS_MESSAGE,
   errorToast,
   successToast,
 } from "@/lib/core.function";
 import { PRODUCTION_DOCUMENT } from "../lib/production-document.interface";
-import {
-  ProductionDocumentForm,
-  type ProductionDocumentFormValues,
-} from "./ProductionDocumentForm";
+import type { CreateProductionDocumentBatchRequest } from "../lib/production-document.interface";
+import { ProductionDocumentBatchForm } from "./ProductionDocumentBatchForm";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import PageSkeleton from "@/components/PageSkeleton";
 
 export default function ProductionDocumentAddPage() {
   const { ROUTE, MODEL } = PRODUCTION_DOCUMENT;
   const navigate = useNavigate();
-  const { createDocument, isSubmitting } = useProductionDocumentStore();
+  const location = useLocation();
+  const { createDocumentBatch, isSubmitting } = useProductionDocumentStore();
 
-  // Hooks para datos
+  const fromOrderId: number | undefined = location.state?.fromOrderId;
+
   const { data: warehouses = [], isLoading: loadingWarehouses } =
     useAllWarehouses();
 
-  const isLoading = loadingWarehouses ;
-
-  const onSubmit = async (values: ProductionDocumentFormValues) => {
+  // ✅ Toda orden agrupa uno o varios productos (items[]); generar un
+  // documento "desde una orden" significa elegir cuáles de esos productos se
+  // producen ahora. El backend expone /productiondocument/batch para crear,
+  // en una sola request, un documento independiente por cada ítem elegido.
+  const onSubmit = async (payload: CreateProductionDocumentBatchRequest) => {
     try {
-      await createDocument(values as any);
-      successToast(SUCCESS_MESSAGE(MODEL, "create"));
+      const created = await createDocumentBatch(payload);
+      successToast(
+        created.length > 1
+          ? `${created.length} documentos de producción generados correctamente`
+          : "Documento de producción generado correctamente",
+      );
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
@@ -37,16 +42,16 @@ export default function ProductionDocumentAddPage() {
     }
   };
 
-  if (isLoading) {
+  if (loadingWarehouses) {
     return <PageSkeleton />;
   }
 
   return (
-    <ProductionDocumentForm
-      mode="create"
+    <ProductionDocumentBatchForm
       onSubmit={onSubmit}
       isSubmitting={isSubmitting}
       warehouses={warehouses || []}
+      fromOrderId={fromOrderId}
     />
   );
 }

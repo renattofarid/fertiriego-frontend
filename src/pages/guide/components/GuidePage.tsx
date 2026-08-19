@@ -15,6 +15,7 @@ import {
   ERROR_MESSAGE,
 } from "@/lib/core.function";
 import { GuideColumns } from "./GuideColumns";
+import { GuideLinkOrderDialog } from "./GuideLinkOrderDialog";
 import DataTablePagination from "@/components/DataTablePagination";
 import {
   GUIDE,
@@ -38,6 +39,9 @@ export default function GuidePage() {
     id: number;
     currentStatus: GuideStatus;
   } | null>(null);
+  const [linkOrderGuide, setLinkOrderGuide] = useState<GuideResource | null>(
+    null,
+  );
   const { setOpen, setOpenMobile } = useSidebar();
   const { data, isLoading, refetch } = useGuides({
     page,
@@ -143,6 +147,7 @@ export default function GuidePage() {
           onChangeStatus: handleChangeStatus,
           onGenerateSale: handleGenerateSale,
           onDuplicate: handleDuplicate,
+          onLinkOrder: setLinkOrderGuide,
         })}
         data={data?.data || []}
       >
@@ -174,6 +179,12 @@ export default function GuidePage() {
           currentStatus={statusChangeData.currentStatus}
         />
       )}
+
+      <GuideLinkOrderDialog
+        guide={linkOrderGuide}
+        onClose={() => setLinkOrderGuide(null)}
+        onSuccess={refetch}
+      />
     </div>
   );
 }

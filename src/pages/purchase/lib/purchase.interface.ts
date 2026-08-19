@@ -19,6 +19,16 @@ export interface PurchaseDetailResource {
   created_at: string;
 }
 
+export interface PurchaseCostResource {
+  id: number;
+  correlativo: string;
+  purchase_id: number;
+  purchase_correlativo: string;
+  description: string;
+  total: string;
+  created_at: string;
+}
+
 export interface PurchaseInstallmentResource {
   id: number;
   correlativo: string;
@@ -55,6 +65,9 @@ export interface PurchaseResource {
   observations: string;
   details: PurchaseDetailResource[];
   installments: PurchaseInstallmentResource[];
+  // Costos adicionales de la factura de importación (flete, seguro, aduana, etc.)
+  // que el backend prorratea entre los ítems del detalle.
+  purchase_cost: PurchaseCostResource[];
   created_at: string;
 }
 
@@ -84,6 +97,14 @@ export interface CreatePurchaseInstallmentRequest {
   amount: number;
 }
 
+// Costo adicional de la compra (flete, seguro, aduana, etc.). Se envía junto
+// al resto del payload de creación/actualización para que el backend lo
+// prorratee entre los ítems del detalle.
+export interface CreatePurchaseCostRequest {
+  description: string;
+  total: number;
+}
+
 export interface CreatePurchaseRequest {
   supplier_id: number;
   warehouse_id: number;
@@ -98,6 +119,16 @@ export interface CreatePurchaseRequest {
   observations: string;
   details: CreatePurchaseDetailRequest[];
   installments: CreatePurchaseInstallmentRequest[];
+  purchase_cost: CreatePurchaseCostRequest[];
+}
+
+// Ítem del array purchase_cost al actualizar la compra: los costos ya
+// existentes llevan su `id` (para que el backend sepa cuál actualizar);
+// los nuevos costos que se agregan en la edición no llevan `id`.
+export interface UpdatePurchaseCostRequestItem {
+  id?: number;
+  description: string;
+  total: number;
 }
 
 export interface UpdatePurchaseRequest {
@@ -112,6 +143,7 @@ export interface UpdatePurchaseRequest {
   payment_type?: string;
   currency?: string;
   observations?: string;
+  purchase_cost?: UpdatePurchaseCostRequestItem[];
 }
 
 // ===== DETAIL MANAGEMENT =====

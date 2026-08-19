@@ -25,8 +25,17 @@ import { WORKER, WORKER_ROLE_ID } from "../lib/worker.interface";
 import { PersonRoleAssignment } from "@/pages/person/components/PersonRoleAssignment";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+import AssignScheduleModal from "@/pages/hr-schedule/components/AssignScheduleModal";
+import VacationControlModal from "@/pages/hr-vacation/components/VacationControlModal";
+import WorkerOvertimeRateModal from "@/pages/hr-overtime/components/WorkerOvertimeRateModal";
 
 const { MODEL, ICON } = WORKER;
+
+function getPersonDisplayName(person: PersonResource) {
+  return person.type_document === "RUC"
+    ? person.business_name
+    : `${person.names} ${person.father_surname} ${person.mother_surname}`.trim();
+}
 
 export default function WorkerPage() {
   const navigate = useNavigate();
@@ -35,6 +44,12 @@ export default function WorkerPage() {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [roleAssignmentPerson, setRoleAssignmentPerson] =
+    useState<PersonResource | null>(null);
+  const [assignSchedulePerson, setAssignSchedulePerson] =
+    useState<PersonResource | null>(null);
+  const [vacationControlPerson, setVacationControlPerson] =
+    useState<PersonResource | null>(null);
+  const [overtimeRatePerson, setOvertimeRatePerson] =
     useState<PersonResource | null>(null);
   const { data, isLoading, refetch } = useWorkers({
     search,
@@ -87,6 +102,14 @@ export default function WorkerPage() {
         columns={PersonColumns({
           onEdit: (person) => navigate(`/trabajadores/editar/${person}`),
           onDelete: setDeleteId,
+          onAssignSchedule: setAssignSchedulePerson,
+          onViewReport: (person) => navigate(`/trabajadores/reporte/${person.id}`),
+          onViewPayrollReport: (person) =>
+            navigate(`/trabajadores/planilla/${person.id}`),
+          onConfigureVacation: setVacationControlPerson,
+          onViewOvertimeHistory: (person) =>
+            navigate(`/trabajadores/horas-extras/${person.id}`),
+          onSetOvertimeRate: setOvertimeRatePerson,
           // onManageRoles: handleManageRoles,
         })}
         data={data?.data || []}
@@ -130,6 +153,33 @@ export default function WorkerPage() {
           onConfirm={handleDelete}
           // title={`Eliminar ${MODEL.name}`}
           // description={`¿Está seguro de que desea eliminar este ${MODEL.name.toLowerCase()}? Esta acción no se puede deshacer.`}
+        />
+      )}
+
+      {assignSchedulePerson && (
+        <AssignScheduleModal
+          open={true}
+          onClose={() => setAssignSchedulePerson(null)}
+          presetPersonId={assignSchedulePerson.id}
+          presetPersonName={getPersonDisplayName(assignSchedulePerson)}
+        />
+      )}
+
+      {vacationControlPerson && (
+        <VacationControlModal
+          personId={vacationControlPerson.id}
+          open={true}
+          onClose={() => setVacationControlPerson(null)}
+        />
+      )}
+
+      {overtimeRatePerson && (
+        <WorkerOvertimeRateModal
+          personId={overtimeRatePerson.id}
+          personName={getPersonDisplayName(overtimeRatePerson)}
+          currentRate={overtimeRatePerson.overtime_rate_override}
+          open={true}
+          onClose={() => setOvertimeRatePerson(null)}
         />
       )}
     </div>

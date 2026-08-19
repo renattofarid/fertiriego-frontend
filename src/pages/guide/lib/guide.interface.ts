@@ -133,6 +133,10 @@ export interface CreateGuideRequest {
   details: CreateGuideDetailRequest[];
 }
 
+export interface UpdateGuideOrderRequest {
+  order_id: number;
+}
+
 export interface UpdateGuideRequest {
   warehouse_id?: number;
   issue_date?: string;

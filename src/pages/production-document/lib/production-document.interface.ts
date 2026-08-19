@@ -8,7 +8,7 @@ import { Factory } from "lucide-react";
 
 // ===== API RESOURCES =====
 
-export type ProductionDocumentStatus = "PROCESADO" | "CANCELADO";
+export type ProductionDocumentStatus = "BORRADOR" | "PROCESADO" | "CANCELADO";
 
 export interface ProductionDocumentComponentResource {
   id: number;
@@ -45,6 +45,7 @@ export interface ProductionDocumentComponentResource {
 export interface ProductionDocumentResource {
   id: number;
   company_id: number;
+  production_order_id?: number | null;
   warehouse_origin_id: number;
   warehouse_dest_id: number;
   product_id: number;
@@ -128,6 +129,7 @@ export interface CreateProductionDocumentComponentRequest {
 export interface CreateProductionDocumentRequest {
   warehouse_origin_id: number;
   warehouse_dest_id: number;
+  production_order_id?: number | null;
   product_id: number;
   user_id: number;
   responsible_id: number;
@@ -137,6 +139,37 @@ export interface CreateProductionDocumentRequest {
   overhead_cost: number;
   observations?: string;
   components: CreateProductionDocumentComponentRequest[];
+}
+
+// ===== CREATE BATCH (varios documentos desde una orden de producción) =====
+// ✅ Endpoint confirmado por backend: POST /productiondocument/batch. Genera
+// un documento de producción independiente por cada ítem enviado, todos
+// compartiendo almacén origen/destino y fecha de producción. Cada ítem se
+// referencia por "production_order_item_id" (el id del ítem de la orden, NO
+// el product_id), que es lo que permite al backend descontar el pendiente de
+// ese ítem puntual aunque la orden tenga varios productos.
+export interface CreateProductionDocumentBatchItemRequest {
+  production_order_item_id: number;
+  quantity_produced: number;
+  responsible_id?: number | null;
+  labor_cost?: number | null;
+  overhead_cost?: number | null;
+  observations?: string | null;
+  // ⚠️ Opcional: solo se envía si se quiere sobrescribir el BOM del ítem.
+  // Si se omite, el backend usa los componentes ya definidos en la orden.
+  components?: CreateProductionDocumentComponentRequest[] | null;
+}
+
+export interface CreateProductionDocumentBatchRequest {
+  warehouse_origin_id: number;
+  warehouse_dest_id: number;
+  production_date?: string | null;
+  items: CreateProductionDocumentBatchItemRequest[];
+}
+
+export interface ProductionDocumentBatchResponse {
+  message?: string;
+  data: ProductionDocumentResource[];
 }
 
 export interface UpdateProductionDocumentRequest {
@@ -158,18 +191,23 @@ export interface UpdateProductionDocumentRequest {
 export interface GetProductionDocumentsParams {
   page?: number;
   per_page?: number;
-  company_id?: number;
-  warehouse_origin_id?: number;
-  product_id?: number;
-  responsible_id?: number;
-  document_number?: string;
-  from?: string;
-  to?: string;
+  created_at?: string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+  document_number?: string | null;
+  product_id?: number | null;
+  production_date?: string | null;
+  responsible_id?: number | null;
+  status?: string | null;
+  user_id?: number | null;
+  warehouse_dest_id?: number | null;
+  warehouse_origin_id?: number | null;
 }
 
 // ===== CONSTANTS =====
 
 export const PRODUCTION_DOCUMENT_ENDPOINT = "/productiondocument";
+export const PRODUCTION_DOCUMENT_BATCH_ENDPOINT = "/productiondocument/batch";
 export const PRODUCTION_DOCUMENT_QUERY_KEY = "production-documents";
 
 // ===== ROUTES =====
@@ -182,6 +220,7 @@ export const ProductionDocumentDetailRoute = "/documentos-produccion/:id";
 // ===== STATUS OPTIONS =====
 
 export const PRODUCTION_DOCUMENT_STATUSES = [
+  { value: "BORRADOR", label: "Borrador" },
   { value: "PROCESADO", label: "Procesado" },
   { value: "CANCELADO", label: "Cancelado" },
 ] as const;
