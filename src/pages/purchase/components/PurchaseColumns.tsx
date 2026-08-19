@@ -12,7 +12,7 @@ import type { PurchaseResource } from "../lib/purchase.interface";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DeleteButton } from "@/components/SimpleDeleteDialog";
-import { parse } from "date-fns";
+import { formatDateSafe } from "@/lib/utils";
 
 interface PurchaseColumnsProps {
   onEdit: (purchase: PurchaseResource) => void;
@@ -65,36 +65,14 @@ export const getPurchaseColumns = ({
   {
     accessorKey: "issue_date",
     header: "Fecha Emisión",
-    cell: ({ row }) => {
-      const date = parse(row.original.issue_date, "yyyy-MM-dd", new Date());
-      return (
-        <span>
-          {date.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </span>
-      );
-    },
+    cell: ({ row }) => <span>{formatDateSafe(row.original.issue_date)}</span>,
   },
   {
     accessorKey: "due_date",
     header: "Fecha Vencimiento",
-    cell: ({ row }) => {
-      const date = row.original.due_date
-        ? parse(row.original.due_date, "yyyy-MM-dd", new Date())
-        : null;
-      return (
-        <span>
-          {date?.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          })}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <span>{formatDateSafe(row.original.due_date, "")}</span>
+    ),
   },
   {
     accessorKey: "payment_type",

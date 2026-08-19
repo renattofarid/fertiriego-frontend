@@ -29,6 +29,9 @@ import PageWrapper from "@/components/PageWrapper";
 import DataTablePagination from "@/components/DataTablePagination";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useQueryClient } from "@tanstack/react-query";
+import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 
 export default function SalePage() {
   const navigate = useNavigate();
@@ -55,6 +58,16 @@ export default function SalePage() {
     useState<SaleInstallmentResource | null>(null);
   const [openPaymentSheet, setOpenPaymentSheet] = useState(false);
   const { setOpen, setOpenMobile } = useSidebar();
+  const queryClient = useQueryClient();
+
+  // Anular/eliminar una venta devuelve stock en el backend; hay que invalidar
+  // las queries de stock (producto-almacén y productos) para que cualquier
+  // formulario ya montado (ej. crear venta) refleje el stock actualizado
+  // sin esperar a que expire el cache de react-query.
+  const invalidateStockQueries = () => {
+    queryClient.invalidateQueries({ queryKey: [WAREHOUSE_PRODUCT.QUERY_KEY] });
+    queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
+  };
 
   const { data, isLoading, refetch } = useSale({
     search,
@@ -181,6 +194,7 @@ export default function SalePage() {
       }
       successToast("Documento anulado correctamente");
       refetch();
+      invalidateStockQueries();
     } catch (error: any) {
       errorToast(
         error?.response?.data?.message || "Error al anular el documento",
@@ -199,6 +213,7 @@ export default function SalePage() {
       try {
         await removeSale(saleToDelete);
         refetch();
+        invalidateStockQueries();
         setOpenDelete(false);
         setSaleToDelete(null);
       } catch (error) {

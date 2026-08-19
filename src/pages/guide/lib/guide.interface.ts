@@ -275,13 +275,6 @@ export const GUIDE: ModelComplete<GuideSchema> = {
   EMPTY: {} as any,
 };
 
-export interface GuideDetailComponent {
-  component_id: number;
-  component_name: string;
-  quantity_required: number;
-  quantity_used: number;
-}
-
 export interface GuideDetailResource {
   id: number;
   product_id: number;
@@ -292,7 +285,6 @@ export interface GuideDetailResource {
   unit?: string;
   unit_measure?: string;
   weight: string;
-  components?: GuideDetailComponent[] | null;
 }
 
 export interface GuideOrder {

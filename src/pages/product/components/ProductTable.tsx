@@ -1,15 +1,12 @@
 import { DataTable } from "@/components/DataTable.tsx";
 import type { ProductResource } from "../lib/product.interface";
-import type { ColumnDef, OnChangeFn, RowSelectionState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 
 interface Props {
   columns: ColumnDef<ProductResource>[];
   data: ProductResource[];
   children?: React.ReactNode;
   isLoading?: boolean;
-  rowSelection?: RowSelectionState;
-  onRowSelectionChange?: OnChangeFn<RowSelectionState>;
-  enableRowSelection?: boolean;
 }
 
 export default function ProductTable({
@@ -17,9 +14,6 @@ export default function ProductTable({
   data,
   children,
   isLoading,
-  rowSelection,
-  onRowSelectionChange,
-  enableRowSelection,
 }: Props) {
   return (
     <div className="border-none text-muted-foreground max-w-full">
@@ -28,10 +22,6 @@ export default function ProductTable({
         data={data}
         isLoading={isLoading}
         initialColumnVisibility={{ technical_sheet: false, product_images: false }}
-        enableRowSelection={enableRowSelection}
-        rowSelection={rowSelection}
-        onRowSelectionChange={onRowSelectionChange}
-        getRowId={(row) => row.id.toString()}
       >
         {children}
       </DataTable>

@@ -181,7 +181,7 @@ export default function HomePage() {
 
   const chartLines = useMemo(() => {
     return safeArray(dashboardData?.comparativo_por_fecha).map((dia: any) => ({
-      label: dia.fecha || "Sin fecha",
+      date: dia.fecha || "Sin fecha",
       compras: Number(dia.compras || 0),
       ventas: Number(dia.ventas || 0)
     }));
@@ -195,8 +195,13 @@ export default function HomePage() {
     }));
   }, [dashboardData]);
 
-  const chartVentasMetodos = useMemo(() => safeArray(dashboardData?.metodos_pago?.ventas), [dashboardData]);
-  const chartComprasMetodos = useMemo(() => safeArray(dashboardData?.metodos_pago?.compras), [dashboardData]);
+  const chartPayment = useMemo(() => {
+    return safeArray(dashboardData?.metodos_pago?.ventas).map((m: any) => ({
+      name: String(m.payment_type || m.metodo || "Otros"),
+      value: Number(m.monto_total || m.cantidad || 0),
+      fill: String(m.payment_type).toUpperCase() === "CONTADO" ? "#3b82f6" : "#f87171"
+    }));
+  }, [dashboardData]);
 
    if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
@@ -291,7 +296,7 @@ export default function HomePage() {
           <SalesVsPurchasesChart data={chartLines} />
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
             <TopProductsChart data={chartTop5} currencySymbol={symbol} />
-            <PaymentMethodsChart ventasMetodos={chartVentasMetodos} comprasMetodos={chartComprasMetodos} />
+            <PaymentMethodsChart data={chartPayment} />
           </div>
         </div>
       </div>

@@ -7,8 +7,10 @@ import formatCurrency from "@/lib/formatCurrency";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 
-export const formatDate = (dateString: string) => {
+export const formatDate = (dateString?: string | null) => {
+  if (!dateString) return "N/A";
   const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("es-ES", {
     day: "2-digit",
     month: "2-digit",
@@ -69,19 +71,25 @@ export const getAccountsPayableColumns = (
           <span className="text-sm">{formatDate(row.original.due_date)}</span>
           <span className="text-xs text-muted-foreground">
             {(() => {
+              if (row.original.status === "PAGADO") {
+                return "Pagado";
+              }
+              if (!row.original.due_date) return "Sin fecha";
+
+              const dueDateParsed = parse(
+                row.original.due_date,
+                "yyyy-MM-dd",
+                new Date(),
+              );
+              if (isNaN(dueDateParsed.getTime())) return "Sin fecha";
+
               const daysUntilDue = Math.ceil(
-                (parse(
-                  row.original.due_date,
-                  "yyyy-MM-dd",
-                  new Date(),
-                ).getTime() -
+                (dueDateParsed.getTime() -
                   new Date().getTime()) /
                   (1000 * 60 * 60 * 24),
               );
 
-              if (row.original.status === "PAGADO") {
-                return "Pagado";
-              } else if (daysUntilDue > 0) {
+              if (daysUntilDue > 0) {
                 return `${daysUntilDue} días para vencer`;
               } else if (daysUntilDue === 0) {
                 return "Vence hoy";

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { usePurchaseStore } from "./purchase.store";
-import { getAllPurchases, getPurchases, getPurchaseDetails, getPurchasesInRange } from "./purchase.actions";
+import { getAllPurchases, getPurchases, getPurchaseDetails } from "./purchase.actions";
 import { useQuery } from "@tanstack/react-query";
 import { PURCHASE, type PurchaseResource } from "./purchase.interface";
 
@@ -22,18 +22,6 @@ export const useAllPurchases = () => {
   return useQuery({
     queryKey: [PURCHASE.QUERY_KEY, "all"],
     queryFn: () => getAllPurchases(),
-  });
-};
-
-/**
- * Hook to fetch all purchases within a date range
- */
-export const usePurchasesInRange = (from: string, to: string) => {
-  return useQuery({
-    queryKey: ["purchases-in-range", from, to],
-    queryFn: () => getPurchasesInRange(from, to),
-    enabled: !!from && !!to,
-    refetchOnWindowFocus: false,
   });
 };
 

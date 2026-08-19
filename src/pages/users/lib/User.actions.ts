@@ -14,8 +14,8 @@ const { ENDPOINT } = USER;
 export async function getUser({ params }: getUserProps): Promise<UserResponse> {
   const config: AxiosRequestConfig = {
     params: {
-      per_page: DEFAULT_PER_PAGE,
       ...params,
+      per_page: DEFAULT_PER_PAGE,
     },
   };
   const { data } = await api.get<UserResponse>(ENDPOINT, config);
