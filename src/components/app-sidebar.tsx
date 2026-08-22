@@ -26,7 +26,6 @@ import { TYPE_USER } from "@/pages/type-users/lib/typeUser.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
 import { USER } from "@/pages/users/lib/User.interface";
-import { ROLE } from "@/pages/role/lib/role.interface";
 import { MENU_GROUP } from "@/pages/menu-group/lib/menuGroup.interface";
 import { PERMISSION } from "@/pages/permission/lib/permission.interface";
 import { COMPANY } from "@/pages/company/lib/company.interface";
@@ -110,12 +109,6 @@ const {
   ROUTE: CompanyRoute,
   MODEL: { name: CompanyTitle },
 } = COMPANY;
-
-const {
-  ICON_REACT: RoleIcon,
-  ROUTE: RoleRoute,
-  MODEL: { name: RoleTitle },
-} = ROLE;
 
 const {
   ICON_REACT: MenuGroupIcon,
@@ -767,11 +760,6 @@ const data = {
           title: TypeUserTitle,
           url: TypeUserRoute,
           icon: TypeUserIcon,
-        },
-        {
-          title: RoleTitle,
-          url: RoleRoute,
-          icon: RoleIcon,
         },
         {
           title: MenuGroupTitle,

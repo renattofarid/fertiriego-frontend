@@ -5,7 +5,7 @@ export function useRoles(params?: Record<string, unknown>) {
   const { roles, meta, isLoading, error, fetchRoles } = useRoleStore();
 
   useEffect(() => {
-    if (!roles) fetchRoles({ params });
+    if (!roles) fetchRoles(params);
   }, [roles, fetchRoles]);
 
   return {

@@ -29,14 +29,15 @@ export default function RolePage() {
   const { data, meta, isLoading, refetch } = useRoles();
 
   useEffect(() => {
-    refetch({ params: { page, search, per_page } });
+    refetch({ page, search, per_page });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, search, per_page]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
       await deleteRole(deleteId);
-      await refetch({ params: { page, search, per_page } });
+      await refetch({ page, search, per_page });
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
       errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
@@ -83,7 +84,7 @@ export default function RolePage() {
           onOpenChange={(open) => !open && setEditId(null)}
           onSuccess={() => {
             setEditId(null);
-            refetch({ params: { page } });
+            refetch({ page });
           }}
         />
       )}
