@@ -19,6 +19,8 @@ import ProductAddPage from "./pages/product/components/ProductAddPage";
 import ProductEditPage from "./pages/product/components/ProductEditPage";
 import ProductDetail from "./pages/product/components/ProductDetail";
 import RolePage from "./pages/role/components/RolePage";
+import MenuGroupPage from "./pages/menu-group/components/MenuGroupPage";
+import PermissionPage from "./pages/permission/components/PermissionPage";
 import ClientPage from "./pages/client/components/ClientPage";
 import ClientAddPage from "./pages/client/components/ClientAddPage";
 import ClientEditPage from "./pages/client/components/ClientEditPage";
@@ -42,6 +44,8 @@ import { UNIT } from "./pages/unit/lib/unit.interface";
 import { CATEGORY } from "./pages/category/lib/category.interface";
 import { PRODUCT } from "./pages/product/lib/product.interface";
 import { ROLE } from "./pages/role/lib/role.interface";
+import { MENU_GROUP } from "./pages/menu-group/lib/menuGroup.interface";
+import { PERMISSION } from "./pages/permission/lib/permission.interface";
 import { CLIENT } from "./pages/client/lib/client.interface";
 import { SUPPLIER } from "./pages/supplier/lib/supplier.interface";
 import { WORKER } from "./pages/worker/lib/worker.interface";
@@ -201,6 +205,8 @@ const { ROUTE: CategoryRoute } = CATEGORY;
 const { ROUTE: ProductRoute } = PRODUCT;
 const { ROUTE: ProductTypeRoute } = PRODUCT_TYPE;
 const { ROUTE: RoleRoute } = ROLE;
+const { ROUTE: MenuGroupRoute } = MENU_GROUP;
+const { ROUTE: PermissionRoute } = PERMISSION;
 const { ROUTE: ClientRoute } = CLIENT;
 const { ROUTE: SupplierRoute } = SUPPLIER;
 const { ROUTE: WorkerRoute } = WORKER;
@@ -417,6 +423,24 @@ export default function App() {
             element={
               <ProtectedRoute path={RoleRoute}>
                 <RolePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={MenuGroupRoute}
+            element={
+              <ProtectedRoute path={MenuGroupRoute}>
+                <MenuGroupPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PermissionRoute}
+            element={
+              <ProtectedRoute path={PermissionRoute}>
+                <PermissionPage />
               </ProtectedRoute>
             }
           />

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useRoles } from "../lib/role.hook";
+import { usePermissions } from "../lib/permission.hook";
 import TitleComponent from "@/components/TitleComponent";
-import RoleActions from "./RoleActions";
-import RoleTable from "./RoleTable";
-import RoleOptions from "./RoleOptions";
-import { deleteRole } from "../lib/role.actions";
+import PermissionActions from "./PermissionActions";
+import PermissionTable from "./PermissionTable";
+import PermissionOptions from "./PermissionOptions";
+import { deletePermission } from "../lib/permission.actions";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import {
   successToast,
@@ -12,21 +12,21 @@ import {
   SUCCESS_MESSAGE,
   ERROR_MESSAGE,
 } from "@/lib/core.function";
-import { RoleColumns } from "./RoleColumns";
+import { PermissionColumns } from "./PermissionColumns";
 import DataTablePagination from "@/components/DataTablePagination";
-import { ROLE } from "../lib/role.interface";
-import RoleModal from "./RoleModal";
+import { PERMISSION } from "../lib/permission.interface";
+import PermissionModal from "./PermissionModal";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 
-const { MODEL, ICON } = ROLE;
+const { MODEL, ICON } = PERMISSION;
 
-export default function RolePage() {
+export default function PermissionPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [editId, setEditId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const { data, meta, isLoading, refetch } = useRoles();
+  const { data, meta, isLoading, refetch } = usePermissions();
 
   useEffect(() => {
     refetch({ page, search, per_page });
@@ -36,11 +36,14 @@ export default function RolePage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await deleteRole(deleteId);
+      await deletePermission(deleteId);
       await refetch({ page, search, per_page });
       successToast(SUCCESS_MESSAGE(MODEL, "delete"));
     } catch (error: any) {
-      errorToast((error.response.data.message ?? error.response.data.error), ERROR_MESSAGE(MODEL, "delete"));
+      errorToast(
+        error.response?.data?.message ?? error.response?.data?.error,
+        ERROR_MESSAGE(MODEL, "delete")
+      );
     } finally {
       setDeleteId(null);
     }
@@ -50,23 +53,23 @@ export default function RolePage() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <TitleComponent
-          title={MODEL.name}
+          title={MODEL.plural!}
           subtitle={MODEL.description}
           icon={ICON}
         />
-        <RoleActions />
+        <PermissionActions />
       </div>
 
-      <RoleTable
+      <PermissionTable
         isLoading={isLoading}
-        columns={RoleColumns({
+        columns={PermissionColumns({
           onEdit: setEditId,
           onDelete: setDeleteId,
         })}
         data={data || []}
       >
-        <RoleOptions search={search} setSearch={setSearch} />
-      </RoleTable>
+        <PermissionOptions search={search} setSearch={setSearch} />
+      </PermissionTable>
 
       <DataTablePagination
         page={page}
@@ -78,14 +81,12 @@ export default function RolePage() {
       />
 
       {editId !== null && (
-        <RoleModal
-          roleId={editId}
+        <PermissionModal
+          id={editId}
           open={true}
-          onOpenChange={(open) => !open && setEditId(null)}
-          onSuccess={() => {
-            setEditId(null);
-            refetch({ page });
-          }}
+          onClose={() => setEditId(null)}
+          title={`Editar ${MODEL.name}`}
+          mode="edit"
         />
       )}
 

@@ -11,7 +11,6 @@ import type {
   RoleResource,
   CreateRoleRequest,
   UpdateRoleRequest,
-  GetRolesProps,
 } from "./role.interface";
 import type { Meta } from "@/lib/pagination.interface";
 
@@ -24,7 +23,7 @@ interface RoleStore {
   isFinding: boolean;
   isSubmitting: boolean;
   error?: string;
-  fetchRoles: (params: GetRolesProps) => Promise<void>;
+  fetchRoles: (params?: Record<string, unknown>) => Promise<void>;
   fetchAllRoles: () => Promise<void>;
   fetchRoleById: (id: number) => Promise<void>;
   createRole: (data: CreateRoleRequest) => Promise<void>;

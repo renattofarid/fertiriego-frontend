@@ -26,6 +26,8 @@ import { TYPE_USER } from "@/pages/type-users/lib/typeUser.interface";
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { NavUser } from "./nav-user";
 import { USER } from "@/pages/users/lib/User.interface";
+import { MENU_GROUP } from "@/pages/menu-group/lib/menuGroup.interface";
+import { PERMISSION } from "@/pages/permission/lib/permission.interface";
 import { COMPANY } from "@/pages/company/lib/company.interface";
 import { BRANCH } from "@/pages/branch/lib/branch.interface";
 import { WAREHOUSE } from "@/pages/warehouse/lib/warehouse.interface";
@@ -107,6 +109,18 @@ const {
   ROUTE: CompanyRoute,
   MODEL: { name: CompanyTitle },
 } = COMPANY;
+
+const {
+  ICON_REACT: MenuGroupIcon,
+  ROUTE: MenuGroupRoute,
+  MODEL: { plural: MenuGroupTitle },
+} = MENU_GROUP;
+
+const {
+  ICON_REACT: PermissionIcon,
+  ROUTE: PermissionRoute,
+  MODEL: { plural: PermissionTitle },
+} = PERMISSION;
 
 const {
   ICON_REACT: BranchIcon,
@@ -746,6 +760,16 @@ const data = {
           title: TypeUserTitle,
           url: TypeUserRoute,
           icon: TypeUserIcon,
+        },
+        {
+          title: MenuGroupTitle,
+          url: MenuGroupRoute,
+          icon: MenuGroupIcon,
+        },
+        {
+          title: PermissionTitle,
+          url: PermissionRoute,
+          icon: PermissionIcon,
         },
       ],
     },
