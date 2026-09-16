@@ -41,6 +41,7 @@ export interface PurchaseInstallmentResource {
   pending_amount: string;
   status: string;
   created_at: string;
+  currency?: string;
 }
 
 export interface PurchaseResource {

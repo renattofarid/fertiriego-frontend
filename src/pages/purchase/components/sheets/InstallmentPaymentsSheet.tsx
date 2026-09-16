@@ -8,7 +8,8 @@ import { usePurchaseInstallmentStore } from "../../lib/purchase-installment.stor
 import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { PurchasePaymentTable } from "../PurchasePaymentTable";
 import { PurchasePaymentForm } from "../forms/PurchasePaymentForm";
-import { errorToast, successToast } from "@/lib/core.function";
+import { errorToast, matchCurrency, successToast } from "@/lib/core.function";
+import { formatCurrency } from "@/lib/formatCurrency";
 import GeneralSheet from "@/components/GeneralSheet";
 import { GroupFormSection } from "@/components/GroupFormSection";
 
@@ -120,6 +121,7 @@ export function InstallmentPaymentsSheet({
   const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.total_paid.toString()), 0) || 0;
   const pending = parseFloat(currentInstallment.pending_amount.toString());
   const isPaid = currentInstallment.status === "PAGADO";
+  const currencySymbol = matchCurrency(currentInstallment.currency || "PEN");
   const canAddPayment = pending > 0 && !isPaid;
 
   return (
@@ -172,19 +174,19 @@ export function InstallmentPaymentsSheet({
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Monto Original</span>
             <p className="font-bold text-base">
-              S/ {parseFloat(currentInstallment.amount).toFixed(2)}
+              {formatCurrency(parseFloat(currentInstallment.amount), { currencySymbol })}
             </p>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Total Pagado</span>
             <p className="font-bold text-primary text-base">
-              S/ {totalPaid.toFixed(2)}
+              {formatCurrency(totalPaid, { currencySymbol })}
             </p>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Saldo Pendiente</span>
             <p className="font-bold text-orange-600 text-base">
-              S/ {pending.toFixed(2)}
+              {formatCurrency(pending, { currencySymbol })}
             </p>
           </div>
         </GroupFormSection>

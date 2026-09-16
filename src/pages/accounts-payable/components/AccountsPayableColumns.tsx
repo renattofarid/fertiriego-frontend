@@ -4,6 +4,7 @@ import { Calendar, Wallet, Eye } from "lucide-react";
 import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 import { parse } from "date-fns";
 import formatCurrency from "@/lib/formatCurrency";
+import { matchCurrency } from "@/lib/core.function";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
 
@@ -108,7 +109,7 @@ export const getAccountsPayableColumns = (
     cell: ({ row }) => (
       <div className="text-right font-semibold">
         {formatCurrency(Number(row.original.amount), {
-          currencySymbol: "S/.",
+          currencySymbol: matchCurrency(row.original.currency || "PEN"),
         })}
       </div>
     ),
@@ -126,7 +127,7 @@ export const getAccountsPayableColumns = (
           }`}
         >
           {formatCurrency(pending, {
-            currencySymbol: "S/.",
+            currencySymbol: matchCurrency(row.original.currency || "PEN"),
           })}
         </div>
       );
