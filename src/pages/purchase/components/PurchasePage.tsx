@@ -30,6 +30,7 @@ export const PurchasePage = () => {
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedPaymentType, setSelectedPaymentType] = useState("");
+  const [selectedSupplierId, setSelectedSupplierId] = useState("");
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedPurchase, setSelectedPurchase] =
     useState<PurchaseResource | null>(null);
@@ -44,6 +45,7 @@ export const PurchasePage = () => {
     search,
     status: selectedStatus,
     payment_type: selectedPaymentType,
+    supplier_id: selectedSupplierId,
   });
   const { removePurchase } = usePurchaseStore();
 
@@ -54,7 +56,7 @@ export const PurchasePage = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, per_page, selectedStatus, selectedPaymentType]);
+  }, [search, per_page, selectedStatus, selectedPaymentType, selectedSupplierId]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -144,7 +146,13 @@ export const PurchasePage = () => {
           subtitle="Gestión de compras y pagos"
           icon="ShoppingCart"
         />
-        <PurchaseActions onCreatePurchase={handleCreatePurchase} />
+        <PurchaseActions
+          onCreatePurchase={handleCreatePurchase}
+          search={search}
+          status={selectedStatus}
+          paymentType={selectedPaymentType}
+          supplierId={selectedSupplierId}
+        />
       </div>
 
       <PurchaseTable
@@ -163,6 +171,8 @@ export const PurchasePage = () => {
           setSelectedStatus={setSelectedStatus}
           selectedPaymentType={selectedPaymentType}
           setSelectedPaymentType={setSelectedPaymentType}
+          selectedSupplierId={selectedSupplierId}
+          setSelectedSupplierId={setSelectedSupplierId}
         />
       </PurchaseTable>
 
