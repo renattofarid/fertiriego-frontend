@@ -85,7 +85,7 @@ export default function DriverPage() {
       <PersonTable
         isLoading={isLoading}
         columns={PersonColumns({
-          onEdit: (person) => navigate(`/conductores/editar/${person}`),
+          onEdit: (id) => navigate(`${DRIVER.ROUTE}/editar/${id}`),
           onDelete: setDeleteId,
           // onManageRoles: handleManageRoles,
         })}
