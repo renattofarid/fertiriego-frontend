@@ -78,10 +78,11 @@ export default function OrderPendingReportPage() {
         id: "pending_details",
         header: "Productos pendientes",
         cell: ({ row }) => (
-          <div className="min-w-[320px] overflow-hidden rounded-md border">
+          <div className="min-w-[380px] overflow-hidden rounded-md border">
             <table className="w-full text-xs">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr>
+                  <th className="px-2 py-1 text-left font-medium">Código</th>
                   <th className="px-2 py-1 text-left font-medium">Producto</th>
                   <th className="px-2 py-1 text-right font-medium">Total</th>
                   <th className="px-2 py-1 text-right font-medium">Entregado</th>
@@ -91,12 +92,10 @@ export default function OrderPendingReportPage() {
               <tbody>
                 {row.original.pending_details.map((detail) => (
                   <tr key={detail.id} className="border-t">
-                    <td className="px-2 py-1">
-                      <div>{detail.product_name}</div>
-                      {detail.product_code && (
-                        <div className="text-muted-foreground">{detail.product_code}</div>
-                      )}
+                    <td className="px-2 py-1 font-mono text-muted-foreground">
+                      {detail.product_code || "-"}
                     </td>
+                    <td className="px-2 py-1">{detail.product_name}</td>
                     <td className="px-2 py-1 text-right">{detail.quantity_total}</td>
                     <td className="px-2 py-1 text-right">{detail.quantity_shipped}</td>
                     <td className="px-2 py-1 text-right font-semibold text-amber-600">
