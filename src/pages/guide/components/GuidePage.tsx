@@ -79,9 +79,17 @@ export default function GuidePage() {
     return params;
   }, [filters]);
 
+  // SearchInput llama onChange en cada render aunque el valor no cambie;
+  // si no hay cambios reales no tocamos el estado para evitar un bucle de renders.
   const handleFiltersChange = (changes: Partial<GuideFilters>) => {
-    setFilters((prev) => ({ ...prev, ...changes }));
-    setPage(1);
+    setFilters((prev) => {
+      const hasChanges = (Object.keys(changes) as (keyof GuideFilters)[]).some(
+        (key) => changes[key] !== prev[key],
+      );
+      if (!hasChanges) return prev;
+      setPage(1);
+      return { ...prev, ...changes };
+    });
   };
 
   const { data, isLoading, refetch } = useGuides({
@@ -89,7 +97,10 @@ export default function GuidePage() {
     per_page,
     ...filterParams,
   });
-  const { removeGuide, changeStatus } = useGuideStore();
+  // Selectores puntuales: suscribirse a todo el store re-renderiza la página
+  // (y remonta las celdas) con cualquier cambio, p. ej. al cargar motivos.
+  const removeGuide = useGuideStore((s) => s.removeGuide);
+  const changeStatus = useGuideStore((s) => s.changeStatus);
   const queryClient = useQueryClient();
 
   // Anular una guía (o eliminarla) puede devolver stock en el backend;
@@ -172,6 +183,22 @@ export default function GuidePage() {
     return queryString ? `${baseExcelUrl}?${queryString}` : baseExcelUrl;
   }, [filterParams]);
 
+  // Columnas memorizadas: si se recrean en cada render, React remonta todas
+  // las celdas y los tooltips/hover de las acciones parpadean.
+  const columns = useMemo(
+    () =>
+      GuideColumns({
+        onDelete: setDeleteId,
+        onView: handleView,
+        onChangeStatus: handleChangeStatus,
+        onGenerateSale: handleGenerateSale,
+        onDuplicate: handleDuplicate,
+        onLinkOrder: setLinkOrderGuide,
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -185,14 +212,7 @@ export default function GuidePage() {
 
       <GuideTable
         isLoading={isLoading}
-        columns={GuideColumns({
-          onDelete: setDeleteId,
-          onView: handleView,
-          onChangeStatus: handleChangeStatus,
-          onGenerateSale: handleGenerateSale,
-          onDuplicate: handleDuplicate,
-          onLinkOrder: setLinkOrderGuide,
-        })}
+        columns={columns}
         data={data?.data || []}
       >
         <GuideOptions filters={filters} onChange={handleFiltersChange} />

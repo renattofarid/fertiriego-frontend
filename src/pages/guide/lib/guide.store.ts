@@ -52,7 +52,7 @@ interface GuideStore {
   resetGuide: () => void;
 }
 
-export const useGuideStore = create<GuideStore>((set) => ({
+export const useGuideStore = create<GuideStore>((set, get) => ({
   // Initial state
   allGuides: null,
   guides: null,
@@ -105,12 +105,17 @@ export const useGuideStore = create<GuideStore>((set) => ({
 
   // Fetch guide motives
   fetchMotives: async () => {
+    // Evita peticiones duplicadas cuando varios componentes montan el hook
+    if (get().isLoadingMotives) return;
     set({ isLoadingMotives: true, error: null });
     try {
       const response = await getGuideMotives();
-      set({ motives: response.data, isLoadingMotives: false });
+      // Siempre un array: si quedara undefined, useGuideMotives volvería a
+      // pedir los motivos en cada render (bucle infinito).
+      set({ motives: response.data ?? [], isLoadingMotives: false });
     } catch (error) {
       set({
+        motives: [],
         error: "Error al cargar los motivos de traslado",
         isLoadingMotives: false,
       });

@@ -257,7 +257,7 @@ export const GuideColumns = ({
             row.original.status,
           ) && (
             <TooltipProvider>
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <DropdownMenuTrigger asChild>
@@ -319,7 +319,7 @@ export const GuideColumns = ({
             onClick={() => onGenerateSale(row.original)}
             color="primary"
           />
-          <DropdownMenu>
+          <DropdownMenu modal={false}>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
