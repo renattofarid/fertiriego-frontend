@@ -54,6 +54,20 @@ export interface SaleInstallmentResource {
   guides?: string;
   retention?: number;
   credit_note?: number;
+  sale?: {
+    id: number;
+    document_type: string;
+    serie: string;
+    numero: string;
+    issue_date?: string;
+    customer?: {
+      id: number;
+      number_document: string;
+      business_name: string | null;
+      full_name: string | null;
+      names?: string | null;
+    };
+  };
 }
 
 export interface SaleResource {

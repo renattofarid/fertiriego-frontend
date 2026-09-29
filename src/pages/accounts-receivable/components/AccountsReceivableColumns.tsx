@@ -71,6 +71,46 @@ export const getAccountsReceivableColumns = (
     },
   },
   {
+    id: "invoice",
+    header: "Factura",
+    cell: ({ row }) => {
+      const sale = row.original.sale;
+      if (!sale?.serie && !sale?.numero) return <span>-</span>;
+      const isVoided = row.original.status === "ANULADA";
+      return (
+        <div className={`flex flex-col ${isVoided ? "opacity-50 line-through" : ""}`}>
+          <span className="font-mono text-sm">
+            {sale.serie}-{sale.numero}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {sale.document_type}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "customer",
+    header: "Cliente",
+    cell: ({ row }) => {
+      const customer = row.original.sale?.customer;
+      const name =
+        customer?.business_name ||
+        customer?.full_name ||
+        customer?.names ||
+        row.original.customer_name;
+      if (!name) return <span>-</span>;
+      return (
+        <div className="flex flex-col">
+          <span className="text-sm">{name}</span>
+          <span className="text-xs text-muted-foreground">
+            {customer?.number_document ?? row.original.customer_document}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "created_at",
     header: "Fecha de Emisión",
     cell: ({ row }) => {

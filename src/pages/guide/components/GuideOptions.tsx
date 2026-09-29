@@ -13,7 +13,6 @@ import { useGuideMotives } from "../lib/guide.hook";
 
 export interface GuideFilters {
   search: string;
-  full_guide_number: string;
   status: string;
   warehouse_id: string;
   recipient_id: string;
@@ -29,7 +28,6 @@ export interface GuideFilters {
 
 export const EMPTY_GUIDE_FILTERS: GuideFilters = {
   search: "",
-  full_guide_number: "",
   status: "",
   warehouse_id: "",
   recipient_id: "",
@@ -78,10 +76,12 @@ export default function GuideOptions({ filters, onChange }: GuideOptionsProps) {
         placeholder="Buscar..."
       />
 
-      <SearchInput
-        value={filters.full_guide_number}
-        onChange={(value) => onChange({ full_guide_number: value })}
-        placeholder="N° de guía..."
+      <SearchableSelectAsync
+        value={filters.recipient_id}
+        onChange={(value) => onChange({ recipient_id: value })}
+        placeholder="Destinatario"
+        useQueryHook={useClients}
+        mapOptionFn={mapPersonOption}
       />
 
       <SearchableSelect
@@ -98,14 +98,6 @@ export default function GuideOptions({ filters, onChange }: GuideOptionsProps) {
         placeholder="Almacén"
         useQueryHook={useWarehouses}
         mapOptionFn={(w: any) => ({ value: String(w.id), label: w.name })}
-      />
-
-      <SearchableSelectAsync
-        value={filters.recipient_id}
-        onChange={(value) => onChange({ recipient_id: value })}
-        placeholder="Destinatario"
-        useQueryHook={useClients}
-        mapOptionFn={mapPersonOption}
       />
 
       <SearchableSelectAsync
