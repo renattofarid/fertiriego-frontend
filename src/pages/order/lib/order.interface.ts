@@ -159,20 +159,23 @@ export interface PendingDetailsResponse {
 }
 
 // ===== REPORTE DE ENTREGAS PENDIENTES (rango de fechas) =====
-// GET /order/all-pending-details?startDate=&endDate=
+// GET /order/all-pending-details?startDate=&endDate=&page=&per_page=
 // Devuelve los pedidos con productos pendientes de entrega en el rango,
-// envueltos en { orders, total }.
+// paginados en { data, meta, links }.
 
 export interface AllPendingOrderDetailsParams {
   startDate: string;
   endDate: string;
+  page?: number;
+  per_page?: number;
 }
 
 export interface AllPendingOrderDetailsResponse {
   message: string;
   data: {
-    orders: OrderPendingReportEntry[];
-    total: number;
+    data: OrderPendingReportEntry[];
+    meta: Pick<Meta, "current_page" | "from" | "last_page" | "per_page" | "to" | "total">;
+    links: Links;
   };
 }
 

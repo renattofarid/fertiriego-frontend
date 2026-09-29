@@ -41,7 +41,8 @@ export function useOrderPendingReport(params: AllPendingOrderDetailsParams) {
   });
 
   return {
-    data: query.data?.data?.orders ?? null,
+    data: query.data?.data?.data ?? null,
+    meta: query.data?.data?.meta,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: query.error,
