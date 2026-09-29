@@ -52,7 +52,11 @@ export default function OrderPendingReportPage() {
           return (
             <div className="flex flex-col gap-1">
               <span className="font-mono font-bold">{order.order_number}</span>
-              <span className="text-xs text-muted-foreground">{order.order_date}</span>
+              <span className="text-xs text-muted-foreground">
+                {order.order_date && !isNaN(new Date(order.order_date).getTime())
+                  ? format(new Date(order.order_date), "dd/MM/yyyy")
+                  : "-"}
+              </span>
               <Badge variant="secondary" className="w-fit">
                 {order.status}
               </Badge>
@@ -78,11 +82,10 @@ export default function OrderPendingReportPage() {
         id: "pending_details",
         header: "Productos pendientes",
         cell: ({ row }) => (
-          <div className="min-w-[380px] overflow-hidden rounded-md border">
+          <div className="min-w-[320px] overflow-hidden rounded-md border">
             <table className="w-full text-xs">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr>
-                  <th className="px-2 py-1 text-left font-medium">Código</th>
                   <th className="px-2 py-1 text-left font-medium">Producto</th>
                   <th className="px-2 py-1 text-right font-medium">Total</th>
                   <th className="px-2 py-1 text-right font-medium">Entregado</th>
@@ -92,9 +95,6 @@ export default function OrderPendingReportPage() {
               <tbody>
                 {row.original.pending_details.map((detail) => (
                   <tr key={detail.id} className="border-t">
-                    <td className="px-2 py-1 font-mono text-muted-foreground">
-                      {detail.product_code || "-"}
-                    </td>
                     <td className="px-2 py-1">{detail.product_name}</td>
                     <td className="px-2 py-1 text-right">{detail.quantity_total}</td>
                     <td className="px-2 py-1 text-right">{detail.quantity_shipped}</td>
