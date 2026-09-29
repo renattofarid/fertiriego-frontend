@@ -15,6 +15,29 @@ export interface PurchaseInstallmentResource {
   status: string;
   created_at: string;
   currency?: string;
+  purchase?: PurchaseInstallmentPurchase;
+}
+
+// Compra asociada a la cuota (proveedor y comprobante)
+export interface PurchaseInstallmentPurchase {
+  id: number;
+  correlativo: string;
+  supplier_id: number;
+  supplier_name: string;
+  warehouse_id: number;
+  user_id: number;
+  purchase_order_id: number | null;
+  document_type: string;
+  document_number: string;
+  issue_date: string;
+  due_date: string;
+  payment_type: string;
+  total_amount: string;
+  current_amount: string;
+  currency: string;
+  status: string;
+  observations: string | null;
+  created_at: string;
 }
 
 export interface PurchaseInstallmentResponse {

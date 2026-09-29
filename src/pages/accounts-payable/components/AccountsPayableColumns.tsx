@@ -47,6 +47,29 @@ export const getAccountsPayableColumns = (
     ),
   },
   {
+    id: "supplier",
+    header: "Proveedor",
+    cell: ({ row }) => (
+      <span className="text-sm">{row.original.purchase?.supplier_name ?? "-"}</span>
+    ),
+  },
+  {
+    id: "document",
+    header: "Factura",
+    cell: ({ row }) => {
+      const purchase = row.original.purchase;
+      if (!purchase?.document_number) return <span>-</span>;
+      return (
+        <div className="flex flex-col">
+          <span className="font-mono text-sm">{purchase.document_number}</span>
+          <span className="text-xs text-muted-foreground">
+            {purchase.document_type}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "correlativo",
     header: "Cuota",
     cell: ({ row }) => (

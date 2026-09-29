@@ -23,16 +23,25 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
 
   if (installment.status === "ANULADA") {
     return (
-      <Badge variant="outline" className="opacity-50 text-muted-foreground line-through decoration-muted-foreground">
+      <Badge
+        variant="outline"
+        className="opacity-50 text-muted-foreground line-through decoration-muted-foreground"
+      >
         ANULADA
       </Badge>
     );
   }
 
-  if (pendingAmount === 0 || installment.status === "PAGADO" || installment.status === "PAGADA") {
-    return <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600 text-white border-transparent">
-      PAGADO
-    </Badge>;
+  if (
+    pendingAmount === 0 ||
+    installment.status === "PAGADO" ||
+    installment.status === "PAGADA"
+  ) {
+    return (
+      <Badge variant="default" color="green">
+        PAGADO
+      </Badge>
+    );
   }
 
   if (installment.is_overdue) {
@@ -44,7 +53,7 @@ export const getStatusBadge = (installment: SaleInstallmentResource) => {
 
 export const getAccountsReceivableColumns = (
   onOpenPayment: (installment: SaleInstallmentResource) => void,
-  onOpenQuickView: (installment: SaleInstallmentResource) => void
+  onOpenQuickView: (installment: SaleInstallmentResource) => void,
 ): ColumnDef<SaleInstallmentResource>[] => [
   {
     accessorKey: "sale_correlativo",
@@ -52,7 +61,10 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isVoided = row.original.status === "ANULADA";
       return (
-        <Badge variant={"outline"} className={`font-mono font-semibold ${isVoided ? "opacity-50 line-through" : ""}`}>
+        <Badge
+          variant={"outline"}
+          className={`font-mono font-semibold ${isVoided ? "opacity-50 line-through" : ""}`}
+        >
           {row.original.full_document_number}
         </Badge>
       );
@@ -64,11 +76,11 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isVoided = row.original.status === "ANULADA";
       return (
-        <div className={`flex items-center gap-1.5 ${isVoided ? "opacity-50 line-through grayscale" : ""}`}>
+        <div
+          className={`flex items-center gap-1.5 ${isVoided ? "opacity-50 line-through grayscale" : ""}`}
+        >
           <Calendar className="h-4 w-4 text-muted-foreground" />
-          <Badge variant="outline">
-            {formatDate(row.original.created_at)}
-          </Badge>
+          <Badge variant="outline">{formatDate(row.original.created_at)}</Badge>
         </div>
       );
     },
@@ -79,27 +91,32 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isVoided = row.original.status === "ANULADA";
       return (
-        <div className={`flex items-center gap-1.5 ${isVoided ? "opacity-50 line-through grayscale" : ""}`}>
+        <div
+          className={`flex items-center gap-1.5 ${isVoided ? "opacity-50 line-through grayscale" : ""}`}
+        >
           <Calendar className="h-3 w-3 text-muted-foreground" />
           <div className="flex flex-col">
             <span className="text-sm">{formatDate(row.original.due_date)}</span>
             <span className="text-xs text-muted-foreground">
               {(() => {
                 if (isVoided) return "Anulada";
-                if (row.original.status === "PAGADA" || row.original.status === "PAGADO") return "Pagado";
+                if (
+                  row.original.status === "PAGADA" ||
+                  row.original.status === "PAGADO"
+                )
+                  return "Pagado";
                 if (!row.original.due_date) return "Sin fecha";
 
                 const dueDateParsed = parse(
                   row.original.due_date,
                   "yyyy-MM-dd",
-                  new Date()
+                  new Date(),
                 );
                 if (isNaN(dueDateParsed.getTime())) return "Sin fecha";
 
                 const daysUntilDue = Math.ceil(
-                  (dueDateParsed.getTime() -
-                    new Date().getTime()) /
-                    (1000 * 60 * 60 * 24)
+                  (dueDateParsed.getTime() - new Date().getTime()) /
+                    (1000 * 60 * 60 * 24),
                 );
 
                 if (daysUntilDue > 0) {
@@ -122,17 +139,21 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isVoided = row.original.status === "ANULADA";
       const neto = Number(row.original.total_amount);
-      const bruto = Number(row.original.total_bruto || row.original.amount); 
+      const bruto = Number(row.original.total_bruto || row.original.amount);
 
       return (
-        <div className={`text-right flex flex-col ${isVoided ? "opacity-50 line-through grayscale" : ""}`}>
+        <div
+          className={`text-right flex flex-col ${isVoided ? "opacity-50 line-through grayscale" : ""}`}
+        >
           <span className="font-semibold text-primary">
-            Neto (s/ ret): {formatCurrency(neto, {
+            Neto (s/ ret):{" "}
+            {formatCurrency(neto, {
               currencySymbol: matchCurrency(row.original.currency),
             })}
           </span>
           <span className="text-xs text-muted-foreground mt-1">
-            Total Fra: {formatCurrency(bruto, {
+            Total Fra:{" "}
+            {formatCurrency(bruto, {
               currencySymbol: matchCurrency(row.original.currency),
             })}
           </span>
@@ -146,15 +167,15 @@ export const getAccountsReceivableColumns = (
     cell: ({ row }) => {
       const isVoided = row.original.status === "ANULADA";
       const isPending = Number(row.original.pending_amount) > 0;
-      
+
       return (
         <div
           className={`text-right font-semibold ${
             isVoided
               ? "text-muted-foreground opacity-50 line-through"
               : isPending
-              ? "text-destructive"
-              : "text-primary"
+                ? "text-destructive"
+                : "text-primary"
           }`}
         >
           {formatCurrency(Number(row.original.pending_amount), {
