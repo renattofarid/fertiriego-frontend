@@ -12,6 +12,7 @@ import { useWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useGuideMotives } from "../lib/guide.hook";
 
 export interface GuideFilters {
+  search: string;
   full_guide_number: string;
   status: string;
   warehouse_id: string;
@@ -27,6 +28,7 @@ export interface GuideFilters {
 }
 
 export const EMPTY_GUIDE_FILTERS: GuideFilters = {
+  search: "",
   full_guide_number: "",
   status: "",
   warehouse_id: "",
@@ -70,6 +72,12 @@ export default function GuideOptions({ filters, onChange }: GuideOptionsProps) {
 
   return (
     <FilterWrapper>
+      <SearchInput
+        value={filters.search}
+        onChange={(value) => onChange({ search: value })}
+        placeholder="Buscar..."
+      />
+
       <SearchInput
         value={filters.full_guide_number}
         onChange={(value) => onChange({ full_guide_number: value })}

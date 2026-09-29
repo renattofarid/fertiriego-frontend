@@ -53,6 +53,7 @@ export default function GuidePage() {
   const filterParams = useMemo(() => {
     const params: GetGuidesParams = {};
     const fmt = (d: Date) => format(d, "yyyy-MM-dd");
+    if (filters.search) params.search = filters.search;
     if (filters.full_guide_number)
       params.full_guide_number = filters.full_guide_number;
     if (filters.status) params.status = filters.status;
