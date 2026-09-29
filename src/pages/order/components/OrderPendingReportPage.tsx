@@ -2,7 +2,13 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { startOfMonth, format } from "date-fns";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ClipboardList, Eye, ListChecks, PackageCheck, PackageSearch } from "lucide-react";
+import {
+  ClipboardList,
+  Eye,
+  ListChecks,
+  PackageCheck,
+  PackageSearch,
+} from "lucide-react";
 import PageWrapper from "@/components/PageWrapper";
 import TitleFormComponent from "@/components/TitleFormComponent";
 import { Button } from "@/components/ui/button";
@@ -19,7 +25,9 @@ import type { OrderPendingReportEntry } from "../lib/order.interface";
 
 export default function OrderPendingReportPage() {
   const navigate = useNavigate();
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(
+    startOfMonth(new Date()),
+  );
   const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(10);
@@ -38,7 +46,8 @@ export default function OrderPendingReportPage() {
     [orders],
   );
   const pagePending = useMemo(
-    () => orders.reduce((acc, o) => acc + o.shipping_progress.pending_quantity, 0),
+    () =>
+      orders.reduce((acc, o) => acc + o.shipping_progress.pending_quantity, 0),
     [orders],
   );
 
@@ -53,7 +62,8 @@ export default function OrderPendingReportPage() {
             <div className="flex flex-col gap-1">
               <span className="font-mono font-bold">{order.order_number}</span>
               <span className="text-xs text-muted-foreground">
-                {order.order_date && !isNaN(new Date(order.order_date).getTime())
+                {order.order_date &&
+                !isNaN(new Date(order.order_date).getTime())
                   ? format(new Date(order.order_date), "dd/MM/yyyy")
                   : "-"}
               </span>
@@ -72,8 +82,12 @@ export default function OrderPendingReportPage() {
           return (
             <div className="flex flex-col">
               <span className="font-medium">{customer.name}</span>
-              <span className="text-xs text-muted-foreground">{customer.document_number}</span>
-              <span className="text-xs text-muted-foreground">Almacén: {warehouse.name}</span>
+              <span className="text-xs text-muted-foreground">
+                {customer.document_number}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Almacén: {warehouse.name}
+              </span>
             </div>
           );
         },
@@ -88,16 +102,24 @@ export default function OrderPendingReportPage() {
                 <tr>
                   <th className="px-2 py-1 text-left font-medium">Producto</th>
                   <th className="px-2 py-1 text-right font-medium">Total</th>
-                  <th className="px-2 py-1 text-right font-medium">Entregado</th>
-                  <th className="px-2 py-1 text-right font-medium">Pendiente</th>
+                  <th className="px-2 py-1 text-right font-medium">
+                    Entregado
+                  </th>
+                  <th className="px-2 py-1 text-right font-medium">
+                    Pendiente
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {row.original.pending_details.map((detail) => (
                   <tr key={detail.id} className="border-t">
                     <td className="px-2 py-1">{detail.product_name}</td>
-                    <td className="px-2 py-1 text-right">{detail.quantity_total}</td>
-                    <td className="px-2 py-1 text-right">{detail.quantity_shipped}</td>
+                    <td className="px-2 py-1 text-right">
+                      {detail.quantity_total}
+                    </td>
+                    <td className="px-2 py-1 text-right">
+                      {detail.quantity_shipped}
+                    </td>
                     <td className="px-2 py-1 text-right font-semibold text-amber-600">
                       {detail.quantity_pending}
                     </td>
@@ -117,8 +139,8 @@ export default function OrderPendingReportPage() {
             <div className="flex min-w-[140px] flex-col gap-1">
               <Progress value={progress.progress_percentage} />
               <span className="text-xs text-muted-foreground">
-                {progress.shipped_quantity} / {progress.total_quantity} entregado (
-                {progress.progress_percentage}%)
+                {progress.shipped_quantity} / {progress.total_quantity}{" "}
+                entregado ({progress.progress_percentage}%)
               </span>
               <span className="text-xs font-semibold text-amber-600">
                 {progress.pending_quantity} pendiente
@@ -135,7 +157,12 @@ export default function OrderPendingReportPage() {
             icon={Eye}
             tooltip="Ver pedido"
             onClick={() =>
-              navigate(OrderDetailRoute.replace(":id", row.original.order.id.toString()))
+              navigate(
+                OrderDetailRoute.replace(
+                  ":id",
+                  row.original.order.id.toString(),
+                ),
+              )
             }
           />
         ),
@@ -146,8 +173,12 @@ export default function OrderPendingReportPage() {
 
   return (
     <PageWrapper>
-      <TitleFormComponent title="Entregas Pendientes" icon="ListChecks" className="mb-6">
-        <Button variant="outline" className="ml-auto" onClick={() => navigate(OrderRoute)}>
+      <TitleFormComponent title="Entregas Pendientes" icon="ListChecks">
+        <Button
+          variant="outline"
+          className="ml-auto"
+          onClick={() => navigate(OrderRoute)}
+        >
           Ir a Pedidos
         </Button>
       </TitleFormComponent>
