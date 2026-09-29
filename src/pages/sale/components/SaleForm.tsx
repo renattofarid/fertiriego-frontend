@@ -68,7 +68,7 @@ import {
   CURRENCIES,
   DETRACCION_OPTIONS,
 } from "../lib/sale.interface";
-import { errorToast } from "@/lib/core.function";
+import { errorToast, warningToast } from "@/lib/core.function";
 import { api } from "@/lib/config";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
@@ -681,6 +681,17 @@ export const SaleForm = ({
 
           setDetails(orderDetails);
           form.setValue("details", orderDetails);
+
+          const withoutStock = orderDetails.filter(
+            (d) => d.is_stock === false,
+          );
+          if (withoutStock.length > 0) {
+            warningToast(
+              `Hay productos del pedido sin stock suficiente: ${withoutStock
+                .map((d) => d.product_name ?? `#${d.product_id}`)
+                .join(", ")}. Retírelos o ajuste el stock antes de registrar la venta.`,
+            );
+          }
         }
       } else if (sourceType === "guide") {
         // Auto-completar desde guía de remisión
@@ -1122,6 +1133,16 @@ export const SaleForm = ({
   };
 
   const handleFormSubmit = (data: any) => {
+    const detailsWithoutStock = details.filter((d) => d.is_stock === false);
+    if (detailsWithoutStock.length > 0) {
+      errorToast(
+        `No se puede registrar la venta. Los siguientes productos no tienen stock suficiente: ${detailsWithoutStock
+          .map((d) => d.product_name ?? `#${d.product_id}`)
+          .join(", ")}`,
+      );
+      return;
+    }
+
     const validInstallments = installments
       .filter((inst) => inst.due_days && inst.amount)
       .map((inst) => ({

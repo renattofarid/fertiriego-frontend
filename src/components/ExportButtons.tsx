@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button, type ButtonSize } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipTrigger,
@@ -40,6 +40,7 @@ interface ExportButtonsProps {
   buttonVariant?: ButtonVariant;
   pdfLabel?: string;
   ticketLabel?: string;
+  size?: ButtonSize;
 }
 
 export default function ExportButtons({
@@ -62,6 +63,7 @@ export default function ExportButtons({
   buttonVariant = "outline",
   pdfLabel = "PDF",
   ticketLabel = "Ticket",
+  size = "sm",
 }: ExportButtonsProps) {
   const downloadFile = async (endpoint: string, fileName: string) => {
     const response = await api.get(endpoint, { responseType: "blob" });
@@ -78,13 +80,16 @@ export default function ExportButtons({
   const openPdfInNewTab = async (endpoint: string) => {
     const response = await api.get(endpoint, { responseType: "blob" });
     const url = window.URL.createObjectURL(
-      new Blob([response.data], { type: "application/pdf" })
+      new Blob([response.data], { type: "application/pdf" }),
     );
     window.open(url, "_blank");
   };
 
   const openPdfDirect = (endpoint: string) => {
-    const base = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, "");
+    const base = (import.meta.env.VITE_API_BASE_URL as string).replace(
+      /\/$/,
+      "",
+    );
     const path = endpoint.replace(/^\//, "");
     window.open(`${base}/${path}`, "_blank");
   };
@@ -181,7 +186,7 @@ export default function ExportButtons({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="sm"
+                size={size}
                 variant={buttonVariant}
                 color={canColored ? "emerald" : undefined}
                 onClick={handleExcelDownload}
@@ -201,7 +206,7 @@ export default function ExportButtons({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="sm"
+                size={size}
                 variant={buttonVariant}
                 color={canColored ? "primary" : undefined}
                 onClick={handlePDFDownload}
@@ -221,7 +226,7 @@ export default function ExportButtons({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                size="sm"
+                size={size}
                 variant={buttonVariant}
                 color={canColored ? "orange" : undefined}
                 onClick={handleTicketDownload}

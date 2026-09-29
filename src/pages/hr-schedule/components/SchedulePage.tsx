@@ -8,6 +8,7 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { SCHEDULE, type ScheduleResource } from "../lib/schedule.interface";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import AssignScheduleModal from "./AssignScheduleModal";
+import ScheduleModal from "./ScheduleModal";
 import ScheduleOvertimeRateModal from "@/pages/hr-overtime/components/ScheduleOvertimeRateModal";
 
 const { MODEL, ICON } = SCHEDULE;
@@ -20,6 +21,9 @@ export default function SchedulePage() {
   );
   const [overtimeRateSchedule, setOvertimeRateSchedule] =
     useState<ScheduleResource | null>(null);
+  const [editSchedule, setEditSchedule] = useState<ScheduleResource | null>(
+    null,
+  );
   const { data, isLoading } = useSchedules({ page, per_page });
 
   const meta = data?.meta;
@@ -40,6 +44,7 @@ export default function SchedulePage() {
           columns={ScheduleColumns({
             onAssign: setAssignSchedule,
             onSetOvertimeRate: setOvertimeRateSchedule,
+            onEdit: setEditSchedule,
           })}
           data={data?.data || []}
           isLoading={isLoading}
@@ -62,6 +67,14 @@ export default function SchedulePage() {
           onClose={() => setAssignSchedule(null)}
           presetScheduleId={assignSchedule.id}
           presetScheduleName={assignSchedule.name}
+        />
+      )}
+
+      {editSchedule && (
+        <ScheduleModal
+          open={true}
+          onClose={() => setEditSchedule(null)}
+          schedule={editSchedule}
         />
       )}
 

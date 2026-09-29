@@ -32,6 +32,14 @@ export async function storeSchedule(
   return response.data;
 }
 
+export async function updateSchedule(
+  id: number,
+  data: Partial<CreateScheduleRequest>,
+): Promise<ScheduleResponse> {
+  const response = await api.put<ScheduleResponse>(`${ENDPOINT}/${id}`, data);
+  return response.data;
+}
+
 export async function storeAssignSchedule(
   data: AssignScheduleRequest,
 ): Promise<AssignScheduleResponse> {

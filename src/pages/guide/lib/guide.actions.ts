@@ -28,6 +28,13 @@ export interface GetGuidesParams {
   numero?: string;
   full_guide_number?: string;
   guide_number?: string;
+  recipient_id?: number;
+  carrier_id?: number;
+  driver_id?: number;
+  vehicle_id?: number;
+  motive_id?: number;
+  // Rangos de fecha: "issue_date[0]", "issue_date[1]", "transfer_date[0]", ...
+  [key: string]: string | number | undefined;
 }
 
 export const getGuides = async (

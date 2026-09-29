@@ -3,14 +3,16 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { ColumnActions } from "@/components/SelectActions";
 import { ButtonAction } from "@/components/ButtonAction";
-import { CalendarClock, Percent } from "lucide-react";
+import { CalendarClock, Pencil, Percent } from "lucide-react";
 
 export const ScheduleColumns = ({
   onAssign,
   onSetOvertimeRate,
+  onEdit,
 }: {
   onAssign: (schedule: ScheduleResource) => void;
   onSetOvertimeRate?: (schedule: ScheduleResource) => void;
+  onEdit?: (schedule: ScheduleResource) => void;
 }): ColumnDef<ScheduleResource>[] => [
   {
     accessorKey: "name",
@@ -67,6 +69,13 @@ export const ScheduleColumns = ({
     header: "Acciones",
     cell: ({ row }) => (
       <ColumnActions>
+        {onEdit && (
+          <ButtonAction
+            icon={Pencil}
+            tooltip="Editar"
+            onClick={() => onEdit(row.original)}
+          />
+        )}
         <ButtonAction
           icon={CalendarClock}
           tooltip="Asignar a trabajador"

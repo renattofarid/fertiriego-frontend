@@ -113,8 +113,8 @@ export interface PendingDetailResource {
   product_id: number;
   product_name: string;
   product_code: string;
-  quantity_total: string;
-  quantity_shipped: string;
+  quantity_total: number;
+  quantity_shipped: number;
   quantity_pending: number;
   unit_price: string;
   purchase_price: string;
@@ -160,9 +160,8 @@ export interface PendingDetailsResponse {
 
 // ===== REPORTE DE ENTREGAS PENDIENTES (rango de fechas) =====
 // GET /order/all-pending-details?startDate=&endDate=
-// Devuelve los pedidos con productos pendientes de entrega en el rango.
-// Se asume la misma forma que el detalle por pedido (PendingDetailsResponse),
-// pero como lista; ajustar si el backend responde distinto.
+// Devuelve los pedidos con productos pendientes de entrega en el rango,
+// envueltos en { orders, total }.
 
 export interface AllPendingOrderDetailsParams {
   startDate: string;
@@ -171,7 +170,10 @@ export interface AllPendingOrderDetailsParams {
 
 export interface AllPendingOrderDetailsResponse {
   message: string;
-  data: OrderPendingReportEntry[];
+  data: {
+    orders: OrderPendingReportEntry[];
+    total: number;
+  };
 }
 
 // ===== API RESPONSES =====

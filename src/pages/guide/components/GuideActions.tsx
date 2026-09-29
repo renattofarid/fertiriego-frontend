@@ -17,8 +17,9 @@ export default function GuideActions({ excelEndpoint }: Props) {
       <ExportButtons
         excelEndpoint={excelEndpoint}
         excelFileName={`guias_${new Date().toISOString().split("T")[0]}.xlsx`}
+        size="default"
       />
-      <Button  onClick={() => navigate(GUIDE.ROUTE_ADD)}>
+      <Button onClick={() => navigate(GUIDE.ROUTE_ADD)}>
         <Plus className="mr-2 h-4 w-4" />
         Agregar {GUIDE.MODEL.name}
       </Button>

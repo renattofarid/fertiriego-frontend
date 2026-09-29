@@ -1,3 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { useProductionDocumentStore } from "../lib/production-document.store";
@@ -21,6 +24,7 @@ export default function ProductionDocumentEditPage() {
   const navigate = useNavigate();
   const { document, fetchDocument, updateDocument, isSubmitting, isFinding } =
     useProductionDocumentStore();
+  const queryClient = useQueryClient();
 
   // Hooks para datos
   const { data: warehouses = [], isLoading: loadingWarehouses } =
@@ -40,6 +44,8 @@ export default function ProductionDocumentEditPage() {
     try {
       await updateDocument(parseInt(id), values as any);
       successToast(SUCCESS_MESSAGE(MODEL, "edit"));
+      queryClient.invalidateQueries({ queryKey: [WAREHOUSE_PRODUCT.QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(error.response?.data?.message || ERROR_MESSAGE(MODEL, "edit"));

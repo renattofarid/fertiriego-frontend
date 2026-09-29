@@ -26,8 +26,8 @@ interface PendingReportRow {
   product_id: number;
   product_name: string;
   product_code: string;
-  quantity_total: string;
-  quantity_shipped: string;
+  quantity_total: number;
+  quantity_shipped: number;
   quantity_pending: number;
 }
 

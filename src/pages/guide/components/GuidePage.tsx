@@ -4,7 +4,12 @@ import { useGuides } from "../lib/guide.hook";
 import TitleComponent from "@/components/TitleComponent";
 import GuideActions from "./GuideActions";
 import GuideTable from "./GuideTable";
-import GuideOptions from "./GuideOptions";
+import GuideOptions, {
+  EMPTY_GUIDE_FILTERS,
+  type GuideFilters,
+} from "./GuideOptions";
+import type { GetGuidesParams } from "../lib/guide.actions";
+import { format } from "date-fns";
 import { useGuideStore } from "../lib/guide.store";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
 import { GuideStatusChangeDialog } from "./GuideStatusChangeDialog";
@@ -19,6 +24,7 @@ import { GuideLinkOrderDialog } from "./GuideLinkOrderDialog";
 import DataTablePagination from "@/components/DataTablePagination";
 import {
   GUIDE,
+  GUIDE_ENDPOINT,
   type GuideStatus,
   type GuideResource,
 } from "../lib/guide.interface";
@@ -31,7 +37,7 @@ const { MODEL, ICON } = GUIDE;
 
 export default function GuidePage() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  const [filters, setFilters] = useState<GuideFilters>(EMPTY_GUIDE_FILTERS);
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -43,10 +49,45 @@ export default function GuidePage() {
     null,
   );
   const { setOpen, setOpenMobile } = useSidebar();
+  // Filtros compartidos entre el listado y la exportación
+  const filterParams = useMemo(() => {
+    const params: GetGuidesParams = {};
+    const fmt = (d: Date) => format(d, "yyyy-MM-dd");
+    if (filters.full_guide_number)
+      params.full_guide_number = filters.full_guide_number;
+    if (filters.status) params.status = filters.status;
+    (
+      [
+        "warehouse_id",
+        "recipient_id",
+        "carrier_id",
+        "driver_id",
+        "vehicle_id",
+        "motive_id",
+      ] as const
+    ).forEach((key) => {
+      if (filters[key]) params[key] = Number(filters[key]);
+    });
+    if (filters.issue_date_from && filters.issue_date_to) {
+      params["issue_date[0]"] = fmt(filters.issue_date_from);
+      params["issue_date[1]"] = fmt(filters.issue_date_to);
+    }
+    if (filters.transfer_date_from && filters.transfer_date_to) {
+      params["transfer_date[0]"] = fmt(filters.transfer_date_from);
+      params["transfer_date[1]"] = fmt(filters.transfer_date_to);
+    }
+    return params;
+  }, [filters]);
+
+  const handleFiltersChange = (changes: Partial<GuideFilters>) => {
+    setFilters((prev) => ({ ...prev, ...changes }));
+    setPage(1);
+  };
+
   const { data, isLoading, refetch } = useGuides({
     page,
-    search,
     per_page,
+    ...filterParams,
   });
   const { removeGuide, changeStatus } = useGuideStore();
   const queryClient = useQueryClient();
@@ -121,12 +162,15 @@ export default function GuidePage() {
   // Construir el endpoint con query params para exportación
   const exportEndpoint = useMemo(() => {
     const params = new URLSearchParams();
+    Object.entries(filterParams).forEach(([key, value]) => {
+      if (value !== undefined && value !== "") params.append(key, String(value));
+    });
 
     const queryString = params.toString();
-    const baseExcelUrl = "/guide/export";
+    const baseExcelUrl = `${GUIDE_ENDPOINT}/export`;
 
     return queryString ? `${baseExcelUrl}?${queryString}` : baseExcelUrl;
-  }, []);
+  }, [filterParams]);
 
   return (
     <div className="space-y-4">
@@ -151,7 +195,7 @@ export default function GuidePage() {
         })}
         data={data?.data || []}
       >
-        <GuideOptions search={search} setSearch={setSearch} />
+        <GuideOptions filters={filters} onChange={handleFiltersChange} />
       </GuideTable>
 
       <DataTablePagination

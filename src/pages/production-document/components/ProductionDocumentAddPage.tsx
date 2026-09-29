@@ -1,3 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { WAREHOUSE_PRODUCT } from "@/pages/warehouse-product/lib/warehouse-product.interface";
+import { PRODUCT } from "@/pages/product/lib/product.interface";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useProductionDocumentStore } from "../lib/production-document.store";
 import {
@@ -16,6 +19,7 @@ export default function ProductionDocumentAddPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { createDocumentBatch, isSubmitting } = useProductionDocumentStore();
+  const queryClient = useQueryClient();
 
   const fromOrderId: number | undefined = location.state?.fromOrderId;
 
@@ -34,6 +38,8 @@ export default function ProductionDocumentAddPage() {
           ? `${created.length} documentos de producción generados correctamente`
           : "Documento de producción generado correctamente",
       );
+      queryClient.invalidateQueries({ queryKey: [WAREHOUSE_PRODUCT.QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: [PRODUCT.QUERY_KEY] });
       navigate(ROUTE);
     } catch (error: any) {
       errorToast(
