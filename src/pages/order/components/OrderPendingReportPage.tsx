@@ -25,6 +25,7 @@ import type { OrderPendingReportEntry } from "../lib/order.interface";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { Option } from "@/lib/core.interface";
+import FilterWrapper from "@/components/FilterWrapper";
 
 const mapCustomerOption = (p: any): Option => ({
   value: String(p.id),
@@ -218,27 +219,29 @@ export default function OrderPendingReportPage() {
       </div>
 
       <DataTable columns={columns} data={orders} isLoading={isLoading}>
-        <SearchableSelectAsync
-          value={customerId}
-          onChange={(value) => {
-            setCustomerId(value);
-            setPage(1);
-          }}
-          placeholder="Cliente"
-          useQueryHook={useClients}
-          mapOptionFn={mapCustomerOption}
-          className="w-72"
-        />
-        <DateRangePickerFilter
-          dateFrom={dateFrom}
-          dateTo={dateTo}
-          onDateChange={(from, to) => {
-            setDateFrom(from);
-            setDateTo(to);
-            setPage(1);
-          }}
-          className="w-64"
-        />
+        <FilterWrapper>
+          <SearchableSelectAsync
+            value={customerId}
+            onChange={(value) => {
+              setCustomerId(value);
+              setPage(1);
+            }}
+            placeholder="Cliente"
+            useQueryHook={useClients}
+            mapOptionFn={mapCustomerOption}
+            className="w-72"
+          />
+          <DateRangePickerFilter
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            onDateChange={(from, to) => {
+              setDateFrom(from);
+              setDateTo(to);
+              setPage(1);
+            }}
+            className="w-64"
+          />
+        </FilterWrapper>
       </DataTable>
 
       {!isLoading && orders.length === 0 && (
