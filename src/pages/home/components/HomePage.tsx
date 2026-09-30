@@ -1,5 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { ShoppingCart, TrendingUp, ShoppingBag, DollarSign, TrendingDown } from "lucide-react";
+import { ShoppingCart, TrendingUp, ShoppingBag, DollarSign, TrendingDown, Sprout } from "lucide-react";
+import { useAuthStore } from "@/pages/auth/lib/auth.store";
+import { hasAccessToRoute } from "@/lib/route-access";
+import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { cn } from "@/lib/utils";
 import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
 import { TopProductsChart } from "./TopProductsChart";
@@ -34,7 +37,64 @@ const safeArray = (data: any) => {
   return Array.isArray(data) ? data : Object.values(data);
 };
 
+// Ruta del permiso que habilita ver el dashboard en el inicio.
+export const DASHBOARD_PERMISSION_ROUTE = "dashboard";
+
+const MOTIVATIONAL_MESSAGES = [
+  "Cada pequeño avance cuenta. ¡Hoy es un gran día para lograrlo!",
+  "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
+  "Tu trabajo hace crecer este equipo. ¡Gracias por estar aquí!",
+  "Lo que siembras hoy, lo cosechas mañana. ¡Adelante!",
+  "La constancia vence lo que la dicha no alcanza.",
+];
+
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Buenos días";
+  if (hour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
+function WelcomeHome({ name }: { name?: string }) {
+  const message = useMemo(
+    () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)],
+    []
+  );
+
+  return (
+    <div className="flex h-full min-h-[60vh] items-center justify-center p-4 md:p-6">
+      <div className="max-w-xl text-center space-y-4">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <Sprout className="h-8 w-8 text-primary" />
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+          {getGreeting()}{name ? `, ${name}` : ""} 👋
+        </h1>
+        <p className="text-lg text-muted-foreground">{message}</p>
+        <p className="text-sm text-muted-foreground">
+          Usa el menú lateral para acceder a tus módulos.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
+  const { user, access } = useAuthStore();
+
+  const canSeeDashboard =
+    !ENABLE_PERMISSION_VALIDATION ||
+    user?.rol_id === 1 ||
+    (!!access && hasAccessToRoute(access, DASHBOARD_PERMISSION_ROUTE));
+
+  if (!canSeeDashboard) {
+    return <WelcomeHome name={user?.name} />;
+  }
+
+  return <DashboardContent />;
+}
+
+function DashboardContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<any>(null);
 

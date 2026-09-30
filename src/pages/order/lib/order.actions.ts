@@ -101,3 +101,13 @@ export const getAllPendingOrderDetails = async (
   );
   return response.data;
 };
+
+// Da de baja un pedido: cierra sus entregas pendientes.
+export const bajaOrder = async (
+  id: number
+): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>(
+    `${ORDER_ENDPOINT}/${id}/baja`
+  );
+  return response.data;
+};

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { startOfMonth, format } from "date-fns";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
+  Archive,
   ClipboardList,
   Eye,
   ListChecks,
@@ -19,7 +20,9 @@ import DataTablePagination from "@/components/DataTablePagination";
 import { ButtonAction } from "@/components/ButtonAction";
 import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 import { SummaryCard } from "@/components/SummaryCard";
-import { useOrderPendingReport } from "../lib/order.hook";
+import { useBajaOrder, useOrderPendingReport } from "../lib/order.hook";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { errorToast, successToast } from "@/lib/core.function";
 import { OrderRoute, OrderDetailRoute } from "../lib/order.interface";
 import type { OrderPendingReportEntry } from "../lib/order.interface";
 import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
@@ -44,6 +47,19 @@ export default function OrderPendingReportPage() {
   const [customerId, setCustomerId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(10);
+
+  const { mutate: darDeBaja } = useBajaOrder();
+
+  const handleBaja = (id: number) => {
+    darDeBaja(id, {
+      onSuccess: (res) =>
+        successToast(res?.message ?? "Pedido dado de baja correctamente"),
+      onError: (error: any) =>
+        errorToast(
+          error?.response?.data?.message ?? "Error al dar de baja el pedido",
+        ),
+    });
+  };
 
   const { data, meta, isLoading } = useOrderPendingReport({
     from: dateFrom ? format(dateFrom, "yyyy-MM-dd") : "",
@@ -166,20 +182,35 @@ export default function OrderPendingReportPage() {
       {
         id: "actions",
         header: "Acciones",
-        cell: ({ row }) => (
-          <ButtonAction
-            icon={Eye}
-            tooltip="Ver pedido"
-            onClick={() =>
-              navigate(
-                OrderDetailRoute.replace(
-                  ":id",
-                  row.original.order.id.toString(),
-                ),
-              )
-            }
-          />
-        ),
+        cell: ({ row }) => {
+          const { order } = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <ButtonAction
+                icon={Eye}
+                tooltip="Ver pedido"
+                onClick={() =>
+                  navigate(OrderDetailRoute.replace(":id", order.id.toString()))
+                }
+              />
+              <ConfirmationDialog
+                trigger={
+                  <ButtonAction
+                    color="red"
+                    icon={Archive}
+                    tooltip="Dar de baja"
+                  />
+                }
+                title="Dar de baja pedido"
+                description={`¿Está seguro de dar de baja el pedido ${order.order_number}? Sus productos pendientes dejarán de figurar como entregas pendientes.`}
+                confirmText="Dar de baja"
+                cancelText="Cancelar"
+                icon="danger"
+                onConfirm={() => handleBaja(order.id)}
+              />
+            </div>
+          );
+        },
       },
     ],
     [navigate],

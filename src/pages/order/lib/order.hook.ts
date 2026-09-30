@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useOrderStore } from "./order.store";
 import {
   getOrders,
   getAllPendingOrderDetails,
+  bajaOrder,
   type GetOrdersParams,
 } from "./order.actions";
 import { ORDER, type AllPendingOrderDetailsParams } from "./order.interface";
@@ -63,4 +64,14 @@ export function useOrderById(id: number) {
     error,
     refetch: () => fetchOrder(id),
   };
+}
+
+export function useBajaOrder() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => bajaOrder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
 }
