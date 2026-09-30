@@ -22,6 +22,17 @@ import { SummaryCard } from "@/components/SummaryCard";
 import { useOrderPendingReport } from "../lib/order.hook";
 import { OrderRoute, OrderDetailRoute } from "../lib/order.interface";
 import type { OrderPendingReportEntry } from "../lib/order.interface";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
+import type { Option } from "@/lib/core.interface";
+
+const mapCustomerOption = (p: any): Option => ({
+  value: String(p.id),
+  label:
+    p.business_name ||
+    `${p.names ?? ""} ${p.father_surname ?? ""} ${p.mother_surname ?? ""}`.trim(),
+  description: p.number_document || "",
+});
 
 export default function OrderPendingReportPage() {
   const navigate = useNavigate();
@@ -29,12 +40,14 @@ export default function OrderPendingReportPage() {
     startOfMonth(new Date()),
   );
   const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
+  const [customerId, setCustomerId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(10);
 
   const { data, meta, isLoading } = useOrderPendingReport({
-    startDate: dateFrom ? format(dateFrom, "yyyy-MM-dd") : "",
-    endDate: dateTo ? format(dateTo, "yyyy-MM-dd") : "",
+    from: dateFrom ? format(dateFrom, "yyyy-MM-dd") : "",
+    to: dateTo ? format(dateTo, "yyyy-MM-dd") : "",
+    customer_id: customerId || undefined,
     page,
     per_page,
   });
@@ -205,6 +218,17 @@ export default function OrderPendingReportPage() {
       </div>
 
       <DataTable columns={columns} data={orders} isLoading={isLoading}>
+        <SearchableSelectAsync
+          value={customerId}
+          onChange={(value) => {
+            setCustomerId(value);
+            setPage(1);
+          }}
+          placeholder="Cliente"
+          useQueryHook={useClients}
+          mapOptionFn={mapCustomerOption}
+          className="w-72"
+        />
         <DateRangePickerFilter
           dateFrom={dateFrom}
           dateTo={dateTo}

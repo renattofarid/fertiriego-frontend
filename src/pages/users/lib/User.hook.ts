@@ -18,6 +18,8 @@ export function useUser(id: number) {
   return useQuery({
     queryKey: [USER.QUERY_KEY, id],
     queryFn: () => findUserById(id),
+    // El backend responde { data: UserResource }; el formulario necesita el usuario directo.
+    select: (response) => response.data,
     enabled: !!id,
     retry: false,
   });

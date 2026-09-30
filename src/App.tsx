@@ -1072,7 +1072,7 @@ export default function App() {
           <Route
             path={OrderPendingReportRoute}
             element={
-              <ProtectedRoute path={OrderRoute}>
+              <ProtectedRoute path={OrderPendingReportRoute}>
                 <OrderPendingReportPage />
               </ProtectedRoute>
             }

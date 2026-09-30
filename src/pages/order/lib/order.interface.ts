@@ -164,8 +164,9 @@ export interface PendingDetailsResponse {
 // paginados en { data, meta, links }.
 
 export interface AllPendingOrderDetailsParams {
-  startDate: string;
-  endDate: string;
+  from: string;
+  to: string;
+  customer_id?: string;
   page?: number;
   per_page?: number;
 }
@@ -243,7 +244,8 @@ export const OrderRoute = "/pedidos";
 export const OrderAddRoute = "/pedidos/agregar";
 export const OrderEditRoute = "/pedidos/actualizar/:id";
 export const OrderDetailRoute = "/pedidos/:id";
-export const OrderPendingReportRoute = "/pedidos/reporte-entregas-pendientes";
+// Vista independiente de Pedidos: tiene su propio permiso (ruta "entregas-pendientes").
+export const OrderPendingReportRoute = "/entregas-pendientes";
 
 // ===== STATUS & TYPE OPTIONS =====
 

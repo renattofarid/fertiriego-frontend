@@ -36,7 +36,7 @@ export function useOrderPendingReport(params: AllPendingOrderDetailsParams) {
   const query = useQuery({
     queryKey: [QUERY_KEY, "all-pending-details", params],
     queryFn: () => getAllPendingOrderDetails(params),
-    enabled: Boolean(params.startDate && params.endDate),
+    enabled: Boolean(params.from && params.to),
     refetchOnWindowFocus: false,
   });
 

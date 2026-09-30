@@ -13,6 +13,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/FormSelect";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import {
+  useMenuGroupQueryById,
+  useMenuGroupsQuery,
+} from "@/pages/menu-group/lib/menuGroup.hook";
 import {
   permissionSchemaCreate,
   permissionSchemaUpdate,
@@ -46,8 +51,12 @@ interface Props {
   onCancel?: () => void;
   isSubmitting?: boolean;
   mode?: "create" | "edit";
-  menuGroups: MenuGroupResource[];
 }
+
+const mapMenuGroupOption = (group: MenuGroupResource): Option => ({
+  value: String(group.id),
+  label: group.name,
+});
 
 export const PermissionForm = ({
   onCancel,
@@ -55,7 +64,6 @@ export const PermissionForm = ({
   onSubmit,
   isSubmitting = false,
   mode = "create",
-  menuGroups,
 }: Props) => {
   const form = useForm<PermissionSchema>({
     resolver: zodResolver(
@@ -73,11 +81,6 @@ export const PermissionForm = ({
     mode: "onChange",
   });
 
-  const menuGroupOptions: Option[] = menuGroups.map((group) => ({
-    value: String(group.id),
-    label: group.name,
-  }));
-
   return (
     <Form {...form}>
       <form
@@ -86,12 +89,16 @@ export const PermissionForm = ({
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted p-4 rounded-lg">
           <div className="md:col-span-2">
-            <FormSelect
+            <FormSelectAsync
               control={form.control}
               name="group_menu_id"
               label="Grupo de menú"
               placeholder="Seleccione un grupo de menú"
-              options={menuGroupOptions}
+              useQueryHook={useMenuGroupsQuery}
+              useQueryByIdHook={useMenuGroupQueryById}
+              preloadItemId={defaultValues.group_menu_id || undefined}
+              mapOptionFn={mapMenuGroupOption}
+              withValue={false}
             />
           </div>
 

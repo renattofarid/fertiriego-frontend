@@ -11,7 +11,6 @@ import { PERMISSION, type PermissionResource } from "../lib/permission.interface
 import { usePermissions, usePermissionById } from "../lib/permission.hook";
 import { usePermissionStore } from "../lib/permission.store";
 import { PermissionForm } from "./PermissionForm";
-import { useAllMenuGroups } from "@/pages/menu-group/lib/menuGroup.hook";
 
 interface Props {
   id?: number;
@@ -21,11 +20,10 @@ interface Props {
   onClose: () => void;
 }
 
-const { MODEL, EMPTY } = PERMISSION;
+const { MODEL, EMPTY, ICON, TITLES } = PERMISSION;
 
 export default function PermissionModal({ id, open, title, mode, onClose }: Props) {
   const { refetch } = usePermissions();
-  const menuGroups = useAllMenuGroups();
 
   const { data: permission, isFinding: findingPermission } =
     mode === "create" ? { data: null, isFinding: false } : usePermissionById(id!);
@@ -95,7 +93,14 @@ export default function PermissionModal({ id, open, title, mode, onClose }: Prop
   const formData = mode === "create" ? EMPTY : permission;
 
   return (
-    <GeneralModal open={open} onClose={onClose} title={title}>
+    <GeneralModal
+      open={open}
+      onClose={onClose}
+      title={title}
+      subtitle={mode === "create" ? TITLES.create.subtitle : TITLES.update.subtitle}
+      icon={ICON as any}
+      mode={mode}
+    >
       {mode === "create" || (!findingPermission && formData) ? (
         <PermissionForm
           defaultValues={
@@ -107,7 +112,6 @@ export default function PermissionModal({ id, open, title, mode, onClose }: Prop
           isSubmitting={isSubmitting}
           mode={mode}
           onCancel={onClose}
-          menuGroups={menuGroups}
         />
       ) : (
         <FormSkeleton />
