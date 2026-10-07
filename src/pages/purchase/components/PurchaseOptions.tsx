@@ -37,6 +37,7 @@ export const PurchaseOptions = ({
   const statusOptions: Option[] = [
     { value: "", label: "Todos los estados" },
     { value: "REGISTRADO", label: "Registrado" },
+    { value: "PENDIENTE", label: "Pendiente" },
     { value: "PAGADA", label: "Pagado" },
     { value: "CANCELADO", label: "Cancelado" },
   ];

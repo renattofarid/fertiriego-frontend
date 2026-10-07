@@ -133,9 +133,11 @@ export const getPurchaseColumns = ({
     header: "Estado",
     cell: ({ row }) => {
       const status = row.original.status;
-      let variant: "default" | "secondary" | "destructive" = "default";
+      let variant: "default" | "secondary" | "destructive" | "muted" =
+        "default";
 
       if (status === "REGISTRADO") variant = "secondary";
+      if (status === "PENDIENTE") variant = "muted";
       if (status === "PAGADA") variant = "default";
       if (status === "CANCELADO") variant = "destructive";
 
