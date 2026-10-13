@@ -7,6 +7,7 @@ import SaleOptions from "./SaleOptions";
 import SaleActions from "./SaleActions";
 import { getSaleColumns } from "./SaleColumns";
 import { useSaleStore } from "../lib/sales.store";
+import { areInstallmentsConsistent } from "../lib/sale.utils";
 import { useNavigate } from "react-router-dom";
 import {
   SALE,
@@ -131,7 +132,7 @@ export default function SalePage() {
     const sumOfInstallments =
       sale.installments?.reduce((sum, inst) => sum + inst.amount, 0) || 0;
 
-    if (Math.abs(totalAmount - sumOfInstallments) > 0.01) {
+    if (!areInstallmentsConsistent(sale)) {
       errorToast(
         `No se puede realizar el pago rápido. La suma de las cuotas (${sumOfInstallments.toFixed(
           2,

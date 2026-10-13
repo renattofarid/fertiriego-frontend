@@ -35,6 +35,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { api } from "@/lib/config";
 import { toast } from "sonner";
+import { areInstallmentsConsistent } from "../lib/sale.utils";
 
 const downloadXml = async (endpoint: string, fileName: string) => {
   try {
@@ -313,8 +314,7 @@ export const getSaleColumns = ({
           (sum, inst) => sum + Number(inst.amount),
           0,
         ) || 0;
-      const isValid =
-        Math.abs(Number(expectedTotal) - sumOfInstallments) < 0.01;
+      const isValid = areInstallmentsConsistent(row.original);
 
       return (
         <TooltipProvider>
