@@ -13,6 +13,26 @@ export function useWarehouseProducts(params?: Record<string, unknown>) {
   });
 }
 
+// Busca directamente el producto de un almacén por su product_id (evita paginar
+// la lista cuando un selector necesita precargar el producto elegido).
+export function useWarehouseProductByProductId(
+  productId: string,
+  warehouseId?: string,
+) {
+  const { data, isLoading } = useQuery({
+    queryKey: [WAREHOUSE_PRODUCT.QUERY_KEY, "by-product", warehouseId, productId],
+    queryFn: async () => {
+      const response = await getWarehouseProduct({
+        params: { warehouse_id: warehouseId, product_id: productId },
+      });
+      return response.data[0];
+    },
+    enabled: !!productId && !!warehouseId,
+    refetchOnWindowFocus: false,
+  });
+  return { data, isLoading };
+}
+
 export function useWarehouseProductById(id: number) {
   const { warehouseProduct, isFinding, error, fetchWarehouseProduct } =
     useWarehouseProductStore();

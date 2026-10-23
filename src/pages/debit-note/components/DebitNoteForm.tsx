@@ -19,13 +19,27 @@ import {
 } from "../lib/debit-note.schema";
 import { Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
-import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
+import {
+  useSaleById,
+  useSaleByIdForSelect,
+  useSalesForCreditNote,
+} from "@/pages/sale/lib/sale.hook";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import type { SaleResource } from "@/pages/sale/lib/sale.interface";
+import type { Option } from "@/lib/core.interface";
+import { useSaleStore } from "@/pages/sale/lib/sales.store";
 import { useAllWarehouses } from "@/pages/warehouse/lib/warehouse.hook";
 import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import type { DebitNoteReason } from "../lib/debit-note.interface";
 import { DebitNoteSummary } from "./DebitNoteSummary";
+
+const mapSaleOption = (sale: SaleResource): Option => ({
+  value: sale.id.toString(),
+  label: `${sale.sequential_number} - ${sale.customer_fullname}`,
+  description: `Total: ${sale.currency} ${sale.total_amount}`,
+});
 
 interface DebitNoteFormProps {
   defaultValues: Partial<DebitNoteSchema>;
@@ -44,12 +58,20 @@ export const DebitNoteForm = ({
   mode = "create",
   debitNoteReasons,
 }: DebitNoteFormProps) => {
-  const { data: sales } = useAllSales();
   const { data: warehouses } = useAllWarehouses();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
     defaultValues.sale_id || null
   );
-  const { data: selectedSale } = useSaleById(Number(selectedSaleId));
+  const { data: storedSale } = useSaleById(Number(selectedSaleId));
+  // El store de ventas es global: ignorar una venta que no sea la seleccionada.
+  const selectedSale =
+    storedSale && String(storedSale.id) === selectedSaleId ? storedSale : null;
+
+  // Al entrar y al salir, limpiar la venta que haya quedado cargada en el store.
+  useEffect(() => {
+    useSaleStore.getState().resetSale();
+    return () => useSaleStore.getState().resetSale();
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(debitNoteSchema),
@@ -83,14 +105,6 @@ export const DebitNoteForm = ({
     warehouses?.map((warehouse) => ({
       value: warehouse.id.toString(),
       label: warehouse.name,
-    })) || [];
-
-  // Preparar opciones para el selector de ventas
-  const saleOptions =
-    sales?.map((sale) => ({
-      value: sale.id.toString(),
-      label: `${sale.sequential_number} - ${sale.customer_fullname}`,
-      description: `Total: ${sale.currency} ${sale.total_amount}`,
     })) || [];
 
   // Cuando se selecciona una venta, actualizar el estado y cargar detalles
@@ -170,13 +184,16 @@ export const DebitNoteForm = ({
           cols={{ sm: 1, md: 3 }}
         >
           <div className="md:col-span-3">
-            <FormSelect
+            <FormSelectAsync
               name="sale_id"
               label="Venta"
               placeholder="Seleccione la venta"
-              options={saleOptions}
               control={form.control}
+              useQueryHook={useSalesForCreditNote}
+              mapOptionFn={mapSaleOption}
               disabled={mode === "edit"}
+              preloadItemId={defaultValues.sale_id || undefined}
+              useQueryByIdHook={useSaleByIdForSelect}
               withValue
             />
           </div>

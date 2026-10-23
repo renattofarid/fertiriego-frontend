@@ -32,7 +32,10 @@ import type { SaleResource } from "../lib/sale.interface";
 import type { WarehouseResource } from "@/pages/warehouse/lib/warehouse.interface";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useWarehouseProducts } from "@/pages/warehouse-product/lib/warehouse-product.hook";
+import {
+  useWarehouseProductByProductId,
+  useWarehouseProducts,
+} from "@/pages/warehouse-product/lib/warehouse-product.hook";
 import type { WarehouseProductResource } from "@/pages/warehouse-product/lib/warehouse-product.interface";
 import { useGuides } from "@/pages/guide/lib/guide.hook";
 import type { GetGuidesParams } from "@/pages/guide/lib/guide.actions";
@@ -1532,6 +1535,17 @@ export const SaleForm = ({
                             label: currentDetail.product_name,
                           }
                         : undefined
+                    }
+                    preloadItemId={
+                      editingDetailIndex !== null
+                        ? currentDetail.product_id
+                        : undefined
+                    }
+                    useQueryByIdHook={(productId) =>
+                      useWarehouseProductByProductId(
+                        productId,
+                        selectedWarehouseId,
+                      )
                     }
                     onValueChange={(_value, item) => {
                       setProductSelected(item ?? null);
