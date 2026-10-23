@@ -11,7 +11,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export const OrderAddPage = () => {
-  const { ICON } = ORDER;
+  const { ICON, ROUTE } = ORDER;
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { setOpen, setOpenMobile } = useSidebar();
@@ -44,7 +44,7 @@ export const OrderAddPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Pedido" mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Pedido" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -56,7 +56,7 @@ export const OrderAddPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Pedido" mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Pedido" mode="create" icon={ICON} />
         </div>
       </div>
 

@@ -15,7 +15,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import PageWrapper from "@/components/PageWrapper";
 
 export const SaleEditPage = () => {
-  const { ICON, MODEL } = SALE;
+  const { ICON, MODEL, ROUTE } = SALE;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -126,7 +126,7 @@ export const SaleEditPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Venta" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -138,7 +138,7 @@ export const SaleEditPage = () => {
     return (
       <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Venta" mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Venta no encontrada</p>
@@ -151,7 +151,7 @@ export const SaleEditPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Venta" mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Venta" mode="edit" icon={ICON} />
         </div>
       </div>
 

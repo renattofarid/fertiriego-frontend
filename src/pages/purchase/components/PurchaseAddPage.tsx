@@ -17,7 +17,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 export const PurchaseAddPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { ICON } = PURCHASE;
+  const { ICON, ROUTE } = PURCHASE;
   const { user } = useAuthStore();
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
   const { setOpen, setOpenMobile } = useSidebar();
@@ -64,7 +64,7 @@ export const PurchaseAddPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Compra" mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Compra" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -76,7 +76,7 @@ export const PurchaseAddPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Compra" mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Compra" mode="create" icon={ICON} />
         </div>
       </div>
 

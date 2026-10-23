@@ -16,7 +16,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export const QuotationEditPage = () => {
-  const { ICON } = QUOTATION;
+  const { ICON, ROUTE } = QUOTATION;
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { setOpen, setOpenMobile } = useSidebar();
@@ -65,7 +65,7 @@ export const QuotationEditPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Cotización" mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -78,7 +78,7 @@ export const QuotationEditPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Cotización" mode="edit" icon={ICON} />
           </div>
         </div>
         <div className="text-center py-8 text-muted-foreground">
@@ -92,7 +92,7 @@ export const QuotationEditPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Cotización" mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Cotización" mode="edit" icon={ICON} />
         </div>
       </div>
 

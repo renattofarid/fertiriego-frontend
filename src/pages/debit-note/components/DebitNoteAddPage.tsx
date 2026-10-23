@@ -14,7 +14,7 @@ import { DebitNoteForm } from "./DebitNoteForm";
 import { useDebitNoteReasons } from "../lib/debit-note.hook";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL, ICON, TITLES } = DEBIT_NOTE;
+const { MODEL, ICON, TITLES, ROUTE } = DEBIT_NOTE;
 
 export default function DebitNoteAddPage() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function DebitNoteAddPage() {
 
   return (
     <FormWrapper>
-      <TitleComponent
+      <TitleComponent backRoute={ROUTE}
         title={TITLES.create.title}
         subtitle={TITLES.create.subtitle}
         icon={ICON}

@@ -17,7 +17,7 @@ import {
 import FormSkeleton from "@/components/FormSkeleton";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL, ICON, TITLES } = DEBIT_NOTE;
+const { MODEL, ICON, TITLES, ROUTE } = DEBIT_NOTE;
 
 export default function DebitNoteEditPage() {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function DebitNoteEditPage() {
   if (isFinding) {
     return (
       <div className="space-y-4">
-        <TitleComponent
+        <TitleComponent backRoute={ROUTE}
           title={TITLES.update.title}
           subtitle={TITLES.update.subtitle}
           icon={ICON}
@@ -82,7 +82,7 @@ export default function DebitNoteEditPage() {
 
   return (
     <FormWrapper>
-      <TitleComponent
+      <TitleComponent backRoute={ROUTE}
         title={TITLES.update.title}
         subtitle={TITLES.update.subtitle}
         icon={ICON}

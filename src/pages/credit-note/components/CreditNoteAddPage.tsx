@@ -14,7 +14,7 @@ import FormWrapper from "@/components/FormWrapper";
 import { useCreditNoteReasons } from "../lib/credit-note.hook";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL, ICON, TITLES } = CREDIT_NOTE;
+const { MODEL, ICON, TITLES, ROUTE } = CREDIT_NOTE;
 
 export default function CreditNoteAddPage() {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function CreditNoteAddPage() {
 
   return (
     <FormWrapper>
-      <TitleComponent
+      <TitleComponent backRoute={ROUTE}
         title={TITLES.create.title}
         subtitle={TITLES.create.subtitle}
         icon={ICON}

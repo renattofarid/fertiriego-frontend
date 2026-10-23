@@ -17,7 +17,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import PageWrapper from "@/components/PageWrapper";
 
 export const SaleAddPage = () => {
-  const { ICON, MODEL } = SALE;
+  const { ICON, MODEL, ROUTE } = SALE;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,7 +122,7 @@ export const SaleAddPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Venta" mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Venta" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -134,7 +134,7 @@ export const SaleAddPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Venta" mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Venta" mode="create" icon={ICON} />
         </div>
       </div>
 

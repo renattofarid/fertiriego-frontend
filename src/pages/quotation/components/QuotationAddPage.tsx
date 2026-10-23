@@ -13,7 +13,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export const QuotationAddPage = () => {
-  const { ICON } = QUOTATION;
+  const { ICON, ROUTE } = QUOTATION;
   const navigate = useNavigate();
   const location = useLocation();
   const duplicateFrom = (location.state as { duplicateFrom?: QuotationResource } | null)?.duplicateFrom;
@@ -54,7 +54,7 @@ export const QuotationAddPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title="Cotización" mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title="Cotización" mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -66,7 +66,7 @@ export const QuotationAddPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title="Cotización" mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title="Cotización" mode="create" icon={ICON} />
         </div>
       </div>
 

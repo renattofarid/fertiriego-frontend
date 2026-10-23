@@ -22,7 +22,7 @@ import PageWrapper from "@/components/PageWrapper";
 import { useSidebar } from "@/components/ui/sidebar";
 
 export const OrderEditPage = () => {
-  const { MODEL, ICON } = ORDER;
+  const { MODEL, ICON, ROUTE } = ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
@@ -91,7 +91,7 @@ export const OrderEditPage = () => {
       <PageWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -103,7 +103,7 @@ export const OrderEditPage = () => {
     return (
       <PageWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Pedido no encontrado</p>
@@ -116,7 +116,7 @@ export const OrderEditPage = () => {
     <PageWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 

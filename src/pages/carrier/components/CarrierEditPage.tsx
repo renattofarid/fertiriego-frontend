@@ -20,7 +20,7 @@ import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 
-const { MODEL, ICON } = CARRIER;
+const { MODEL, ICON, ROUTE } = CARRIER;
 
 export default function CarrierEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -99,7 +99,7 @@ export default function CarrierEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
 
         <FormSkeleton />
@@ -110,7 +110,7 @@ export default function CarrierEditPage() {
   return (
     <FormWrapper>
       <div className="flex items-center gap-4 mb-6">
-        <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+        <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
       </div>
 
       <PersonForm

@@ -21,7 +21,7 @@ import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
 export default function PurchaseOrderEditPage() {
-  const { MODEL, ICON } = PURCHASE_ORDER;
+  const { MODEL, ICON, ROUTE } = PURCHASE_ORDER;
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
@@ -94,7 +94,7 @@ export default function PurchaseOrderEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -106,7 +106,7 @@ export default function PurchaseOrderEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Orden de compra no encontrada</p>
@@ -119,7 +119,7 @@ export default function PurchaseOrderEditPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 

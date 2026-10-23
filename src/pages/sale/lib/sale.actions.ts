@@ -63,6 +63,15 @@ export const getSales = async (
   return response.data;
 };
 
+// Listado liviano de ventas para el selector de notas de crédito.
+// `search` acepta el documento completo (ej. F200-00000626) y filtra exacto.
+export const getSalesForCreditNote = async (
+  params?: GetSalesParams,
+): Promise<SaleResponse> => {
+  const response = await api.get<SaleResponse>("/saleCredit", { params });
+  return response.data;
+};
+
 export const getAllSales = async (): Promise<SaleResource[]> => {
   const response = await api.get<SaleResource[]>(SALE_ENDPOINT, {
     params: { all: true },

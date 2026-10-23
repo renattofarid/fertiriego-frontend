@@ -17,10 +17,22 @@ import ExportButtons from "@/components/ExportButtons";
 import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import DataTablePagination from "@/components/DataTablePagination";
 import { useSidebar } from "@/components/ui/sidebar";
+import { api } from "@/lib/config";
+import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
+import { useClients } from "@/pages/client/lib/client.hook";
+import type { PersonResource } from "@/pages/person/lib/person.interface";
+import type { Option } from "@/lib/core.interface";
+
+const mapClientOption = (person: PersonResource): Option => ({
+  value: String(person.id),
+  label: person.business_name || person.names,
+  description: person.number_document,
+});
 
 export default function OrderPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [customerId, setCustomerId] = useState("");
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -31,11 +43,12 @@ export default function OrderPage() {
     page,
     search,
     per_page,
+    customer_id: customerId ? Number(customerId) : undefined,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [search, per_page]);
+  }, [search, per_page, customerId]);
 
   const { removeOrder } = useOrderStore();
 
@@ -74,6 +87,26 @@ export default function OrderPage() {
     }
   };
 
+  // El Excel debe respetar los mismos filtros que la vista (buscador y cliente).
+  const handleExcelDownload = async () => {
+    const term = search.trim();
+    const response = await api.get("/order/export", {
+      params: {
+        search: term || undefined,
+        customer_id: customerId ? Number(customerId) : undefined,
+      },
+      responseType: "blob",
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "pedidos.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
   const { MODEL, ICON } = ORDER;
 
   const columns = getOrderColumns({
@@ -92,10 +125,7 @@ export default function OrderPage() {
           icon={ICON}
         />
         <div className="flex items-center gap-2">
-          <ExportButtons
-            excelEndpoint="/order/export"
-            excelFileName="pedidos.xlsx"
-          />
+          <ExportButtons onExcelDownload={handleExcelDownload} />
           <Button onClick={() => navigate("/pedidos/agregar")}>
             <Plus className="mr-2 h-4 w-4" />
             Nuevo Pedido
@@ -115,6 +145,24 @@ export default function OrderPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
           />
+          <div className="w-64">
+            <SearchableSelectAsync
+              value={customerId}
+              onChange={setCustomerId}
+              placeholder="Filtrar por cliente"
+              useQueryHook={useClients}
+              mapOptionFn={mapClientOption}
+            />
+          </div>
+          {customerId && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCustomerId("")}
+            >
+              Limpiar cliente
+            </Button>
+          )}
         </div>
       </OrderTable>
 

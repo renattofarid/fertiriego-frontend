@@ -15,7 +15,7 @@ import {
 import { DRIVER, DRIVER_ROLE_ID } from "../lib/driver.interface";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL, ICON } = DRIVER;
+const { MODEL, ICON, ROUTE } = DRIVER;
 
 export default function DriverAddPage() {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export default function DriverAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

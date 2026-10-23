@@ -20,7 +20,7 @@ import {
 import FormSkeleton from "@/components/FormSkeleton";
 import FormWrapper from "@/components/FormWrapper";
 
-const { MODEL, ICON, TITLES } = CREDIT_NOTE;
+const { MODEL, ICON, TITLES, ROUTE } = CREDIT_NOTE;
 
 export default function CreditNoteEditPage() {
   const navigate = useNavigate();
@@ -69,7 +69,7 @@ export default function CreditNoteEditPage() {
 
   return (
     <FormWrapper>
-      <TitleComponent
+      <TitleComponent backRoute={ROUTE}
         title={TITLES.update.title}
         subtitle={TITLES.update.subtitle}
         icon={ICON}

@@ -207,6 +207,7 @@ export function InstallmentPaymentsSheet({
                   setEditingPaymentId(null);
                 }}
                 isSubmitting={isSubmitting}
+                pending={editingPaymentId ? undefined : pending}
               />
             </div>
           </GroupFormSection>

@@ -15,7 +15,7 @@ import {
 import FormWrapper from "@/components/FormWrapper";
 import { CARRIER, CARRIER_ROLE_ID } from "../lib/carrier.interface";
 
-const { MODEL, ICON } = CARRIER;
+const { MODEL, ICON, ROUTE } = CARRIER;
 
 export default function CarrierAddPage() {
   const navigate = useNavigate();
@@ -70,7 +70,7 @@ export default function CarrierAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

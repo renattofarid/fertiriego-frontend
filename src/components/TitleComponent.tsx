@@ -1,10 +1,12 @@
 import * as LucideReact from "lucide-react";
+import BackButton from "./BackButton";
 
 interface Props {
   title: string;
   subtitle?: string;
   className?: string;
   icon?: keyof typeof LucideReact;
+  backRoute?: string;
   children?: React.ReactNode;
 }
 
@@ -13,6 +15,7 @@ export default function TitleComponent({
   subtitle,
   className = "",
   icon,
+  backRoute,
   children,
 }: Props) {
   const IconComponent = icon
@@ -22,6 +25,7 @@ export default function TitleComponent({
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center w-full">
       <div className={`flex items-center gap-4 ${className}`}>
+        {backRoute && <BackButton route={backRoute} name="" size="icon" />}
         {IconComponent && (
           <div className="text-white bg-primary rounded-md p-2">
             <IconComponent className="size-5 text-white" />

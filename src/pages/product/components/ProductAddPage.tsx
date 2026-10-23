@@ -17,7 +17,7 @@ import { PRODUCT } from "../lib/product.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL, ICON } = PRODUCT;
+const { MODEL, ICON, ROUTE } = PRODUCT;
 
 export default function ProductAddPage() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function ProductAddPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -74,7 +74,7 @@ export default function ProductAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

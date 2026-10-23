@@ -19,7 +19,14 @@ import {
 import { Trash2, Plus, Info } from "lucide-react";
 import { FormSelect } from "@/components/FormSelect";
 import { FormSwitch } from "@/components/FormSwitch";
-import { useAllSales, useSaleById } from "@/pages/sale/lib/sale.hook";
+import {
+  useSaleById,
+  useSaleByIdForSelect,
+  useSalesForCreditNote,
+} from "@/pages/sale/lib/sale.hook";
+import { useSaleStore } from "@/pages/sale/lib/sales.store";
+import { FormSelectAsync } from "@/components/FormSelectAsync";
+import type { SaleResource } from "@/pages/sale/lib/sale.interface";
 import { useEffect, useState } from "react";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
 import { GroupFormSection } from "@/components/GroupFormSection";
@@ -37,6 +44,12 @@ interface CreditNoteFormProps {
   creditNoteReasons: CreditNoteReason[];
 }
 
+const mapSaleOption = (sale: SaleResource): Option => ({
+  value: sale.id.toString(),
+  label: `${sale.sequential_number} - ${sale.customer_fullname}`,
+  description: `Total: ${sale.currency} ${sale.total_amount}`,
+});
+
 export const CreditNoteForm = ({
   onCancel,
   defaultValues,
@@ -45,11 +58,19 @@ export const CreditNoteForm = ({
   mode = "create",
   creditNoteReasons,
 }: CreditNoteFormProps) => {
-  const { data: sales } = useAllSales();
   const [selectedSaleId, setSelectedSaleId] = useState<string | null>(
     defaultValues.sale_id || null,
   );
-  const { data: selectedSale } = useSaleById(Number(selectedSaleId));
+  const { data: storedSale } = useSaleById(Number(selectedSaleId));
+  // El store de ventas es global: ignorar una venta que no sea la seleccionada.
+  const selectedSale =
+    storedSale && String(storedSale.id) === selectedSaleId ? storedSale : null;
+
+  // Al entrar y al salir, limpiar la venta que haya quedado cargada en el store.
+  useEffect(() => {
+    useSaleStore.getState().resetSale();
+    return () => useSaleStore.getState().resetSale();
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(creditNoteSchema),
@@ -69,14 +90,6 @@ export const CreditNoteForm = ({
     control: form.control,
     name: "details",
   });
-
-  // Preparar opciones para el selector de ventas
-  const saleOptions =
-    sales?.map((sale) => ({
-      value: sale.id.toString(),
-      label: `${sale.sequential_number} - ${sale.customer_fullname}`,
-      description: `Total: ${sale.currency} ${sale.total_amount}`,
-    })) || [];
 
   // Cuando se selecciona una venta, actualizar el estado y cargar detalles
   useEffect(() => {
@@ -155,13 +168,16 @@ export const CreditNoteForm = ({
             icon={Info}
             cols={{ sm: 1 }}
           >
-            <FormSelect
+            <FormSelectAsync
               name="sale_id"
               label="Venta"
               placeholder="Seleccione la venta"
-              options={saleOptions}
               control={form.control}
+              useQueryHook={useSalesForCreditNote}
+              mapOptionFn={mapSaleOption}
               disabled={mode === "edit"}
+              preloadItemId={defaultValues.sale_id || undefined}
+              useQueryByIdHook={useSaleByIdForSelect}
               withValue
             />
             <DatePickerFormField

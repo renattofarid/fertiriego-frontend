@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useSaleStore } from "./sales.store";
-import { getSales, type GetSalesParams } from "./sale.actions";
+import {
+  findSaleById,
+  getSales,
+  getSalesForCreditNote,
+  type GetSalesParams,
+} from "./sale.actions";
 import { SALE, type SaleResource } from "./sale.interface";
 import { useQuery } from "@tanstack/react-query";
 
@@ -14,6 +19,28 @@ export const useSale = (params?: GetSalesParams) => {
     queryKey: [QUERY_KEY, params],
     queryFn: () => getSales(params),
   });
+};
+
+/**
+ * Hook to fetch sales for the credit note selector (/saleCredit)
+ */
+export const useSalesForCreditNote = (params?: GetSalesParams) => {
+  return useQuery({
+    queryKey: [QUERY_KEY, "credit-note", params],
+    queryFn: () => getSalesForCreditNote(params),
+  });
+};
+
+/**
+ * Hook to fetch one sale directly by ID (evita paginar al precargar un select)
+ */
+export const useSaleByIdForSelect = (id: string) => {
+  const { data, isLoading } = useQuery({
+    queryKey: [QUERY_KEY, "by-id", id],
+    queryFn: () => findSaleById(Number(id)),
+    enabled: !!id && Number(id) > 0,
+  });
+  return { data, isLoading };
 };
 
 /**

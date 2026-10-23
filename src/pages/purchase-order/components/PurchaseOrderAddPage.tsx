@@ -20,7 +20,7 @@ import FormSkeleton from "@/components/FormSkeleton";
 export default function PurchaseOrderAddPage() {
   const navigate = useNavigate();
   const isSubmittingRef = useRef(false);
-  const { MODEL, ICON } = PURCHASE_ORDER;
+  const { MODEL, ICON, ROUTE } = PURCHASE_ORDER;
 
   const { data: warehouses, isLoading: warehousesLoading } = useAllWarehouses();
 
@@ -65,7 +65,7 @@ export default function PurchaseOrderAddPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -77,7 +77,7 @@ export default function PurchaseOrderAddPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="create" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="create" icon={ICON} />
         </div>
       </div>
 

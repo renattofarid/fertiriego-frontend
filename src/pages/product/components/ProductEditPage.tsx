@@ -17,7 +17,7 @@ import { PRODUCT, type ProductResource } from "../lib/product.interface";
 import FormWrapper from "@/components/FormWrapper";
 import FormSkeleton from "@/components/FormSkeleton";
 
-const { MODEL, ICON } = PRODUCT;
+const { MODEL, ICON, ROUTE } = PRODUCT;
 
 export default function ProductEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +75,7 @@ export default function ProductEditPage() {
       <FormWrapper>
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+            <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
           </div>
         </div>
         <FormSkeleton />
@@ -87,7 +87,7 @@ export default function ProductEditPage() {
     return (
       <FormWrapper>
         <div className="flex items-center gap-4 mb-6">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
         <div className="text-center py-8">
           <p className="text-muted-foreground">Producto no encontrado</p>
@@ -100,7 +100,7 @@ export default function ProductEditPage() {
     <FormWrapper>
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <TitleFormComponent title={MODEL.name} mode="edit" icon={ICON} />
+          <TitleFormComponent backRoute={ROUTE} title={MODEL.name} mode="edit" icon={ICON} />
         </div>
       </div>
 
