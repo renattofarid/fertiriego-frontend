@@ -28,6 +28,37 @@ export const PensionSystemColumns = ({
     ),
   },
   {
+    accessorKey: "rate",
+    header: "Aporte",
+    cell: ({ getValue }) => `${getValue()}%`,
+  },
+  {
+    accessorKey: "insurance_rate",
+    header: "Seguro",
+    cell: ({ getValue }) => `${getValue()}%`,
+  },
+  {
+    accessorKey: "admin_fee_rate",
+    header: "Comisión",
+    cell: ({ getValue }) => `${getValue()}%`,
+  },
+  {
+    accessorKey: "total_rate",
+    header: "Total",
+    cell: ({ getValue }) => (
+      <span className="font-medium">{getValue() as string}%</span>
+    ),
+  },
+  {
+    accessorKey: "is_active",
+    header: "Estado",
+    cell: ({ getValue }) => (
+      <Badge variant={getValue() ? "default" : "secondary"}>
+        {getValue() ? "Activo" : "Inactivo"}
+      </Badge>
+    ),
+  },
+  {
     id: "actions",
     header: "Acciones",
     cell: ({ row }) => (

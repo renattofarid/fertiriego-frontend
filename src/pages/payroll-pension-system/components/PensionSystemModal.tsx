@@ -15,25 +15,47 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FormSwitch } from "@/components/FormSwitch";
+import { FormSelect } from "@/components/FormSelect";
 import { errorToast, successToast } from "@/lib/core.function";
 import {
   storePensionSystem,
   updatePensionSystem,
 } from "../lib/pension-system.actions";
-import type { PensionSystemResource } from "../lib/pension-system.interface";
+import {
+  PENSION_SYSTEM_TYPE_OPTIONS,
+  type PensionSystemResource,
+  type PensionSystemType,
+} from "../lib/pension-system.interface";
+
+const rateSchema = (label: string) =>
+  z.coerce
+    .number()
+    .min(0, `${label} debe ser mayor o igual a 0`)
+    .max(100, `${label} no puede ser mayor a 100`);
 
 const pensionSystemSchema = z.object({
+  type: z.string().min(1, "Seleccione un tipo"),
   name: z
     .string()
     .min(1, "El nombre es requerido")
     .max(100, "El nombre no puede exceder 100 caracteres"),
-  type: z
-    .string()
-    .min(1, "El tipo es requerido")
-    .max(50, "El tipo no puede exceder 50 caracteres"),
+  rate: rateSchema("El aporte"),
+  insurance_rate: rateSchema("La prima de seguro"),
+  admin_fee_rate: rateSchema("La comisión"),
+  is_active: z.boolean(),
 });
 
 type PensionSystemFormValues = z.infer<typeof pensionSystemSchema>;
+
+const EMPTY_VALUES: PensionSystemFormValues = {
+  type: "ONP",
+  name: "",
+  rate: 0,
+  insurance_rate: 0,
+  admin_fee_rate: 0,
+  is_active: true,
+};
 
 interface PensionSystemModalProps {
   open: boolean;
@@ -50,33 +72,44 @@ export default function PensionSystemModal({
 }: PensionSystemModalProps) {
   const isEdit = item !== null;
   const form = useForm<PensionSystemFormValues>({
-    resolver: zodResolver(pensionSystemSchema),
-    defaultValues: { name: "", type: "" },
+    resolver: zodResolver(pensionSystemSchema) as any,
+    defaultValues: EMPTY_VALUES,
   });
 
   useEffect(() => {
-    if (open) {
-      form.reset({ name: item?.name ?? "", type: item?.type ?? "" });
-    }
+    if (!open) return;
+    form.reset(
+      item
+        ? {
+            type: item.type,
+            name: item.name,
+            rate: Number(item.rate),
+            insurance_rate: Number(item.insurance_rate),
+            admin_fee_rate: Number(item.admin_fee_rate),
+            is_active: item.is_active,
+          }
+        : EMPTY_VALUES,
+    );
   }, [open, item, form]);
 
   const isSubmitting = form.formState.isSubmitting;
 
   const handleClose = () => {
-    form.reset();
+    form.reset(EMPTY_VALUES);
     onClose();
   };
 
   const onSubmit = async (values: PensionSystemFormValues) => {
+    const payload = { ...values, type: values.type as PensionSystemType };
     try {
       if (item) {
-        await updatePensionSystem(item.id, values);
+        await updatePensionSystem(item.id, payload);
         successToast("Sistema de pensión actualizado exitosamente");
       } else {
-        await storePensionSystem(values);
+        await storePensionSystem(payload);
         successToast("Sistema de pensión registrado exitosamente");
       }
-      form.reset();
+      form.reset(EMPTY_VALUES);
       onSuccess();
     } catch (error: any) {
       errorToast(
@@ -86,6 +119,25 @@ export default function PensionSystemModal({
       );
     }
   };
+
+  const rateField = (
+    name: "rate" | "insurance_rate" | "admin_fee_rate",
+    label: string,
+  ) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <FormControl>
+            <Input type="number" step="0.01" min="0" max="100" {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
 
   return (
     <GeneralModal
@@ -103,6 +155,17 @@ export default function PensionSystemModal({
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-4 w-full"
         >
+          <FormSelect
+            control={form.control}
+            name="type"
+            label="Tipo"
+            placeholder="Seleccione un tipo"
+            options={PENSION_SYSTEM_TYPE_OPTIONS.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
+          />
+
           <FormField
             control={form.control}
             name="name"
@@ -117,19 +180,21 @@ export default function PensionSystemModal({
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo</FormLabel>
-                <FormControl>
-                  <Input placeholder="Ej. AFP" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {rateField("rate", "Aporte (%)")}
+            {rateField("insurance_rate", "Prima de seguro (%)")}
+            {rateField("admin_fee_rate", "Comisión (%)")}
+          </div>
+
+          {isEdit && (
+            <FormSwitch
+              control={form.control}
+              name="is_active"
+              text="Activo"
+              textDescription="Indique si el sistema de pensión está activo"
+              autoHeight
+            />
+          )}
 
           <div className="flex gap-4 w-full justify-end">
             <Button type="button" variant="neutral" onClick={handleClose}>

@@ -36,11 +36,26 @@ export const PENSION_SYSTEM: ModelComplete<any> = {
   EMPTY: {},
 };
 
+export type PensionSystemType = "ONP" | "AFP";
+
+export const PENSION_SYSTEM_TYPE_OPTIONS: {
+  value: PensionSystemType;
+  label: string;
+}[] = [
+  { value: "ONP", label: "ONP" },
+  { value: "AFP", label: "AFP" },
+];
+
 export interface PensionSystemResource {
   id: number;
-  name: string;
   type: string;
-  created_at?: string;
+  name: string;
+  rate: number | string;
+  insurance_rate: number | string;
+  admin_fee_rate: number | string;
+  total_rate: string;
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface PensionSystemResponse {
@@ -50,8 +65,12 @@ export interface PensionSystemResponse {
 }
 
 export interface PensionSystemRequest {
+  type: PensionSystemType;
   name: string;
-  type: string;
+  rate: number;
+  insurance_rate: number;
+  admin_fee_rate: number;
+  is_active: boolean;
 }
 
 export interface PensionSystemItemResponse {
