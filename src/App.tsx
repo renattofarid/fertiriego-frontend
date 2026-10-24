@@ -181,6 +181,8 @@ import VacationReportPage from "./pages/hr-vacation-report/components/VacationRe
 import { VACATION_REPORT_ROUTE } from "./pages/hr-vacation-report/lib/vacation-report.interface";
 import SalaryPage from "./pages/payroll-salary/components/SalaryPage";
 import { SALARY } from "./pages/payroll-salary/lib/salary.interface";
+import PensionSystemPage from "./pages/payroll-pension-system/components/PensionSystemPage";
+import { PENSION_SYSTEM } from "./pages/payroll-pension-system/lib/pension-system.interface";
 import IncomePage from "./pages/payroll-income/components/IncomePage";
 import { INCOME } from "./pages/payroll-income/lib/income.interface";
 import DeductionPage from "./pages/payroll-deduction/components/DeductionPage";
@@ -239,6 +241,7 @@ const { ROUTE: ProductPriceCategoryRoute } = PRODUCT_PRICE_CATEGORY;
 const { ROUTE: ProductTagRoute } = PRODUCT_TAG;
 const { ROUTE: ScheduleRoute } = SCHEDULE;
 const { ROUTE: SalaryRoute } = SALARY;
+const { ROUTE: PensionSystemRoute } = PENSION_SYSTEM;
 const { ROUTE: IncomeRoute } = INCOME;
 const { ROUTE: DeductionRoute } = DEDUCTION;
 const { ROUTE: PayrollRoute } = PAYROLL;
@@ -577,6 +580,15 @@ export default function App() {
             element={
               <ProtectedRoute path={SalaryRoute}>
                 <SalaryPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={PensionSystemRoute}
+            element={
+              <ProtectedRoute path={PensionSystemRoute}>
+                <PensionSystemPage />
               </ProtectedRoute>
             }
           />

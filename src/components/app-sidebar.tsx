@@ -93,6 +93,7 @@ import { VACATION_REPORT_META } from "@/pages/hr-vacation-report/lib/vacation-re
 import { SALARY } from "@/pages/payroll-salary/lib/salary.interface";
 import { INCOME } from "@/pages/payroll-income/lib/income.interface";
 import { DEDUCTION } from "@/pages/payroll-deduction/lib/deduction.interface";
+import { PENSION_SYSTEM } from "@/pages/payroll-pension-system/lib/pension-system.interface";
 import { PAYROLL } from "@/pages/payroll/lib/payroll.interface";
 
 const {
@@ -384,6 +385,12 @@ const {
 } = SALARY;
 
 const {
+  ICON_REACT: PensionSystemIcon,
+  ROUTE: PensionSystemRoute,
+  MODEL: { plural: PensionSystemTitle },
+} = PENSION_SYSTEM;
+
+const {
   ICON_REACT: IncomeIcon,
   ROUTE: IncomeRoute,
   MODEL: { plural: IncomeTitle },
@@ -667,6 +674,11 @@ const data = {
           title: SalaryTitle,
           url: SalaryRoute,
           icon: SalaryIcon,
+        },
+        {
+          title: PensionSystemTitle,
+          url: PensionSystemRoute,
+          icon: PensionSystemIcon,
         },
         {
           title: IncomeTitle,
