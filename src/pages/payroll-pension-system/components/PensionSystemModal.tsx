@@ -131,7 +131,7 @@ export default function PensionSystemModal({
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <FormControl>
-            <Input type="number" step="0.01" min="0" max="100" {...field} />
+            <Input type="number" step="0.000001" min="0" max="100" {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
