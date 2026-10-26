@@ -261,6 +261,15 @@ export const ProductForm = ({
             step="0.001"
           />
 
+          <FormInput
+            control={form.control}
+            name="cost"
+            label="Costo"
+            placeholder="Ingrese el costo"
+            type="number"
+            step="0.0001"
+          />
+
           <FormSwitch
             control={form.control}
             name="is_igv"

@@ -47,6 +47,7 @@ export default function ProductEditPage() {
     product_type_id: data.product_type_id?.toString(),
     is_igv: Boolean((data as any).is_igv) || false,
     weight: Number((data as any).weight) || 0,
+    cost: Number(data.cost) || 0,
     observations: (data as any).observations || "",
     technical_sheet: [],
   });

@@ -15,6 +15,10 @@ export const productSchemaCreate = z.object({
     .number()
     .min(0, { message: "El peso debe ser mayor o igual a 0" })
     .default(0),
+  cost: z.coerce
+    .number()
+    .min(0, { message: "El costo debe ser mayor o igual a 0" })
+    .default(0),
   observations: z.string().optional().default(""),
   technical_sheet: z.array(z.instanceof(File)).optional().default([]),
 });
