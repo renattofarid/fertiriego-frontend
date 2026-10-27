@@ -105,12 +105,24 @@ export default function ProductDetail() {
             icon={List}
           >
             <dl className="grid grid-cols-2 gap-x-6 gap-y-4 md:grid-cols-4">
-              <div>
-                <dt className="text-xs text-muted-foreground">Costo</dt>
-                <dd className="text-lg font-semibold tabular-nums">
-                  {formatNumber(product.cost, 4)}
-                </dd>
-              </div>
+              {(
+                [
+                  ["PEN", "Costo (S/)"],
+                  ["USD", "Costo (US$)"],
+                  ["EUR", "Costo (€)"],
+                ] as const
+              ).map(([currency, label]) => (
+                <div key={currency}>
+                  <dt className="text-xs text-muted-foreground">{label}</dt>
+                  <dd className="text-lg font-semibold tabular-nums">
+                    {formatNumber(
+                      product.costs?.[currency] ??
+                        (currency === "PEN" ? product.cost : 0),
+                      4,
+                    )}
+                  </dd>
+                </div>
+              ))}
               <div>
                 <dt className="text-xs text-muted-foreground">Unidad</dt>
                 <dd className="font-medium">{product.unit_name}</dd>

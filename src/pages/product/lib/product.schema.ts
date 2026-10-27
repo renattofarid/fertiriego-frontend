@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { requiredStringId } from "@/lib/core.schema";
 
+const costSchema = z.coerce
+  .number()
+  .min(0, { message: "El costo debe ser mayor o igual a 0" })
+  .default(0);
+
 export const productSchemaCreate = z.object({
   name: z
     .string()
@@ -15,10 +20,11 @@ export const productSchemaCreate = z.object({
     .number()
     .min(0, { message: "El peso debe ser mayor o igual a 0" })
     .default(0),
-  cost: z.coerce
-    .number()
-    .min(0, { message: "El costo debe ser mayor o igual a 0" })
-    .default(0),
+  costs: z.object({
+    PEN: costSchema,
+    USD: costSchema,
+    EUR: costSchema,
+  }),
   observations: z.string().optional().default(""),
   technical_sheet: z.array(z.instanceof(File)).optional().default([]),
 });

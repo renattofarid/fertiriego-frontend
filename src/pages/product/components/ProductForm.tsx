@@ -263,9 +263,27 @@ export const ProductForm = ({
 
           <FormInput
             control={form.control}
-            name="cost"
-            label="Costo"
-            placeholder="Ingrese el costo"
+            name="costs.PEN"
+            label="Costo (S/)"
+            placeholder="Ingrese el costo en soles"
+            type="number"
+            step="0.0001"
+          />
+
+          <FormInput
+            control={form.control}
+            name="costs.USD"
+            label="Costo (US$)"
+            placeholder="Ingrese el costo en dólares"
+            type="number"
+            step="0.0001"
+          />
+
+          <FormInput
+            control={form.control}
+            name="costs.EUR"
+            label="Costo (€)"
+            placeholder="Ingrese el costo en euros"
             type="number"
             step="0.0001"
           />

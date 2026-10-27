@@ -42,7 +42,9 @@ const createFormData = (data: ProductSchema): FormData => {
   formData.append("name", data.name);
   formData.append("is_igv", data.is_igv ? "1" : "0");
   formData.append("weight", (data.weight ?? 0).toString());
-  formData.append("cost", (data.cost ?? 0).toString());
+  (["PEN", "USD", "EUR"] as const).forEach((currency) => {
+    formData.append(`costs[${currency}]`, (data.costs?.[currency] ?? 0).toString());
+  });
 
   if(data.category_id){
       formData.append("category_id", data.category_id.toString());

@@ -42,7 +42,7 @@ export const PRODUCT: ModelComplete<ProductSchema> = {
     product_type_id: "",
     is_igv: false,
     weight: 0,
-    cost: 0,
+    costs: { PEN: 0, USD: 0, EUR: 0 },
     observations: "",
     technical_sheet: [],
   },
@@ -67,6 +67,7 @@ export interface ProductResource {
   is_igv: number;
   weight: number | null;
   cost: number | string | null;
+  costs?: Partial<Record<"PEN" | "USD" | "EUR", number | string | null>>;
   technical_sheet?: string[];
   product_images: string[];
   components: Component[];
