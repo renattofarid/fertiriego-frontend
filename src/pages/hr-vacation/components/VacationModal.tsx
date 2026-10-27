@@ -43,11 +43,13 @@ export default function VacationModal({ open, onClose }: Props) {
       open={open}
       onClose={onClose}
       title={VACATION_META.MODEL.name}
+      icon={VACATION_META.ICON}
       maxWidth="!max-w-2xl"
     >
       <VacationForm
         defaultValues={{
           person_id: "",
+          vacation_period_id: "",
           start_date: "",
           end_date: "",
           reason: "",

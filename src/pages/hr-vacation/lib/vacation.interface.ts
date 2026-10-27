@@ -73,6 +73,7 @@ export interface CreateVacationResponse {
 
 export interface CreateVacationRequest {
   person_id: number;
+  vacation_period_id: number;
   start_date: string;
   end_date: string;
   reason?: string | null;
@@ -141,6 +142,7 @@ export interface VacationControlSummaryResponse {
 }
 
 export interface VacationPeriodResource {
+  id: number;
   person_id: number;
   person_name: string;
   period_year: number;

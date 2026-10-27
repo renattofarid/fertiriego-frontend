@@ -1,6 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
+import { FormSelect } from "@/components/FormSelect";
+import { useVacationPeriods } from "../lib/vacation.hook";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
@@ -21,6 +24,11 @@ import {
 } from "../lib/vacation.schema";
 import { useWorkers } from "@/pages/worker/lib/worker.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
+
+function formatDate(value: string) {
+  const [year, month, day] = value.slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
+}
 
 function getPersonDisplayName(person: PersonResource) {
   return person.type_document === "RUC"
@@ -49,6 +57,25 @@ export const VacationForm = ({
     mode: "onChange",
   });
 
+  const personId = form.watch("person_id");
+  const { data: periods, isLoading: isLoadingPeriods } = useVacationPeriods(
+    personId ? { person_id: personId, per_page: 100 } : undefined,
+  );
+
+  const periodOptions = useMemo(
+    () =>
+      personId
+        ? (periods?.data ?? []).map((period) => {
+            const available = period.days_entitled - period.days_used;
+            return {
+              value: period.id.toString(),
+              label: `${formatDate(period.period_start)} - ${formatDate(period.period_end)} · ${available} días disponibles`,
+            };
+          })
+        : [],
+    [periods, personId],
+  );
+
   return (
     <Form {...form}>
       <form
@@ -63,12 +90,30 @@ export const VacationForm = ({
               label="Trabajador"
               placeholder="Seleccione un trabajador"
               required
+              onValueChange={() => form.setValue("vacation_period_id", "")}
               useQueryHook={useWorkers}
               mapOptionFn={(person: PersonResource) => ({
                 value: person.id.toString(),
                 label: getPersonDisplayName(person),
                 description: person.number_document,
               })}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <FormSelect
+              control={form.control}
+              name="vacation_period_id"
+              label="Periodo Vacacional"
+              placeholder={
+                personId
+                  ? isLoadingPeriods
+                    ? "Cargando periodos..."
+                    : "Seleccione un periodo"
+                  : "Seleccione primero un trabajador"
+              }
+              disabled={!personId || isLoadingPeriods}
+              options={periodOptions}
             />
           </div>
 

@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const vacationSchemaCreate = z.object({
   person_id: requiredStringId("Debe seleccionar un trabajador"),
+  vacation_period_id: requiredStringId("Debe seleccionar un periodo vacacional"),
   start_date: dateStringSchemaRequired("La fecha de inicio"),
   end_date: dateStringSchemaRequired("La fecha de fin"),
   reason: z

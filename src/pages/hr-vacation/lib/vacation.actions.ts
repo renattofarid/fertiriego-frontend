@@ -36,6 +36,7 @@ export async function storeVacation(
 ): Promise<CreateVacationResponse> {
   const payload: CreateVacationRequest = {
     person_id: Number(data.person_id),
+    vacation_period_id: Number(data.vacation_period_id),
     start_date: data.start_date,
     end_date: data.end_date,
     reason: data.reason || null,
