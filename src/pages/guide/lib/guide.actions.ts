@@ -21,10 +21,13 @@ export interface GetGuidesParams {
   per_page?: number;
   search?: string;
   status?: string;
+  order?: string;
   warehouse_id?: number;
   customer_id?: number;
   date_from?: string;
   date_to?: string;
+  from?: string;
+  to?: string;
   numero?: string;
   full_guide_number?: string;
   guide_number?: string;

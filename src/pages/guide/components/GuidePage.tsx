@@ -54,6 +54,7 @@ export default function GuidePage() {
     const params: GetGuidesParams = {};
     const fmt = (d: Date) => format(d, "yyyy-MM-dd");
     if (filters.search) params.search = filters.search;
+    if (filters.order) params.order = filters.order;
     if (filters.status) params.status = filters.status;
     (
       [
@@ -68,8 +69,8 @@ export default function GuidePage() {
       if (filters[key]) params[key] = Number(filters[key]);
     });
     if (filters.issue_date_from && filters.issue_date_to) {
-      params["issue_date[0]"] = fmt(filters.issue_date_from);
-      params["issue_date[1]"] = fmt(filters.issue_date_to);
+      params.from = fmt(filters.issue_date_from);
+      params.to = fmt(filters.issue_date_to);
     }
     if (filters.transfer_date_from && filters.transfer_date_to) {
       params["transfer_date[0]"] = fmt(filters.transfer_date_from);

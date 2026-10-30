@@ -13,6 +13,7 @@ import { useGuideMotives } from "../lib/guide.hook";
 
 export interface GuideFilters {
   search: string;
+  order: string;
   status: string;
   warehouse_id: string;
   recipient_id: string;
@@ -28,6 +29,7 @@ export interface GuideFilters {
 
 export const EMPTY_GUIDE_FILTERS: GuideFilters = {
   search: "",
+  order: "",
   status: "",
   warehouse_id: "",
   recipient_id: "",
@@ -69,11 +71,27 @@ export default function GuideOptions({ filters, onChange }: GuideOptionsProps) {
   ];
 
   return (
-    <FilterWrapper>
+    <FilterWrapper maxVisible={6}>
       <SearchInput
         value={filters.search}
         onChange={(value) => onChange({ search: value })}
         placeholder="Buscar..."
+      />
+
+      <SearchInput
+        value={filters.order}
+        onChange={(value) => onChange({ order: value })}
+        placeholder="Orden de compra"
+      />
+
+      <DateRangePickerFilter
+        dateFrom={filters.issue_date_from}
+        dateTo={filters.issue_date_to}
+        onDateChange={(from, to) =>
+          onChange({ issue_date_from: from, issue_date_to: to })
+        }
+        placeholder="Fecha de emisión"
+        className="md:w-[240px]"
       />
 
       <SearchableSelectAsync
@@ -134,16 +152,6 @@ export default function GuideOptions({ filters, onChange }: GuideOptionsProps) {
         onChange={(value) => onChange({ motive_id: value })}
         placeholder="Motivo"
         className="w-full md:w-[180px]"
-      />
-
-      <DateRangePickerFilter
-        dateFrom={filters.issue_date_from}
-        dateTo={filters.issue_date_to}
-        onDateChange={(from, to) =>
-          onChange({ issue_date_from: from, issue_date_to: to })
-        }
-        placeholder="Fecha de emisión"
-        className="md:w-[240px]"
       />
 
       <DateRangePickerFilter
