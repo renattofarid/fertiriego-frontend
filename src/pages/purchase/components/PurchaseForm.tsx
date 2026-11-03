@@ -433,7 +433,13 @@ export const PurchaseForm = ({
 
     const newDetail: DetailRow = {
       ...currentDetail,
-      product_name: selectedProduct?.name,
+      // Si el producto seleccionado coincide, usar su nombre; si no (p.ej. al
+      // editar sin cambiar el producto), conservar el nombre ya guardado.
+      product_name:
+        selectedProduct &&
+        selectedProduct.id.toString() === currentDetail.product_id
+          ? selectedProduct.name
+          : currentDetail.product_name,
       tax,
       subtotal,
       total,
@@ -471,6 +477,7 @@ export const PurchaseForm = ({
     const detail = details[index];
     setCurrentDetail(detail);
     setEditingDetailIndex(index);
+    setSelectedProduct(undefined);
     detailTempForm.setValue("temp_product_id", detail.product_id);
     detailTempForm.setValue("temp_quantity", detail.quantity);
     detailTempForm.setValue("temp_unit_price", detail.unit_price);
@@ -1110,6 +1117,16 @@ export const PurchaseForm = ({
                       label="Producto"
                       placeholder="Seleccione"
                       useQueryHook={useProduct}
+                      defaultOption={
+                        editingDetailIndex !== null &&
+                        currentDetail.product_id &&
+                        currentDetail.product_name
+                          ? {
+                              value: currentDetail.product_id,
+                              label: currentDetail.product_name,
+                            }
+                          : undefined
+                      }
                       mapOptionFn={(product: ProductResource) => ({
                         value: product.id.toString(),
                         label: product.name,
