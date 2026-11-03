@@ -414,6 +414,11 @@ export const PurchaseForm = ({
       return;
     }
 
+    if (!(parseFloat(currentDetail.quantity) >= 1)) {
+      errorToast("La cantidad debe ser como mínimo 1");
+      return;
+    }
+
     const quantity = parseFloat(currentDetail.quantity);
     const unitPrice = parseFloat(currentDetail.unit_price);
     let subtotal = quantity * unitPrice;
@@ -1144,7 +1149,8 @@ export const PurchaseForm = ({
                       name="temp_quantity"
                       label="Cantidad"
                       type="number"
-                      placeholder="0"
+                      min={1}
+                      placeholder="1"
                     />
                   </div>
 
@@ -1165,7 +1171,7 @@ export const PurchaseForm = ({
                       onClick={handleAddDetail}
                       disabled={
                         !currentDetail.product_id ||
-                        !currentDetail.quantity ||
+                        !(parseFloat(currentDetail.quantity) >= 1) ||
                         !currentDetail.unit_price
                       }
                       className="h-9 flex-1 px-2"
