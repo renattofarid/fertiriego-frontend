@@ -100,6 +100,11 @@ export default function OrderPendingReportPage() {
               <Badge variant="secondary" className="w-fit">
                 {order.status}
               </Badge>
+              {order.observations && (
+                <span className="max-w-[220px] text-xs font-medium text-blue-600">
+                  {order.observations}
+                </span>
+              )}
             </div>
           );
         },

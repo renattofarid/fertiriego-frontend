@@ -138,6 +138,7 @@ export interface OrderPendingReportEntry {
     order_number: string;
     order_date: string;
     status: string;
+    observations?: string | null;
     customer: {
       id: number;
       name: string;
