@@ -42,6 +42,19 @@ export interface PurchaseInstallmentResource {
   status: string;
   created_at: string;
   currency?: string;
+  // El endpoint /purchaseinstallment/{id} incluye un resumen de la compra
+  purchase?: {
+    id: number;
+    correlativo: string;
+    supplier_name?: string;
+    document_type?: string;
+    document_number?: string;
+    issue_date?: string;
+    payment_type?: string;
+    total_amount?: string;
+    currency?: string;
+    status?: string;
+  };
 }
 
 export interface PurchaseResource {

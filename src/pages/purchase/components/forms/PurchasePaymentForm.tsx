@@ -33,6 +33,17 @@ const AMOUNT_FIELDS = [
   "amount_transfer",
 ] as const;
 
+const AMOUNT_LABELS: {
+  name: (typeof AMOUNT_FIELDS)[number];
+  label: string;
+}[] = [
+  { name: "amount_cash", label: "Efectivo" },
+  { name: "amount_yape", label: "Yape" },
+  { name: "amount_plin", label: "Plin" },
+  { name: "amount_deposit", label: "Depósito" },
+  { name: "amount_transfer", label: "Transferencia" },
+];
+
 // Redondea a 4 decimales (precisión del backend) y muestra mínimo 2
 const formatPrecise = (n: number) => {
   const r = Math.round(n * 1e4) / 1e4;
@@ -117,6 +128,9 @@ export function PurchasePaymentForm({
     form.setValue(name, String(remaining), { shouldDirty: true });
   };
 
+  const exceedsPending =
+    pending !== undefined && calculateTotal() > pending + 0.00005;
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({
@@ -143,6 +157,7 @@ export function PurchasePaymentForm({
           dateFormat="dd/MM/yyyy"
         />
 
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <FormField
           control={form.control}
           name="reference_number"
@@ -170,144 +185,76 @@ export function PurchasePaymentForm({
             </FormItem>
           )}
         />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="amount_cash"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Efectivo</FormLabel>
-                  {pending !== undefined && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => fillRemaining("amount_cash")}
-                    >
-                      Completar saldo
-                    </button>
-                  )}
-                </div>
-                <FormControl>
-                  <Input type="number" step="any" placeholder="0.00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="amount_yape"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Yape</FormLabel>
-                  {pending !== undefined && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => fillRemaining("amount_yape")}
-                    >
-                      Completar saldo
-                    </button>
-                  )}
-                </div>
-                <FormControl>
-                  <Input type="number" step="any" placeholder="0.00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="amount_plin"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Plin</FormLabel>
-                  {pending !== undefined && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => fillRemaining("amount_plin")}
-                    >
-                      Completar saldo
-                    </button>
-                  )}
-                </div>
-                <FormControl>
-                  <Input type="number" step="any" placeholder="0.00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="amount_deposit"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Depósito</FormLabel>
-                  {pending !== undefined && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => fillRemaining("amount_deposit")}
-                    >
-                      Completar saldo
-                    </button>
-                  )}
-                </div>
-                <FormControl>
-                  <Input type="number" step="any" placeholder="0.00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="amount_transfer"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between">
-                  <FormLabel>Transferencia</FormLabel>
-                  {pending !== undefined && (
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                      onClick={() => fillRemaining("amount_transfer")}
-                    >
-                      Completar saldo
-                    </button>
-                  )}
-                </div>
-                <FormControl>
-                  <Input type="number" step="any" placeholder="0.00" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
-        <div className="bg-muted p-4 rounded-lg">
-          <div className="flex justify-between items-center">
-            <span className="font-bold text-lg">Total a Pagar:</span>
-            <span className="text-2xl font-bold text-primary">
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Monto por método de pago</p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {AMOUNT_LABELS.map(({ name, label }) => (
+              <FormField
+                key={name}
+                control={form.control}
+                name={name}
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex min-h-5 items-center justify-between gap-2">
+                      <FormLabel>{label}</FormLabel>
+                      {pending !== undefined && (
+                        <button
+                          type="button"
+                          className="rounded-sm text-xs text-primary underline-offset-4 transition-opacity active:opacity-70 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          onClick={() => fillRemaining(name)}
+                        >
+                          Completar saldo
+                        </button>
+                      )}
+                    </div>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        step="any"
+                        min={0}
+                        placeholder="0.00"
+                        className="tabular-nums"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div
+          className={`rounded-lg border p-4 ${
+            exceedsPending
+              ? "border-destructive/50 bg-destructive/10"
+              : "bg-muted"
+          }`}
+          aria-live="polite"
+        >
+          <div className="flex items-baseline justify-between gap-4">
+            <span className="text-base font-semibold">Total a pagar</span>
+            <span
+              className={`text-2xl font-bold tabular-nums ${
+                exceedsPending ? "text-destructive" : "text-primary"
+              }`}
+            >
               {formatPrecise(calculateTotal())}
             </span>
           </div>
           {pending !== undefined && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Saldo pendiente: {formatPrecise(pending)}
+            <p
+              className={`mt-1 text-xs tabular-nums ${
+                exceedsPending ? "text-destructive" : "text-muted-foreground"
+              }`}
+            >
+              {exceedsPending
+                ? `Excede el saldo pendiente (${formatPrecise(pending)})`
+                : `Saldo pendiente: ${formatPrecise(pending)}`}
             </p>
           )}
         </div>
@@ -330,12 +277,21 @@ export function PurchasePaymentForm({
           )}
         />
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <div className="flex justify-end gap-2 border-t pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            className="active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
+            onClick={onCancel}
+          >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Loader className={`mr-2 h-4 w-4 ${!isSubmitting ? "hidden" : ""}`} />
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
+          >
+            {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? "Guardando..." : "Guardar"}
           </Button>
         </div>

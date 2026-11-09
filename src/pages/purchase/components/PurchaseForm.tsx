@@ -29,6 +29,10 @@ import { useState, useEffect } from "react";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
+
+// Redondeo a 2 decimales (igual que el total que se muestra al usuario)
+const toCents = (n: number) => Math.round((n + Number.EPSILON) * 100);
+const round2 = (n: number) => toCents(n) / 100;
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -516,13 +520,15 @@ export const PurchaseForm = ({
       return sum + parseFloat(inst.amount);
     }, 0);
 
-    // Validar que no exceda el total de la compra
-    if (currentInstallmentsTotal + newAmount > purchaseTotal) {
+    // Validar que no exceda el total de la compra. Se compara a 2 decimales
+    // (el total que ve el usuario va redondeado: 3.186 -> 3.19); truncar o
+    // comparar con todos los decimales rechazaba la cuota "3.19" de una compra
+    // que se muestra como $ 3.19.
+    if (toCents(currentInstallmentsTotal + newAmount) > toCents(purchaseTotal)) {
       errorToast(
-        `El total de cuotas no puede exceder el total de la compra (${formatDecimalTrunc(
+        `El total de cuotas no puede exceder el total de la compra (${round2(
           purchaseTotal,
-          2,
-        )})`,
+        ).toFixed(2)})`,
       );
       return;
     }
@@ -639,7 +645,7 @@ export const PurchaseForm = ({
 
     const autoInstallment: InstallmentRow = {
       due_days: "30",
-      amount: formatDecimalTrunc(total, 2),
+      amount: round2(total).toFixed(2),
     };
     setInstallments([autoInstallment]);
     form.setValue("installments", [autoInstallment]);
@@ -710,7 +716,7 @@ export const PurchaseForm = ({
       validInstallments = [
         {
           due_days: "1",
-          amount: formatDecimalTrunc(totalAmount, 2),
+          amount: round2(totalAmount).toFixed(2),
         },
       ];
     } else {

@@ -234,7 +234,7 @@ export default function InstallmentPaymentManagementSheet({
                 <span className="text-sm text-muted-foreground">
                   Monto Total
                 </span>
-                <p className="font-semibold">
+                <p className="font-semibold tabular-nums">
                   {formatCurrency(installment.amount, {
                     currencySymbol: currency,
                   })}
@@ -242,7 +242,7 @@ export default function InstallmentPaymentManagementSheet({
               </div>
               <div>
                 <span className="text-sm text-muted-foreground">Pagado</span>
-                <p className="font-semibold text-primary">
+                <p className="font-semibold tabular-nums text-primary">
                   {formatCurrency(
                     installment.amount - installment.pending_amount,
                     {
@@ -254,7 +254,7 @@ export default function InstallmentPaymentManagementSheet({
               <div>
                 <span className="text-sm text-muted-foreground">Pendiente</span>
                 <p
-                  className={`font-semibold ${
+                  className={`font-semibold tabular-nums ${
                     isPending ? "text-orange-600" : "text-primary"
                   }`}
                 >
@@ -279,7 +279,7 @@ export default function InstallmentPaymentManagementSheet({
           {/* Payment Form */}
           {isPending && (
             <div>
-              <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-3">
                 Registrar Nuevo Pago
               </h3>
 
@@ -444,15 +444,22 @@ export default function InstallmentPaymentManagementSheet({
                   </div>
 
                   {/* Total */}
-                  <div className="p-3 bg-muted rounded-lg">
+                  <div
+                    className={`rounded-lg border p-3 ${
+                      total > pendingAmount
+                        ? "border-destructive/50 bg-destructive/10"
+                        : "bg-muted"
+                    }`}
+                    aria-live="polite"
+                  >
                     <div className="flex justify-between items-center">
                       <span className="font-semibold text-sm">
                         Total a Pagar
                       </span>
                       <span
-                        className={`text-lg font-bold ${
+                        className={`text-lg font-bold tabular-nums ${
                           total > pendingAmount
-                            ? "text-red-600"
+                            ? "text-destructive"
                             : total > 0
                             ? "text-primary"
                             : "text-muted-foreground"
@@ -464,7 +471,7 @@ export default function InstallmentPaymentManagementSheet({
                       </span>
                     </div>
                     {total > pendingAmount && (
-                      <p className="text-xs text-red-600 mt-2">
+                      <p className="text-xs text-destructive mt-2">
                         El total excede el monto pendiente
                       </p>
                     )}
@@ -499,7 +506,7 @@ export default function InstallmentPaymentManagementSheet({
                   {/* Submit Button */}
                   <Button
                     type="submit"
-                    className="w-full"
+                    className="w-full active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
                     disabled={
                       isSubmitting || total === 0 || total > pendingAmount
                     }
@@ -530,7 +537,7 @@ export default function InstallmentPaymentManagementSheet({
             <AlertDialogAction
               onClick={handleDeletePayment}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive text-white hover:bg-destructive/90"
             >
               {isDeleting ? "Eliminando..." : "Eliminar"}
             </AlertDialogAction>

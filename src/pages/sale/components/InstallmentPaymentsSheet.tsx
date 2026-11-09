@@ -4,9 +4,11 @@ import { parseLocalDate } from "@/lib/utils";
 
 import { useEffect, useState } from "react";
 import GeneralSheet from "@/components/GeneralSheet";
-import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
+import {
+  PaymentHistory,
+  type PaymentHistoryItem,
+} from "@/components/payments/PaymentHistory";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import type {
   SaleInstallmentResource,
@@ -14,7 +16,16 @@ import type {
 } from "../lib/sale.interface";
 import { deletePayment, getAllSalePayments } from "../lib/sale.actions";
 import { errorToast, successToast } from "@/lib/core.function";
-import { Trash2 } from "lucide-react";
+
+const SALE_METHODS: { key: keyof SalePaymentResource; label: string }[] = [
+  { key: "amount_cash", label: "Efectivo" },
+  { key: "amount_card", label: "Tarjeta" },
+  { key: "amount_yape", label: "Yape" },
+  { key: "amount_plin", label: "Plin" },
+  { key: "amount_deposit", label: "Depósito" },
+  { key: "amount_transfer", label: "Transferencia" },
+  { key: "amount_other", label: "Otro" },
+];
 
 interface InstallmentPaymentsSheetProps {
   open: boolean;
@@ -31,12 +42,6 @@ export default function InstallmentPaymentsSheet({
 }: InstallmentPaymentsSheetProps) {
   const [payments, setPayments] = useState<SalePaymentResource[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [deletingPaymentId, setDeletingPaymentId] = useState<number | null>(
-    null,
-  );
-  const [paymentToDeleteId, setPaymentToDeleteId] = useState<number | null>(
-    null,
-  );
 
   useEffect(() => {
     if (open && installment) {
@@ -61,18 +66,27 @@ export default function InstallmentPaymentsSheet({
   const handleDeletePayment = async (paymentId: number) => {
     if (!installment) return;
 
-    setDeletingPaymentId(paymentId);
     try {
       await deletePayment(installment.id, paymentId);
       successToast("Pago eliminado correctamente");
       await fetchPayments();
-      setPaymentToDeleteId(null);
     } catch (error: any) {
       errorToast(error?.response?.data?.message || "Error al eliminar el pago");
-    } finally {
-      setDeletingPaymentId(null);
     }
   };
+
+  const historyItems: PaymentHistoryItem[] = payments.map((p) => ({
+    id: p.id,
+    date: p.payment_date,
+    reference: p.reference_number,
+    bank: p.bank_number,
+    observation: p.observation,
+    registeredBy: p.user?.name,
+    total: Number(p.total_paid) || 0,
+    methods: SALE_METHODS.filter(({ key }) => Number(p[key]) > 0).map(
+      ({ key, label }) => ({ label, amount: Number(p[key]) }),
+    ),
+  }));
 
   const formatDate = (dateString: string) => {
     const date = parseLocalDate(dateString);
@@ -80,17 +94,6 @@ export default function InstallmentPaymentsSheet({
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     });
   };
 
@@ -112,7 +115,7 @@ export default function InstallmentPaymentsSheet({
             <span className="text-sm text-muted-foreground">
               Monto de la Cuota
             </span>
-            <span className="font-semibold">
+            <span className="font-semibold tabular-nums">
               {currency} {installment.amount.toFixed(2)}
             </span>
           </div>
@@ -121,7 +124,7 @@ export default function InstallmentPaymentsSheet({
               Monto Pendiente
             </span>
             <span
-              className={`font-semibold ${
+              className={`font-semibold tabular-nums ${
                 installment.pending_amount === 0
                   ? "text-primary"
                   : "text-orange-600"
@@ -156,160 +159,17 @@ export default function InstallmentPaymentsSheet({
 
         <Separator />
 
-        {/* Payments List */}
-        <div>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3">
-            HISTORIAL DE PAGOS ({payments.length})
-          </h3>
-
-          {isLoading ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">Cargando pagos...</p>
-            </div>
-          ) : payments.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                No hay pagos registrados para esta cuota
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {payments.map((payment) => (
-                <div key={payment.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <p className="font-semibold">
-                        Pago #{String(payment.id).padStart(8, "0")}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatDate(payment.payment_date)}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <p className="text-lg font-bold text-primary">
-                        {currency} {payment.total_paid.toFixed(2)}
-                      </p>
-                      <Button
-                        type="button"
-                        size="sm"
-                        color="red"
-                        onClick={() => setPaymentToDeleteId(payment.id)}
-                        disabled={deletingPaymentId === payment.id}
-                      >
-                        <Trash2 className="size-4" />
-                        {deletingPaymentId === payment.id
-                          ? "Eliminando..."
-                          : "Eliminar"}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Separator className="my-3" />
-
-                  {/* Payment Breakdown */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase">
-                      Desglose del Pago
-                    </p>
-                    {payment.amount_cash > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Efectivo</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_cash.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_card > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Tarjeta</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_card.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_yape > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Yape</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_yape.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_plin > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Plin</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_plin.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_deposit > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Depósito</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_deposit.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_transfer > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Transferencia</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_transfer.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    {payment.amount_other > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span>Otro</span>
-                        <span className="font-medium">
-                          {currency} {payment.amount_other.toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Observation */}
-                  {payment.observation && (
-                    <>
-                      <Separator className="my-3" />
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase mb-1">
-                          Observación
-                        </p>
-                        <p className="text-sm">{payment.observation}</p>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Metadata */}
-                  <Separator className="my-3" />
-                  <div className="text-xs text-muted-foreground">
-                    <p>Registrado: {formatDateTime(payment.created_at)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Historial de pagos */}
+        <PaymentHistory
+          payments={historyItems}
+          installmentAmount={installment.amount}
+          currency={currency}
+          isLoading={isLoading}
+          onDelete={handleDeletePayment}
+        />
       </div>
       </GeneralSheet>
 
-      <SimpleDeleteDialog
-        open={paymentToDeleteId !== null}
-        onOpenChange={(isOpen) => {
-          if (!isOpen) setPaymentToDeleteId(null);
-        }}
-        title="Eliminar pago"
-        description="¿Estás seguro de eliminar este pago?"
-        confirmText="Eliminar"
-        isLoading={deletingPaymentId !== null}
-        onConfirm={async () => {
-          if (paymentToDeleteId !== null) {
-            await handleDeletePayment(paymentToDeleteId);
-          }
-        }}
-      />
     </>
   );
 }

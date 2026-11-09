@@ -1,7 +1,7 @@
 import { parseLocalDate } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Wallet } from "lucide-react";
+import { CheckCircle2, Plus, Wallet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseInstallmentResource } from "../../lib/purchase.interface";
 import { usePurchasePaymentStore } from "../../lib/purchase-payment.store";
@@ -13,6 +13,9 @@ import { errorToast, matchCurrency, successToast } from "@/lib/core.function";
 import { formatCurrency } from "@/lib/formatCurrency";
 import GeneralSheet from "@/components/GeneralSheet";
 import { GroupFormSection } from "@/components/GroupFormSection";
+
+// Sin per_page el backend pagina el historial y el total/lista quedaban incompletos
+const PAYMENTS_PER_PAGE = 100;
 
 interface InstallmentPaymentsSheetProps {
   open: boolean;
@@ -41,18 +44,20 @@ export function InstallmentPaymentsSheet({
     createPayment,
     updatePayment,
     isSubmitting,
+    isLoading: isLoadingPayments,
     resetPayment,
   } = usePurchasePaymentStore();
 
   const {
     installment: updatedInstallment,
+    isFinding: isLoadingInstallment,
     fetchInstallment,
   } = usePurchaseInstallmentStore();
 
   useEffect(() => {
     if (installment && open) {
       setCurrentInstallment(installment);
-      fetchPayments(installment.id);
+      fetchPayments(installment.id, { per_page: PAYMENTS_PER_PAGE });
       fetchInstallment(installment.id);
     }
   }, [installment, open]);
@@ -105,7 +110,7 @@ export function InstallmentPaymentsSheet({
       setEditingPaymentId(null);
       
       // Refrescar pagos y cuota actualizada
-      await fetchPayments(installment.id);
+      await fetchPayments(installment.id, { per_page: PAYMENTS_PER_PAGE });
       await fetchInstallment(installment.id);
       
       // Notificar al componente padre que hubo un pago exitoso
@@ -119,11 +124,23 @@ export function InstallmentPaymentsSheet({
 
   if (!currentInstallment) return null;
 
-  const totalPaid = payments?.reduce((sum, p) => sum + parseFloat(p.total_paid.toString()), 0) || 0;
   const pending = parseFloat(currentInstallment.pending_amount.toString());
+  const totalPaid = Math.max(
+    0,
+    parseFloat(currentInstallment.amount) - pending,
+  );
   const isPaid = currentInstallment.status === "PAGADO";
   const currencySymbol = matchCurrency(currentInstallment.currency || "PEN");
   const canAddPayment = pending > 0 && !isPaid;
+  const purchase = currentInstallment.purchase;
+  const purchaseLabel = [
+    currentInstallment.purchase_correlativo,
+    purchase?.document_type && purchase?.document_number
+      ? `${purchase.document_type} ${purchase.document_number}`
+      : undefined,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   return (
     <GeneralSheet
@@ -174,26 +191,63 @@ export function InstallmentPaymentsSheet({
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Monto Original</span>
-            <p className="font-bold text-base">
-              {formatCurrency(parseFloat(currentInstallment.amount), { currencySymbol })}
+            <p className="font-bold text-base tabular-nums">
+              {isLoadingInstallment ? (
+                <span
+                  aria-hidden
+                  className="inline-block h-5 w-24 animate-pulse rounded-md bg-accent align-middle"
+                />
+              ) : (
+                formatCurrency(parseFloat(currentInstallment.amount), { currencySymbol })
+              )}
             </p>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Total Pagado</span>
-            <p className="font-bold text-primary text-base">
-              {formatCurrency(totalPaid, { currencySymbol })}
+            <p className="font-bold text-primary text-base tabular-nums">
+              {isLoadingInstallment ? (
+                <span
+                  aria-hidden
+                  className="inline-block h-5 w-24 animate-pulse rounded-md bg-accent align-middle"
+                />
+              ) : (
+                formatCurrency(totalPaid, { currencySymbol })
+              )}
             </p>
           </div>
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Saldo Pendiente</span>
-            <p className="font-bold text-orange-600 text-base">
-              {formatCurrency(pending, { currencySymbol })}
+            <p
+              className={`font-bold text-base tabular-nums ${
+                pending > 0 ? "text-orange-600" : "text-muted-foreground"
+              }`}
+            >
+              {isLoadingInstallment ? (
+                <span
+                  aria-hidden
+                  className="inline-block h-5 w-24 animate-pulse rounded-md bg-accent align-middle"
+                />
+              ) : (
+                formatCurrency(pending, { currencySymbol })
+              )}
             </p>
           </div>
+          {(purchaseLabel || purchase?.supplier_name) && (
+            <div className="col-span-full space-y-1 border-t pt-2">
+              <span className="text-xs text-muted-foreground">Compra</span>
+              <p className="text-sm font-semibold">{purchaseLabel}</p>
+              {purchase?.supplier_name && (
+                <p className="text-sm text-muted-foreground">
+                  {purchase.supplier_name}
+                </p>
+              )}
+            </div>
+          )}
         </GroupFormSection>
 
         {/* Formulario o Tabla de Pagos */}
         {showPaymentForm ? (
+          <div className="animate-in fade-in-0 slide-in-from-bottom-1 duration-200 ease-out motion-reduce:animate-none">
           <GroupFormSection
             title={editingPaymentId ? "Editar Pago" : "Registrar Pago"}
             icon={Plus}
@@ -212,21 +266,26 @@ export function InstallmentPaymentsSheet({
               />
             </div>
           </GroupFormSection>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200 ease-out motion-reduce:animate-none">
             {canAddPayment ? (
-              <Button onClick={handleAddPayment} className="w-full" >
+              <Button
+                onClick={handleAddPayment}
+                className="w-full active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Registrar Pago
               </Button>
             ) : isPaid ? (
-              <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg text-center">
-                <p className="text-sm text-green-800 dark:text-green-200 font-semibold">
-                  ✓ Esta cuota ha sido pagada completamente
+              <div className="flex items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3">
+                <CheckCircle2 className="h-4 w-4 text-primary" aria-hidden />
+                <p className="text-sm font-semibold text-primary">
+                  Esta cuota ha sido pagada completamente
                 </p>
               </div>
             ) : (
-              <div className="p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-center">
+              <div className="rounded-lg border bg-muted p-3 text-center">
                 <p className="text-sm text-muted-foreground">
                   No hay saldo pendiente en esta cuota
                 </p>
@@ -234,8 +293,14 @@ export function InstallmentPaymentsSheet({
             )}
             <PurchasePaymentTable
               payments={payments || []}
+              installmentAmount={parseFloat(currentInstallment.amount)}
+              currencySymbol={currencySymbol}
               onEdit={handleEditPayment}
-              onRefresh={() => currentInstallment && fetchPayments(currentInstallment.id)}
+              isLoading={isLoadingPayments}
+              onRefresh={() =>
+                currentInstallment &&
+                fetchPayments(currentInstallment.id, { per_page: PAYMENTS_PER_PAGE })
+              }
             />
           </div>
         )}
