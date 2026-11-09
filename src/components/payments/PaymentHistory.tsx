@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import {
   ArrowLeftRight,
   Banknote,
-  CheckCircle2,
   CreditCard,
   Landmark,
   Pencil,
@@ -52,8 +51,12 @@ interface PaymentHistoryProps {
   onDelete?: (id: number) => Promise<void>;
 }
 
+// 36px visibles + 2px de zona extra por lado = 40px de área de toque
+const ICON_BUTTON =
+  "relative after:absolute after:-inset-0.5 after:content-['']";
+
 const PRESS =
-  "active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none";
+  "active:scale-[0.96] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none";
 
 // Icono según la forma de pago (el nombre viene del adaptador de cada módulo)
 const methodIcon = (label: string) => {
@@ -189,7 +192,7 @@ export function PaymentHistory({
         />
 
         {/* Inicio: la cuota emitida */}
-        <li className="relative flex items-center gap-3 pl-0">
+        <li className="relative flex items-center gap-3">
           <span
             aria-hidden
             className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full border bg-background text-[10px] text-muted-foreground"
@@ -207,7 +210,7 @@ export function PaymentHistory({
         {isLoading &&
           Array.from({ length: 2 }).map((_, i) => (
             <li key={`sk-${i}`} aria-hidden className="relative flex gap-3">
-              <Skeleton className="z-10 size-6 shrink-0 rounded-full" />
+              <Skeleton className="z-10 mt-2.5 size-6 shrink-0 rounded-full" />
               <div className="flex-1 space-y-2 rounded-lg border p-3">
                 <Skeleton className="h-4 w-40" />
                 <Skeleton className="h-3.5 w-56" />
@@ -219,20 +222,23 @@ export function PaymentHistory({
         {!isLoading &&
           rows.map(({ payment, number, balance }) => {
             const settledHere = balance < 0.005;
+            const single = payment.methods.length === 1;
+            const hasOperation = payment.reference || payment.bank;
             return (
               <li key={payment.id} className="relative flex gap-3">
                 <span
                   aria-hidden
-                  className="z-10 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+                  className="z-10 mt-2.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
                 >
                   {number}
                 </span>
 
-                <div className="min-w-0 flex-1 rounded-lg border bg-card p-3">
+                <div className="min-w-0 flex-1 rounded-lg border bg-card p-3 transition-colors hover:bg-muted/30">
+                  {/* Qué pasó, cuánto y cuánto queda */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold">
-                        Pago {number} · {formatDate(payment.date)}
+                        {formatDate(payment.date)}
                       </p>
                       {payment.code && (
                         <p className="font-mono text-xs text-muted-foreground">
@@ -240,122 +246,117 @@ export function PaymentHistory({
                         </p>
                       )}
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      <span className="mr-1 text-base font-bold tabular-nums text-primary">
-                        {money(payment.total)}
-                      </span>
-                      {onEdit && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={PRESS}
-                          aria-label={`Editar pago ${number}`}
-                          title="Editar pago"
-                          onClick={() => onEdit(payment.id)}
+
+                    <div className="flex shrink-0 items-start gap-1">
+                      <div className="text-right">
+                        <p className="text-base font-bold tabular-nums text-primary">
+                          {money(payment.total)}
+                        </p>
+                        <p
+                          className={cn(
+                            "text-xs tabular-nums",
+                            settledHere
+                              ? "font-medium text-primary"
+                              : "text-muted-foreground",
+                          )}
                         >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {onDelete && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={PRESS}
-                          aria-label={`Eliminar pago ${number}`}
-                          title="Eliminar pago"
-                          onClick={() => setDeleteId(payment.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                          {settledHere
+                            ? "Cuota cancelada"
+                            : `Saldo ${money(balance)}`}
+                        </p>
+                      </div>
+                      {(onEdit || onDelete) && (
+                        <div className="ml-1 flex items-center">
+                          {onEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(ICON_BUTTON, PRESS)}
+                              aria-label={`Editar pago del ${formatDate(payment.date)}`}
+                              title="Editar pago"
+                              onClick={() => onEdit(payment.id)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
+                          {onDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={cn(ICON_BUTTON, PRESS)}
+                              aria-label={`Eliminar pago del ${formatDate(payment.date)}`}
+                              title="Eliminar pago"
+                              onClick={() => setDeleteId(payment.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
 
+                  {/* Cómo se pagó. Con un solo método el monto ya está arriba. */}
                   {payment.methods.length > 0 && (
-                    <ul
-                      aria-label="Forma de pago"
-                      className="mt-3 divide-y rounded-md border bg-muted/30 text-sm"
-                    >
+                    <ul aria-label="Forma de pago" className="mt-2 space-y-1">
                       {payment.methods.map((m) => {
                         const Icon = methodIcon(m.label);
                         return (
                           <li
                             key={m.label}
-                            className="flex items-center justify-between gap-3 px-3 py-1.5"
+                            className="flex items-center justify-between gap-3 text-sm"
                           >
                             <span className="inline-flex items-center gap-2">
                               <Icon
-                                className="h-4 w-4 text-muted-foreground"
+                                className="size-4 text-muted-foreground"
+                                strokeWidth={1.5}
                                 aria-hidden
                               />
-                              {m.label}
+                              <span className="font-medium">{m.label}</span>
+                              {single && hasOperation && (
+                                <span className="text-muted-foreground">
+                                  ·{" "}
+                                  {payment.reference && (
+                                    <span className="font-mono text-xs">
+                                      {payment.reference}
+                                    </span>
+                                  )}
+                                  {payment.reference && payment.bank && " · "}
+                                  {payment.bank}
+                                </span>
+                              )}
                             </span>
-                            <span className="font-medium tabular-nums">
-                              {money(m.amount)}
-                            </span>
+                            {!single && (
+                              <span className="tabular-nums">
+                                {money(m.amount)}
+                              </span>
+                            )}
                           </li>
                         );
                       })}
                     </ul>
                   )}
 
-                  {(payment.reference || payment.bank || payment.registeredBy) && (
-                    <dl className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-3">
+                  {/* Con varios métodos, la operación va una sola vez */}
+                  {!single && hasOperation && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Operación{" "}
                       {payment.reference && (
-                        <div>
-                          <dt className="text-muted-foreground">
-                            N° de operación
-                          </dt>
-                          <dd className="font-mono text-sm">
-                            {payment.reference}
-                          </dd>
-                        </div>
+                        <span className="font-mono">{payment.reference}</span>
                       )}
-                      {payment.bank && (
-                        <div>
-                          <dt className="text-muted-foreground">
-                            Banco / cuenta
-                          </dt>
-                          <dd className="text-sm">{payment.bank}</dd>
-                        </div>
-                      )}
-                      {payment.registeredBy && (
-                        <div>
-                          <dt className="text-muted-foreground">
-                            Registrado por
-                          </dt>
-                          <dd className="text-sm">{payment.registeredBy}</dd>
-                        </div>
-                      )}
-                    </dl>
-                  )}
-
-                  {payment.observation && (
-                    <p className="mt-2 rounded-md bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground">
-                      {payment.observation}
+                      {payment.reference && payment.bank && " · "}
+                      {payment.bank}
                     </p>
                   )}
 
-                  <div
-                    className={cn(
-                      "mt-3 flex items-center justify-between gap-2 border-t pt-2 text-xs",
-                      settledHere ? "text-primary" : "text-muted-foreground",
-                    )}
-                  >
-                    {settledHere ? (
-                      <span className="inline-flex items-center gap-1.5 font-semibold">
-                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                        Con este pago la cuota quedó cancelada
-                      </span>
-                    ) : (
-                      <>
-                        <span>Saldo después de este pago</span>
-                        <span className="font-semibold tabular-nums text-foreground">
-                          {money(balance)}
-                        </span>
-                      </>
-                    )}
-                  </div>
+                  {(payment.observation || payment.registeredBy) && (
+                    <div className="mt-2 space-y-0.5 text-xs text-muted-foreground [text-wrap:pretty]">
+                      {payment.observation && <p>Nota: {payment.observation}</p>}
+                      {payment.registeredBy && (
+                        <p>Registrado por {payment.registeredBy}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </li>
             );
