@@ -106,7 +106,8 @@ export default function InstallmentPaymentsSheet({
         onClose={onClose}
         title={`Pagos de Cuota ${installment.installment_number}`}
         icon={"CreditCard"}
-        className="overflow-y-auto w-full p-4 sm:max-w-2xl"
+        size="4xl"
+        className="overflow-y-auto w-full p-4"
       >
       <div className="space-y-6">
         {/* Installment Summary */}
