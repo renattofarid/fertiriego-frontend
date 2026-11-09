@@ -24,6 +24,8 @@ export interface GetOrdersParams {
   warehouse_id?: number;
   date_from?: string;
   date_to?: string;
+  from?: string;
+  to?: string;
 }
 
 export const getOrders = async (

@@ -22,6 +22,8 @@ import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { PersonResource } from "@/pages/person/lib/person.interface";
 import type { Option } from "@/lib/core.interface";
+import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
+import { format } from "date-fns";
 
 const mapClientOption = (person: PersonResource): Option => ({
   value: String(person.id),
@@ -29,26 +31,41 @@ const mapClientOption = (person: PersonResource): Option => ({
   description: person.number_document,
 });
 
+const fmtDate = (d?: Date) => (d ? format(d, "yyyy-MM-dd") : undefined);
+
+interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
 export default function OrderPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [customerId, setCustomerId] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>({});
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
   const { setOpen, setOpenMobile } = useSidebar();
 
+  // Solo se envía el rango cuando están ambas fechas.
+  const dateParams =
+    dateRange.from && dateRange.to
+      ? { from: fmtDate(dateRange.from), to: fmtDate(dateRange.to) }
+      : {};
+
   const { data, isLoading, refetch } = useOrder({
     page,
     search,
     per_page,
     customer_id: customerId ? Number(customerId) : undefined,
+    ...dateParams,
   });
 
   useEffect(() => {
     setPage(1);
-  }, [search, per_page, customerId]);
+  }, [search, per_page, customerId, dateRange]);
 
   const { removeOrder } = useOrderStore();
 
@@ -87,13 +104,14 @@ export default function OrderPage() {
     }
   };
 
-  // El Excel debe respetar los mismos filtros que la vista (buscador y cliente).
+  // El Excel debe respetar los mismos filtros que la vista (buscador, cliente y fechas).
   const handleExcelDownload = async () => {
     const term = search.trim();
     const response = await api.get("/order/export", {
       params: {
         search: term || undefined,
         customer_id: customerId ? Number(customerId) : undefined,
+        ...dateParams,
       },
       responseType: "blob",
     });
@@ -138,14 +156,14 @@ export default function OrderPage() {
         data={data?.data || []}
         isLoading={isLoading}
       >
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex flex-wrap items-center gap-2 mb-4 flex-1 min-w-0">
           <Input
             placeholder="Buscar pedidos..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
+            className="w-full sm:w-64"
           />
-          <div className="w-64">
+          <div className="w-full sm:w-64">
             <SearchableSelectAsync
               value={customerId}
               onChange={setCustomerId}
@@ -154,15 +172,13 @@ export default function OrderPage() {
               mapOptionFn={mapClientOption}
             />
           </div>
-          {customerId && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCustomerId("")}
-            >
-              Limpiar cliente
-            </Button>
-          )}
+          <DateRangePickerFilter
+            dateFrom={dateRange.from}
+            dateTo={dateRange.to}
+            onDateChange={(from, to) => setDateRange({ from, to })}
+            placeholder="Rango de fechas"
+            className="w-fit"
+          />
         </div>
       </OrderTable>
 

@@ -18,10 +18,13 @@ import { DEFAULT_PER_PAGE } from "@/lib/core.constants";
 import DataTablePagination from "@/components/DataTablePagination";
 import { useSidebar } from "@/components/ui/sidebar";
 import QuoteDetailDrawer from "./QuoteDetailDrawer";
+import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
+import { format } from "date-fns";
 
 export default function QuotationPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [issueDate, setIssueDate] = useState<{ from?: Date; to?: Date }>({});
   const [page, setPage] = useState(1);
   const [per_page, setPerPage] = useState(DEFAULT_PER_PAGE);
   const [openDelete, setOpenDelete] = useState(false);
@@ -39,11 +42,18 @@ export default function QuotationPage() {
     page,
     search,
     per_page,
+    // Solo se envía el rango cuando están ambas fechas.
+    ...(issueDate.from && issueDate.to
+      ? {
+          from: format(issueDate.from, "yyyy-MM-dd"),
+          to: format(issueDate.to, "yyyy-MM-dd"),
+        }
+      : {}),
   });
 
   useEffect(() => {
     setPage(1);
-  }, [search, per_page]);
+  }, [search, per_page, issueDate]);
 
   useEffect(() => {
     setOpen(true);
@@ -122,6 +132,13 @@ export default function QuotationPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="max-w-sm"
+          />
+          <DateRangePickerFilter
+            dateFrom={issueDate.from}
+            dateTo={issueDate.to}
+            onDateChange={(from, to) => setIssueDate({ from, to })}
+            placeholder="Fecha de emisión"
+            className="w-fit"
           />
         </div>
       </QuotationTable>
