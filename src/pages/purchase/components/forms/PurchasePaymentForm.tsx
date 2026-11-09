@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ export function PurchasePaymentForm({
   pending,
 }: PurchasePaymentFormProps) {
   const [formData, setFormData] = useState({
-    payment_date: payment?.payment_date || new Date().toISOString().split("T")[0],
+    payment_date: payment?.payment_date || format(new Date(), "yyyy-MM-dd"),
     reference_number: payment?.reference_number || "",
     bank_number: payment?.bank_number || "",
     amount_cash: payment?.amount_cash.toString() || "0",
@@ -83,7 +84,7 @@ export function PurchasePaymentForm({
   useEffect(() => {
     const subscription = form.watch((values) => {
       setFormData({
-        payment_date: values.payment_date || new Date().toISOString().split("T")[0],
+        payment_date: values.payment_date || format(new Date(), "yyyy-MM-dd"),
         reference_number: values.reference_number || "",
         bank_number: values.bank_number || "",
         amount_cash: values.amount_cash || "0",

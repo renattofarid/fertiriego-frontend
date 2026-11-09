@@ -1,5 +1,7 @@
 "use client";
 
+import { parseLocalDate } from "@/lib/utils";
+
 import { useEffect, useState } from "react";
 import GeneralSheet from "@/components/GeneralSheet";
 import { SimpleDeleteDialog } from "@/components/SimpleDeleteDialog";
@@ -73,7 +75,7 @@ export default function InstallmentPaymentsSheet({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseLocalDate(dateString);
     return date.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",

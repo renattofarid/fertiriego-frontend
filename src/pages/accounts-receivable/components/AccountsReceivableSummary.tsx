@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import type { SaleInstallmentResource } from "../lib/accounts-receivable.interface";
 
 interface AccountsReceivableSummaryProps {
@@ -26,7 +27,7 @@ export default function AccountsReceivableSummary({
 
     installments.forEach((inst) => {
       const pendingAmount = inst.pending_amount;
-      const dueDate = new Date(inst.due_date);
+      const dueDate = parseLocalDate(inst.due_date);
       const currency = inst.currency || "S/";
 
       // Inicializar moneda si no existe

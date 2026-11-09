@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import type { PurchaseInstallmentResource } from "../lib/accounts-payable.interface";
 
 interface AccountsPayableSummaryProps {
@@ -26,7 +27,7 @@ export default function AccountsPayableSummary({
 
     installments.forEach((inst) => {
       const pendingAmount = parseFloat(inst.pending_amount);
-      const dueDate = new Date(inst.due_date);
+      const dueDate = parseLocalDate(inst.due_date);
       const currency = inst.currency || "S/.";
 
       // Inicializar moneda si no existe

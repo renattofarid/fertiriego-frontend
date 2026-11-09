@@ -1,5 +1,7 @@
 "use client";
 
+import { parseLocalDate } from "@/lib/utils";
+
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -180,7 +182,7 @@ export default function InstallmentPaymentManagementSheet({
   };
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+    const date = parseLocalDate(dateString);
     return date.toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",

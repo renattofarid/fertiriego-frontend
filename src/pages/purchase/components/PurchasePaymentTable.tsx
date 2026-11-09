@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -85,7 +86,7 @@ export function PurchasePaymentTable({
                   </span>
                 </TableCell>
                 <TableCell>
-                  {new Date(payment.payment_date).toLocaleDateString("es-ES", {
+                  {parseLocalDate(payment.payment_date).toLocaleDateString("es-ES", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",

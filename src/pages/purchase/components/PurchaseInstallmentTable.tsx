@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -84,7 +85,7 @@ export function PurchaseInstallmentTable({
               </TableCell>
               <TableCell className="text-right">{inst.due_days}</TableCell>
               <TableCell>
-                {new Date(inst.due_date).toLocaleDateString("es-ES", {
+                {parseLocalDate(inst.due_date).toLocaleDateString("es-ES", {
                   day: "2-digit",
                   month: "2-digit",
                   year: "numeric",

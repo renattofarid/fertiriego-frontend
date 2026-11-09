@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Wallet } from "lucide-react";
@@ -164,7 +165,7 @@ export function InstallmentPaymentsSheet({
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Fecha Vencimiento</span>
             <p className="font-semibold text-sm">
-              {new Date(currentInstallment.due_date).toLocaleDateString("es-ES", {
+              {parseLocalDate(currentInstallment.due_date).toLocaleDateString("es-ES", {
                 day: "2-digit",
                 month: "2-digit",
                 year: "numeric",

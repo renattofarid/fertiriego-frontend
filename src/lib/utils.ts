@@ -6,6 +6,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Convierte un string a Date. Las fechas "yyyy-MM-dd" (sin hora) se interpretan
+ * en hora LOCAL; `new Date("2026-11-09")` las toma como UTC y, en zonas con
+ * offset negativo (Perú, UTC-5), se mostraría el día anterior (08/11/2026).
+ */
+export function parseLocalDate(value: string): Date {
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.0+)?Z?)?$/.exec(value);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return new Date(value);
+}
+
 export function formatDateSafe(
   value?: string | null,
   fallback = "N/A",

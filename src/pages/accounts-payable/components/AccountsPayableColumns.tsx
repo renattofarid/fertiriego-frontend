@@ -1,3 +1,4 @@
+import { parseLocalDate } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Wallet, Eye } from "lucide-react";
@@ -10,7 +11,7 @@ import { ButtonAction } from "@/components/ButtonAction";
 
 export const formatDate = (dateString?: string | null) => {
   if (!dateString) return "N/A";
-  const date = new Date(dateString);
+  const date = parseLocalDate(dateString);
   if (isNaN(date.getTime())) return "N/A";
   return date.toLocaleDateString("es-ES", {
     day: "2-digit",
