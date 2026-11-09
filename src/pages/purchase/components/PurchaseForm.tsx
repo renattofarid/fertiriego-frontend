@@ -30,9 +30,10 @@ import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateM
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
 import { formatDecimalTrunc } from "@/lib/utils";
 
-// Redondeo a 2 decimales (igual que el total que se muestra al usuario)
-const toCents = (n: number) => Math.round((n + Number.EPSILON) * 100);
-const round2 = (n: number) => toCents(n) / 100;
+// El backend valida la suma de cuotas contra el total EXACTO de la compra
+// (p. ej. 3.186, aunque en pantalla se vea 3.19). Se redondea a 6 decimales
+// solo para limpiar el ruido de punto flotante (3.1859999999999995 -> 3.186).
+const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -520,15 +521,15 @@ export const PurchaseForm = ({
       return sum + parseFloat(inst.amount);
     }, 0);
 
-    // Validar que no exceda el total de la compra. Se compara a 2 decimales
-    // (el total que ve el usuario va redondeado: 3.186 -> 3.19); truncar o
-    // comparar con todos los decimales rechazaba la cuota "3.19" de una compra
-    // que se muestra como $ 3.19.
-    if (toCents(currentInstallmentsTotal + newAmount) > toCents(purchaseTotal)) {
+    // Validar que no exceda el total exacto de la compra (el backend hace la
+    // misma comprobación, así que aquí no se puede ser más permisivo).
+    if (round6(currentInstallmentsTotal + newAmount) > round6(purchaseTotal)) {
       errorToast(
-        `El total de cuotas no puede exceder el total de la compra (${round2(
+        `El total de cuotas no puede exceder el total de la compra (${round6(
           purchaseTotal,
-        ).toFixed(2)})`,
+        )}). Monto restante permitido: ${round6(
+          Math.max(0, purchaseTotal - currentInstallmentsTotal),
+        )}`,
       );
       return;
     }
@@ -620,7 +621,7 @@ export const PurchaseForm = ({
     if (installments.length === 0) return true; // Si no hay cuotas, está ok
     const purchaseTotal = calculateDetailsTotal();
     const installmentsTotal = calculateInstallmentsTotal();
-    return Math.abs(purchaseTotal - installmentsTotal) < 0.01; // Tolerancia acorde a 2 decimales
+    return Math.abs(purchaseTotal - installmentsTotal) < 0.00005; // El backend compara contra el total exacto
   };
 
   // Auto-llenar cuota de 30 días cuando el pago es a crédito y cambian los detalles
@@ -645,7 +646,7 @@ export const PurchaseForm = ({
 
     const autoInstallment: InstallmentRow = {
       due_days: "30",
-      amount: round2(total).toFixed(2),
+      amount: String(round6(total)),
     };
     setInstallments([autoInstallment]);
     form.setValue("installments", [autoInstallment]);
@@ -716,7 +717,7 @@ export const PurchaseForm = ({
       validInstallments = [
         {
           due_days: "1",
-          amount: round2(totalAmount).toFixed(2),
+          amount: String(round6(totalAmount)),
         },
       ];
     } else {
