@@ -28,12 +28,31 @@ import type { PurchaseOrderResource } from "@/pages/purchase-order/lib/purchase-
 import { useState, useEffect } from "react";
 import { SupplierCreateModal } from "@/pages/supplier/components/SupplierCreateModal";
 import { WarehouseCreateModal } from "@/pages/warehouse/components/WarehouseCreateModal";
-import { formatDecimalTrunc } from "@/lib/utils";
 
 // El backend valida la suma de cuotas contra el total EXACTO de la compra
 // (p. ej. 3.186, aunque en pantalla se vea 3.19). Se redondea a 6 decimales
 // solo para limpiar el ruido de punto flotante (3.1859999999999995 -> 3.186).
 const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
+
+// Tolerancia de redondeo a 2 decimales (lo que el usuario ve en pantalla).
+const CENT_TOLERANCE = 0.01;
+
+// Si la suma de cuotas difiere del total solo por redondeo visual, ajusta la
+// última cuota para que la suma coincida exactamente con el total.
+const snapInstallments = <T extends { amount: string }>(
+  list: T[],
+  total: number,
+): T[] => {
+  if (list.length === 0) return list;
+  const sum = list.reduce((acc, i) => acc + parseFloat(i.amount), 0);
+  const diff = total - sum;
+  if (Math.abs(diff) === 0 || Math.abs(diff) > CENT_TOLERANCE) return list;
+  const last = list.length - 1;
+  const adjusted = round6(parseFloat(list[last].amount) + diff);
+  return list.map((i, idx) =>
+    idx === last ? { ...i, amount: String(adjusted) } : i,
+  );
+};
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -523,7 +542,10 @@ export const PurchaseForm = ({
 
     // Validar que no exceda el total exacto de la compra (el backend hace la
     // misma comprobación, así que aquí no se puede ser más permisivo).
-    if (round6(currentInstallmentsTotal + newAmount) > round6(purchaseTotal)) {
+    if (
+      round6(currentInstallmentsTotal + newAmount) >
+      round6(purchaseTotal) + CENT_TOLERANCE
+    ) {
       errorToast(
         `El total de cuotas no puede exceder el total de la compra (${round6(
           purchaseTotal,
@@ -537,13 +559,17 @@ export const PurchaseForm = ({
     const newInstallment: InstallmentRow = { ...currentInstallment };
 
     if (editingInstallmentIndex !== null) {
-      const updatedInstallments = [...installments];
-      updatedInstallments[editingInstallmentIndex] = newInstallment;
+      const raw = [...installments];
+      raw[editingInstallmentIndex] = newInstallment;
+      const updatedInstallments = snapInstallments(raw, purchaseTotal);
       setInstallments(updatedInstallments);
       form.setValue("installments", updatedInstallments);
       setEditingInstallmentIndex(null);
     } else {
-      const updatedInstallments = [...installments, newInstallment];
+      const updatedInstallments = snapInstallments(
+        [...installments, newInstallment],
+        purchaseTotal,
+      );
       setInstallments(updatedInstallments);
       form.setValue("installments", updatedInstallments);
     }
@@ -621,7 +647,7 @@ export const PurchaseForm = ({
     if (installments.length === 0) return true; // Si no hay cuotas, está ok
     const purchaseTotal = calculateDetailsTotal();
     const installmentsTotal = calculateInstallmentsTotal();
-    return Math.abs(purchaseTotal - installmentsTotal) < 0.00005; // El backend compara contra el total exacto
+    return Math.abs(purchaseTotal - installmentsTotal) <= CENT_TOLERANCE; // se ajusta al total exacto al guardar
   };
 
   // Auto-llenar cuota de 30 días cuando el pago es a crédito y cambian los detalles
@@ -722,12 +748,13 @@ export const PurchaseForm = ({
       ];
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
-      validInstallments = installments
-        .filter((inst) => inst.due_days && inst.amount)
-        .map((inst) => ({
-          due_days: inst.due_days,
-          amount: inst.amount,
-        }));
+      validInstallments = snapInstallments(
+        installments.filter((inst) => inst.due_days && inst.amount),
+        calculateDetailsTotal(),
+      ).map((inst) => ({
+        due_days: inst.due_days,
+        amount: inst.amount,
+      }));
     }
 
     const apiDetails = details.map((detail) => ({
@@ -1392,10 +1419,7 @@ export const PurchaseForm = ({
                                   {inst.due_days} días
                                 </TableCell>
                                 <TableCell className="text-right font-semibold">
-                                  {formatDecimalTrunc(
-                                    parseFloat(inst.amount),
-                                    2,
-                                  )}
+                                  {formatNumber(parseFloat(inst.amount), 2)}
                                 </TableCell>
                                 <TableCell className="text-center">
                                   <div className="flex justify-center gap-2">
@@ -1429,7 +1453,7 @@ export const PurchaseForm = ({
                                 TOTAL CUOTAS:
                               </TableCell>
                               <TableCell className="text-right font-bold text-lg text-blue-600">
-                                {formatDecimalTrunc(
+                                {formatNumber(
                                   calculateInstallmentsTotal(),
                                   2,
                                 )}
