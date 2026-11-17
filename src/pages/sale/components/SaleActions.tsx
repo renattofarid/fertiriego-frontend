@@ -20,6 +20,8 @@ export default function SaleActions({
   warehouseId,
   userId,
   productId,
+  orderPurchase,
+  guides,
 }: {
   startDate?: string;
   endDate?: string;
@@ -33,6 +35,8 @@ export default function SaleActions({
   warehouseId?: string;
   userId?: string;
   productId?: string;
+  orderPurchase?: string;
+  guides?: string;
 }) {
   const navigate = useNavigate();
   const { MODEL } = SALE;
@@ -57,6 +61,8 @@ export default function SaleActions({
   if (warehouseId) excelParams.append("warehouse_id", warehouseId);
   if (userId) excelParams.append("user_id", userId);
   if (productId) excelParams.append("product_id", productId);
+  if (orderPurchase) excelParams.append("order_purchase", orderPurchase);
+  if (guides) excelParams.append("guides", guides);
   const excelQuery = excelParams.toString();
   const excelEndpoint = `/sale/excel${excelQuery ? `?${excelQuery}` : ""}`;
 

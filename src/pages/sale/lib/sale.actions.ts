@@ -50,6 +50,7 @@ export interface GetSalesParams {
   numero?: string;
   currency?: string;
   order_purchase?: string;
+  guides?: string;
   order_service?: string;
   date_expired?: string;
   issue_date?: string;

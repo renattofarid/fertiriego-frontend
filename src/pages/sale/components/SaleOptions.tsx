@@ -88,6 +88,10 @@ export default function SaleOptions({
   setUserId,
   productId,
   setProductId,
+  orderPurchase,
+  setOrderPurchase,
+  guides,
+  setGuides,
 }: {
   search: string;
   setSearch: (value: string) => void;
@@ -115,6 +119,10 @@ export default function SaleOptions({
   setUserId?: (value: string) => void;
   productId?: string;
   setProductId?: (value: string) => void;
+  orderPurchase?: string;
+  setOrderPurchase?: (value: string) => void;
+  guides?: string;
+  setGuides?: (value: string) => void;
 }) {
   const handleStartDateChange = (date: Date | undefined) => {
     if (setStartDate) {
@@ -141,7 +149,7 @@ export default function SaleOptions({
   ].filter(Boolean).length;
 
   return (
-    <FilterWrapper activeExtraCount={activeExtraCount} maxVisible={6}>
+    <FilterWrapper activeExtraCount={activeExtraCount} maxVisible={8}>
       <SearchInput
         value={search}
         onChange={setSearch}
@@ -196,6 +204,21 @@ export default function SaleOptions({
         />
       )}
 
+      {setOrderPurchase && (
+        <SearchInput
+          value={orderPurchase ?? ""}
+          onChange={setOrderPurchase}
+          placeholder="Orden de compra"
+        />
+      )}
+
+      {setGuides && (
+        <SearchInput
+          value={guides ?? ""}
+          onChange={setGuides}
+          placeholder="Guía (GR)"
+        />
+      )}
 
       {setDocumentType && (
         <SearchableSelect
