@@ -79,6 +79,11 @@ export function PurchaseInstallmentTable({
                 <span className="text-sm font-semibold text-blue-600">
                   {inst.correlativo}
                 </span>
+                {inst.letter_number && (
+                  <span className="block text-xs text-muted-foreground">
+                    Letra: {inst.letter_number}
+                  </span>
+                )}
               </TableCell>
               <TableCell className="text-center font-medium">
                 {inst.installment_number}

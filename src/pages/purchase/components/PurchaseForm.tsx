@@ -90,6 +90,8 @@ import { PurchaseInstallmentModal } from "./PurchaseInstallmentModal";
 import { PurchaseInstallmentTable } from "./PurchaseInstallmentTable";
 import { usePurchaseOrder } from "@/pages/purchase-order/lib/purchase-order.hook";
 import { DatePickerFormField } from "@/components/DatePickerFormField";
+import DatePicker from "@/components/DatePicker";
+import { parseLocalDate } from "@/lib/utils";
 
 interface PurchaseFormProps {
   defaultValues: Partial<PurchaseSchema>;
@@ -121,7 +123,17 @@ interface DetailRow {
 interface InstallmentRow {
   due_days: string;
   amount: string;
+  // Solo para pagos con LETRA
+  letter_number?: string;
+  due_date?: string;
 }
+
+const EMPTY_INSTALLMENT: InstallmentRow = {
+  due_days: "",
+  amount: "",
+  letter_number: "",
+  due_date: "",
+};
 
 interface CostRow {
   // Presente solo para costos ya guardados (modo edición); ausente para
@@ -183,10 +195,8 @@ export const PurchaseForm = ({
   const [editingInstallmentIndex, setEditingInstallmentIndex] = useState<
     number | null
   >(null);
-  const [currentInstallment, setCurrentInstallment] = useState<InstallmentRow>({
-    due_days: "",
-    amount: "",
-  });
+  const [currentInstallment, setCurrentInstallment] =
+    useState<InstallmentRow>(EMPTY_INSTALLMENT);
 
   // Estados para costos adicionales (flete, seguro, aduana, etc.) que el
   // backend prorratea entre los ítems del detalle. Funciona igual en modo
@@ -254,6 +264,9 @@ export const PurchaseForm = ({
 
   // Watch para el tipo de pago
   const selectedPaymentType = form.watch("payment_type");
+  const isLetter = selectedPaymentType === "LETRA";
+  const showInstallments =
+    selectedPaymentType === "CREDITO" || selectedPaymentType === "LETRA";
 
   // Watch para el switch de IGV
   const watchIncludeIgv = igvForm.watch("include_igv");
@@ -524,8 +537,16 @@ export const PurchaseForm = ({
   };
 
   // Funciones para cuotas
+  const isCurrentInstallmentComplete = isLetter
+    ? !!(
+        currentInstallment.letter_number?.trim() &&
+        currentInstallment.due_date &&
+        currentInstallment.amount
+      )
+    : !!(currentInstallment.due_days && currentInstallment.amount);
+
   const handleAddInstallment = () => {
-    if (!currentInstallment.due_days || !currentInstallment.amount) {
+    if (!isCurrentInstallmentComplete) {
       return;
     }
 
@@ -574,10 +595,7 @@ export const PurchaseForm = ({
       form.setValue("installments", updatedInstallments);
     }
 
-    setCurrentInstallment({
-      due_days: "",
-      amount: "",
-    });
+    setCurrentInstallment(EMPTY_INSTALLMENT);
   };
 
   const handleEditInstallment = (index: number) => {
@@ -654,6 +672,16 @@ export const PurchaseForm = ({
   useEffect(() => {
     if (mode !== "create") return;
 
+    if (selectedPaymentType === "LETRA") {
+      // Las letras se ingresan manualmente; solo se descartan las cuotas
+      // heredadas de Crédito (no tienen fecha de vencimiento).
+      if (installments.some((inst) => !inst.due_date)) {
+        setInstallments([]);
+        form.setValue("installments", []);
+      }
+      return;
+    }
+
     if (selectedPaymentType !== "CREDITO") {
       // Limpiar cuotas si se cambia a otro tipo de pago
       if (installments.length > 0) {
@@ -717,8 +745,12 @@ export const PurchaseForm = ({
 
     // Validaciones para modo create
     // Validar que si es a crédito, debe tener cuotas
-    if (selectedPaymentType === "CREDITO" && installments.length === 0) {
-      errorToast("Para pagos a crédito, debe agregar al menos una cuota");
+    if (showInstallments && installments.length === 0) {
+      errorToast(
+        isLetter
+          ? "Para pagos con letra, debe agregar al menos una letra"
+          : "Para pagos a crédito, debe agregar al menos una cuota",
+      );
       return;
     }
 
@@ -746,6 +778,18 @@ export const PurchaseForm = ({
           amount: String(round6(totalAmount)),
         },
       ];
+    } else if (isLetter) {
+      // Letras: { letter_number, due_date, amount }
+      validInstallments = snapInstallments(
+        installments.filter(
+          (inst) => inst.letter_number && inst.due_date && inst.amount,
+        ),
+        calculateDetailsTotal(),
+      ).map((inst) => ({
+        letter_number: inst.letter_number,
+        due_date: inst.due_date,
+        amount: inst.amount,
+      }));
     } else {
       // Para pagos a crédito, usar las cuotas ingresadas
       validInstallments = snapInstallments(
@@ -1326,30 +1370,68 @@ export const PurchaseForm = ({
             )}
 
             {/* Cuotas - Solo mostrar si es a crédito */}
-            {mode === "create" && selectedPaymentType === "CREDITO" && (
+            {mode === "create" && showInstallments && (
               <GroupFormSection
-                title="Cuotas (Obligatorio)"
+                title={isLetter ? "Letras (Obligatorio)" : "Cuotas (Obligatorio)"}
                 icon={CalendarDays}
                 cols={{ sm: 1 }}
               >
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
-                    <FormItem>
-                      <FormLabel>Días de Vencimiento</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="0"
-                          value={currentInstallment.due_days}
-                          onChange={(e) =>
-                            setCurrentInstallment((prev) => ({
-                              ...prev,
-                              due_days: e.target.value,
-                            }))
-                          }
-                        />
-                      </FormControl>
-                    </FormItem>
+                  <div
+                    className={`grid grid-cols-1 gap-4 p-4 bg-muted rounded-lg ${
+                      isLetter ? "md:grid-cols-4" : "md:grid-cols-3"
+                    }`}
+                  >
+                    {isLetter ? (
+                      <>
+                        <FormItem>
+                          <FormLabel>N° de Letra</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="LT-0001"
+                              value={currentInstallment.letter_number ?? ""}
+                              onChange={(e) =>
+                                setCurrentInstallment((prev) => ({
+                                  ...prev,
+                                  letter_number: e.target.value,
+                                }))
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+
+                        <div className="flex flex-col gap-2">
+                          <FormLabel>Fecha de Vencimiento</FormLabel>
+                          <DatePicker
+                            value={currentInstallment.due_date}
+                            onChange={(date) =>
+                              setCurrentInstallment((prev) => ({
+                                ...prev,
+                                due_date: date ? format(date, "yyyy-MM-dd") : "",
+                              }))
+                            }
+                            placeholder="Seleccione fecha"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <FormItem>
+                        <FormLabel>Días de Vencimiento</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={currentInstallment.due_days}
+                            onChange={(e) =>
+                              setCurrentInstallment((prev) => ({
+                                ...prev,
+                                due_days: e.target.value,
+                              }))
+                            }
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
 
                     <FormItem>
                       <FormLabel>Monto</FormLabel>
@@ -1374,10 +1456,7 @@ export const PurchaseForm = ({
                         type="button"
                         variant="default"
                         onClick={handleAddInstallment}
-                        disabled={
-                          !currentInstallment.due_days ||
-                          !currentInstallment.amount
-                        }
+                        disabled={!isCurrentInstallmentComplete}
                         className="w-full"
                       >
                         {editingInstallmentIndex !== null ? (
@@ -1399,9 +1478,9 @@ export const PurchaseForm = ({
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Cuota #</TableHead>
+                              <TableHead>{isLetter ? "Letra" : "Cuota #"}</TableHead>
                               <TableHead className="text-right">
-                                Días Vencimiento
+                                {isLetter ? "Vencimiento" : "Días Vencimiento"}
                               </TableHead>
                               <TableHead className="text-right">
                                 Monto
@@ -1414,9 +1493,20 @@ export const PurchaseForm = ({
                           <TableBody>
                             {installments.map((inst, index) => (
                               <TableRow key={index}>
-                                <TableCell>Cuota {index + 1}</TableCell>
+                                <TableCell>
+                                  {isLetter
+                                    ? inst.letter_number
+                                    : `Cuota ${index + 1}`}
+                                </TableCell>
                                 <TableCell className="text-right">
-                                  {inst.due_days} días
+                                  {isLetter
+                                    ? inst.due_date
+                                      ? format(
+                                          parseLocalDate(inst.due_date),
+                                          "dd/MM/yyyy",
+                                        )
+                                      : "-"
+                                    : `${inst.due_days} días`}
                                 </TableCell>
                                 <TableCell className="text-right font-semibold">
                                   {formatNumber(parseFloat(inst.amount), 2)}

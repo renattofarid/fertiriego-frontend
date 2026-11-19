@@ -19,7 +19,7 @@ interface DetailRow {
 }
 
 interface InstallmentRow {
-  due_days: string;
+  due_days?: string;
   amount: string;
 }
 
@@ -276,7 +276,8 @@ export function PurchaseSummary({
                 isSubmitting ||
                 (mode === "create" && details.length === 0) ||
                 (mode === "create" &&
-                  selectedPaymentType === "CREDITO" &&
+                  (selectedPaymentType === "CREDITO" ||
+                    selectedPaymentType === "LETRA") &&
                   installments.length === 0) ||
                 (mode === "create" &&
                   installments.length > 0 &&

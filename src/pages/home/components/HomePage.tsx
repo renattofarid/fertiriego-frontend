@@ -4,33 +4,31 @@ import { useAuthStore } from "@/pages/auth/lib/auth.store";
 import { hasAccessToRoute } from "@/lib/route-access";
 import { ENABLE_PERMISSION_VALIDATION } from "@/lib/permissions.config";
 import { cn } from "@/lib/utils";
-import { SalesVsPurchasesChart } from "./SalesVsPurchasesChart";
-import { TopProductsChart } from "./TopProductsChart";
-import { PaymentMethodsChart } from "./PaymentMethodsChart";
-import { NotasVentaPie } from "./NotasVentaPie";
-import { TotalesChart } from "./TotalesChart";
+import { format, parseISO } from "date-fns";
+import { SearchableSelect } from "@/components/SearchableSelect";
+import { ChartAreaDefault } from "@/components/charts/ChartAreaDefault";
+import { ChartBarMixed } from "@/components/charts/ChartBarMixed";
+import { ChartBarVertical } from "@/components/charts/ChartBarVertical";
+import { InteractivePieChart } from "@/components/charts/InteractivePieChart";
+import type { ChartConfig } from "@/components/ui/chart";
+import TitleComponent from "@/components/TitleComponent";
+import MonthPicker from "@/components/MonthPicker";
+import DatePicker from "@/components/DatePicker";
+import { DateRangePickerFilter } from "@/components/DateRangePickerFilter";
 import FormSkeleton from "@/components/FormSkeleton";
 import formatCurrency from "@/lib/formatCurrency";
 
-// Componente de métrica simple
-function MetricCard({ title, value, description, icon: Icon, variant }: { title: string; value: string; description: string; icon: React.ElementType; variant: "blue" | "orange" | "gray" | "green"; }) {
-  const variantStyles = { blue: "bg-blue-50 dark:bg-blue-900/10", orange: "bg-orange-50 dark:bg-orange-900/10", gray: "bg-gray-50 dark:bg-gray-900/10", green: "bg-emerald-50 dark:bg-emerald-900/10" };
-  const iconBgStyles = { blue: "bg-blue-100 dark:bg-blue-800", orange: "bg-orange-100 dark:bg-orange-800", gray: "bg-gray-100 dark:bg-gray-800", green: "bg-emerald-100 dark:bg-emerald-800" };
-  const textStyles = { blue: "text-blue-700 dark:text-blue-400", orange: "text-orange-700 dark:text-orange-400", gray: "text-gray-700 dark:text-gray-400", green: "text-emerald-700 dark:text-emerald-400" };
+const CURRENCY_OPTIONS = [
+  { value: "PEN", label: "Soles (S/)" },
+  { value: "USD", label: "Dólares ($)" },
+  { value: "EUR", label: "Euros (€)" },
+];
 
-  return (
-    <div className={cn("rounded-lg p-3", variantStyles[variant])}>
-      <div className="flex items-center gap-3">
-        <div className={cn("p-2 rounded-md shrink-0", iconBgStyles[variant])}><Icon className={cn("h-5 w-5", textStyles[variant])} /></div>
-        <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-muted-foreground mb-0.5">{title}</p>
-          <p className={cn("text-xl font-bold mb-0.5", textStyles[variant])}>{value}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+const FILTER_TYPE_OPTIONS = ["Todos", "Última semana", "Por mes", "Entre meses", "Por fecha", "Entre fechas"].map(
+  (v) => ({ value: v, label: v }),
+);
+
+const PAYMENT_COLORS = ["#3b82f6", "#f97316", "#8b5cf6", "#14b8a6", "#eab308"];
 
 const safeArray = (data: any) => {
   if (!data) return [];
@@ -144,7 +142,10 @@ function DashboardContent() {
       const json = await response.json();
       if (json.data && json.data.length > 0) {
         setBranches(json.data);
-        setSelectedBranchId(json.data[0].id.toString());
+        const principal = json.data.find((b: any) =>
+          /principal/i.test(String(b.name ?? "")),
+        );
+        setSelectedBranchId(String((principal ?? json.data[0]).id));
       } else {
         setIsLoading(false);
         setIsFirstLoad(false);
@@ -263,100 +264,220 @@ function DashboardContent() {
     }));
   }, [dashboardData]);
 
-   if (isFirstLoad) {
+  if (isFirstLoad) {
     return <div className="flex items-center justify-center h-full"><FormSkeleton /></div>;
   }
+
+  const money = (v: number) => `${symbol} ${formatCurrency(v)}`;
+
+  const cobranzaData = [
+    { name: "cobrado", value: totalCobrado, fill: "var(--color-cobrado)" },
+    { name: "pendiente", value: totalPendiente, fill: "var(--color-pendiente)" },
+  ];
+  const cobranzaConfig: ChartConfig = {
+    cobrado: { label: "Cobrado", color: "var(--primary)" },
+    pendiente: { label: "Pendiente de cobro", color: "#f97316" },
+  };
+
+  const resumenData = [
+    { name: "Total", value: totalGeneral },
+    { name: "Cobrado", value: totalCobrado },
+    { name: "Pendiente", value: totalPendiente },
+  ];
+
+  const paymentData = chartPayment.map((p, i) => ({
+    name: `pago_${i}`,
+    value: p.value,
+    fill: `var(--color-pago_${i})`,
+  }));
+  const paymentConfig: ChartConfig = Object.fromEntries(
+    chartPayment.map((p, i) => [
+      `pago_${i}`,
+      { label: p.name, color: PAYMENT_COLORS[i % PAYMENT_COLORS.length] },
+    ]),
+  );
+
+  const busy = isLoading && !isFirstLoad;
+  const rise = (n: number) => ({ "--i": n }) as React.CSSProperties;
+
+  const kpis = [
+    { title: "Total ventas", value: totalVentas, description: "Ingresos totales", icon: ShoppingBag, tone: "text-primary", valueTone: "" },
+    { title: "Total compras", value: totalCompras, description: "Gastos totales", icon: ShoppingCart, tone: "text-orange-500", valueTone: "" },
+    { title: "Balance neto", value: balanceNeto, description: "Margen de diferencia", icon: DollarSign, tone: balanceNeto >= 0 ? "text-emerald-500" : "text-red-500", valueTone: balanceNeto >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400" },
+    { title: "Pendiente de cobro", value: totalPendiente, description: "Dinero por ingresar", icon: TrendingUp, tone: "text-blue-500", valueTone: "" },
+    { title: "Cuentas por pagar", value: 0, description: "Pendiente de API", icon: TrendingDown, tone: "text-muted-foreground", valueTone: "text-muted-foreground" },
+  ];
+
+  const branchOptions = branches.map((b) => ({ value: String(b.id), label: b.name as string }));
+
   return (
-    <div className="space-y-6 p-4 md:p-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Resumen general de tu negocio</p>
-      </div>
+    <div className="space-y-5 p-4 md:p-6">
+      <div className="dash-rise space-y-4" style={rise(0)}>
+        <TitleComponent
+          title="Dashboard"
+          subtitle="Resumen general de tu negocio"
+          icon="LayoutDashboard"
+        />
 
-      <div className="bg-card border rounded-xl p-4 shadow-sm space-y-6 relative z-20">
-        <div className="flex flex-col sm:flex-row gap-4 items-center relative z-30">
-          
-          <select 
-            value={selectedBranchId} 
-            onChange={(e) => setSelectedBranchId(e.target.value)} 
-            className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"
-          >
-            {branches.length === 0 && <option value="">Cargando sucursales...</option>}
-            {branches.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
-          <select
-           value ={currency}
-           onChange={(e) => setCurrency(e.target.value)}
-           className="flex h-10 w-full sm:w-[140px] items-center rounded-md border border-blue-500/50 bg-background px3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="PEN">Soles (S/)</option>
-            <option value="USD">Dolares ($)</option>
-            <option value="EUR">Euros (€)</option>
-          </select>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          <SearchableSelect
+            options={branchOptions}
+            value={selectedBranchId}
+            onChange={(v) => v && setSelectedBranchId(v)}
+            placeholder={branches.length === 0 ? "Cargando sucursales..." : "Sucursal"}
+            className="w-full sm:w-[190px]"
+          />
+          <SearchableSelect
+            options={CURRENCY_OPTIONS}
+            value={currency}
+            onChange={(v) => v && setCurrency(v)}
+            placeholder="Moneda"
+            className="w-full sm:w-[150px]"
+          />
+          <SearchableSelect
+            options={FILTER_TYPE_OPTIONS}
+            value={filterType}
+            onChange={(v) => v && setFilterType(v)}
+            placeholder="Periodo"
+            className="w-full sm:w-[160px]"
+          />
 
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="flex h-10 w-full sm:w-[200px] items-center rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
-            <option value="Todos">Todos</option>
-            <option value="Última semana">Última semana</option>
-            <option value="Por mes">Por mes</option>
-            <option value="Entre meses">Entre meses</option>
-            <option value="Por fecha">Por fecha</option>
-            <option value="Entre fechas">Entre fechas</option>
-          </select>
-
-          {filterType === "Por mes" && <input type="month" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm" />}
+          {filterType === "Por mes" && (
+            <MonthPicker
+              value={filterDate}
+              onChange={setFilterDate}
+              className="w-full sm:w-[190px]"
+            />
+          )}
           {filterType === "Entre meses" && (
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input type="month" value={startMonth} onChange={(e) => setStartMonth(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
-              <span className="text-muted-foreground font-medium">-</span>
-              <input type="month" value={endMonth} onChange={(e) => setEndMonth(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
+            <div className="flex items-center gap-2">
+              <MonthPicker
+                short
+                value={startMonth}
+                onChange={setStartMonth}
+                className="w-full sm:w-[150px]"
+              />
+              <span className="text-muted-foreground">–</span>
+              <MonthPicker
+                short
+                value={endMonth}
+                onChange={setEndMonth}
+                className="w-full sm:w-[150px]"
+              />
             </div>
           )}
-          {filterType === "Por fecha" && <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex h-10 w-full sm:w-[200px] rounded-md border border-input bg-background px-3 py-2 text-sm" />}
+          {filterType === "Por fecha" && (
+            <DatePicker
+              value={startDate}
+              onChange={(d) => d && setStartDate(format(d, "yyyy-MM-dd"))}
+              showClearButton={false}
+              className="w-full sm:w-[190px]"
+            />
+          )}
           {filterType === "Entre fechas" && (
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
-              <span className="text-muted-foreground font-medium">-</span>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="flex h-10 w-full sm:w-[150px] rounded-md border border-input bg-background px-3 py-2 text-sm" />
-            </div>
+            <DateRangePickerFilter
+              dateFrom={startDate ? parseISO(startDate) : undefined}
+              dateTo={endDate ? parseISO(endDate) : undefined}
+              onDateChange={(from, to) => {
+                if (from) setStartDate(format(from, "yyyy-MM-dd"));
+                if (to) setEndDate(format(to, "yyyy-MM-dd"));
+              }}
+              className="w-full sm:w-[260px]"
+            />
           )}
-        </div>
-
-        <div className={cn("transition-opacity duration-200", isLoading && !isFirstLoad ? "opacity-40 pointer-events-none" : "opacity-100")}>
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 relative z-10">
-            <div className="rounded-lg border bg-background p-5">
-              <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4">Estado de Cobranza</h3>
-              <NotasVentaPie collected={totalCobrado} pending={totalPendiente} currencySymbol={symbol} />
-            </div>
-            <div className="rounded-lg border bg-background p-5">
-              <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4">Resumen General</h3>
-              <TotalesChart totalSales={totalGeneral} collected={totalCobrado} currencySymbol={symbol}/>
-            </div>
-          </div>
         </div>
       </div>
 
-      <div className={cn("transition-opacity duration-200", isLoading && !isFirstLoad ? "opacity-40 pointer-events-none" : "opacity-100")}>
-        <div className="space-y-3 pt-4 border-t">
-          <h2 className="text-base font-semibold">Métricas Principales</h2>
-          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            <MetricCard title="Total Ventas" value={`${symbol} ${formatCurrency(totalVentas)}`} description="Ingresos totales" icon={ShoppingBag} variant="blue" />
-            <MetricCard title="Total Compras" value={`${symbol} ${formatCurrency(totalCompras)}`} description="Gastos totales" icon={ShoppingCart} variant="orange" />
-            <MetricCard title="Balance Neto" value={`${symbol} ${formatCurrency(balanceNeto)}`} description="Margen de diferencia" icon={DollarSign} variant={balanceNeto >= 0 ? "green" : "orange"} />
-            <MetricCard title="Pendiente de Cobro" value={`${symbol} ${formatCurrency(totalPendiente)}`} description="Dinero por ingresar" icon={TrendingUp} variant="blue" />
-            <MetricCard title="Cuentas por Pagar" value={`${symbol} 0.00`} description="Pendiente de API" icon={TrendingDown} variant="orange" />
+      <div className={cn("space-y-5 transition-opacity duration-200", busy ? "pointer-events-none opacity-50" : "opacity-100")}>
+        {/* KPIs: franja única con filetes */}
+        <div className="dash-rise overflow-hidden rounded-xl border bg-border" style={rise(1)}>
+          <div className="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-5">
+            {kpis.map((k) => (
+              <div key={k.title} className="bg-card p-4 sm:p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[13px] font-medium text-muted-foreground">{k.title}</p>
+                  <k.icon className={cn("size-4 shrink-0", k.tone)} strokeWidth={1.75} />
+                </div>
+                <p className={cn("mt-2 truncate text-2xl font-semibold leading-none tracking-tight tabular-nums", k.valueTone)}>
+                  <span className="mr-1 text-base font-medium text-muted-foreground">{symbol}</span>
+                  {formatCurrency(k.value)}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">{k.description}</p>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="space-y-3 mt-6">
-          <h2 className="text-base font-semibold">Análisis Visual</h2>
-          <SalesVsPurchasesChart data={chartLines} />
-          <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-            <TopProductsChart data={chartTop5} currencySymbol={symbol} />
-            <PaymentMethodsChart data={chartPayment} />
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="dash-rise" style={rise(2)}>
+            <InteractivePieChart
+              id="pie-cobranza"
+              title="Estado de cobranza"
+              subtitle="Cobrado vs pendiente de cobro"
+              data={cobranzaData}
+              config={cobranzaConfig}
+              valueLabel={symbol}
+              centerLabelAsPercent
+              showLegend
+              showPercentageInLegend
+              showSelectionFooter
+              valueFormatter={money}
+            />
+          </div>
+          <div className="dash-rise" style={rise(3)}>
+            <ChartBarMixed
+              title="Resumen general"
+              subtitle="Total facturado, cobrado y pendiente"
+              data={resumenData}
+              valueFormatter={money}
+              valueLabel={symbol}
+            />
+          </div>
+        </div>
+
+        <div className="dash-rise space-y-3" style={rise(4)}>
+          <ChartAreaDefault
+            title="Compras vs Ventas"
+            description="Comparación de montos en el periodo seleccionado"
+            data={chartLines.map((d) => ({
+              name: d.date,
+              value: d.ventas,
+              value2: d.compras,
+            }))}
+            valueLabel="Ventas"
+            value2Label="Compras"
+            valueFormatter={money}
+            axisFormatter={(v) =>
+              new Intl.NumberFormat("es-PE", { notation: "compact", maximumFractionDigits: 1 }).format(v)
+            }
+            showYAxis
+            defaultRange="all"
+          />
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            <ChartBarVertical
+              title="Top 5 productos"
+              subtitle="Mayor monto vendido"
+              data={chartTop5.map((p) => ({
+                name: p.name.length > 22 ? `${p.name.slice(0, 21)}…` : p.name,
+                value: p.revenue,
+                extra: `${p.quantity.toLocaleString("es-PE")} unidades`,
+              }))}
+              valueFormatter={money}
+              valueLabel="Vendido"
+            />
+            <InteractivePieChart
+              id="pie-pagos"
+              title="Métodos de pago"
+              subtitle="Distribución de ventas por tipo de pago"
+              data={paymentData}
+              config={paymentConfig}
+              valueLabel={symbol}
+              centerLabelAsPercent
+              showLegend
+              showPercentageInLegend
+              showSelectionFooter
+              valueFormatter={money}
+            />
           </div>
         </div>
       </div>

@@ -37,6 +37,8 @@ export interface PurchaseInstallmentResource {
   installment_number: number;
   due_days: number;
   due_date: string;
+  // Solo para compras con payment_type = "LETRA"
+  letter_number?: string | null;
   amount: string;
   pending_amount: string;
   status: string;
@@ -106,8 +108,11 @@ export interface CreatePurchaseDetailRequest {
   tax: number;
 }
 
+// Crédito: se envía `due_days`. Letra: se envía `letter_number` + `due_date`.
 export interface CreatePurchaseInstallmentRequest {
-  due_days: number;
+  due_days?: number;
+  letter_number?: string;
+  due_date?: string;
   amount: number;
 }
 
@@ -300,6 +305,7 @@ export const DOCUMENT_TYPES = [
 export const PAYMENT_TYPES = [
   { value: "CONTADO", label: "Contado" },
   { value: "CREDITO", label: "Crédito" },
+  { value: "LETRA", label: "Letra" },
 ] as const;
 
 export const CURRENCIES = [

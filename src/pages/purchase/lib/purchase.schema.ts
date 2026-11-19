@@ -52,12 +52,16 @@ export type PurchaseCostSchema = z.infer<typeof purchaseCostSchema>;
 // ===== INSTALLMENT SCHEMA =====
 
 export const purchaseInstallmentSchema = z.object({
-  due_days: z.coerce
+  // Opcional: las cuotas de tipo LETRA usan letter_number + due_date en lugar
+  // de due_days (la obligatoriedad se valida en PurchaseForm según el tipo).
+  due_days: z
     .string()
-    .min(1, { message: "Los días de vencimiento son requeridos" })
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+    .optional()
+    .refine((val) => !val || (!isNaN(Number(val)) && Number(val) > 0), {
       message: "Los días deben ser un número mayor a 0",
     }),
+  letter_number: z.string().optional(),
+  due_date: z.string().optional(),
   amount: z.coerce
     .string()
     .min(1, { message: "El monto es requerido" })

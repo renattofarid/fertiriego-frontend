@@ -29,6 +29,7 @@ import { SearchableSelectAsync } from "@/components/SearchableSelectAsync";
 import { useClients } from "@/pages/client/lib/client.hook";
 import type { Option } from "@/lib/core.interface";
 import FilterWrapper from "@/components/FilterWrapper";
+import ExportButtons from "@/components/ExportButtons";
 
 const mapCustomerOption = (p: any): Option => ({
   value: String(p.id),
@@ -68,6 +69,15 @@ export default function OrderPendingReportPage() {
     page,
     per_page,
   });
+
+  const excelParams = new URLSearchParams();
+  if (customerId) excelParams.append("customer_id", customerId);
+  if (dateFrom) excelParams.append("from", format(dateFrom, "yyyy-MM-dd"));
+  if (dateTo) excelParams.append("to", format(dateTo, "yyyy-MM-dd"));
+  const excelQuery = excelParams.toString();
+  const excelEndpoint = `/orders/pending-details/export${
+    excelQuery ? `?${excelQuery}` : ""
+  }`;
 
   // Una fila por pedido; sus productos pendientes se muestran agrupados dentro.
   const orders = useMemo(() => data ?? [], [data]);
@@ -224,13 +234,16 @@ export default function OrderPendingReportPage() {
   return (
     <PageWrapper>
       <TitleFormComponent title="Entregas Pendientes" icon="ListChecks">
-        <Button
-          variant="outline"
-          className="ml-auto"
-          onClick={() => navigate(OrderRoute)}
-        >
-          Ir a Pedidos
-        </Button>
+        <div className="ml-auto flex items-center gap-2">
+          <ExportButtons
+            excelEndpoint={excelEndpoint}
+            excelFileName="entregas-pendientes.xlsx"
+            variant="grouped"
+          />
+          <Button variant="outline" onClick={() => navigate(OrderRoute)}>
+            Ir a Pedidos
+          </Button>
+        </div>
       </TitleFormComponent>
 
       <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-3">

@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, FileSpreadsheet } from "lucide-react";
 import ExportButtons from "@/components/ExportButtons";
+import { api } from "@/lib/config";
+import { promiseToast } from "@/lib/core.function";
 
 interface PurchaseActionsProps {
   onCreatePurchase: () => void;
@@ -9,6 +11,20 @@ interface PurchaseActionsProps {
   paymentType?: string;
   supplierId?: string;
 }
+
+const downloadLettersExcel = async () => {
+  const response = await api.get("/purchases/letters/export", {
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", "letras-compras.xlsx");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
 
 export const PurchaseActions = ({
   onCreatePurchase,
@@ -33,7 +49,21 @@ export const PurchaseActions = ({
         excelFileName="compras.xlsx"
         variant="grouped"
       />
-      <Button  onClick={onCreatePurchase}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          promiseToast(downloadLettersExcel(), {
+            loading: "Descargando letras...",
+            success: "Excel de letras descargado exitosamente",
+            error: "Error al descargar el Excel de letras",
+          })
+        }
+      >
+        <FileSpreadsheet className="h-4 w-4" />
+        Letras
+      </Button>
+      <Button onClick={onCreatePurchase}>
         <Plus className="mr-2 h-4 w-4" />
         Crear Compra
       </Button>
