@@ -87,10 +87,19 @@ export const usePurchaseStore = create<PurchaseStore>((set) => ({
           unit_price: Number(Number(detail.unit_price)),
           tax: Number(Number(detail.tax)),
         })),
-        installments: data.installments.map((installment) => ({
-          due_days: Number(installment.due_days),
-          amount: Number(Number(installment.amount)),
-        })),
+        installments: data.installments.map((installment) =>
+          // Letra: letter_number + due_date. Crédito/contado: due_days.
+          installment.letter_number || installment.due_date
+            ? {
+                letter_number: installment.letter_number,
+                due_date: installment.due_date,
+                amount: Number(installment.amount),
+              }
+            : {
+                due_days: Number(installment.due_days),
+                amount: Number(installment.amount),
+              },
+        ),
         purchase_cost: (data.purchase_cost || []).map((cost) => ({
           description: cost.description,
           total: Number(cost.total),

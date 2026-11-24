@@ -263,6 +263,7 @@ export function InstallmentPaymentsSheet({
                 }}
                 isSubmitting={isSubmitting}
                 pending={editingPaymentId ? undefined : pending}
+                currencySymbol={currencySymbol}
               />
             </div>
           </GroupFormSection>

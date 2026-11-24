@@ -23,6 +23,8 @@ interface PurchasePaymentFormProps {
   isSubmitting: boolean;
   /** Saldo pendiente exacto de la cuota (el backend guarda hasta 4 decimales) */
   pending?: number;
+  /** Símbolo de la moneda de la compra (S/, $, ...) */
+  currencySymbol?: string;
 }
 
 const AMOUNT_FIELDS = [
@@ -57,7 +59,10 @@ export function PurchasePaymentForm({
   onCancel,
   isSubmitting,
   pending,
+  currencySymbol = "",
 }: PurchasePaymentFormProps) {
+  const money = (n: number) =>
+    `${currencySymbol ? `${currencySymbol} ` : ""}${formatPrecise(n)}`;
   const [formData, setFormData] = useState({
     payment_date: payment?.payment_date || format(new Date(), "yyyy-MM-dd"),
     reference_number: payment?.reference_number || "",
@@ -243,7 +248,7 @@ export function PurchasePaymentForm({
                 exceedsPending ? "text-destructive" : "text-primary"
               }`}
             >
-              {formatPrecise(calculateTotal())}
+              {money(calculateTotal())}
             </span>
           </div>
           {pending !== undefined && (
@@ -253,8 +258,8 @@ export function PurchasePaymentForm({
               }`}
             >
               {exceedsPending
-                ? `Excede el saldo pendiente (${formatPrecise(pending)})`
-                : `Saldo pendiente: ${formatPrecise(pending)}`}
+                ? `Excede el saldo pendiente (${money(pending)})`
+                : `Saldo pendiente: ${money(pending)}`}
             </p>
           )}
         </div>

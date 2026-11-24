@@ -53,6 +53,26 @@ const snapInstallments = <T extends { amount: string }>(
     idx === last ? { ...i, amount: String(adjusted) } : i,
   );
 };
+const MAX_LETTERS = 60;
+
+// Reparte `total` en `count` partes de 2 decimales; la última absorbe el resto
+// para que la suma sea exactamente el total.
+const LETTER_PREFIX = "LT-";
+
+// "LT-0099" -> "LT-0100" (conserva el relleno de ceros)
+const incrementLetterNumber = (value: string): string => {
+  const m = value.match(/^(.*?)(\d+)$/);
+  if (!m) return value;
+  return m[1] + String(Number(m[2]) + 1).padStart(m[2].length, "0");
+};
+
+const distributeAmount =(total: number, count: number): number[] => {
+  if (count <= 0) return [];
+  const base = Math.floor((total / count) * 100) / 100;
+  const amounts = Array<number>(count).fill(base);
+  amounts[count - 1] = round6(total - base * (count - 1));
+  return amounts;
+};
 import { formatNumber } from "@/lib/formatCurrency";
 import {
   Table,
@@ -68,7 +88,7 @@ import {
   CURRENCIES,
 } from "../lib/purchase.interface";
 import { errorToast } from "@/lib/core.function";
-import { format, addMonths } from "date-fns";
+import { format, addMonths, addDays } from "date-fns";
 import { GroupFormSection } from "@/components/GroupFormSection";
 import {
   FileText,
@@ -192,6 +212,12 @@ export const PurchaseForm = ({
 
   // Estados para cuotas
   const [installments, setInstallments] = useState<InstallmentRow[]>([]);
+  const [letterInterval, setLetterInterval] = useState("30");
+  const [letterCountText, setLetterCountText] = useState("");
+  const [letterStart, setLetterStart] = useState("001");
+  const [editingLetterIndex, setEditingLetterIndex] = useState<number | null>(
+    null,
+  );
   const [editingInstallmentIndex, setEditingInstallmentIndex] = useState<
     number | null
   >(null);
@@ -668,17 +694,184 @@ export const PurchaseForm = ({
     return Math.abs(purchaseTotal - installmentsTotal) <= CENT_TOLERANCE; // se ajusta al total exacto al guardar
   };
 
+  // ---- Letras: la cantidad manda y el sistema reparte el monto ----
+  const applyLetters = (rows: InstallmentRow[]) => {
+    setInstallments(rows);
+    form.setValue("installments", rows);
+  };
+
+  const intervalDays = Math.max(1, parseInt(letterInterval, 10) || 30);
+
+  const buildLetters = (
+    total: number,
+    count: number,
+    prev: InstallmentRow[],
+  ): InstallmentRow[] => {
+    const amounts = distributeAmount(total, count);
+    const dates: Date[] = [];
+    const numbers: string[] = [];
+    return amounts.map((amount, i) => {
+      const old = prev[i];
+      const date = old?.due_date
+        ? parseLocalDate(old.due_date)
+        : addDays(i > 0 ? dates[i - 1] : new Date(), intervalDays);
+      dates.push(date);
+      // Las letras existentes conservan su número; las nuevas continúan
+      // el correlativo de la anterior (o arrancan en el número inicial).
+      const number =
+        old?.letter_number ||
+        (i > 0
+          ? incrementLetterNumber(numbers[i - 1])
+          : LETTER_PREFIX + letterStart);
+      numbers.push(number);
+      return {
+        due_days: "",
+        letter_number: number,
+        due_date: format(date, "yyyy-MM-dd"),
+        amount: String(amount),
+      };
+    });
+  };
+
+  // Renumera correlativamente desde la letra `index` con el número base dado
+  const renumberFrom = (
+    rows: InstallmentRow[],
+    index: number,
+    base: string,
+  ): InstallmentRow[] => {
+    let current = base;
+    return rows.map((inst, i) => {
+      if (i < index) return inst;
+      if (i > index) current = incrementLetterNumber(current);
+      return { ...inst, letter_number: current };
+    });
+  };
+
+  const handleLetterStart = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    setLetterStart(digits);
+    if (digits && installments.length > 0) {
+      applyLetters(renumberFrom(installments, 0, LETTER_PREFIX + digits));
+    }
+  };
+
+  const handleLetterNumber = (index: number, raw: string) => {
+    const digits = raw.replace(/\D/g, "").slice(0, 10);
+    if (index === 0) setLetterStart(digits);
+    if (!digits) {
+      handleLetterField(index, { letter_number: "" });
+      return;
+    }
+    applyLetters(renumberFrom(installments, index, LETTER_PREFIX + digits));
+  };
+
+  // Texto del campo: permite borrar el número para escribir otro sin que
+  // el valor controlado lo restituya de inmediato.
+  useEffect(() => {
+    if (installments.length > 0 && parseInt(letterCountText, 10) !== installments.length) {
+      setLetterCountText(String(installments.length));
+    }
+    if (installments.length === 0 && calculateDetailsTotal() <= 0) {
+      setLetterCountText("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [installments.length]);
+
+  const handleLetterCount = (value: string) => {
+    setLetterCountText(value);
+    const n = Math.min(MAX_LETTERS, parseInt(value, 10));
+    const total = calculateDetailsTotal();
+    if (!n || n < 1 || total <= 0) return;
+    applyLetters(buildLetters(total, n, installments));
+  };
+
+  const handleLetterInterval = (value: string) => {
+    setLetterInterval(value);
+    const days = parseInt(value, 10);
+    if (!days || days < 1 || installments.length === 0) return;
+    applyLetters(redateFromFirst(installments, days));
+  };
+
+  // Las fechas corren a partir de la primera letra: fecha1 + intervalo * n
+  const redateFromFirst = (rows: InstallmentRow[], days: number) => {
+    const first = rows[0]?.due_date;
+    if (!first) return rows;
+    const start = parseLocalDate(first);
+    return rows.map((inst, i) =>
+      i === 0
+        ? inst
+        : { ...inst, due_date: format(addDays(start, days * i), "yyyy-MM-dd") },
+    );
+  };
+
+  const handleRemoveLetter = (index: number) => {
+    const rest = installments.filter((_, i) => i !== index);
+    const total = calculateDetailsTotal();
+    if (rest.length === 0 || total <= 0) {
+      applyLetters([]);
+      return;
+    }
+    const rebuilt = buildLetters(total, rest.length, rest);
+    // Mantiene el correlativo sin huecos desde la primera letra
+    applyLetters(
+      rebuilt[0].letter_number
+        ? renumberFrom(rebuilt, 0, rebuilt[0].letter_number)
+        : rebuilt,
+    );
+  };
+
+  const handleLetterField = (
+    index: number,
+    patch: Partial<InstallmentRow>,
+  ) => {
+    const rows = installments.map((inst, i) =>
+      i === index ? { ...inst, ...patch } : inst,
+    );
+    // Cambiar la fecha de la primera letra mueve todas las siguientes
+    applyLetters(
+      index === 0 && patch.due_date ? redateFromFirst(rows, intervalDays) : rows,
+    );
+  };
+
+  // Al cambiar el monto de una letra, el resto se reparte entre las demás
+  const handleLetterAmount = (index: number, value: string) => {
+    const total = calculateDetailsTotal();
+    const parsed = parseFloat(value);
+    if (isNaN(parsed) || installments.length === 1) {
+      handleLetterField(index, { amount: value });
+      return;
+    }
+    const amount = Math.min(Math.max(parsed, 0), total);
+    const others = distributeAmount(
+      round6(total - amount),
+      installments.length - 1,
+    );
+    let k = 0;
+    applyLetters(
+      installments.map((inst, i) =>
+        i === index
+          ? { ...inst, amount: parsed === amount ? value : String(amount) }
+          : { ...inst, amount: String(others[k++]) },
+      ),
+    );
+  };
+
   // Auto-llenar cuota de 30 días cuando el pago es a crédito y cambian los detalles
   useEffect(() => {
     if (mode !== "create") return;
 
     if (selectedPaymentType === "LETRA") {
-      // Las letras se ingresan manualmente; solo se descartan las cuotas
-      // heredadas de Crédito (no tienen fecha de vencimiento).
-      if (installments.some((inst) => !inst.due_date)) {
-        setInstallments([]);
-        form.setValue("installments", []);
+      // Las letras se recalculan según el total: se conserva la cantidad,
+      // número y fecha de las existentes y el monto se reparte en partes iguales.
+      const total = details.reduce((sum, d) => sum + (d.total || 0), 0);
+      if (total <= 0) {
+        applyLetters([]);
+        return;
       }
+      const prev = installments.every((inst) => !!inst.due_date)
+        ? installments
+        : [];
+      applyLetters(buildLetters(total, prev.length || 1, prev));
       return;
     }
 
@@ -751,6 +944,11 @@ export const PurchaseForm = ({
           ? "Para pagos con letra, debe agregar al menos una letra"
           : "Para pagos a crédito, debe agregar al menos una cuota",
       );
+      return;
+    }
+
+    if (isLetter && installments.some((i) => !i.letter_number?.trim())) {
+      errorToast("Ingrese el número de cada letra");
       return;
     }
 
@@ -1377,6 +1575,202 @@ export const PurchaseForm = ({
                 cols={{ sm: 1 }}
               >
                 <div className="space-y-4">
+                  {isLetter ? (
+                    <>
+                      <div className="grid grid-cols-1 gap-4 rounded-lg bg-muted p-4 md:grid-cols-3 lg:grid-cols-5">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium">
+                            Total de la compra
+                          </span>
+                          <span className="text-2xl font-bold tabular-nums">
+                            {formatNumber(calculateDetailsTotal(), 2)}
+                          </span>
+                        </div>
+                        <FormItem>
+                          <FormLabel>Cantidad de letras</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={MAX_LETTERS}
+                              placeholder="1"
+                              value={letterCountText}
+                              onChange={(e) => handleLetterCount(e.target.value)}
+                            />
+                          </FormControl>
+                        </FormItem>
+                        <FormItem>
+                          <FormLabel>N° de la primera letra</FormLabel>
+                          <FormControl>
+                            <div className="flex">
+                              <span className="inline-flex items-center rounded-l-md border border-r-0 bg-background px-3 text-sm text-muted-foreground">
+                                {LETTER_PREFIX}
+                              </span>
+                              <Input
+                                inputMode="numeric"
+                                placeholder="001"
+                                className="rounded-l-none tabular-nums"
+                                value={letterStart}
+                                onChange={(e) =>
+                                  handleLetterStart(e.target.value)
+                                }
+                              />
+                            </div>
+                          </FormControl>
+                        </FormItem>
+                        <FormItem>
+                          <FormLabel>Días entre letras</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={letterInterval}
+                              onChange={(e) =>
+                                handleLetterInterval(e.target.value)
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium">
+                            Total letras
+                          </span>
+                          <span
+                            className={`text-2xl font-bold tabular-nums ${
+                              installmentsMatchTotal()
+                                ? "text-blue-600"
+                                : "text-orange-600"
+                            }`}
+                          >
+                            {formatNumber(calculateInstallmentsTotal(), 2)}
+                          </span>
+                          {!installmentsMatchTotal() && (
+                            <span className="text-xs text-orange-600">
+                              Diferencia:{" "}
+                              {formatNumber(
+                                calculateDetailsTotal() -
+                                  calculateInstallmentsTotal(),
+                                2,
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {installments.length > 0 ? (
+                        <div className="overflow-hidden rounded-lg border">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-10">#</TableHead>
+                                <TableHead>N° de letra</TableHead>
+                                <TableHead>Vencimiento</TableHead>
+                                <TableHead className="text-right">
+                                  Monto
+                                </TableHead>
+                                <TableHead className="w-12" />
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {installments.map((inst, index) => (
+                                <TableRow key={index}>
+                                  <TableCell className="text-muted-foreground">
+                                    {index + 1}
+                                  </TableCell>
+                                  <TableCell>
+                                    {editingLetterIndex === index ? (
+                                      <div className="flex w-40">
+                                        <span className="inline-flex items-center rounded-l-md border border-r-0 bg-background px-2 text-sm text-muted-foreground">
+                                          {LETTER_PREFIX}
+                                        </span>
+                                        <Input
+                                          autoFocus
+                                          inputMode="numeric"
+                                          className="h-9 rounded-l-none tabular-nums"
+                                          value={(
+                                            inst.letter_number ?? ""
+                                          ).replace(/^LT-/, "")}
+                                          onChange={(e) =>
+                                            handleLetterNumber(
+                                              index,
+                                              e.target.value,
+                                            )
+                                          }
+                                          onBlur={() =>
+                                            setEditingLetterIndex(null)
+                                          }
+                                          onKeyDown={(e) => {
+                                            if (
+                                              e.key === "Enter" ||
+                                              e.key === "Escape"
+                                            ) {
+                                              e.preventDefault();
+                                              setEditingLetterIndex(null);
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        title="Clic para editar el número"
+                                        className="rounded-md px-2 py-1 text-sm font-medium tabular-nums hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"
+                                        onClick={() =>
+                                          setEditingLetterIndex(index)
+                                        }
+                                      >
+                                        {inst.letter_number || "Sin número"}
+                                      </button>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <DatePicker
+                                      value={inst.due_date}
+                                      onChange={(date) =>
+                                        handleLetterField(index, {
+                                          due_date: date
+                                            ? format(date, "yyyy-MM-dd")
+                                            : "",
+                                        })
+                                      }
+                                      placeholder="Seleccione fecha"
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Input
+                                      type="number"
+                                      step="0.01"
+                                      className="text-right tabular-nums"
+                                      value={inst.amount}
+                                      onChange={(e) =>
+                                        handleLetterAmount(index, e.target.value)
+                                      }
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      onClick={() => handleRemoveLetter(index)}
+                                    >
+                                      <Trash2 className="h-4 w-4 text-red-500" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <EmptyState
+                          title="Aún no hay letras"
+                          description="Agregue productos para generar las letras automáticamente"
+                          icon={CalendarDays}
+                        />
+                      )}
+                    </>
+                  ) : (
+                  <>
                   <div
                     className={`grid grid-cols-1 gap-4 p-4 bg-muted rounded-lg ${
                       isLetter ? "md:grid-cols-4" : "md:grid-cols-3"
@@ -1571,6 +1965,8 @@ export const PurchaseForm = ({
                       description="Agregue las cuotas de pago para esta compra a crédito"
                       icon={CalendarDays}
                     />
+                  )}
+                  </>
                   )}
                 </div>
               </GroupFormSection>
