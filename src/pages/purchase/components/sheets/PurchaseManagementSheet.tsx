@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import GeneralSheet from "@/components/GeneralSheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, PackageOpen, CreditCard } from "lucide-react";
+import { Plus, PackageOpen, CreditCard, TriangleAlert } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { PurchaseResource } from "../../lib/purchase.interface";
@@ -13,7 +13,12 @@ import { PurchaseDetailTable } from "../PurchaseDetailTable";
 import { PurchaseInstallmentTable } from "../PurchaseInstallmentTable";
 import { PurchaseDetailForm } from "../forms/PurchaseDetailForm";
 import { PurchaseInstallmentForm } from "../forms/PurchaseInstallmentForm";
-import { errorToast, successToast } from "@/lib/core.function";
+import {
+  errorToast,
+  matchCurrency,
+  successToast,
+} from "@/lib/core.function";
+import { formatCurrency } from "@/lib/formatCurrency";
 
 interface PurchaseManagementSheetProps {
   open: boolean;
@@ -192,11 +197,23 @@ export function PurchaseManagementSheet({
   if (!currentPurchase) return null;
 
   // Determinar si se pueden agregar detalles o cuotas
-  const isPaid = currentPurchase.status === "PAGADO";
+  const isPaid =
+    currentPurchase.status === "PAGADA" || currentPurchase.status === "PAGADO";
   const isCash = currentPurchase.payment_type === "CONTADO";
-  const hasPayments =
-    parseFloat(currentPurchase.total_amount) !==
-    parseFloat(currentPurchase.current_amount);
+  const totalAmount = parseFloat(currentPurchase.total_amount) || 0;
+  const pendingAmount = parseFloat(currentPurchase.current_amount) || 0;
+  const hasPayments = totalAmount !== pendingAmount;
+  const paidAmount = Math.max(0, totalAmount - pendingAmount);
+  const paidPercent =
+    totalAmount > 0
+      ? Math.min(100, Math.round((paidAmount / totalAmount) * 100))
+      : 0;
+  const currencySymbol = matchCurrency(currentPurchase.currency || "PEN");
+  const statusVariant = isPaid
+    ? "default"
+    : currentPurchase.status === "CANCELADO"
+      ? "destructive"
+      : "secondary";
 
   // Para detalles: NO se puede si está pagada O (es al contado Y tiene pagos)
   const canAddDetails = !isPaid && !(isCash && hasPayments);
@@ -211,92 +228,103 @@ export function PurchaseManagementSheet({
       title={`Gestión de Compra ${currentPurchase.correlativo}`}
       subtitle="Administra los detalles, cuotas y pagos de esta compra"
       icon="PackageOpen"
-      size="4xl"
+      size="6xl"
     >
-      <div className="space-y-4">
-          {/* Información General */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Información General</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Proveedor:</span>
-                <p className="font-semibold">
+      <div className="space-y-3">
+          {/* Resumen financiero */}
+          <section
+            aria-label="Resumen de la compra"
+            className="rounded-md border border-muted bg-background p-4 shadow-sm"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">Proveedor</p>
+                <p className="text-base font-semibold">
                   {currentPurchase.supplier_fullname}
                 </p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Documento:</span>
-                <p className="font-semibold">
-                  {currentPurchase.document_type} -{" "}
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  {currentPurchase.document_type}{" "}
                   {currentPurchase.document_number}
                 </p>
               </div>
+              <div className="flex items-center gap-1.5">
+                <Badge variant={statusVariant}>{currentPurchase.status}</Badge>
+                <Badge variant="outline">{currentPurchase.payment_type}</Badge>
+              </div>
+            </div>
+
+            <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div>
-                <span className="text-muted-foreground">Total:</span>
-                <p className="font-bold text-primary text-lg">
-                  {currentPurchase.currency === "PEN" ? "S/." : "$"}{" "}
-                  {parseFloat(currentPurchase.total_amount).toFixed(2)}
-                </p>
+                <dt className="text-xs text-muted-foreground">Total</dt>
+                <dd className="text-xl font-bold tabular-nums">
+                  {formatCurrency(totalAmount, { currencySymbol })}
+                </dd>
               </div>
               <div>
-                <span className="text-muted-foreground">Saldo:</span>
-                <p className="font-bold text-orange-600 text-lg">
-                  {currentPurchase.currency === "PEN" ? "S/." : "$"}{" "}
-                  {parseFloat(currentPurchase.current_amount).toFixed(2)}
-                </p>
+                <dt className="text-xs text-muted-foreground">Pagado</dt>
+                <dd className="text-xl font-bold tabular-nums text-primary">
+                  {formatCurrency(paidAmount, { currencySymbol })}
+                </dd>
               </div>
               <div>
-                <span className="text-muted-foreground">Estado:</span>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      currentPurchase.status === "PAGADA"
-                        ? "default"
-                        : currentPurchase.status === "CANCELADO"
-                          ? "destructive"
-                          : "secondary"
-                    }
-                  >
-                    {currentPurchase.status}
-                  </Badge>
-                </div>
+                <dt className="text-xs text-muted-foreground">
+                  Saldo pendiente
+                </dt>
+                <dd
+                  className={`text-xl font-bold tabular-nums ${
+                    pendingAmount > 0
+                      ? "text-orange-600"
+                      : "text-muted-foreground"
+                  }`}
+                >
+                  {formatCurrency(pendingAmount, { currencySymbol })}
+                </dd>
               </div>
-              <div>
-                <span className="text-muted-foreground">Tipo de Pago:</span>
-                <div className="mt-1">
-                  <Badge
-                    variant={
-                      currentPurchase.payment_type === "CONTADO"
-                        ? "default"
-                        : "secondary"
-                    }
-                  >
-                    {currentPurchase.payment_type}
-                  </Badge>
-                </div>
+            </dl>
+
+            <div className="mt-4">
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={paidPercent}
+                aria-label="Porcentaje pagado"
+                className="h-2 overflow-hidden rounded-full bg-muted"
+              >
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none"
+                  style={{ width: `${paidPercent}%` }}
+                />
               </div>
-            </CardContent>
-          </Card>
+              <p className="mt-1.5 text-xs tabular-nums text-muted-foreground">
+                {paidPercent}% pagado
+              </p>
+            </div>
+          </section>
 
           {/* Tabs para Detalles y Cuotas */}
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="details" className="flex items-center gap-2">
                 <PackageOpen className="h-4 w-4" />
-                Detalles ({details?.length || 0})
+                Detalles
+                <span className="tabular-nums text-muted-foreground">
+                  ({details?.length || 0})
+                </span>
               </TabsTrigger>
               <TabsTrigger
                 value="installments"
                 className="flex items-center gap-2"
               >
                 <CreditCard className="h-4 w-4" />
-                Cuotas ({installments?.length || 0})
+                Cuotas
+                <span className="tabular-nums text-muted-foreground">
+                  ({installments?.length || 0})
+                </span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="space-y-4 mt-4">
+            <TabsContent value="details" className="mt-3 space-y-3">
               {showDetailForm ? (
                 <Card>
                   <CardHeader>
@@ -320,7 +348,7 @@ export function PurchaseManagementSheet({
                 <>
                   <Button
                     onClick={handleAddDetail}
-                    className="w-full"
+                    className="w-full active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
                     disabled={!canAddDetails}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -348,7 +376,7 @@ export function PurchaseManagementSheet({
               )}
             </TabsContent>
 
-            <TabsContent value="installments" className="space-y-4 mt-4">
+            <TabsContent value="installments" className="mt-3 space-y-3">
               {showInstallmentForm ? (
                 <Card>
                   <CardHeader>
@@ -372,7 +400,7 @@ export function PurchaseManagementSheet({
                 <>
                   <Button
                     onClick={handleAddInstallment}
-                    className="w-full"
+                    className="w-full active:scale-[0.97] transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transform-none"
                     disabled={!canAddInstallments}
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -391,9 +419,6 @@ export function PurchaseManagementSheet({
                     installments &&
                     installments.length > 0 &&
                     (() => {
-                      const totalAmount = parseFloat(
-                        currentPurchase.total_amount,
-                      );
                       const installmentAmount = parseFloat(
                         installments[0]?.amount || "0",
                       );
@@ -405,12 +430,27 @@ export function PurchaseManagementSheet({
 
                       if (hasNoPayments && hasDifference) {
                         return (
-                          <div className="p-4 bg-orange-50 dark:bg-orange-950 border border-orange-200 dark:border-orange-800 rounded-lg">
-                            <p className="text-sm text-orange-800 dark:text-orange-200 font-semibold">
-                              ⚠️ La cuota ({installmentAmount.toFixed(2)}) no
-                              coincide con el total de la compra (
-                              {totalAmount.toFixed(2)}). Debe sincronizar la
-                              cuota usando el botón 🔄
+                          <div
+                            role="alert"
+                            className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-3 dark:border-orange-800 dark:bg-orange-950"
+                          >
+                            <TriangleAlert
+                              className="mt-0.5 size-4 shrink-0 text-orange-600"
+                              aria-hidden
+                            />
+                            <p className="text-sm text-orange-800 dark:text-orange-200">
+                              La cuota (
+                              <span className="font-semibold tabular-nums">
+                                {formatCurrency(installmentAmount, {
+                                  currencySymbol,
+                                })}
+                              </span>
+                              ) no coincide con el total de la compra (
+                              <span className="font-semibold tabular-nums">
+                                {formatCurrency(totalAmount, { currencySymbol })}
+                              </span>
+                              ). Sincronízala con el botón de actualizar de la
+                              tabla.
                             </p>
                           </div>
                         );
@@ -423,9 +463,7 @@ export function PurchaseManagementSheet({
                     onEdit={handleEditInstallment}
                     onRefresh={() => purchase && fetchInstallments(purchase.id)}
                     isCashPayment={isCash}
-                    purchaseTotalAmount={parseFloat(
-                      currentPurchase.total_amount,
-                    )}
+                    purchaseTotalAmount={totalAmount}
                     onSyncInstallment={handleSyncInstallment}
                   />
                 </>

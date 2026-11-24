@@ -163,6 +163,14 @@ export function InstallmentPaymentsSheet({
             <span className="text-xs text-muted-foreground">Cuota #</span>
             <p className="font-semibold">{currentInstallment.installment_number}</p>
           </div>
+          {currentInstallment.letter_number && (
+            <div className="space-y-1">
+              <span className="text-xs text-muted-foreground">N° de Letra</span>
+              <p className="font-mono font-semibold">
+                {currentInstallment.letter_number}
+              </p>
+            </div>
+          )}
           <div className="space-y-1">
             <span className="text-xs text-muted-foreground">Estado</span>
             <div>

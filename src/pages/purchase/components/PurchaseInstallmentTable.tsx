@@ -34,6 +34,8 @@ export function PurchaseInstallmentTable({
   purchaseTotalAmount,
   onSyncInstallment,
 }: PurchaseInstallmentTableProps) {
+  const hasLetters = installments.some((inst) => inst.letter_number);
+
   const calculateTotal = () => {
     return installments.reduce((sum, inst) => sum + parseFloat(inst.amount), 0);
   };
@@ -63,6 +65,7 @@ export function PurchaseInstallmentTable({
         <TableHeader>
           <TableRow>
             <TableHead>Correlativo</TableHead>
+            {hasLetters && <TableHead>N° Letra</TableHead>}
             <TableHead className="text-center">Cuota #</TableHead>
             <TableHead className="text-right">Días Venc.</TableHead>
             <TableHead>Fecha Venc.</TableHead>
@@ -79,12 +82,18 @@ export function PurchaseInstallmentTable({
                 <span className="text-sm font-semibold text-blue-600">
                   {inst.correlativo}
                 </span>
-                {inst.letter_number && (
-                  <span className="block text-xs text-muted-foreground">
-                    Letra: {inst.letter_number}
-                  </span>
-                )}
               </TableCell>
+              {hasLetters && (
+                <TableCell>
+                  {inst.letter_number ? (
+                    <Badge variant="secondary" className="font-mono">
+                      {inst.letter_number}
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+              )}
               <TableCell className="text-center font-medium">
                 {inst.installment_number}
               </TableCell>
@@ -168,7 +177,7 @@ export function PurchaseInstallmentTable({
             </TableRow>
           ))}
           <TableRow className="bg-muted">
-            <TableCell colSpan={4} className="text-right font-bold">
+            <TableCell colSpan={hasLetters ? 5 : 4} className="text-right font-bold">
               TOTAL:
             </TableCell>
             <TableCell className="text-right font-bold text-lg text-blue-600">

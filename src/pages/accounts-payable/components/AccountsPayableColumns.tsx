@@ -87,6 +87,18 @@ export const getAccountsPayableColumns = (
     ),
   },
   {
+    accessorKey: "letter_number",
+    header: "N° Letra",
+    cell: ({ row }) =>
+      row.original.letter_number ? (
+        <Badge variant="secondary" className="font-mono">
+          {row.original.letter_number}
+        </Badge>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      ),
+  },
+  {
     accessorKey: "due_date",
     header: "Fecha Vencimiento",
     cell: ({ row }) => (

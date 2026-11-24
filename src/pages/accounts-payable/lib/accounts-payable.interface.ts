@@ -10,6 +10,8 @@ export interface PurchaseInstallmentResource {
   installment_number: number;
   due_days: number;
   due_date: string;
+  // Solo para compras con payment_type = "LETRA"
+  letter_number?: string | null;
   amount: string;
   pending_amount: string;
   status: string;
